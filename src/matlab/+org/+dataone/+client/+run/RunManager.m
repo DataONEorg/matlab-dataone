@@ -24,19 +24,19 @@
 classdef RunManager < hgsetget
     
     properties
-        % The instance of the Configure class used to provide configuration
-        % details for this RunManager
-        configuration;
+        
+        configuration; % The instance of the Configuration class used to provide settings details for this RunManager
         
     end
 
     methods
         
         function self = RunManager(configuration)
-        % RUNMANAGER Constructor: creates an instance of the RunManager class
-        %   The RunManager class manages outputs of a script based on the
-        %   settings in the given configuuration instance passed in.
+            % RUNMANAGER Constructor: creates an instance of the RunManager class
+            %   The RunManager class manages outputs of a script based on the
+            %   settings in the given configuuration instance passed in.
         
+            self.configuration = configuration
         end
         
         function record(self)

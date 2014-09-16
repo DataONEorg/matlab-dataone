@@ -22,18 +22,16 @@ classdef Configuration < hgsetget
     
     properties
         
-        % A boolean property that enables or disables debugging 
-        debug = true;
+        debug = true; % A boolean property that enables or disables debugging 
         
-        % The platform specific path separator 
-        pathSep = '/';
+        pathSep = '/'; % The platform specific path separator 
         
     end
 
     methods
         
         function self = Configuration()
-        % CONFIGURATION A class used to set configuration options for the DataONE Toolbox
+            % CONFIGURATION A class used to set configuration options for the DataONE Toolbox
         end
         
     end
