@@ -19,13 +19,16 @@
 % limitations under the License.
 
 classdef Configuration < hgsetget
+    % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
     
     properties
         
         debug = true; % A boolean property that enables or disables debugging 
         
-        pathSep = '/'; % The platform specific path separator 
+        sourceRepositoryBaseURL = ""; % The base URL of the DataONE Member Node repo with source datasets for reading
         
+        targetRepositoryBaseURL = ""; % The base URL of the DataONE Member Node repo with source datasets for writing
+                
     end
 
     methods
