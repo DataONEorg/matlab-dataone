@@ -25,10 +25,11 @@ classdef Configuration < hgsetget
         
         debug = true; % A boolean property that enables or disables debugging 
         
-        sourceRepositoryBaseURL = ""; % The base URL of the DataONE Member Node repo with source datasets for reading
+        sourceRepositoryBaseURL = ''; % The base URL of the DataONE Member Node repo with source datasets for reading
         
-        targetRepositoryBaseURL = ""; % The base URL of the DataONE Member Node repo with source datasets for writing
-                
+        targetRepositoryBaseURL = ''; % The base URL of the DataONE Member Node repo with source datasets for writing
+        
+        x509CertificatePath = ''; % The path to the user's X509 certificate for authentication to Member Node and Coordinating Node services.        
     end
 
     methods
