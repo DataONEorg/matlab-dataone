@@ -3,4 +3,4 @@
 % Copyright (c) DataONE and participating institutions
 %
 % Classes
-%   D1Client - A class used to communicate with nodes in the DataONE network
+%   Session - A class used to configure, save, and load session properties.

@@ -1,4 +1,4 @@
-% CONFIGURATION A class used to set configuration options for the DataONE Toolbox
+% SESSION A class used to set configuration options for the DataONE Toolbox
 %
 % This work was created by participants in the DataONE project, and is
 % jointly copyrighted by participating institutions in DataONE. For
@@ -18,8 +18,8 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef Configuration < hgsetget
-    % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
+classdef Session < hgsetget
+    % SESSION A class that stores configuration settings for script runs managed through the RunManager 
     
     properties
         
@@ -34,8 +34,8 @@ classdef Configuration < hgsetget
 
     methods
         
-        function self = Configuration()
-            % CONFIGURATION A class used to set configuration options for the DataONE Toolbox
+        function self = Session()
+            % SESSION A class used to set configuration options for the DataONE Toolbox
         end
         
     end
