@@ -36,7 +36,7 @@ classdef Session < hgsetget %& dynamicprops
         % DataONE config
         member_node_base_url = ''; % The base URL of the DataONE member node server used to store and retrieve files
         coordinating_node_base_url = ''; % The base URL of the DataONE coordinating node server
-        format_id = ''; % The default object format identifier when creating system metadata and uploading files to a member node. 
+        format_id = 'application/octet-stream'; % The default object format identifier when creating system metadata and uploading files to a member node. 
         submitter = ''; % The DataONE subject DN string of account uploading the file to the member node
         rights_holder = ''; % The DataONE subject DN string of account with read/write/change permissions for the file being uploaded
         public_read_allowed = true; % allow public read access to uploaded fiels (default: true)
