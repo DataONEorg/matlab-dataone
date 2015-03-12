@@ -72,7 +72,13 @@ classdef Session < hgsetget %& dynamicprops
         function obj = set(obj, name, value)
             % SET A method used to set one property at a time
             paraName = strtrim((name));
-            obj.(paraName) = value;            
+                        
+            if(strcmp(paraName, 'number_of_replicas') && mod(value,1) ~= 0)
+                sprintf('Value must be an integer for %s', paraName);
+                error('SessionError:IntegerRequired', 'number_of_replicas value must be integer.');
+            end                
+                        
+            obj.(paraName) = value;
         end
         
         function val = get(obj,name)

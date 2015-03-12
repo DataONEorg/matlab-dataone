@@ -29,10 +29,15 @@ classdef SessionTest < matlab.unittest.TestCase
             s.set('certificate_path', '/tmp');
             testCase.verifyEqual(s.get('certificate_path'), '/tmp');
             
-           % s.set('member_node_base_url', testCase.MN_base_url);
-           % testCase.verifyEqual(s.get('member_node_base_url'), testCase.MN_base_url);
-           % s.set('member_node_base_url', testCase.MN_invalid_base_url);
-           % testCase.verifyError(s.get('member_node_base_url'),'MalformedURLException');
+            s.set('number_of_replicas ', 3);
+            testCase.verifyEqual(s.get(' number_of_replicas'), 3);
+            
+            s.set('number_of_replicas', 3.0);
+            testCase.verifyEqual(s.get(' number_of_replicas'), 3.0);
+            
+            s.set('number_of_replicas', 3.5);
+            testCase.verifyError(@() s.set('number_of_replicas', 3.5),'SessionError:IntegerRequired')
+          
         end
     end
     
