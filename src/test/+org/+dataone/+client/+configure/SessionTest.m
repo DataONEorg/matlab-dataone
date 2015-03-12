@@ -19,7 +19,8 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture( ...
             
             s.set('member_node_base_url', testCase.MN_base_url);
             testCase.verifyEqual(s.get('member_node_base_url'), testCase.MN_base_url);
-            testCase.verifyNotEqual(s.get('member_node_base_url'), testCase.MN_invalid_base_url);
+            s.set('member_node_base_url', testCase.MN_invalid_base_url);
+            testCase.verifyFail(s.get('member_node_base_url'));
         end
     end
     

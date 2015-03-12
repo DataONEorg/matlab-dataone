@@ -68,7 +68,7 @@ classdef Session < hgsetget %& dynamicprops
         end
         
         function obj = set(obj, name, value)
-            % SET A method used to set multiple properties at the same time
+            % SET A method used to set one property at a time
             paraName = strtrim((name));
             switch paraName
                 case {'member_node_base_url', 'coordinating_node_base_url'}
@@ -86,7 +86,7 @@ classdef Session < hgsetget %& dynamicprops
         end
         
         function val = get(obj,name)
-            % GET A method used to get the value of multiple properties
+            % GET A method used to get the value of a property
             val = obj.(name);            
         end
         
