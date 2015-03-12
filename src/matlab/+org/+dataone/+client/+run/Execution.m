@@ -26,7 +26,11 @@ classdef Execution < hgsetget
     %       environment, uniquely identify the run, categorize it,
     %       and know it's start and end times.
     
+    
     properties
+        % The sequence number assigned to the run for easy reference
+        sequence_number;
+        
         % A label that allows the scientist to characterize the run
         tag;
         
@@ -57,21 +61,30 @@ classdef Execution < hgsetget
         % The identifier for the DataONE data package associated with this run
         data_package_id;
         
-        % The software application associated with this run
+        % The software application associated with this run (script name)
         software_application;
         
         % The Matlab module dependencies associated with this run
         module_dependencies;
+        
+        % Any error message associated with a run
+        error_message;
+        
     end
 
     methods
-        
-        function execution = Execution()
-            % EXECUTION Constructs an instance of the Execution class
 
+        function execution = Execution(varargin)
+            % EXECUTION Constructs an instance of the Execution class
+            if ( nargin > 0 )
+                if ( ischar(varargin{1}) )
+                    execution.tag = varargin{1};
+                end
+            end
+                
             execution.init();
         end
-        
+                
         function runtime_info = getMatlabVersion(execution)
             % GETMATLABVERSION Returns a string showing the installed Matlab version
             
@@ -89,7 +102,7 @@ classdef Execution < hgsetget
             if ( ispc )
                 platform = [platform, '', system_dependent('getwinsys')];
                 
-            elseif ( ismac )
+            elseif ( isunix )
                 [status, result] = unix('sw_vers');
                 if ( status == 0 )
                     platform = strrep(result, 'ProductName:', '');
@@ -100,7 +113,7 @@ classdef Execution < hgsetget
                 end
             end
             
-            operating_system_info = platform;
+            operating_system_info = strtrim(platform);
         end
         
         function hostname = getHostName(execution)
@@ -117,6 +130,8 @@ classdef Execution < hgsetget
         end
         
         function init(execution)
+            % INIT Initializes properties for a new instance of the
+            % Execution class
             
             % set default properties
             execution.execution_id = ['urn:uuid:' char(java.util.UUID.randomUUID())];
@@ -127,6 +142,7 @@ classdef Execution < hgsetget
             execution.host_id = execution.getHostName();
             
         end
+
     end
     
 end
