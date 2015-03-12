@@ -33,9 +33,9 @@ classdef Session < hgsetget %& dynamicprops
         scimeta_title = ''; % The title of the dataset being described
         sciemta_abstract = ''; % The abstract of the dataset being described
                
-        % DataONE config
-        member_node_base_url = ''; % The base URL of the DataONE member node server used to store and retrieve files
-        coordinating_node_base_url = ''; % The base URL of the DataONE coordinating node server
+        % DataONE config        
+        source_member_node_id  = ''; % The source member node identifier
+        target_member_node_id = ''; % The target member node identifier
         format_id = 'application/octet-stream'; % The default object format identifier when creating system metadata and uploading files to a member node. 
         submitter = ''; % The DataONE subject DN string of account uploading the file to the member node
         rights_holder = ''; % The DataONE subject DN string of account with read/write/change permissions for the file being uploaded
@@ -44,7 +44,9 @@ classdef Session < hgsetget %& dynamicprops
         number_of_replicas = 0; % The desired number of replicas of each file uploaded to the DataONE network
         preferred_replica_node_list = ''; % A comma-separated list of member node identifiers that are preferred for replica storage
         blocked_replica_node_list = ''; % A comma-separated list of member node identifiers that are blocked from replica storage
-                
+        %member_node_base_url = ''; % The base URL of the DataONE member node server used to store and retrieve files
+        %coordinating_node_base_url = ''; % The base URL of the DataONE coordinating node server
+        
         % Identity config
         orcid_identifier = ''; % The researcher's ORCID
         subject_dn = ''; % The researcher's DataONE subject as a distinguished name string
@@ -70,24 +72,13 @@ classdef Session < hgsetget %& dynamicprops
         function obj = set(obj, name, value)
             % SET A method used to set one property at a time
             paraName = strtrim((name));
-            switch paraName
-                case {'member_node_base_url', 'coordinating_node_base_url'}
-                    try
-                        url = java.net.URL(paraName) % Store or save the URL contents here                           
-                    catch ME
-                        ME
-                    end
-                    
-                    obj.(name) = value;
-                    
-                otherwise
-                    obj.(name) = value;
-            end
+            obj.(paraName) = value;            
         end
         
         function val = get(obj,name)
             % GET A method used to get the value of a property
-            val = obj.(name);            
+            paraName = strtrim((name));
+            val = obj.(paraName);            
         end
         
     end
