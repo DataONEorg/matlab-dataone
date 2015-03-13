@@ -64,7 +64,7 @@ classdef Execution < hgsetget
         % The software application associated with this run (script name)
         software_application;
         
-        % The Matlab module dependencies associated with this run
+        % The Matlab module (toolbox) dependencies associated with this run
         module_dependencies;
         
         % Any error message associated with a run
@@ -133,14 +133,37 @@ classdef Execution < hgsetget
             % INIT Initializes properties for a new instance of the
             % Execution class
             
-            % set default properties
+            % Set a default id
             execution.execution_id = ['urn:uuid:' char(java.util.UUID.randomUUID())];
+            
+            % Set the start timestamp. Use Java-based date formatting to 
+            % encode the timezone offset correctly
+            format = java.text.SimpleDateFormat('yyyy-MM-dd HH:MM:ss.SSSZ');
+            execution.start_time = char(format.format(java.util.Date()));
+            
+            % Set a default package id
             execution.data_package_id = ['urn:uuid:' char(java.util.UUID.randomUUID())];
+            
+            % Set the account with the system username
             execution.account_name = getenv('USER') % TODO: test on Windows
+            
+            % Set the runtime version
             execution.runtime = execution.getMatlabVersion();
+            
+            % Set the OS info
             execution.operating_system = execution.getOSInfo();
+            
+            % Set the host name
             execution.host_id = execution.getHostName();
             
+            % Set the software app name (original script file name)
+            [stacktrace, workspace_idx] = dbstack('-completenames');
+            execution.software_application = stacktrace(length(stacktrace)).file;
+            
+            % Set the potential toolbox dependencies
+            % TODO: Decide if matlab.codetools.requiredFilesAndProducts()
+            % is more appropriate for this
+            execution.module_dependencies = path;
         end
 
     end

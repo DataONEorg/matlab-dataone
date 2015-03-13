@@ -30,7 +30,7 @@ classdef ExecutionTest < matlab.unittest.TestCase
         
         function setUp(testCase)
             % SETUP Set up the test environment
-        
+
         end
     end
     
@@ -45,7 +45,6 @@ classdef ExecutionTest < matlab.unittest.TestCase
         
         function testSetTag(testCase)
             % TESTSETTAG Tests setting the tag property
-            
             import org.dataone.client.run.Execution;
             import org.dataone.client.run.ExecutionTest;
             execution = Execution();
@@ -54,6 +53,21 @@ classdef ExecutionTest < matlab.unittest.TestCase
             testCase.assertEqual('calibration-coefficient=0.1234', returnValue);
         end
         
+        function testIsValidUUID(testCase)
+            % TESTISVALIDUUID Test if particular properties are set wit a valid UUID URN
+            
+            import org.dataone.client.run.Execution;
+            import org.dataone.client.run.ExecutionTest;
+            execution = Execution();
+            
+            matchPattern = 'urn:uuid:[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}';
+            execution_id = get(execution, 'execution_id');
+            assertMatches(testCase, execution_id, matchPattern);
+            
+            data_package_id = get(execution, 'data_package_id');
+            assertMatches(testCase, data_package_id, matchPattern);
+
+        end
     end
     
 end
