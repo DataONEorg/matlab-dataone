@@ -145,7 +145,7 @@ classdef Execution < hgsetget
             execution.data_package_id = ['urn:uuid:' char(java.util.UUID.randomUUID())];
             
             % Set the account with the system username
-            execution.account_name = getenv('USER') % TODO: test on Windows
+            execution.account_name = getenv('USER'); % TODO: test on Windows
             
             % Set the runtime version
             execution.runtime = execution.getMatlabVersion();
