@@ -73,11 +73,38 @@ classdef Session < hgsetget %& dynamicprops
             % SET A method used to set one property at a time
             paraName = strtrim((name));
                         
-            if(strcmp(paraName, 'number_of_replicas') && mod(value,1) ~= 0)
+            if strcmp(paraName, 'number_of_replicas') && mod(value,1) ~= 0
                 sprintf('Value must be an integer for %s', paraName);
                 error('SessionError:IntegerRequired', 'number_of_replicas value must be integer.');
             end                
-                        
+                     
+            if strcmp(paraName, 'source_member_node_id') || strcmp(paraName, 'target_member_node_id')
+                if ~strncmpi(value, 'urn:node:', 9)
+                    error('SessionError:mnIdentifier', 'identifier for member node must start with urn:node:');
+                end
+            end
+            
+            if strcmp(paraName, 'provenance_storage_directory')
+                if ispc
+                    home_dir = [getenv('HOMEDRIVE') getenv('HOMEPATH')];
+                else
+                    home_dir = getenv('HOME');
+                end
+                
+                absolute_prov_storage_dir = strcat(home_dir, '/.d1/provenance');
+                
+                if isunix && strncmpi(value, '~/', 2)
+                    translate_absolute_path = strcat(home_dir ,value(2:end));
+                    if ~strcmp(absolute_prov_storage_dir, translate_absolute_path)
+                        error('SessionError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance');
+                    end 
+                else
+                    if ~strcmp(absolute_prov_storage_dir, value)
+                       error('SessionError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance'); 
+                    end
+                end
+            end           
+            
             obj.(paraName) = value;
         end
         
@@ -86,7 +113,6 @@ classdef Session < hgsetget %& dynamicprops
             paraName = strtrim((name));
             val = obj.(paraName);            
         end
-        
     end
     
 end
