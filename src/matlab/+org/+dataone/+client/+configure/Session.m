@@ -62,6 +62,12 @@ classdef Session < hgsetget %& dynamicprops
                      
     end
 
+    methods(Static)
+        function s = loadSession(path)
+            % LOADSESSION  
+        end    
+    end
+    
     methods
         
         function self = Session()
@@ -112,8 +118,34 @@ classdef Session < hgsetget %& dynamicprops
                 cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
                 Settings.getConfiguration.setProperty('D1Client.CN_URL', cn_base_url);
                 fmtList = ObjectFormatCache.getInstance.listFormats;
-                       
-                % to display each element in the format list               
+                size = fmtList.getObjectFormatList.size;
+                
+                found = false;
+                for i = 1:size
+                    fmt = fmtList.getObjectFormatList.get(i-1);
+                    if strcmp(value, char(fmt.getFormatId.getValue))
+                        found = true;
+                        break;
+                    end                    
+                    i = i+1;
+                end 
+                
+                if found ~= 1
+                    error('SessionError:format_id', 'format_id should use ObjectFormat.');
+                end
+                found = false;
+                
+                if true
+                    % to display each element in the format list                    
+                    fprintf('Length=%d \n', size);
+                    for i = 1:size
+                        fmt = fmtList.getObjectFormatList.get(i-1);
+               
+                        fprintf('%s %s %s \n',char(fmt.getFormatType), char(fmt.getFormatId.getValue), char(fmt.getFormatName));
+                        i = i+1;
+                    end    
+                end    
+                              
             end
             
             obj.(paraName) = value;
@@ -123,6 +155,15 @@ classdef Session < hgsetget %& dynamicprops
             % GET A method used to get the value of a property
             paraName = strtrim((name));
             val = obj.(paraName);            
+        end
+        
+        function obj = saveSession(obj)
+            % SAVESESSION 
+        end
+        
+        
+        function listSession()
+           % LISTSESSION  
         end
     end
     
