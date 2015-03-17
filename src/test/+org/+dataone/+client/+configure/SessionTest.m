@@ -44,8 +44,12 @@ classdef SessionTest < matlab.unittest.TestCase
     methods (Test)
         function testSetGet(testCase)
             import org.dataone.client.configure.Session;
-           
+   
             s = Session();
+            
+            s.set('format_id', 'FGDC-STD-001-1998');
+            testCase.verifyEqual(s.get('format_id'), 'FGDC-STD-001-1998');
+            
             s.set('certificate_path', '/tmp');
             testCase.verifyEqual(s.get('certificate_path'), '/tmp');
             
@@ -57,6 +61,8 @@ classdef SessionTest < matlab.unittest.TestCase
             
             s.set('number_of_replicas', 3.5);
             testCase.verifyError(@() Session.set('number_of_replicas', 3.5),'SessionError:IntegerRequired')
+            
+            
           
         end
     end

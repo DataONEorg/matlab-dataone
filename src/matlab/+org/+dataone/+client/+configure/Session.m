@@ -20,7 +20,6 @@
 
 classdef Session < hgsetget %& dynamicprops 
     % SESSION A class that stores configuration settings for script runs managed through the RunManager 
-    
     properties
         
         debug = true; % A boolean property that enables or disables debugging  
@@ -104,6 +103,18 @@ classdef Session < hgsetget %& dynamicprops
                     end
                 end
             end           
+            
+            if strcmp(paraName, 'format_id')
+               
+                import org.dataone.client.v2.formats.*;
+                import org.dataone.configuration.*;
+                
+                cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
+                Settings.getConfiguration.setProperty('D1Client.CN_URL', cn_base_url);
+                fmtList = ObjectFormatCache.getInstance.listFormats;
+                       
+                % to display each element in the format list               
+            end
             
             obj.(paraName) = value;
         end
