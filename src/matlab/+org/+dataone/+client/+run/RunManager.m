@@ -28,17 +28,54 @@ classdef RunManager < hgsetget
         % The instance of the Session class used to provide settings 
         % details for this RunManager
         session;
+        
+        % Enable or disable the provenance capture state
+        prov_capture_enabled = true;
+
     end
 
-    methods
-        
-        function runManager = RunManager(session)
+    methods (Access = private)
+
+        function self = RunManager(session)
             % RUNMANAGER Constructor: creates an instance of the RunManager class
             %   The RunManager class manages outputs of a script based on the
-            %   settings in the given configuuration instance passed in.
-        
-            runManager.session = session
+            %   settings in the given session passed in.
+          
+            self.session = session;
+            self.init();
+            
         end
+        
+    end
+
+    methods (Static)
+        function runManager = getInstance(session)
+            % GETINSTANCE returns an instance of the RunManager by either
+            % creating a new instance or returning an existing one.
+            
+            import org.dataone.client.configure.Session;
+
+            % Create a default session object if one isn't passed in
+            if ( nargin < 1 )
+                session = Session();
+                
+            end
+            
+            persistent singletonRunManager; % private, stays in memory across clears
+            
+            if isempty( singletonRunManager )
+                import org.dataone.client.run.RunManager;
+                runManager = RunManager(session);
+                singletonRunManager = runManager;
+                
+            else
+                runManager = singletonRunManager;
+                
+            end
+        end
+    end
+    
+    methods
         
         function data_package = record(runManager)
             % RECORD Records provenance relationships between data and scripts
@@ -65,7 +102,7 @@ classdef RunManager < hgsetget
             % LISTRUNS Lists prior executions (runs) and information about them.
         end
         
-        function deleted_list = deleteRuns(runIdList, startDate, endDate, tags)
+        function deleted_runs = deleteRuns(runIdList, startDate, endDate, tags)
             % DELETERUNS Deletes prior executions (runs) from the stored
             % list.
             
@@ -82,6 +119,62 @@ classdef RunManager < hgsetget
             % to the configured DataONE Member Node server.
             
         end
+        
+        function init(runManager)
+            % INIT initializes the RunManager instance
+            
+            % Set the java class path
+            runManager.setJavaClassPath();
+            
+            % Ensure the provenance storage directory is configured
+            if ( ~ isempty(runManager.session) )
+                prov_dir = runManager.session.get('provenance_storage_directory');
+                
+                % Only proceed if the runs directory is available
+                if ( ~ exist(prov_dir, 'dir') )
+                    runs_dir = fullfile(prov_dir, 'runs', filesep);
+                    [status, message, message_id] = mkdir(runs_dir);
+                    
+                    if ( status ~= 1 )
+                        error(message_id, [ 'The directory ' runs_dir ...
+                              ' could not be created. The error message' ...
+                              ' was: ' message]);
+                    
+                    elseif ( strcmp(message, 'already exists') )
+                        if ( debug )
+                            disp(['The directory ' runs_dir ...
+                                ' already exists and will not be created.']);
+                        end
+                    end                    
+                end
+            end
+        end
+                
+        function setJavaClassPath(runManager)
+            % SETJAVACLASSPATH adds all Java libraries found in 
+            % $matalab-dataone/lib to the java class path
+            
+            % Determine the lib directory relative to the RunManager
+            % location
+            filePath = mfilename('fullpath');
+            disp(['filePath: ' filePath]);
+            matlab_dataone_dir_array = strsplit(filePath, filesep);
+            matlab_dataone_java_lib_dir = ...
+                [strjoin( ...
+                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
+                    filesep) ...
+                    filesep 'lib' filesep 'java' filesep];
+            java_libs_array = dir(matlab_dataone_java_lib_dir);
+            % For each library file, add it to the class path
+            for i=3:length(java_libs_array)
+                if ( runManager.session.debug )
+                    disp(['Added ' ...
+                          java_libs_array(i).name ...
+                          ' to the java class path.']);
+                end
+                javaaddpath([matlab_dataone_java_lib_dir java_libs_array(i).name]);
+                
+            end
+        end
     end
-    
 end
