@@ -141,7 +141,7 @@ classdef RunManager < hgsetget
                               ' was: ' message]);
                     
                     elseif ( strcmp(message, 'already exists') )
-                        if ( debug )
+                        if ( runManager.session.debug )
                             disp(['The directory ' runs_dir ...
                                 ' already exists and will not be created.']);
                         end
@@ -157,7 +157,6 @@ classdef RunManager < hgsetget
             % Determine the lib directory relative to the RunManager
             % location
             filePath = mfilename('fullpath');
-            disp(['filePath: ' filePath]);
             matlab_dataone_dir_array = strsplit(filePath, filesep);
             matlab_dataone_java_lib_dir = ...
                 [strjoin( ...
