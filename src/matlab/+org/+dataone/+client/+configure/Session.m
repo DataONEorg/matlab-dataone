@@ -75,7 +75,7 @@ classdef Session < hgsetget %& dynamicprops
             
             % Find path for persistent_session_file_name
             if ispc
-                self.persistent_session_file_name = fullpath(getenv('userprofile'), filesep, '.d1', filesep, 'session.json');  
+                self.persistent_session_file_name = fullfile(getenv('userprofile'), filesep, '.d1', filesep, 'session.json');  
                 if true  % self.debug ??
                     disp(self.persistent_session_file_name);
                 end
@@ -217,10 +217,10 @@ classdef Session < hgsetget %& dynamicprops
                 % (for linux) or $userprofile/.d1 directory (for windows); create it if not
                 session_file_absolute_path = fullfile(default_session_storage_directory, filesep, '.d1', filesep, 'session.json');
                 if exist(session_file_absolute_path, 'file') == 0
-                    % create an empty session.json here. ??
+                    % Create an empty session.json here. ??
                     fid = fopen(session_file_absolute_path, 'w');
                     
-                    if obj.debug
+                    if true % obj.debug ??
                         fprintf('\nCreate a new and empty session.json %s\n\n', session_file_absolute_path);
                     end
                 end
