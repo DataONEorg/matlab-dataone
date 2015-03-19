@@ -76,12 +76,12 @@ classdef Session < hgsetget %& dynamicprops
             % Find path for persistent_session_file_name
             if ispc
                 self.persistent_session_file_name = fullpath(getenv('userprofile'), filesep, '.d1', filesep, 'session.json');  
-                if self.debug
+                if true  % self.debug ??
                     disp(self.persistent_session_file_name);
                 end
             elseif isunix
                 self.persistent_session_file_name = strcat(getenv('HOME'), filesep, '.d1', filesep, 'session.json');
-                if self.debug
+                if true  % self.debug ??
                     disp(self.persistent_session_file_name);
                 end
             else
@@ -161,7 +161,7 @@ classdef Session < hgsetget %& dynamicprops
                 end
               % found = false;
                 
-                if self.debug
+                if true  % self.debug ??
                     % to display each element in the format list                    
                     fprintf('Length=%d \n', size);
                     for i = 1:size
