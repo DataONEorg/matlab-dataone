@@ -214,7 +214,7 @@ classdef Session < hgsetget %& dynamicprops
                 end
                 
                 % Check if session.json file exists under $HOME/.d1 directory 
-                % (for linux) or $USERPROFILE/.d1 directory; create it if not
+                % (for linux) or $userprofile/.d1 directory (for windows); create it if not
                 session_file_absolute_path = fullfile(default_session_storage_directory, filesep, '.d1', filesep, 'session.json');
                 if exist(session_file_absolute_path, 'file') == 0
                     % create an empty session.json here. ??
