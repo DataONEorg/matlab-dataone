@@ -47,6 +47,9 @@ classdef SessionTest < matlab.unittest.TestCase
    
             s = Session();
             
+            s.set('provenance_storage_directory', '/Users/syc/.d1/provenance');
+            testCase.verifyEqual(s.get('provenance_storage_directory'), '/Users/syc/.d1/provenance');
+            
             s.set('format_id', 'FGDC-STD-001-1998');
             testCase.verifyEqual(s.get('format_id'), 'FGDC-STD-001-1998');
             

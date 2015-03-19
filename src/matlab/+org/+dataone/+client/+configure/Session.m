@@ -59,25 +59,47 @@ classdef Session < hgsetget %& dynamicprops
         capture_dataone_reads = true; % A flag indicating whether to trigger provenance capture for reading from DataONe MNRead.get()
         capture_dataone_writes = true; % A flag indicating whether to trigger provenance capture for writing with DataONE MNStorage.create() or MNStorage.update()
         capture_yesworkflow_comments = true; % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
-                     
+        
+        % Session storage config
+        persistent_session_file_name = ''; % The directory used to store persistent session file
     end
 
     methods(Static)
-        function s = loadSession(path)
-            % LOADSESSION  
-        end    
+        
     end
     
     methods
         
         function self = Session()
             % SESSION A class used to set configuration options for the DataONE Toolbox  
+            
+            % Find path for persistent_session_file_name
+            if ispc
+                self.persistent_session_file_name = fullpath(getenv('userprofile'), filesep, '.d1', filesep, 'session.json');  
+                if self.debug
+                    disp(self.persistent_session_file_name);
+                end
+            elseif isunix
+                self.persistent_session_file_name = strcat(getenv('HOME'), filesep, '.d1', filesep, 'session.json');
+                if self.debug
+                    disp(self.persistent_session_file_name);
+                end
+            else
+                error('Current platform not supported.');
+            end
+            
+            % Call loadSession() with the default path location to the
+            % session file on disk
+            loadSession(self,'');
+            
         end
         
+        %-------------------------------------------------------------------------------------------
         function obj = set(obj, name, value)
             % SET A method used to set one property at a time
             paraName = strtrim((name));
-                        
+            
+            % Validate the value of number_of_replicas field
             if strcmp(paraName, 'number_of_replicas') && mod(value,1) ~= 0
                 sprintf('Value must be an integer for %s', paraName);
                 error('SessionError:IntegerRequired', 'number_of_replicas value must be integer.');
@@ -89,14 +111,17 @@ classdef Session < hgsetget %& dynamicprops
                 end
             end
             
+            % Validate the value of provenance_storage_directory
             if strcmp(paraName, 'provenance_storage_directory')
                 if ispc
-                    home_dir = [getenv('HOMEDRIVE') getenv('HOMEPATH')];
-                else
+                    home_dir = getenv('userfrofile');
+                elseif isunix
                     home_dir = getenv('HOME');
+                else
+                    error('Current platform not supported.');
                 end
                 
-                absolute_prov_storage_dir = strcat(home_dir, '/.d1/provenance');
+                absolute_prov_storage_dir = strcat(home_dir, filesep, '.d1', filesep, 'provenance');
                 
                 if isunix && strncmpi(value, '~/', 2)
                     translate_absolute_path = strcat(home_dir ,value(2:end));
@@ -110,6 +135,7 @@ classdef Session < hgsetget %& dynamicprops
                 end
             end           
             
+            % Validate the value of format_id
             if strcmp(paraName, 'format_id')
                
                 import org.dataone.client.v2.formats.*;
@@ -133,9 +159,9 @@ classdef Session < hgsetget %& dynamicprops
                 if found ~= 1
                     error('SessionError:format_id', 'format_id should use ObjectFormat.');
                 end
-                found = false;
+              % found = false;
                 
-                if true
+                if self.debug
                     % to display each element in the format list                    
                     fprintf('Length=%d \n', size);
                     for i = 1:size
@@ -145,25 +171,72 @@ classdef Session < hgsetget %& dynamicprops
                         i = i+1;
                     end    
                 end    
-                              
             end
             
+            % Set value of a field
             obj.(paraName) = value;
+            obj.saveSession();
         end
         
+        %-------------------------------------------------------------------------------------------
         function val = get(obj,name)
             % GET A method used to get the value of a property
             paraName = strtrim((name));
             val = obj.(paraName);            
         end
         
+        %-------------------------------------------------------------------------------------------
         function obj = saveSession(obj)
             % SAVESESSION 
+            savejson('', struct(obj), obj.persistent_session_file_name);
         end
         
+        %-------------------------------------------------------------------------------------------
+        function obj = loadSession(obj, filename)
+            % LOADSESSION  
+            
+            % Get persistent session file path
+            if strcmp(filename, '')
+                % Create a default persistent session directory if one isn't
+                % passed in
+                if ispc
+                    default_session_storage_directory = getenv('userprofile');
+                elseif isunix
+                    default_session_storage_directory = getenv('HOME');                  
+                else
+                    error('Current platform not supported.');
+                end
+                
+                % Check if .d1 directory exists; create it if not 
+                if exist(fullfile(default_session_storage_directory, strcat(filesep, '.d1')), 'dir') == 0
+                    cd(default_session_storage_directory);
+                    mkdir('.d1');                        
+                end
+                
+                % Check if session.json file exists under $HOME/.d1 directory 
+                % (for linux) or $USERPROFILE/.d1 directory; create it if not
+                session_file_absolute_path = fullfile(default_session_storage_directory, filesep, '.d1', filesep, 'session.json');
+                if exist(session_file_absolute_path, 'file') == 0
+                    % create an empty session.json here. ??
+                    fid = fopen(session_file_absolute_path, 'w');
+                    
+                    if obj.debug
+                        fprintf('\nCreate a new and empty session.json %s\n\n', session_file_absolute_path);
+                    end
+                end
+            else
+                obj.persistent_session_file_name = filename;
+                % Load session data from one's specified path 
+                obj = loadjson(obj.persistent_session_file_name);
+            end
+                                    
+            % Save session object to disk in a JSON format
+            savejson('', struct(obj), 'session.json');
+         end    
         
+        %-------------------------------------------------------------------------------------------
         function listSession()
-           % LISTSESSION  
+            % LISTSESSION  
         end
     end
     
