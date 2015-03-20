@@ -95,10 +95,16 @@ classdef RunManager < hgsetget
                     filesep 'lib' filesep 'java' filesep];
             java_libs_array = dir(matlab_dataone_java_lib_dir);
             % For each library file, add it to the class path
-            disp('Adding Java libraries to the classpath.');
-                
+            
+            classpath = javaclasspath;
+            
             for i=3:length(java_libs_array)
-                javaaddpath([matlab_dataone_java_lib_dir java_libs_array(i).name]);
+                classpathItem = [matlab_dataone_java_lib_dir java_libs_array(i).name];
+                presentInClassPath = strmatch(classpathItem, classpath);
+                if ( isempty(presentInClassPath) )
+                    javaaddpath(classpathItem);
+                    disp(['Added new java classpath item: ' classpathItem]);
+                end
                 
             end
         end
