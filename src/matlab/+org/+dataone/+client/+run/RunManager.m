@@ -54,6 +54,12 @@ classdef RunManager < hgsetget
             % creating a new instance or returning an existing one.
             
             import org.dataone.client.configure.Session;
+            
+            % Set the java class path
+            RunManager.setJavaClassPath();
+
+            % Set the java class path
+            RunManager.setMatlabPath();
 
             % Create a default session object if one isn't passed in
             if ( nargin < 1 )
@@ -73,6 +79,48 @@ classdef RunManager < hgsetget
                 
             end
         end
+        
+        function setJavaClassPath()
+            % SETJAVACLASSPATH adds all Java libraries found in 
+            % $matalab-dataone/lib to the java class path
+            
+            % Determine the lib directory relative to the RunManager
+            % location
+            filePath = mfilename('fullpath');
+            matlab_dataone_dir_array = strsplit(filePath, filesep);
+            matlab_dataone_java_lib_dir = ...
+                [strjoin( ...
+                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
+                    filesep) ...
+                    filesep 'lib' filesep 'java' filesep];
+            java_libs_array = dir(matlab_dataone_java_lib_dir);
+            % For each library file, add it to the class path
+            disp('Adding Java libraries to the classpath.');
+                
+            for i=3:length(java_libs_array)
+                javaaddpath([matlab_dataone_java_lib_dir java_libs_array(i).name]);
+                
+            end
+        end
+        
+        function setMatlabPath()
+            % SETMATLABPATH adds all Matlab libraries found in 
+            % $matalab-dataone/lib/matlab to the Matlab path
+            
+            % Determine the lib directory relative to the RunManager
+            % location
+            filePath = mfilename('fullpath');
+            matlab_dataone_dir_array = strsplit(filePath, filesep);
+            matlab_dataone_lib_dir = ...
+                [strjoin( ...
+                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
+                    filesep) ...
+                    filesep 'lib' filesep 'matlab' filesep];
+           
+           % Add subdirectories of lib/matlab to the Matlab path,
+           addpath(genpath(matlab_dataone_lib_dir));
+                
+         end
     end
     
     methods
@@ -122,10 +170,7 @@ classdef RunManager < hgsetget
         
         function init(runManager)
             % INIT initializes the RunManager instance
-            
-            % Set the java class path
-            runManager.setJavaClassPath();
-            
+                        
             % Ensure the provenance storage directory is configured
             if ( ~ isempty(runManager.session) )
                 prov_dir = runManager.session.get('provenance_storage_directory');
@@ -147,32 +192,6 @@ classdef RunManager < hgsetget
                         end
                     end                    
                 end
-            end
-        end
-                
-        function setJavaClassPath(runManager)
-            % SETJAVACLASSPATH adds all Java libraries found in 
-            % $matalab-dataone/lib to the java class path
-            
-            % Determine the lib directory relative to the RunManager
-            % location
-            filePath = mfilename('fullpath');
-            matlab_dataone_dir_array = strsplit(filePath, filesep);
-            matlab_dataone_java_lib_dir = ...
-                [strjoin( ...
-                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
-                    filesep) ...
-                    filesep 'lib' filesep 'java' filesep];
-            java_libs_array = dir(matlab_dataone_java_lib_dir);
-            % For each library file, add it to the class path
-            for i=3:length(java_libs_array)
-                if ( runManager.session.debug )
-                    disp(['Added ' ...
-                          java_libs_array(i).name ...
-                          ' to the java class path.']);
-                end
-                javaaddpath([matlab_dataone_java_lib_dir java_libs_array(i).name]);
-                
             end
         end
     end
