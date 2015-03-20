@@ -56,7 +56,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testGetInstanceWithSession(testCase)
             % TESTGETINSTANCENOSESSION tests calling the getInstance()
-            % function without passing a Session object
+            % function while passing a Session object
 
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Session;
