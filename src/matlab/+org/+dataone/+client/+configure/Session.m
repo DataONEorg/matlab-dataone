@@ -33,8 +33,8 @@ classdef Session < hgsetget %& dynamicprops
         sciemta_abstract = ''; % The abstract of the dataset being described
                
         % DataONE config        
-        source_member_node_id  = ''; % The source member node identifier
-        target_member_node_id = ''; % The target member node identifier
+        source_member_node_id  = 'urn:node:'; % The source member node identifier
+        target_member_node_id = 'urn:node:'; % The target member node identifier
         format_id = 'application/octet-stream'; % The default object format identifier when creating system metadata and uploading files to a member node. 
         submitter = ''; % The DataONE subject DN string of account uploading the file to the member node
         rights_holder = ''; % The DataONE subject DN string of account with read/write/change permissions for the file being uploaded
@@ -69,19 +69,19 @@ classdef Session < hgsetget %& dynamicprops
     
     methods
         
-        function self = Session()
+        function session = Session()
             % SESSION A class used to set configuration options for the DataONE Toolbox  
             
             % Find path for persistent_session_file_name
             if ispc
-                self.persistent_session_file_name = fullfile(getenv('userprofile'), filesep, '.d1', filesep, 'session.json');  
-                if true  % self.debug ??
-                    disp(self.persistent_session_file_name);
+                session.persistent_session_file_name = fullfile(getenv('userprofile'), filesep, '.d1', filesep, 'session.json');  
+                if session.debug  
+                    disp(session.persistent_session_file_name);
                 end
             elseif isunix
-                self.persistent_session_file_name = strcat(getenv('HOME'), filesep, '.d1', filesep, 'session.json');
-                if true  % self.debug ??
-                    disp(self.persistent_session_file_name);
+                session.persistent_session_file_name = strcat(getenv('HOME'), filesep, '.d1', filesep, 'session.json');
+                if session.debug  % self.debug ??
+                    disp(session.persistent_session_file_name);
                 end
             else
                 error('Current platform not supported.');
@@ -89,12 +89,12 @@ classdef Session < hgsetget %& dynamicprops
             
             % Call loadSession() with the default path location to the
             % session file on disk
-            loadSession(self,'');
+            loadSession(session,'');
             
         end
         
         %-------------------------------------------------------------------------------------------
-        function obj = set(obj, name, value)
+        function session = set(session, name, value)
             % SET A method used to set one property at a time
             paraName = strtrim((name));
             
@@ -137,8 +137,8 @@ classdef Session < hgsetget %& dynamicprops
             % Validate the value of format_id
             if strcmp(paraName, 'format_id')
                
-                import org.dataone.client.v2.formats.*;
-                import org.dataone.configuration.*;
+                import org.dataone.client.v2.formats.ObjectFormatCache;
+                import org.dataone.configuration.Settings;
                 
                 cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
                 Settings.getConfiguration.setProperty('D1Client.CN_URL', cn_base_url);
@@ -152,17 +152,15 @@ classdef Session < hgsetget %& dynamicprops
                         found = true;
                         break;
                     end                    
-                    i = i+1;
                 end 
                 
                 if found ~= 1
                     error('SessionError:format_id', 'format_id should use ObjectFormat.');
                 end
-              % found = false;
-                
-                if true  % self.debug ??
+            
+                if session.debug  
                     % to display each element in the format list                    
-                    fprintf('Length=%d \n', size);
+                    fprintf('\nLength=%d \n', size);
                     for i = 1:size
                         fmt = fmtList.getObjectFormatList.get(i-1);
                
@@ -173,28 +171,39 @@ classdef Session < hgsetget %& dynamicprops
             end
             
             % Set value of a field
-            obj.(paraName) = value;
-            obj.saveSession();
+            session.(paraName) = value;
+            session.saveSession();
         end
         
         %-------------------------------------------------------------------------------------------
-        function val = get(obj,name)
+        function val = get(session,name)
             % GET A method used to get the value of a property
             paraName = strtrim((name));
-            val = obj.(paraName);            
+            val = session.(paraName);            
         end
         
         %-------------------------------------------------------------------------------------------
-        function obj = saveSession(obj)
+        function session = saveSession(session)
             % SAVESESSION 
-         %   root_path = obj.findRootName();
-         %   fprintf('\nroot_path=%s\n\n', root_path);
+           
+            % Convert session object to session struct
+            sessionProps = properties(session); % displays the names of the public properties for the class of session
             
-            savejson('', struct(obj), obj.persistent_session_file_name); % double check the file path location ??
+            pvals = cell(1, length(sessionProps));
+            for i = 1:length(sessionProps)
+               % To do: check the type of sessionProps{i}
+               pvals{i} = session.get(sessionProps{i});
+            end
+ 
+            arglist = {sessionProps{:};pvals{:}};
+            sessionStruct = struct(arglist{:});
+            
+         %  savejson('session', sessionStruct, session.persistent_session_file_name);   
+            savejson('', sessionStruct, session.persistent_session_file_name);
         end
         
         %-------------------------------------------------------------------------------------------
-        function obj = loadSession(obj, filename)
+        function session = loadSession(session, filename)
             % LOADSESSION  
             
             % Get persistent session file path
@@ -224,36 +233,58 @@ classdef Session < hgsetget %& dynamicprops
                 % Check if session.json file exists under $HOME/.d1 directory 
                 % (for linux) or $userprofile/.d1 directory (for windows); create it if not
                 session_file_absolute_path = fullfile(default_session_storage_directory, filesep, '.d1', filesep, 'session.json');
+               
                 if exist(session_file_absolute_path, 'file') == 0
-                    % Create an empty session.json here. ??
-                    fid = fopen(session_file_absolute_path, 'w');
+                    % The session.json does not exist under the default directory
+                    % Create an empty session.json here. 
+                    fid = fopen(session_file_absolute_path, 'w'); % fclose() after use it no memory leak
                     
-                    if true % obj.debug ??
+                    if session.debug 
                         fprintf('\nCreate a new and empty session.json %s\n\n', session_file_absolute_path);
                     end
+                    
+                    % Save defaul session object in session.json 
+                    session.saveSession();
+                    
+                    % To do: close file ?
+                    fclose(fid);
+                    
+                    return;
+                else
+                    % The session.json exists under the default directory
+                    sessionStruct = loadjson(session.persistent_session_file_name); %?? populate obj using objStruct
+                    
+                    % Convert session struct to session object
+                    fnames = fieldnames(sessionStruct);                    
+                    for i = 1:size(fnames)                       
+                       val =  getfield(sessionStruct,fnames{i});
+                       session.set(fnames{i}, val);
+                    end               
                 end
             else
-                obj.persistent_session_file_name = filename;
+                % The session.json exists under the user-specified directory
+                session.persistent_session_file_name = filename;
                 % Load session data from one's specified path 
-                obj = loadjson(obj.persistent_session_file_name);
+                sessionStruct = loadjson(session.persistent_session_file_name); %???  populate obj using objStruct
+                
+                 % Convert session struct to session object
+                fnames = fieldnames(sessionStruct);
+                for i = 1:size(fnames)                       
+                    val =  getfield(sessionStruct,fnames{i});
+                    session.set(fnames{i}, val);
+                end             
             end
                                     
             % Save session object to disk in a JSON format
-            savejson('', struct(obj), obj.persistent_session_file_name); % double check the file path location ??
+          % savejson('session', sessionStruct, session.persistent_session_file_name); % double check the file path location ??
+            savejson('', sessionStruct, session.persistent_session_file_name); 
          end    
         
         %-------------------------------------------------------------------------------------------
         function listSession()
             % LISTSESSION  
         end
-        
-        %-------------------------------------------------------------------------------------------
-      %  function root_path = findRootName(obj)
-      %      path = obj.persistent_session_file_name;
-      %      fprintf('\npath=%s\n\n', path);
-      %      k = strfind(path, 'session.json');
-      %      root_path = path(1:k-1);
-      %  end
+       
     end
     
 end
