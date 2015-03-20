@@ -61,7 +61,7 @@ classdef Session < hgsetget %& dynamicprops
         capture_yesworkflow_comments = true; % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
         
         % Session storage config
-        persistent_session_file_name = ''; % The directory used to store persistent session file
+        persistent_session_file_name = ''; % The directory used to store persistent session file Eg: $HOME/.d1/session.json
     end
 
     methods(Static)
@@ -188,7 +188,10 @@ classdef Session < hgsetget %& dynamicprops
         %-------------------------------------------------------------------------------------------
         function obj = saveSession(obj)
             % SAVESESSION 
-            savejson('', struct(obj), obj.persistent_session_file_name);
+         %   root_path = obj.findRootName();
+         %   fprintf('\nroot_path=%s\n\n', root_path);
+            
+            savejson('', struct(obj), obj.persistent_session_file_name); % double check the file path location ??
         end
         
         %-------------------------------------------------------------------------------------------
@@ -210,7 +213,13 @@ classdef Session < hgsetget %& dynamicprops
                 % Check if .d1 directory exists; create it if not 
                 if exist(fullfile(default_session_storage_directory, strcat(filesep, '.d1')), 'dir') == 0
                     cd(default_session_storage_directory);
-                    mkdir('.d1');                        
+                    [status, message, message_id] = mkdir('.d1');
+                    
+                    if ( status ~= 1 )
+                        error(message_id, [ 'The directory .d1' ...
+                              ' could not be created. The error message' ...
+                              ' was: ' message]);
+                    end                        
                 end
                 
                 % Check if session.json file exists under $HOME/.d1 directory 
@@ -231,13 +240,21 @@ classdef Session < hgsetget %& dynamicprops
             end
                                     
             % Save session object to disk in a JSON format
-            savejson('', struct(obj), 'session.json');
+            savejson('', struct(obj), obj.persistent_session_file_name); % double check the file path location ??
          end    
         
         %-------------------------------------------------------------------------------------------
         function listSession()
             % LISTSESSION  
         end
+        
+        %-------------------------------------------------------------------------------------------
+      %  function root_path = findRootName(obj)
+      %      path = obj.persistent_session_file_name;
+      %      fprintf('\npath=%s\n\n', path);
+      %      k = strfind(path, 'session.json');
+      %      root_path = path(1:k-1);
+      %  end
     end
     
 end
