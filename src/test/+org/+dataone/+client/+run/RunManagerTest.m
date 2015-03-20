@@ -23,7 +23,52 @@ classdef RunManagerTest < matlab.unittest.TestCase
     properties
     end
 
-    methods
+    methods (TestMethodSetup)
+        
+        function setUp(testCase)
+            % SETUP Set up the test environment
+
+        end
     end
     
+    methods (TestMethodTeardown)
+        
+        function tearDown(testCase)
+            % TEARDOWN Tear down the test environment
+            
+        end
+    end
+    
+    methods (Test)
+        
+        function testGetInstanceNoSession(testCase)
+            % TESTGETINSTANCENOSESSION tests calling the getInstance()
+            % function without passing a Session object
+
+            import org.dataone.client.run.RunManager;
+            
+            mgr = RunManager.getInstance();
+            assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
+            % Test a single default property to ensure the session was set
+            assertEqual(testCase, mgr.session.format_id, 'application/octet-stream');
+            
+        end
+        
+        function testGetInstanceWithSession(testCase)
+            % TESTGETINSTANCENOSESSION tests calling the getInstance()
+            % function without passing a Session object
+
+            import org.dataone.client.run.RunManager;
+            import org.dataone.client.configure.Session;
+            
+            session = Session();
+            set(session, 'format_id', 'text/plain');
+            
+            mgr = RunManager.getInstance(session);
+            assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
+            % Test a single preset property
+            assertEqual(testCase, mgr.session.format_id, 'text/plain');
+
+        end
+    end
 end
