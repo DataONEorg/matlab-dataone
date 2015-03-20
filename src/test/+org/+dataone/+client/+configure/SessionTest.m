@@ -47,14 +47,22 @@ classdef SessionTest < matlab.unittest.TestCase
    
             s = Session();
             
-            s.set('provenance_storage_directory', '/Users/syc/.d1/provenance');
+            if ispc
+                home_dir = getenv('userprofile');
+            elseif isunix
+                home_dir = getenv('HOME');
+            else
+                error('Current platform not supported.');
+            end
+            
+            s.set('provenance_storage_directory', strcat(home_dir, filesep,'.d1', filesep, 'provenance'));
             testCase.verifyEqual(s.get('provenance_storage_directory'), '/Users/syc/.d1/provenance');
             
             s.set('format_id', 'FGDC-STD-001-1998');
             testCase.verifyEqual(s.get('format_id'), 'FGDC-STD-001-1998');
             
-         %   s.set('format_id', 'aaa');
-         %   testCase.verifyError(@() Session.set('format_id', 'aaa'),'SessionError:format_id');
+         %  s.set('format_id', 'aaa');
+         %  testCase.verifyError(@() Session.set('format_id', 'aaa'),'SessionError:format_id');
             
             s.set('certificate_path', '/tmp');
             testCase.verifyEqual(s.get('certificate_path'), '/tmp');
