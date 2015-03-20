@@ -43,8 +43,7 @@ classdef Session < hgsetget %& dynamicprops
         number_of_replicas = 0; % The desired number of replicas of each file uploaded to the DataONE network
         preferred_replica_node_list = ''; % A comma-separated list of member node identifiers that are preferred for replica storage
         blocked_replica_node_list = ''; % A comma-separated list of member node identifiers that are blocked from replica storage
-        %member_node_base_url = ''; % The base URL of the DataONE member node server used to store and retrieve files
-        %coordinating_node_base_url = ''; % The base URL of the DataONE coordinating node server
+        coordinating_node_base_url = 'https://cn-sandbox-2.test.dataone.org/cn'; % The base URL of the DataONE coordinating node server
         
         % Identity config
         orcid_identifier = ''; % The researcher's ORCID
