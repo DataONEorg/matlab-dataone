@@ -39,8 +39,8 @@ classdef Session < hgsetget %& dynamicprops
         submitter = ''; % The DataONE subject DN string of account uploading the file to the member node
         rights_holder = ''; % The DataONE subject DN string of account with read/write/change permissions for the file being uploaded
         public_read_allowed = true; % allow public read access to uploaded fiels (default: true)
-        replication_allowed = ''; % allow replicattion of files to preserve the integrity of the data file over time
-        number_of_replicas = 0; % The desired number of replicas of each file uploaded to the DataONE network
+        replication_allowed = true; % allow replicattion of files to preserve the integrity of the data file over time
+        number_of_replicas = 2; % The desired number of replicas of each file uploaded to the DataONE network
         preferred_replica_node_list = ''; % A comma-separated list of member node identifiers that are preferred for replica storage
         blocked_replica_node_list = ''; % A comma-separated list of member node identifiers that are blocked from replica storage
         coordinating_node_base_url = 'https://cn-sandbox-2.test.dataone.org/cn'; % The base URL of the DataONE coordinating node server
