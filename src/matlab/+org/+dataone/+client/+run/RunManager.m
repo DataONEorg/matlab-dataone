@@ -28,10 +28,22 @@ classdef RunManager < hgsetget
         % The instance of the Session class used to provide settings 
         % details for this RunManager
         session;
-        
-        % Enable or disable the provenance capture state
-        prov_capture_enabled = true;
+                
+        % The execution metadata associated with this run
+        execution;
+    end
 
+    properties (Access = private)
+               
+        % Enable or disable the provenance capture state
+        prov_capture_enabled = false;
+
+        % The state of a recording session
+        recording = false;
+        
+        % The DataPackage aggregating and describing all objects in a run
+        dataPackage;
+        
     end
 
     methods (Access = private)
@@ -45,6 +57,7 @@ classdef RunManager < hgsetget
             manager.session = session;
             session.saveSession();
             manager.init();
+            mlock; % Lock the RunManager instance to prevent clears
             
         end
         
@@ -133,14 +146,71 @@ classdef RunManager < hgsetget
     
     methods
         
-        function data_package = record(runManager)
+        function data_package = record(runManager, filePath, tag)
             % RECORD Records provenance relationships between data and scripts
-            % When record() is called, data input files, dataoutput files,
+            % When record() is called, data input files, data output files,
             % and programs (scripts and classes) are tracked during an
             % execution of the program, and a graph of their relationships
             % is produced using the W3C PROV ontology standard 
             % (<http://www.w3.org/TR/prov-o/>) and the
             % DataONE ProvONE model(<https://purl.dataone.org/provone-v1-dev>).
+            % Note that, when passing scripts to the record() function,
+            % scripts that contain commands such as 'clear all' will cause
+            % the recording session to fail because the RunManager instance
+            % will have been removed. Also, note that relative path names
+            % to files may also cause I/O errors, depending on what your
+            % current working directory is at the moment.
+
+            % Return if we are already recording
+            if ( runManager.recording )
+                return;
+            end
+                   
+            % Do we have a script as input?
+            if ( nargin < 2 )
+                error(['Please provide the path to the script you want to ' ...
+                       'record, and (optionally) a tag that labels your run.']);
+            end
+            
+            % Does the script exist?
+            if ( ~exist(filePath, 'file'));
+                error([' The script: '  filePath ' does not exist.' ...
+                       'Please provide the path to the script you want to ' ...
+                       'record, and (optionally) a tag that labels your run.']);                    
+            end
+            
+            % do we have a tag?
+            if ( nargin < 3 )
+                tag = ''; % otherwise use an empty tag
+                    
+            end
+                        
+            % Begin collecting execution metadata
+            import org.dataone.client.run.Execution;
+                
+            % Validate the tag, ensuring it can be cast to a string
+            try
+                tagStr = '';
+                if ( ~isempty(tag) )
+                    tagStr = cast(tag);
+                end
+                
+            catch classCastException
+                error(['The tag used for the record session cannot be ' ...
+                       'cast to a string. Please use a tag label that is ' ...
+                       ' a string or a data type that can be cast to ' ...
+                       'a string. The error message was: ' ...
+                       classCastException.message]);
+            end
+
+            runManager.execution = Execution(tagStr);
+            runManager.execution.software_application = filePath;
+            
+            % Begin recording
+            runManager.startRecord(runManager.execution.tag);
+
+            % End the recording session
+            runManager.dataPackage = runManager.endRecord();
             
         end
         
@@ -148,10 +218,54 @@ classdef RunManager < hgsetget
             % STARTRECORD Starts recording provenance relationships (see
             % record()).
 
+            if ( runManager.recording )
+                disp(['A RunManager session is already active. Please call ' ...
+                      'endRecord() if you wish to close this session']);
+                  
+            end                
+
+            % Initialize a dataPackage to manage the run
+            import org.dataone.client.v1.itk.DataPackage;
+            import org.dataone.service.types.v1.Identifier;
+            packageIdentifier = Identifier();
+            packageIdentifier.setValue(runManager.execution.data_package_id);            
+            runManager.dataPackage = DataPackage(packageIdentifier);
+            
+            % Scan the script for inline YesWorkflow comments
+            
+            % Add YesWorkflow-derived triples to the DataPackage
+            
+            % Run the script and collect provenance information
+            runManager.prov_capture_enabled = true;
+            [pathstr, script_name, ext] = ...
+                fileparts(runManager.execution.software_application);
+            addpath(pathstr);
+
+            try
+                eval(script_name);
+                
+            catch runtimeError
+                error(['The script: ' ...
+                       runManager.execution.software_application ...
+                       ' could not be run. The error message was: ' ...
+                       runtimeError.message]);
+                   
+            end
         end
         
         function data_package = endRecord(runManager)
             % ENDRECORD Ends the recording of an execution (run).
+            
+            % Stop recording
+            runManager.recording = false;
+            runManager.prov_capture_enabled = false;
+            
+            % Return the Java DataPackage as a Matlab structured array
+            data_package = struct(runManager.dataPackage);
+            
+            % Unlock the RunManager instance
+            munlock('RunManager');
+            
         end
         
         function runs = listRuns(runManager, quiet, startDate, endDate, tags)
