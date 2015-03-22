@@ -249,7 +249,8 @@ classdef Session < hgsetget %& dynamicprops
                     fnames = fieldnames(sessionStruct);                    
                     for i = 1:size(fnames)                       
                        val =  getfield(sessionStruct,fnames{i});
-                       session.set(fnames{i}, val);                     
+                    %  session.set(fnames{i}, val); 
+                       session.(fnames{i}) = val; % assign instance property value directy and not call set()
                     end               
                 end
             else
@@ -262,7 +263,8 @@ classdef Session < hgsetget %& dynamicprops
                 fnames = fieldnames(sessionStruct);
                 for i = 1:size(fnames)                       
                     val =  getfield(sessionStruct,fnames{i});
-                    session.set(fnames{i}, val);
+                   %session.set(fnames{i}, val);
+                   session.(fnames{i}) = val; % assign instance property value directy and not call set()
                 end             
             end
                                     
