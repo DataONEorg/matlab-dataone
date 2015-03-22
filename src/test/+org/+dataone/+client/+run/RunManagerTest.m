@@ -48,10 +48,15 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.run.RunManager;
             
             mgr = RunManager.getInstance();
+            old_format_id = get(mgr.session, 'format_id');
+            set(mgr.session, 'format_id', 'application/octet-stream');
             assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
             % Test a single default property to ensure the session was set
             assertEqual(testCase, mgr.session.format_id, 'application/octet-stream');
             
+            % reset to the original
+            set(mgr.session, 'format_id', old_format_id);
+
         end
         
         function testGetInstanceWithSession(testCase)
@@ -65,9 +70,13 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(session, 'format_id', 'text/plain');
             
             mgr = RunManager.getInstance(session);
+            old_format_id = get(mgr.session, 'format_id');
             assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
             % Test a single preset property
             assertEqual(testCase, mgr.session.format_id, 'text/plain');
+            
+            % reset to the original
+            set(mgr.session, 'format_id', old_format_id);
 
         end
     end
