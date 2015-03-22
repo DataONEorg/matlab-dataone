@@ -219,8 +219,8 @@ classdef RunManager < hgsetget
             % record()).
 
             if ( runManager.recording )
-                disp(['A RunManager session is already active. Please call ' ...
-                      'endRecord() if you wish to close this session']);
+                warning(['A RunManager session is already active. Please call ' ...
+                         'endRecord() if you wish to close this session']);
                   
             end                
 
