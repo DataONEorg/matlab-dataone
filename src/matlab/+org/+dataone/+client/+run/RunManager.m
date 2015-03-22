@@ -66,7 +66,7 @@ classdef RunManager < hgsetget
             % Create a default session object if one isn't passed in
             if ( nargin < 1 )
                 session = Session();
-                
+               
             end
             
             persistent singletonRunManager; % private, stays in memory across clears
@@ -80,6 +80,8 @@ classdef RunManager < hgsetget
                 runManager = singletonRunManager;
                 
             end
+            
+            runManager.session = session; % update RunManager.session object by Yang March-22-2015
         end
         
         function setJavaClassPath()

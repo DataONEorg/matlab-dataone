@@ -47,6 +47,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             import org.dataone.client.run.RunManager;
             
+            fprintf('\n[In testGetInstanceNoSession ...]');
             mgr = RunManager.getInstance();
             assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
             % Test a single default property to ensure the session was set
@@ -61,14 +62,16 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Session;
             
-            session = Session();
-            set(session, 'format_id', 'text/plain');
+            fprintf('\n\n\n[In testGetInstanceWithSession ...]');
             
-            mgr = RunManager.getInstance(session);
+            session = Session();
+            set(session, 'format_id', 'text/csv');
+            
+            mgr = RunManager.getInstance(session);                       
             assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
             % Test a single preset property
-            assertEqual(testCase, mgr.session.format_id, 'text/plain');
-
+            assertEqual(testCase, mgr.session.format_id, 'text/csv');
+        
         end
     end
 end
