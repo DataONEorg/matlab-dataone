@@ -75,14 +75,8 @@ classdef Session < hgsetget %& dynamicprops
             % Find path for persistent_session_file_name
             if ispc
                 session.persistent_session_file_name = fullfile(getenv('userprofile'), filesep, '.d1', filesep, 'session.json');  
-                if session.debug  
-                    disp(session.persistent_session_file_name);
-                end
             elseif isunix
-                session.persistent_session_file_name = strcat(getenv('HOME'), filesep, '.d1', filesep, 'session.json');
-                if session.debug  % self.debug ??
-                    disp(session.persistent_session_file_name);
-                end
+                session.persistent_session_file_name = fullfile(getenv('HOME'), filesep, '.d1', filesep, 'session.json');
             else
                 error('Current platform not supported.');
             end
@@ -158,7 +152,7 @@ classdef Session < hgsetget %& dynamicprops
                     error('SessionError:format_id', 'format_id should use ObjectFormat.');
                 end
             
-                if session.debug  
+                if false %session.debug  
                     % to display each element in the format list                    
                     fprintf('\nLength=%d \n', size);
                     for i = 1:size
@@ -171,7 +165,7 @@ classdef Session < hgsetget %& dynamicprops
             end
             
             % Set value of a field
-            session.(paraName) = value;
+            session.(paraName) = value;            
             session.saveSession();
         end
         
@@ -185,7 +179,9 @@ classdef Session < hgsetget %& dynamicprops
         %-------------------------------------------------------------------------------------------
         function session = saveSession(session)
             % SAVESESSION 
-           
+            
+            fprintf('\n[In saveSession().]');
+            
             % Convert session object to session struct
             sessionProps = properties(session); % displays the names of the public properties for the class of session
             
@@ -236,29 +232,25 @@ classdef Session < hgsetget %& dynamicprops
                
                 if exist(session_file_absolute_path, 'file') == 0
                     % The session.json does not exist under the default directory
-                    % Create an empty session.json here. 
-                    fid = fopen(session_file_absolute_path, 'w'); % fclose() after use it no memory leak
-                    
+                    % Create an empty session.json here.             
                     if session.debug 
-                        fprintf('\nCreate a new and empty session.json %s\n\n', session_file_absolute_path);
+                        fprintf('\nCreate a new and empty session.json at %s.', session_file_absolute_path);
                     end
                     
                     % Save defaul session object in session.json 
+                    % Not necessary to explicit an empty file.
                     session.saveSession();
-                    
-                    % To do: close file ?
-                    fclose(fid);
-                    
                     return;
                 else
                     % The session.json exists under the default directory
                     sessionStruct = loadjson(session.persistent_session_file_name); %?? populate obj using objStruct
                     
-                    % Convert session struct to session object
+                    % Convert session struct to session object ***
                     fnames = fieldnames(sessionStruct);                    
                     for i = 1:size(fnames)                       
                        val =  getfield(sessionStruct,fnames{i});
-                       session.set(fnames{i}, val);
+                    %  session.set(fnames{i}, val); 
+                       session.(fnames{i}) = val; % assign instance property value directy and not call set()
                     end               
                 end
             else
@@ -271,7 +263,8 @@ classdef Session < hgsetget %& dynamicprops
                 fnames = fieldnames(sessionStruct);
                 for i = 1:size(fnames)                       
                     val =  getfield(sessionStruct,fnames{i});
-                    session.set(fnames{i}, val);
+                   %session.set(fnames{i}, val);
+                   session.(fnames{i}) = val; % assign instance property value directy and not call set()
                 end             
             end
                                     

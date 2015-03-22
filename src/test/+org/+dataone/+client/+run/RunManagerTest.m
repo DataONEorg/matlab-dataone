@@ -47,6 +47,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             import org.dataone.client.run.RunManager;
             
+            fprintf('\n[In testGetInstanceNoSession ...]');
             mgr = RunManager.getInstance();
             old_format_id = get(mgr.session, 'format_id');
             set(mgr.session, 'format_id', 'application/octet-stream');
@@ -66,14 +67,18 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Session;
             
+            fprintf('\n\n\n[In testGetInstanceWithSession ...]');
+            
             session = Session();
-            set(session, 'format_id', 'text/plain');
             
             mgr = RunManager.getInstance(session);
             old_format_id = get(mgr.session, 'format_id');
+            set(mgr.session, 'format_id', 'text/csv');
+            
+            % Test the instance type
             assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
             % Test a single preset property
-            assertEqual(testCase, mgr.session.format_id, 'text/plain');
+            assertEqual(testCase, mgr.session.format_id, 'text/csv');
             
             % reset to the original
             set(mgr.session, 'format_id', old_format_id);
