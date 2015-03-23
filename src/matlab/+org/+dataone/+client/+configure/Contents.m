@@ -3,4 +3,4 @@
 % Copyright (c) DataONE and participating institutions
 %
 % Classes
-%   Session - A class used to configure, save, and load session properties.
+%   Configuration - A class used to configure, save, and load run properties.

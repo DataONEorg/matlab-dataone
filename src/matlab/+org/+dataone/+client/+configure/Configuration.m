@@ -1,4 +1,4 @@
-% SESSION A class used to set configuration options for the DataONE Toolbox
+% CONFIGURATION A class used to set configuration options for the DataONE Toolbox
 %
 % This work was created by participants in the DataONE project, and is
 % jointly copyrighted by participating institutions in DataONE. For
@@ -18,8 +18,8 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef Session < hgsetget %& dynamicprops 
-    % SESSION A class that stores configuration settings for script runs managed through the RunManager 
+classdef Configuration < hgsetget %& dynamicprops 
+    % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
     
     properties
         
@@ -110,10 +110,10 @@ classdef Session < hgsetget %& dynamicprops
          % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
         capture_yesworkflow_comments = true;
         
-        %% Session storage configuration
+        %% Storage configuration
         
-        % The directory used to store persistent session file Eg: $HOME/.d1/session.json
-        persistent_session_file_name = '';
+        % The directory used to store persistent configuration file Eg: $HOME/.d1/configuration.json
+        persistent_configuration_file_name = '';
         
     end
 
@@ -123,38 +123,38 @@ classdef Session < hgsetget %& dynamicprops
     
     methods
         
-        function session = Session()
-            % SESSION A class used to set configuration options for the DataONE Toolbox  
+        function configuration = Configuration()
+            % CONFIGURATION A class used to set configuration options for the DataONE Toolbox  
             
-            % Find path for persistent_session_file_name
+            % Find path for persistent_configuration_file_name
             if ispc
-                session.persistent_session_file_name = fullfile(getenv('userprofile'), filesep, '.d1', filesep, 'session.json');  
+                configuration.persistent_configuration_file_name = fullfile(getenv('userprofile'), filesep, '.d1', filesep, 'configuration.json');  
             elseif isunix
-                session.persistent_session_file_name = fullfile(getenv('HOME'), filesep, '.d1', filesep, 'session.json');
+                configuration.persistent_configuration_file_name = fullfile(getenv('HOME'), filesep, '.d1', filesep, 'configuration.json');
             else
                 error('Current platform not supported.');
             end
             
-            % Call loadSession() with the default path location to the
-            % session file on disk
-            loadSession(session,'');
+            % Call loadConfig() with the default path location to the
+            % configuration file on disk
+            loadConfig(configuration,'');
             
         end
         
         %-------------------------------------------------------------------------------------------
-        function session = set(session, name, value)
+        function configuration = set(configuration, name, value)
             % SET A method used to set one property at a time
             paraName = strtrim((name));
             
             % Validate the value of number_of_replicas field
             if strcmp(paraName, 'number_of_replicas') && mod(value,1) ~= 0
                 sprintf('Value must be an integer for %s', paraName);
-                error('SessionError:IntegerRequired', 'number_of_replicas value must be integer.');
+                error('ConfigurationError:IntegerRequired', 'number_of_replicas value must be integer.');
             end                
                      
             if strcmp(paraName, 'source_member_node_id') || strcmp(paraName, 'target_member_node_id')
                 if ~strncmpi(value, 'urn:node:', 9)
-                    error('SessionError:mnIdentifier', 'identifier for member node must start with urn:node:');
+                    error('ConfigurationError:mnIdentifier', 'identifier for member node must start with urn:node:');
                 end
             end
             
@@ -173,11 +173,11 @@ classdef Session < hgsetget %& dynamicprops
                 if isunix && strncmpi(value, '~/', 2)
                     translate_absolute_path = strcat(home_dir ,value(2:end));
                     if ~strcmp(absolute_prov_storage_dir, translate_absolute_path)
-                        error('SessionError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance');
+                        error('ConfigurationError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance');
                     end 
                 else
                     if ~strcmp(absolute_prov_storage_dir, value)
-                       error('SessionError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance'); 
+                       error('ConfigurationError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance'); 
                     end
                 end
             end           
@@ -203,10 +203,10 @@ classdef Session < hgsetget %& dynamicprops
                 end 
                 
                 if found ~= 1
-                    error('SessionError:format_id', 'format_id should use ObjectFormat.');
+                    error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
                 end
             
-                if false %session.debug  
+                if false %configuration.debug  
                     % to display each element in the format list                    
                     fprintf('\nLength=%d \n', size);
                     for i = 1:size
@@ -219,56 +219,56 @@ classdef Session < hgsetget %& dynamicprops
             end
             
             % Set value of a field
-            session.(paraName) = value;            
-            session.saveSession();
+            configuration.(paraName) = value;            
+            configuration.saveConfig();
         end
         
         %-------------------------------------------------------------------------------------------
-        function val = get(session,name)
+        function val = get(configuration,name)
             % GET A method used to get the value of a property
             paraName = strtrim((name));
-            val = session.(paraName);            
+            val = configuration.(paraName);            
         end
         
         %-------------------------------------------------------------------------------------------
-        function session = saveSession(session)
-            % SAVESESSION Saves the session properties to a JSON file
+        function configuration = saveConfig(configuration)
+            % SAVECONFIG Saves the configuration properties to a JSON file
             
-            % Convert session object to session struct
-            sessionProps = properties(session); % displays the names of the public properties for the class of session
+            % Convert configuration object to configuration struct
+            configurationProps = properties(configuration); % displays the names of the public properties for the class of configuration
             
-            pvals = cell(1, length(sessionProps));
-            for i = 1:length(sessionProps)
-               % To do: check the type of sessionProps{i}
-               pvals{i} = session.get(sessionProps{i});
+            pvals = cell(1, length(configurationProps));
+            for i = 1:length(configurationProps)
+               % To do: check the type of configurationProps{i}
+               pvals{i} = configuration.get(configurationProps{i});
             end
  
-            arglist = {sessionProps{:};pvals{:}};
-            sessionStruct = struct(arglist{:});
+            arglist = {configurationProps{:};pvals{:}};
+            configurationStruct = struct(arglist{:});
             
-         %  savejson('session', sessionStruct, session.persistent_session_file_name);   
-            savejson('', sessionStruct, session.persistent_session_file_name);
+         %  savejson('configuration', configurationStruct, configuration.persistent_configuration_file_name);   
+            savejson('', configurationStruct, configuration.persistent_configuration_file_name);
         end
         
         %-------------------------------------------------------------------------------------------
-        function session = loadSession(session, filename)
-            % LOADSESSION  
+        function configuration = loadConfig(configuration, filename)
+            % LOADCONFIG  
             
-            % Get persistent session file path
+            % Get persistent configuration file path
             if strcmp(filename, '')
-                % Create a default persistent session directory if one isn't
+                % Create a default persistent configuration directory if one isn't
                 % passed in
                 if ispc
-                    default_session_storage_directory = getenv('userprofile');
+                    default_configuration_storage_directory = getenv('userprofile');
                 elseif isunix
-                    default_session_storage_directory = getenv('HOME');                  
+                    default_configuration_storage_directory = getenv('HOME');                  
                 else
                     error('Current platform not supported.');
                 end
                 
                 % Check if .d1 directory exists; create it if not 
-                if exist(fullfile(default_session_storage_directory, strcat(filesep, '.d1')), 'dir') == 0
-                    cd(default_session_storage_directory);
+                if exist(fullfile(default_configuration_storage_directory, strcat(filesep, '.d1')), 'dir') == 0
+                    cd(default_configuration_storage_directory);
                     [status, message, message_id] = mkdir('.d1');
                     
                     if ( status ~= 1 )
@@ -278,56 +278,56 @@ classdef Session < hgsetget %& dynamicprops
                     end                        
                 end
                 
-                % Check if session.json file exists under $HOME/.d1 directory 
+                % Check if configuration.json file exists under $HOME/.d1 directory 
                 % (for linux) or $userprofile/.d1 directory (for windows); create it if not
-                session_file_absolute_path = fullfile(default_session_storage_directory, filesep, '.d1', filesep, 'session.json');
+                configuration_file_absolute_path = fullfile(default_configuration_storage_directory, filesep, '.d1', filesep, 'configuration.json');
                
-                if exist(session_file_absolute_path, 'file') == 0
-                    % The session.json does not exist under the default directory
-                    % Create an empty session.json here.             
-                    if session.debug 
-                        fprintf('\nCreate a new and empty session.json at %s.', session_file_absolute_path);
+                if exist(configuration_file_absolute_path, 'file') == 0
+                    % The configuration.json does not exist under the default directory
+                    % Create an empty configuration.json here.             
+                    if configuration.debug 
+                        fprintf('\nCreate a new and empty configuration.json at %s.', configuration_file_absolute_path);
                     end
                     
-                    % Save defaul session object in session.json 
+                    % Save default configuration object in configuration.json 
                     % Not necessary to explicit an empty file.
-                    session.saveSession();
+                    configuration.saveConfig();
                     return;
                 else
-                    % The session.json exists under the default directory
-                    sessionStruct = loadjson(session.persistent_session_file_name); %?? populate obj using objStruct
+                    % The configuration.json exists under the default directory
+                    configurationStruct = loadjson(configuration.persistent_configuration_file_name); %?? populate obj using objStruct
                     
-                    % Convert session struct to session object ***
-                    fnames = fieldnames(sessionStruct);                    
+                    % Convert configuration struct to configuration object ***
+                    fnames = fieldnames(configurationStruct);                    
                     for i = 1:size(fnames)                       
-                       val =  getfield(sessionStruct,fnames{i});
-                    %  session.set(fnames{i}, val); 
-                       session.(fnames{i}) = val; % assign instance property value directy and not call set()
+                       val =  getfield(configurationStruct,fnames{i});
+                    %  configuration.set(fnames{i}, val); 
+                       configuration.(fnames{i}) = val; % assign instance property value directy and not call set()
                     end               
                 end
             else
-                % The session.json exists under the user-specified directory
-                session.persistent_session_file_name = filename;
-                % Load session data from one's specified path 
-                sessionStruct = loadjson(session.persistent_session_file_name); %???  populate obj using objStruct
+                % The configuration.json exists under the user-specified directory
+                configuration.persistent_configuration_file_name = filename;
+                % Load configuration data from one's specified path 
+                configurationStruct = loadjson(configuration.persistent_configuration_file_name); %???  populate obj using objStruct
                 
-                 % Convert session struct to session object
-                fnames = fieldnames(sessionStruct);
+                 % Convert configuration struct to configuration object
+                fnames = fieldnames(configurationStruct);
                 for i = 1:size(fnames)                       
-                    val =  getfield(sessionStruct,fnames{i});
-                   %session.set(fnames{i}, val);
-                   session.(fnames{i}) = val; % assign instance property value directy and not call set()
+                    val =  getfield(configurationStruct,fnames{i});
+                   %configuration.set(fnames{i}, val);
+                   configuration.(fnames{i}) = val; % assign instance property value directy and not call set()
                 end             
             end
                                     
-            % Save session object to disk in a JSON format
-          % savejson('session', sessionStruct, session.persistent_session_file_name); % double check the file path location ??
-            savejson('', sessionStruct, session.persistent_session_file_name); 
+            % Save configuration object to disk in a JSON format
+          % savejson('configuration', configurationStruct, configuration.persistent_configuration_file_name); % double check the file path location ??
+            savejson('', configurationStruct, configuration.persistent_configuration_file_name); 
          end    
         
         %-------------------------------------------------------------------------------------------
-        function listSession()
-            % LISTSESSION  
+        function listConfig()
+            % LISTCONFIG  
         end
        
     end
