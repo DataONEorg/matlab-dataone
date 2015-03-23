@@ -1,4 +1,4 @@
-% SESSION A class used to set configuration options for the DataONE Toolbox
+% CONFIGURATIONTEST A class used to test configuration options for the DataONE Toolbox
 %
 % This work was created by participants in the DataONE project, and is
 % jointly copyrighted by participating institutions in DataONE. For
@@ -18,9 +18,8 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef SessionTest < matlab.unittest.TestCase
-    %TESTCONFIGURESESSION Summary of this class goes here
-    %   Detailed explanation goes here
+classdef ConfigurationTest < matlab.unittest.TestCase
+    %CONFIGURATIONTEST tests configuration options for the DataONE Toolbox
     
     properties       
     end
@@ -43,9 +42,9 @@ classdef SessionTest < matlab.unittest.TestCase
     
     methods (Test)
         function testSetGet(testCase)
-            import org.dataone.client.configure.Session;
+            import org.dataone.client.configure.Configuration;
    
-            s = Session();
+            c = Configuration();
             
             if ispc
                 home_dir = getenv('userprofile');
@@ -55,29 +54,27 @@ classdef SessionTest < matlab.unittest.TestCase
                 error('Current platform not supported.');
             end
             
-            s.set('provenance_storage_directory', strcat(home_dir, filesep,'.d1', filesep, 'provenance'));
-            testCase.verifyEqual(s.get('provenance_storage_directory'), '/Users/syc/.d1/provenance');
+            c.set('provenance_storage_directory', strcat(home_dir, filesep,'.d1', filesep, 'provenance'));
+            testCase.verifyEqual(c.get('provenance_storage_directory'), '/Users/syc/.d1/provenance');
             
-            s.set('format_id', 'FGDC-STD-001-1998');
-            testCase.verifyEqual(s.get('format_id'), 'FGDC-STD-001-1998');
+            c.set('format_id', 'FGDC-STD-001-1998');
+            testCase.verifyEqual(c.get('format_id'), 'FGDC-STD-001-1998');
             
-         %  s.set('format_id', 'aaa');
-         %  testCase.verifyError(@() Session.set('format_id', 'aaa'),'SessionError:format_id');
+         %  c.set('format_id', 'aaa');
+         %  testCase.verifyError(@() Configuration.set('format_id', 'aaa'),'ConfigurationError:format_id');
             
-            s.set('certificate_path', '/tmp');
-            testCase.verifyEqual(s.get('certificate_path'), '/tmp');
+            c.set('certificate_path', '/tmp');
+            testCase.verifyEqual(c.get('certificate_path'), '/tmp');
             
-            s.set('number_of_replicas ', 3);
-            testCase.verifyEqual(s.get(' number_of_replicas'), 3);
+            c.set('number_of_replicas ', 3);
+            testCase.verifyEqual(c.get(' number_of_replicas'), 3);
             
-            s.set('number_of_replicas', 3.0);
-            testCase.verifyEqual(s.get(' number_of_replicas'), 3.0);
+            c.set('number_of_replicas', 3.0);
+            testCase.verifyEqual(c.get(' number_of_replicas'), 3.0);
             
-         %   s.set('number_of_replicas', 3.5);
-         %   testCase.verifyError(@() Session.set('number_of_replicas', 3.5),'SessionError:IntegerRequired')
-            
-            
-          
+         %   c.set('number_of_replicas', 3.5);
+         %   testCase.verifyError(@() Configuration.set('number_of_replicas', 3.5),'ConfigurationError:IntegerRequired')
+                      
         end
     end
     
