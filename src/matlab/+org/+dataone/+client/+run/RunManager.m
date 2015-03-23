@@ -25,9 +25,9 @@ classdef RunManager < hgsetget
     
     properties
        
-        % The instance of the Session class used to provide settings 
+        % The instance of the Configuration class used to provide settings 
         % details for this RunManager
-        session;
+        configuration;
                 
         % The execution metadata associated with this run
         execution;
@@ -48,13 +48,13 @@ classdef RunManager < hgsetget
 
     methods (Access = private)
 
-        function manager = RunManager(session)
+        function manager = RunManager(configuration)
             % RUNMANAGER Constructor: creates an instance of the RunManager class
             %   The RunManager class manages outputs of a script based on the
             %   settings in the given session passed in.
           
-            import org.dataone.client.configure.Session;
-            manager.session = session;
+            import org.dataone.client.configure.Configuration;
+            manager.configuration = configuration;
             session.saveSession();
             manager.init();
             mlock; % Lock the RunManager instance to prevent clears
@@ -64,11 +64,11 @@ classdef RunManager < hgsetget
     end
 
     methods (Static)
-        function runManager = getInstance(session)
+        function runManager = getInstance(configuration)
             % GETINSTANCE returns an instance of the RunManager by either
             % creating a new instance or returning an existing one.
             
-            import org.dataone.client.configure.Session;
+            import org.dataone.client.configure.Configuration;
             
             % Set the java class path
             RunManager.setJavaClassPath();
@@ -76,9 +76,9 @@ classdef RunManager < hgsetget
             % Set the java class path
             RunManager.setMatlabPath();
 
-            % Create a default session object if one isn't passed in
+            % Create a default configuration object if one isn't passed in
             if ( nargin < 1 )
-                session = Session();
+                configuration = Configuration();
                
             end
             
@@ -86,7 +86,7 @@ classdef RunManager < hgsetget
             
             if isempty( singletonRunManager )
                 import org.dataone.client.run.RunManager;
-                runManager = RunManager(session);
+                runManager = RunManager(configuration);
                 singletonRunManager = runManager;
                 
             else
@@ -294,8 +294,8 @@ classdef RunManager < hgsetget
             % INIT initializes the RunManager instance
                         
             % Ensure the provenance storage directory is configured
-            if ( ~ isempty(runManager.session) )
-                prov_dir = runManager.session.get('provenance_storage_directory');
+            if ( ~ isempty(runManager.configuration) )
+                prov_dir = runManager.configuration.get('provenance_storage_directory');
                 
                 % Only proceed if the runs directory is available
                 if ( ~ exist(prov_dir, 'dir') )
@@ -308,7 +308,7 @@ classdef RunManager < hgsetget
                               ' was: ' message]);
                     
                     elseif ( strcmp(message, 'already exists') )
-                        if ( runManager.session.debug )
+                        if ( runManager.configuration.debug )
                             disp(['The directory ' runs_dir ...
                                 ' already exists and will not be created.']);
                         end
