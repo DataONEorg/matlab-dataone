@@ -41,47 +41,44 @@ classdef RunManagerTest < matlab.unittest.TestCase
     
     methods (Test)
         
-        function testGetInstanceNoSession(testCase)
-            % TESTGETINSTANCENOSESSION tests calling the getInstance()
-            % function without passing a Session object
+        function testGetInstanceNoConfiguration(testCase)
+            % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
+            % function without passing a Configuration object
 
             import org.dataone.client.run.RunManager;
             
-            fprintf('\n[In testGetInstanceNoSession ...]');
             mgr = RunManager.getInstance();
-            old_format_id = get(mgr.session, 'format_id');
-            set(mgr.session, 'format_id', 'application/octet-stream');
+            old_format_id = get(mgr.configuration, 'format_id');
+            set(mgr.configuration, 'format_id', 'application/octet-stream');
             assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
-            % Test a single default property to ensure the session was set
-            assertEqual(testCase, mgr.session.format_id, 'application/octet-stream');
+            % Test a single default property to ensure the configuration was set
+            assertEqual(testCase, mgr.configuration.format_id, 'application/octet-stream');
             
             % reset to the original
-            set(mgr.session, 'format_id', old_format_id);
+            set(mgr.configuration, 'format_id', old_format_id);
 
         end
         
-        function testGetInstanceWithSession(testCase)
-            % TESTGETINSTANCENOSESSION tests calling the getInstance()
-            % function while passing a Session object
+        function testGetInstanceWithConfiguration(testCase)
+            % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
+            % function while passing a Configuration object
 
             import org.dataone.client.run.RunManager;
-            import org.dataone.client.configure.Session;
+            import org.dataone.client.configure.Configuration;
             
-            fprintf('\n\n\n[In testGetInstanceWithSession ...]');
+            configuration = Configuration();
             
-            session = Session();
-            
-            mgr = RunManager.getInstance(session);
-            old_format_id = get(mgr.session, 'format_id');
-            set(mgr.session, 'format_id', 'text/csv');
+            mgr = RunManager.getInstance(configuration);
+            old_format_id = get(mgr.configuration, 'format_id');
+            set(mgr.configuration, 'format_id', 'text/csv');
             
             % Test the instance type
             assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
             % Test a single preset property
-            assertEqual(testCase, mgr.session.format_id, 'text/csv');
+            assertEqual(testCase, mgr.configuration.format_id, 'text/csv');
             
             % reset to the original
-            set(mgr.session, 'format_id', old_format_id);
+            set(mgr.configuration, 'format_id', old_format_id);
 
         end
     end
