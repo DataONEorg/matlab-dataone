@@ -51,11 +51,11 @@ classdef RunManager < hgsetget
         function manager = RunManager(configuration)
             % RUNMANAGER Constructor: creates an instance of the RunManager class
             %   The RunManager class manages outputs of a script based on the
-            %   settings in the given session passed in.
+            %   settings in the given configuration passed in.
           
             import org.dataone.client.configure.Configuration;
             manager.configuration = configuration;
-            session.saveSession();
+            configuration.saveConfig();
             manager.init();
             mlock; % Lock the RunManager instance to prevent clears
             
