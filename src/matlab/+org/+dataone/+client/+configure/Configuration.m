@@ -23,24 +23,14 @@ classdef Configuration < hgsetget %& dynamicprops
     
     properties
         
-        debug = true; % A boolean property that enables or disables debugging  
+         % A boolean property that enables or disables debugging 
+        debug = true; 
         
         %% Operating system configuration
         
         % The Operating System account username
         account_name = '';
       
-        %% Science metadata configuration
-        
-        % The file system path to a science metadata template file
-        scimeta_template_path = '';
-        
-        % The title of the dataset being described
-        scimeta_title = '';
-        
-        % The abstract of the dataset being described
-        sciemta_abstract = ''; 
-               
         %% DataONE configuration        
         
         % The source member node identifier
@@ -141,7 +131,6 @@ classdef Configuration < hgsetget %& dynamicprops
             
         end
         
-        %-------------------------------------------------------------------------------------------
         function configuration = set(configuration, name, value)
             % SET A method used to set one property at a time
             paraName = strtrim((name));
@@ -223,14 +212,12 @@ classdef Configuration < hgsetget %& dynamicprops
             configuration.saveConfig();
         end
         
-        %-------------------------------------------------------------------------------------------
         function val = get(configuration,name)
             % GET A method used to get the value of a property
             paraName = strtrim((name));
             val = configuration.(paraName);            
         end
         
-        %-------------------------------------------------------------------------------------------
         function configuration = saveConfig(configuration)
             % SAVECONFIG Saves the configuration properties to a JSON file
             
@@ -250,7 +237,6 @@ classdef Configuration < hgsetget %& dynamicprops
             savejson('', configurationStruct, configuration.persistent_configuration_file_name);
         end
         
-        %-------------------------------------------------------------------------------------------
         function configuration = loadConfig(configuration, filename)
             % LOADCONFIG  
             
@@ -325,7 +311,6 @@ classdef Configuration < hgsetget %& dynamicprops
             savejson('', configurationStruct, configuration.persistent_configuration_file_name); 
          end    
         
-        %-------------------------------------------------------------------------------------------
         function listConfig(configuration, varargin)
             % LISTCONFIG  lists configuration properties and their values
             
