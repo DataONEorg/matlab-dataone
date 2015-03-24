@@ -18,7 +18,7 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef Configuration < hgsetget %& dynamicprops 
+classdef Configuration < hgsetget & dynamicprops 
     % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
     
     properties
@@ -26,13 +26,9 @@ classdef Configuration < hgsetget %& dynamicprops
          % A boolean property that enables or disables debugging 
         debug = true; 
         
-        %% Operating system configuration
-        
         % The Operating System account username
         account_name = '';
       
-        %% DataONE configuration        
-        
         % The source member node identifier
         source_member_node_id  = 'urn:node:';
         
@@ -66,8 +62,6 @@ classdef Configuration < hgsetget %& dynamicprops
         % The base URL of the DataONE coordinating node server
         coordinating_node_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
         
-        %% Identity configuration
-        
         % The researcher's ORCID
         orcid_identifier = '';
         
@@ -80,8 +74,6 @@ classdef Configuration < hgsetget %& dynamicprops
         % The friend of a friend 'name' vocabulary term
         foaf_name = '';
                
-        %% Provenance capture configuration
-        
         % The directory used to store per execution provenance information
         provenance_storage_directory = '~/.d1/provenance';
         
@@ -99,8 +91,6 @@ classdef Configuration < hgsetget %& dynamicprops
         
          % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
         capture_yesworkflow_comments = true;
-        
-        %% Storage configuration
         
         % The directory used to store persistent configuration file Eg: $HOME/.d1/configuration.json
         persistent_configuration_file_name = '';
@@ -266,13 +256,16 @@ classdef Configuration < hgsetget %& dynamicprops
                 
                 % Check if configuration.json file exists under $HOME/.d1 directory 
                 % (for linux) or $userprofile/.d1 directory (for windows); create it if not
-                configuration_file_absolute_path = fullfile(default_configuration_storage_directory, filesep, '.d1', filesep, 'configuration.json');
+                configuration_file_absolute_path = ...
+                    fullfile(default_configuration_storage_directory, ...
+                             filesep, '.d1', filesep, 'configuration.json');
                
                 if exist(configuration_file_absolute_path, 'file') == 0
                     % The configuration.json does not exist under the default directory
                     % Create an empty configuration.json here.             
                     if configuration.debug 
-                        fprintf('\nCreate a new and empty configuration.json at %s.', configuration_file_absolute_path);
+                        fprintf('\nCreate a new and empty configuration.json at %s.', ...
+                            configuration_file_absolute_path);
                     end
                     
                     % Save default configuration object in configuration.json 
@@ -281,14 +274,25 @@ classdef Configuration < hgsetget %& dynamicprops
                     return;
                 else
                     % The configuration.json exists under the default directory
-                    configurationStruct = loadjson(configuration.persistent_configuration_file_name); %?? populate obj using objStruct
+                    configurationStruct = loadjson(configuration.persistent_configuration_file_name);
                     
                     % Convert configuration struct to configuration object ***
                     fnames = fieldnames(configurationStruct);                    
                     for i = 1:size(fnames)                       
                        val =  getfield(configurationStruct,fnames{i});
-                    %  configuration.set(fnames{i}, val); 
-                       configuration.(fnames{i}) = val; % assign instance property value directy and not call set()
+                       
+                       try
+                           % assign instance property value directy and not call set()
+                           configuration.(fnames{i}) = val;
+                       catch noPublicfieldError
+                           if ( configuration.debug )
+                               warning(noPublicfieldError.message)
+                           end
+                           
+                           % Add an instance property instead
+                           addprop(configuration, fnames{i});
+                           configuration.(fnames{i}) = val;
+                       end
                     end               
                 end
             else
