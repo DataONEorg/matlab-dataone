@@ -47,15 +47,27 @@ classdef ConfigurationTest < matlab.unittest.TestCase
             c = Configuration();
             
             if ispc
-                home_dir = getenv('userprofile');
+                home_dir = getenv('USERPROFILE');
+                
             elseif isunix
                 home_dir = getenv('HOME');
+                
             else
                 error('Current platform not supported.');
+                
             end
             
-            c.set('provenance_storage_directory', strcat(home_dir, filesep,'.d1', filesep, 'provenance'));
-            testCase.verifyEqual(c.get('provenance_storage_directory'), '/Users/syc/.d1/provenance');
+            c.set('provenance_storage_directory', ...
+                strcat(home_dir, filesep,'.d1', filesep, 'provenance'));
+            if ( ispc )
+                testCase.verifyEqual(c.get('provenance_storage_directory'), ...
+                    [home_dir filesep '.d1' filesep 'provenance']);
+                
+            elseif ( isunix )
+                testCase.verifyEqual(c.get('provenance_storage_directory'), ...
+                    [home_dir filesep '.d1' filesep 'provenance']);
+  
+            end
             
             c.set('format_id', 'FGDC-STD-001-1998');
             testCase.verifyEqual(c.get('format_id'), 'FGDC-STD-001-1998');
