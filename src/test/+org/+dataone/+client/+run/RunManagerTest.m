@@ -80,6 +80,46 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % reset to the original
             set(mgr.configuration, 'format_id', old_format_id);
 
+            %% Test for YesWorkflow
+            import org.yesworkflow.LanguageModel;
+            import org.yesworkflow.extract.DefaultExtractor;
+            import java.io.BufferedReader;
+            import java.io.StringReader;
+            import org.yesworkflow.annotations.Annotation;
+            import org.yesworkflow.model.Program;
+            import org.yesworkflow.model.DefaultModeler;
+            
+            % Get an inner class that's an Enum class because we need the
+            % Enum Language values (web ref)
+            matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB')
+            lm = LanguageModel(matCode);
+            
+            testStr = strcat(' % @begin script \n', ' % @in x @as horiz \n', ...
+                              ' % @in y @as vert \n', ' % @out d @as dist \n', ...
+                              ' % @end script');
+            
+            reader= BufferedReader(StringReader(testStr));
+            
+            extractor = DefaultExtractor; 
+            extractor = extractor.languageModel(lm);
+            extractor = extractor.source(reader);
+            annotations = extractor.extract().getAnnotations();
+         
+            model = DefaultModeler;
+            model = model.annotations(annotations);
+            modeller = model.model;
+            program = modeller.getModel;
+            
+            inPorts = cell(program.inPorts);
+          %  celldisp(inPorts);
+            outPorts = cell(program.outPorts);
+          %  celldisp(outPorts);
+     
+            testCase.verifyEqual(2, program.inPorts.length);
+            testCase.verifyEqual(1, program.outPorts.length);
+            testCase.verifyEqual('horiz', char(inPorts{1}.flowAnnotation.binding()));
+            testCase.verifyEqual('vert', char(inPorts{2}.flowAnnotation.binding()));
+            testCase.verifyEqual('dist', char(outPorts{1}.flowAnnotation.binding()));
         end
     end
 end
