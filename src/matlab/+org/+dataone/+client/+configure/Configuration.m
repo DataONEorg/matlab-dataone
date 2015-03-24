@@ -307,7 +307,11 @@ classdef Configuration < hgsetget & dynamicprops
                     val =  getfield(configurationStruct,fnames{i});
                    %configuration.set(fnames{i}, val);
                    configuration.(fnames{i}) = val; % assign instance property value directy and not call set()
-                end             
+                end
+                
+                % Save the configuration to the user-specified location
+                configuration.saveConfig();
+
             end
                                     
             % Save configuration object to disk in a JSON format
