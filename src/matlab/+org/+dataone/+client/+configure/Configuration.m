@@ -326,10 +326,35 @@ classdef Configuration < hgsetget %& dynamicprops
          end    
         
         %-------------------------------------------------------------------------------------------
-        function listConfig()
-            % LISTCONFIG  
-        end
-       
-    end
-    
+        function listConfig(configuration, varargin)
+            % LISTCONFIG  lists configuration properties and their values
+            
+            % Get each property name
+            configurationProps = properties(configuration);
+            
+            % find the max legth of the longest property name
+            for i = 1:length(configurationProps)
+                propLengths(i) = length(char(configurationProps(i)));
+            end            
+            maxLength = max(propLengths);
+            
+            format = ['%' num2str(maxLength) 's: %s\n'];
+
+            propName = '';
+            propValue = '';
+            
+            % Print a list of all properties
+            for i = 1:length(configurationProps)
+                propName = char(configurationProps{i});
+                if ( ~isempty(configuration.get(configurationProps{i})) )
+                    propValue = configuration.get(configurationProps{i});
+                    if ( isnumeric(propValue) )
+                        propValue = num2str(propValue);
+                    end
+                end
+                fprintf(format, propName, propValue);
+                propName = ''; propValue = '';
+            end            
+        end      
+    end    
 end
