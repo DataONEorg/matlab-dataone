@@ -81,27 +81,20 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(mgr.configuration, 'format_id', old_format_id);
 
             %% Test for YesWorkflow
-            import org.yesworkflow.LanguageModel;
-            import org.yesworkflow.extract.DefaultExtractor;
             import java.io.BufferedReader;
             import java.io.StringReader;
             import org.yesworkflow.annotations.Annotation;
             import org.yesworkflow.model.Program;
             import org.yesworkflow.model.DefaultModeler;
-            
-            % Get an inner class that's an Enum class because we need the
-            % Enum Language values (web ref)
-            matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB')
-            lm = LanguageModel(matCode);
+                        
+            extractor = RunManager.setYWExtractLangModel();
             
             testStr = strcat(' % @begin script \n', ' % @in x @as horiz \n', ...
                               ' % @in y @as vert \n', ' % @out d @as dist \n', ...
+                              ' some Matlab code \n', ...
                               ' % @end script');
             
-            reader= BufferedReader(StringReader(testStr));
-            
-            extractor = DefaultExtractor; 
-            extractor = extractor.languageModel(lm);
+            reader= BufferedReader(StringReader(testStr));         
             extractor = extractor.source(reader);
             annotations = extractor.extract().getAnnotations();
          

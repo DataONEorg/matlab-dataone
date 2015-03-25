@@ -95,6 +95,15 @@ classdef Configuration < hgsetget & dynamicprops
         % The directory used to store persistent configuration file Eg: $HOME/.d1/configuration.json
         persistent_configuration_file_name = '';
         
+        %% YesWorkflow configuration
+        
+        % A flag indicating whether to generate the graphic
+        generate_workflow_graphic = false;
+        
+        % A flag indicating whether to include the workflow graphic as an
+        % object in the DataPackage
+        include_workflow_graphic = false;
+        
     end
 
     methods(Static)

@@ -141,11 +141,24 @@ classdef RunManager < hgsetget
            % Add subdirectories of lib/matlab to the Matlab path,
            addpath(genpath(matlab_dataone_lib_dir));
                 
-         end
+        end
+        
+        function extractor = setYWExtractLangModel()
+            % SETYWCONFIG set YesWorkflow extractor language model to be
+            % Matlab type
+            import org.yesworkflow.LanguageModel;
+            import org.yesworkflow.extract.DefaultExtractor;
+            
+            % Get an inner class that's an Enum class because we need the
+            % Enum Language values 
+            matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB');
+            lm = LanguageModel(matCode);
+            extractor = DefaultExtractor; 
+            extractor = extractor.languageModel(lm);           
+        end
     end
     
-    methods
-        
+    methods        
         function data_package = record(runManager, filePath, tag)
             % RECORD Records provenance relationships between data and scripts
             % When record() is called, data input files, data output files,
@@ -232,8 +245,11 @@ classdef RunManager < hgsetget
             runManager.dataPackage = DataPackage(packageIdentifier);
             
             % Scan the script for inline YesWorkflow comments
+            extractor = setYWExtractLangModel(); 
+            
             
             % Add YesWorkflow-derived triples to the DataPackage
+            
             
             % Run the script and collect provenance information
             runManager.prov_capture_enabled = true;
