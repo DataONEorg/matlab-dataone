@@ -161,7 +161,7 @@ classdef RunManager < hgsetget
     
     methods  
         function configYesWorkflow(runManager, path)
-            % SETYWCONFIG set YesWorkflow extractor language model to be
+            % CONFIGYESWORKFLOW set YesWorkflow extractor language model to be
             % Matlab type
             import org.yesworkflow.LanguageModel;
             import org.yesworkflow.extract.DefaultExtractor;
@@ -278,6 +278,7 @@ classdef RunManager < hgsetget
             import java.io.File;
             import java.io.FileReader;
             import java.util.List;
+            import java.util.HashMap;
             
             % Set up YesWorkflow
             runManager.configYesWorkflow('/Users/syc/Documents/matlab-dataone/DroughtTimeScale_Markup_v2.m');
@@ -296,6 +297,7 @@ classdef RunManager < hgsetget
             runManager.modeler = runManager.modeler.annotations(annotations);
             runManager.modeler = runManager.modeler.model;
             program = runManager.modeler.getModel;
+            runManager.workflow = runManager.modeler.getWorkflow;
  
             % Display inPorts and outPorts information
             inPorts = cell(program.inPorts);
@@ -305,7 +307,7 @@ classdef RunManager < hgsetget
          
             % Convert 'Program' object to 'Workflow' object ***
           % runManager.copyWorkflow(program);
-            runManager.workflow = Workflow(program); % add a new Workflow constructor in YW project
+          % runManager.workflow = Workflow(program); % add a new Workflow constructor in YW project
             
             % test whether workflow object is correct 
           % fprintf('*********************************');
@@ -316,11 +318,18 @@ classdef RunManager < hgsetget
           % fprintf('*********************************');
             
             % Call YW-Graph module
+            import org.yesworkflow.graph.GraphView;
+            import org.yesworkflow.graph.CommentVisibility;
+            
             runManager.grapher = runManager.grapher.workflow(runManager.workflow);
+            gconfig = HashMap;
+            gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
+            gconfig.put('comments', CommentVisibility.HIDE);
+            runManager.grapher.config(gconfig);
             runManager.grapher = runManager.grapher.graph();
             
             % Output the content of dot file
-            fprintf(runManager.grapher.toString());
+            fprintf('%s', char(runManager.grapher.toString()));
             
             
             %% Add YesWorkflow-derived triples to the DataPackage
