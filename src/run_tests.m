@@ -27,7 +27,7 @@ addpath(genpath(pwd));
 import matlab.unittest.TestSuite;
 
 % Create a suite of all client tests 
-suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
 run(suite);
 
 rmpath(genpath(pwd));
