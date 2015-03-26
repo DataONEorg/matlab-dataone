@@ -337,20 +337,20 @@ classdef RunManager < hgsetget
             
             %% Run the script and collect provenance information
             runManager.prov_capture_enabled = true;
-            [pathstr, script_name, ext] = ...
-                fileparts(runManager.execution.software_application);
-            addpath(pathstr);
+        %   [pathstr, script_name, ext] = ...
+        %        fileparts(runManager.execution.software_application);
+        %    addpath(pathstr);
 
-            try
-                eval(script_name);
+        %    try
+        %        eval(script_name);
                 
-            catch runtimeError
-                error(['The script: ' ...
-                       runManager.execution.software_application ...
-                       ' could not be run. The error message was: ' ...
-                       runtimeError.message]);
+        %    catch runtimeError
+        %        error(['The script: ' ...
+        %               runManager.execution.software_application ...
+        %               ' could not be run. The error message was: ' ...
+        %               runtimeError.message]);
                    
-            end
+        %    end
         end
         
         function data_package = endRecord(runManager)
@@ -421,17 +421,6 @@ classdef RunManager < hgsetget
             % GETYWANNOTATION get a list of YW annotation that is extracted using YesWorkflow 
          %   runManager.extractor = runManager.extractor.source(reader);
          %   annotations = runManager.extractor.extract().getAnnotations();
-        end
-        
-                
-        function copyWorkflow(runManager, superObj)           
-            prop = properties(superObj);
-            for i = 1:length(prop)
-               addprop(runManager.workflow, prop{i});
-               runManager.workflow.(prop{i}) = superObj.(prop{i}); 
-            end     
-            
-            
         end
     end
 end
