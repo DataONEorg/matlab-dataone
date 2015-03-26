@@ -291,7 +291,7 @@ classdef RunManager < hgsetget
             % Call YW-Extract module
             runManager.extractor = runManager.extractor.source(reader);
             annotations = runManager.extractor.extract().getAnnotations();
-            celldisp(cell(annotations)); % test annotation
+         %  celldisp(cell(annotations)); % test annotation
             
             % Call YW-Model module
             runManager.modeler = runManager.modeler.annotations(annotations);
@@ -300,23 +300,9 @@ classdef RunManager < hgsetget
             runManager.workflow = runManager.modeler.getWorkflow;
  
             % Display inPorts and outPorts information
-            inPorts = cell(program.inPorts);
-            celldisp(inPorts);
-            outPorts = cell(program.outPorts);
-            celldisp(outPorts);
-         
-            % Convert 'Program' object to 'Workflow' object ***
-          % runManager.copyWorkflow(program);
-          % runManager.workflow = Workflow(program); % add a new Workflow constructor in YW project
-            
-            % test whether workflow object is correct 
-          % fprintf('*********************************');
-          % inPorts = cell(runManager.workflow.inPorts);
-          % celldisp(inPorts);
-          % outPorts = cell(runManager.workflow.outPorts);
-          % celldisp(outPorts);
-          % fprintf('*********************************');
-            
+         %  celldisp(cell(program.inPorts));
+         %  celldisp(cell(program.outPorts));
+          
             % Call YW-Graph module
             import org.yesworkflow.graph.GraphView;
             import org.yesworkflow.graph.CommentVisibility;
@@ -416,11 +402,6 @@ classdef RunManager < hgsetget
                 end
             end
         end
-        
-        function annotations = getYWAnnotation(runManager, reader)
-            % GETYWANNOTATION get a list of YW annotation that is extracted using YesWorkflow 
-         %   runManager.extractor = runManager.extractor.source(reader);
-         %   annotations = runManager.extractor.extract().getAnnotations();
-        end
+ 
     end
 end
