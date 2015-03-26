@@ -301,7 +301,7 @@ classdef RunManager < hgsetget
             outPorts = cell(program.outPorts);
             celldisp(outPorts);
          
-            % Call YW-Graph module
+            % Convert 'Program' object to 'Workflow' object ***
             runManager.copyWorkflow(program);
             
             % test whether workflow object is correct 
@@ -311,6 +311,7 @@ classdef RunManager < hgsetget
             outPorts = cell(runManager.workflow.outPorts);
             celldisp(outPorts);
             
+            % Call YW-Graph module
             runManager.grapher = runManager.grapher.workflow(runManager.workflow);
             runManager.grapher = runManager.grapher.graph();
             
