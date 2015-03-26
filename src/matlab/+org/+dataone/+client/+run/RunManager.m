@@ -31,6 +31,21 @@ classdef RunManager < hgsetget
                 
         % The execution metadata associated with this run
         execution;
+        
+        % The YesWorkflow Extractor object
+        extractor;
+        
+        % The YesWorkflow Modeler object
+        modeler;
+        
+        % The YesWorkflow Grapher object
+        grapher;
+        
+        % The YesWorkflow workflow object
+        workflow;
+        
+        % The file path of a script to be analyzed by YesWorkflow
+        script_path;
     end
 
     properties (Access = private)
@@ -142,23 +157,33 @@ classdef RunManager < hgsetget
            addpath(genpath(matlab_dataone_lib_dir));
                 
         end
-        
-        function extractor = setYWExtractLangModel()
+    end
+    
+    methods  
+        function configYesWorkflow(runManager, path)
             % SETYWCONFIG set YesWorkflow extractor language model to be
             % Matlab type
             import org.yesworkflow.LanguageModel;
             import org.yesworkflow.extract.DefaultExtractor;
+            import org.yesworkflow.model.DefaultModeler;
+            import org.yesworkflow.graph.DotGrapher;
+            import java.io.PrintStream;
+            
+            runManager.extractor = DefaultExtractor;
+            runManager.modeler = DefaultModeler;
+            runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
             
             % Get an inner class that's an Enum class because we need the
             % Enum Language values 
             matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB');
-            lm = LanguageModel(matCode);
-            extractor = DefaultExtractor; 
-            extractor = extractor.languageModel(lm);           
+            lm = LanguageModel(matCode); 
+            runManager.extractor = runManager.extractor.languageModel(lm);  
+            
+            % Set script file path
+            runManager.script_path = path;
         end
-    end
-    
-    methods        
+        
+                
         function data_package = record(runManager, filePath, tag)
             % RECORD Records provenance relationships between data and scripts
             % When record() is called, data input files, data output files,
@@ -237,21 +262,66 @@ classdef RunManager < hgsetget
                   
             end                
 
-            % Initialize a dataPackage to manage the run
+            %% Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;
             packageIdentifier = Identifier();
-            packageIdentifier.setValue(runManager.execution.data_package_id);            
-            runManager.dataPackage = DataPackage(packageIdentifier);
+        %   packageIdentifier.setValue(runManager.execution.data_package_id);            
+        %   runManager.dataPackage = DataPackage(packageIdentifier);
             
+            %% Call YesWorkflow
             % Scan the script for inline YesWorkflow comments
-            extractor = setYWExtractLangModel(); 
+            import java.io.BufferedReader;
+            import org.yesworkflow.annotations.Annotation;
+            import org.yesworkflow.model.Program;
+            import org.yesworkflow.model.Workflow;
+            import java.io.File;
+            import java.io.FileReader;
+            
+            % Set up YesWorkflow
+            runManager.configYesWorkflow('/Users/syc/Documents/matlab-dataone/DroughtTimeScale_Markup_v2.m');
+            
+            % Read script content from disk
+            script = File(runManager.script_path);
+            freader = FileReader(script);
+            reader = BufferedReader(freader);
+            
+            % Call YW-Extract module
+            runManager.extractor = runManager.extractor.source(reader);
+            annotations = runManager.extractor.extract().getAnnotations();
+
+            % Call YW-Model module
+            runManager.modeler = runManager.modeler.annotations(annotations);
+            runManager.modeler = runManager.modeler.model;
+            program = runManager.modeler.getModel;
+ 
+            % Display inPorts and outPorts information
+            inPorts = cell(program.inPorts);
+            celldisp(inPorts);
+            outPorts = cell(program.outPorts);
+            celldisp(outPorts);
+         
+            % Call YW-Graph module
+            runManager.copyWorkflow(program);
+            
+            % test whether workflow object is correct 
+            fprintf('/////////////////////////////////');
+            inPorts = cell(runManager.workflow.inPorts);
+            celldisp(inPorts);
+            outPorts = cell(runManager.workflow.outPorts);
+            celldisp(outPorts);
+            
+            runManager.grapher = runManager.grapher.workflow(runManager.workflow);
+            runManager.grapher = runManager.grapher.graph();
+            
+            % Output the content of dot file
+            fprintf(runManager.grapher.toString());
             
             
-            % Add YesWorkflow-derived triples to the DataPackage
+            %% Add YesWorkflow-derived triples to the DataPackage
             
             
-            % Run the script and collect provenance information
+            %% Run the script and collect provenance information
             runManager.prov_capture_enabled = true;
             [pathstr, script_name, ext] = ...
                 fileparts(runManager.execution.software_application);
@@ -331,6 +401,23 @@ classdef RunManager < hgsetget
                     end                    
                 end
             end
+        end
+        
+        function annotations = getYWAnnotation(runManager, reader)
+            % GETYWANNOTATION get a list of YW annotation that is extracted using YesWorkflow 
+         %   runManager.extractor = runManager.extractor.source(reader);
+         %   annotations = runManager.extractor.extract().getAnnotations();
+        end
+        
+                
+        function copyWorkflow(runManager, superObj)           
+            prop = properties(superObj);
+            for i = 1:length(prop)
+               addprop(runManager.workflow, prop{i});
+               runManager.workflow.(prop{i}) = superObj.(prop{i}); 
+            end     
+            
+            
         end
     end
 end
