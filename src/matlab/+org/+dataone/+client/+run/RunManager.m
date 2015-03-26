@@ -277,6 +277,7 @@ classdef RunManager < hgsetget
             import org.yesworkflow.model.Workflow;
             import java.io.File;
             import java.io.FileReader;
+            import java.util.List;
             
             % Set up YesWorkflow
             runManager.configYesWorkflow('/Users/syc/Documents/matlab-dataone/DroughtTimeScale_Markup_v2.m');
@@ -289,7 +290,8 @@ classdef RunManager < hgsetget
             % Call YW-Extract module
             runManager.extractor = runManager.extractor.source(reader);
             annotations = runManager.extractor.extract().getAnnotations();
-
+            celldisp(cell(annotations)); % test annotation
+            
             % Call YW-Model module
             runManager.modeler = runManager.modeler.annotations(annotations);
             runManager.modeler = runManager.modeler.model;
@@ -302,14 +304,16 @@ classdef RunManager < hgsetget
             celldisp(outPorts);
          
             % Convert 'Program' object to 'Workflow' object ***
-            runManager.copyWorkflow(program);
+          % runManager.copyWorkflow(program);
+            runManager.workflow = Workflow(program); % add a new Workflow constructor in YW project
             
             % test whether workflow object is correct 
-            fprintf('/////////////////////////////////');
-            inPorts = cell(runManager.workflow.inPorts);
-            celldisp(inPorts);
-            outPorts = cell(runManager.workflow.outPorts);
-            celldisp(outPorts);
+          % fprintf('*********************************');
+          % inPorts = cell(runManager.workflow.inPorts);
+          % celldisp(inPorts);
+          % outPorts = cell(runManager.workflow.outPorts);
+          % celldisp(outPorts);
+          % fprintf('*********************************');
             
             % Call YW-Graph module
             runManager.grapher = runManager.grapher.workflow(runManager.workflow);
