@@ -80,8 +80,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % reset to the original
             set(mgr.configuration, 'format_id', old_format_id);
 
-            %% Test for YesWorkflow           
-            mgr.startRecord('test_mstmip');
+            %% Test for YesWorkflow  
+            mgr.record('/Users/syc/Documents/matlab-dataone/DroughtTimeScale_Markup_v2.m', '');
+         %  mgr.startRecord('test_mstmip');
                   
         end
 

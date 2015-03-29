@@ -266,8 +266,8 @@ classdef RunManager < hgsetget
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;
             packageIdentifier = Identifier();
-        %   packageIdentifier.setValue(runManager.execution.data_package_id);            
-        %   runManager.dataPackage = DataPackage(packageIdentifier);
+            packageIdentifier.setValue(runManager.execution.data_package_id);            
+            runManager.dataPackage = DataPackage(packageIdentifier);
             
             %% Call YesWorkflow
             % Scan the script for inline YesWorkflow comments
@@ -298,10 +298,6 @@ classdef RunManager < hgsetget
             runManager.modeler = runManager.modeler.model;
             program = runManager.modeler.getModel;
             runManager.workflow = runManager.modeler.getWorkflow;
- 
-            % Display inPorts and outPorts information
-         %  celldisp(cell(program.inPorts));
-         %  celldisp(cell(program.outPorts));
           
             % Call YW-Graph module
             import org.yesworkflow.graph.GraphView;
@@ -309,34 +305,55 @@ classdef RunManager < hgsetget
             
             runManager.grapher = runManager.grapher.workflow(runManager.workflow);
             gconfig = HashMap;
+            
+            % Generate YW.Process_Centric_View
             gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
             gconfig.put('comments', CommentVisibility.HIDE);
             runManager.grapher.config(gconfig);
-            runManager.grapher = runManager.grapher.graph();
+            runManager.grapher = runManager.grapher.graph();           
+            % Output the content of dot file to a file (test_mstmip_process_view.gv)
+            fileID = fopen('test_mstmip_process_view.gv','w');
+            fprintf(fileID, '%s', char(runManager.grapher.toString()));
+            fclose(fileID);
             
-            % Output the content of dot file
-            fprintf('%s', char(runManager.grapher.toString()));
+            % Generate YW.Process_Data_View
+            gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
+            runManager.grapher.config(gconfig);
+            runManager.grapher = runManager.grapher.graph();
+            % Output the content of dot file to a file (test_mstmip_data_view.gv)
+            fileID = fopen('test_mstmip_data_view.gv','w');
+            fprintf(fileID, '%s', char(runManager.grapher.toString()));
+            fclose(fileID);
+            
+            % Generate YW.Process_Combined_View
+            gconfig.put('view', GraphView.COMBINED_VIEW);
+            runManager.grapher.config(gconfig);
+            runManager.grapher = runManager.grapher.graph();
+            % Output the content of dot file to a file (test_mstmip_combined_view.gv)
+            fileID = fopen('test_mstmip_combined_view.gv','w');
+            fprintf(fileID, '%s', char(runManager.grapher.toString()));
+            fclose(fileID);
             
             
             %% Add YesWorkflow-derived triples to the DataPackage
             
             
             %% Run the script and collect provenance information
-            runManager.prov_capture_enabled = true;
-        %   [pathstr, script_name, ext] = ...
-        %        fileparts(runManager.execution.software_application);
-        %    addpath(pathstr);
+         %  runManager.prov_capture_enabled = true;
+         %  [pathstr, script_name, ext] = ...
+         %      fileparts(runManager.execution.software_application);
+         %  addpath(pathstr);
 
-        %    try
-        %        eval(script_name);
+         %  try
+         %      eval(script_name);
                 
-        %    catch runtimeError
-        %        error(['The script: ' ...
-        %               runManager.execution.software_application ...
-        %               ' could not be run. The error message was: ' ...
-        %               runtimeError.message]);
+         %  catch runtimeError
+         %      error(['The script: ' ...
+         %             runManager.execution.software_application ...
+         %             ' could not be run. The error message was: ' ...
+         %              runtimeError.message]);
                    
-        %    end
+         %  end
         end
         
         function data_package = endRecord(runManager)

@@ -1,0 +1,78 @@
+digraph Workflow {
+rankdir=LR
+graph[fontname=Courier]
+node[fontname=Courier]
+node[shape=box3d style="filled" fillcolor="#CCFFCC" peripheries=1 label=""]
+node1 [label="fetch_drought_variable"]
+node2 [label="fetch_effect_variable"]
+node3 [label="convert_effect_variable_units"]
+node4 [label="create_land_water_mask"]
+node5 [label="init_data_variables"]
+node6 [label="define_droughts"]
+node7 [label="detrend_deseasonalize_effect_variable"]
+node8 [label="calculate_data_variables"]
+node9 [label="export_recovery_time_figure"]
+node10 [label="export_drought_value_variable_figure"]
+node11 [label="export_predrought_effect_variable_figure"]
+node12 [label="export_drought_number_variable_figure"]
+node[fontname=Helvetica]
+node[shape=box style="rounded,filled" fillcolor="#FFFFCC" peripheries=1 label=""]
+node13 [label="output_recovery_time_figure"]
+node14 [label="output_drought_value_variable_figure"]
+node15 [label="output_predrought_effect_variable_figure"]
+node16 [label="output_drought_number_figure"]
+node17 [label="input_drough_variable"]
+node18 [label="input_effect_variable"]
+node19 [label="effect_variable_1"]
+node20 [label="effect_variable_2"]
+node21 [label="land_water_mask"]
+node22 [label="drought_variable_1"]
+node23 [label="effect_variable_3"]
+node24 [label="sigma_dv_event"]
+node25 [label="month_dv_length"]
+node26 [label="predrought_effect_variable_1"]
+node27 [label="drought_value_variable_1"]
+node28 [label="recovery_time_variable_1"]
+node29 [label="drought_number_variable_1"]
+node30 [label="recovery_time_variable_2"]
+node31 [label="drought_value_variable_2"]
+node32 [label="predrought_effect_variable_2"]
+node33 [label="drought_number_variable_2"]
+node1 -> node22
+node17 -> node1
+node2 -> node19
+node18 -> node2
+node3 -> node20
+node19 -> node3
+node4 -> node21
+node20 -> node4
+node5 -> node26
+node5 -> node27
+node5 -> node28
+node5 -> node29
+node21 -> node5
+node6 -> node24
+node6 -> node25
+node7 -> node23
+node20 -> node7
+node8 -> node32
+node8 -> node31
+node8 -> node30
+node8 -> node33
+node22 -> node8
+node23 -> node8
+node24 -> node8
+node25 -> node8
+node26 -> node8
+node27 -> node8
+node28 -> node8
+node29 -> node8
+node9 -> node13
+node30 -> node9
+node10 -> node14
+node31 -> node10
+node11 -> node15
+node32 -> node11
+node12 -> node16
+node33 -> node12
+}
