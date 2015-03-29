@@ -66,14 +66,12 @@ classdef RunManager < hgsetget
         function manager = RunManager(configuration)
             % RUNMANAGER Constructor: creates an instance of the RunManager class
             %   The RunManager class manages outputs of a script based on the
-            %   settings in the given configuration passed in.
-          
+            %   settings in the given configuration passed in.            
             import org.dataone.client.configure.Configuration;
             manager.configuration = configuration;
             configuration.saveConfig();
             manager.init();
-            mlock; % Lock the RunManager instance to prevent clears
-            
+            mlock; % Lock the RunManager instance to prevent clears          
         end
         
     end
@@ -82,12 +80,12 @@ classdef RunManager < hgsetget
         function runManager = getInstance(configuration)
             % GETINSTANCE returns an instance of the RunManager by either
             % creating a new instance or returning an existing one.
-            
+                        
             import org.dataone.client.configure.Configuration;
             
-            % Set the java class path
-            RunManager.setJavaClassPath();
-
+            % Set all jars under lib/java/ to the java dynamic class path 
+            % RunManager.setJavaClassPath();
+                       
             % Set the java class path
             RunManager.setMatlabPath();
 
@@ -157,6 +155,25 @@ classdef RunManager < hgsetget
            addpath(genpath(matlab_dataone_lib_dir));
                 
         end
+        
+    %    function addYesWorkflowClassPath()                  
+            % Add yesworkflow-SNAPSHOT.jar to java dynamic class path
+    %        disp('****************');
+    %        filePath = mfilename('fullpath');
+    %        matlab_dataone_dir_array = strsplit(filePath, filesep);
+    %        matlab_dataone_java_lib_dir = ...
+    %            [strjoin( ...
+    %                matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
+    %                filesep) ...
+    %                filesep 'lib' filesep 'java' filesep];
+    %        yw_class_path = [matlab_dataone_java_lib_dir 'yesworkflow-0.2-SNAPSHOT.jar'];
+    %        classpath = javaclasspath('-all');
+    %        presentInClassPath = strmatch(yw_class_path, classpath);
+    %        if ( isempty(presentInClassPath) )
+    %                javaaddpath(yw_class_path);
+    %                disp(['Added new java classpath item: ' yw_class_path]);
+    %        end 
+    %    end
     end
     
     methods  
