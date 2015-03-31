@@ -83,7 +83,17 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %% Test for YesWorkflow  
             mgr.record('/Users/syc/Documents/matlab-dataone/DroughtTimeScale_Markup_v2.m', '');
          %  mgr.startRecord('test_mstmip');
-                  
+            
+            % Convert .gv files to .png files
+            system('/usr/local/bin/dot -Tpng test_mstmip_combined_view.gv -o test_mstmip_combined_view.png');
+            system('/usr/local/bin/dot -Tpng test_mstmip_data_view.gv -o test_mstmip_data_view.png');
+            system('/usr/local/bin/dot -Tpng test_mstmip_process_view.gv -o test_mstmip_process_view.png');
+            
+            % Display 3 different views of YesWorkflow output files
+            system('/usr/bin/open test_mstmip_process_view.png');
+            system('/usr/bin/open test_mstmip_data_view.png');
+            system('/usr/bin/open test_mstmip_combined_view.png');
+            
         end
 
     end
