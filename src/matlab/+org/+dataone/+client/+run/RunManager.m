@@ -155,25 +155,6 @@ classdef RunManager < hgsetget
            addpath(genpath(matlab_dataone_lib_dir));
                 
         end
-        
-    %    function addYesWorkflowClassPath()                  
-            % Add yesworkflow-SNAPSHOT.jar to java dynamic class path
-    %        disp('****************');
-    %        filePath = mfilename('fullpath');
-    %        matlab_dataone_dir_array = strsplit(filePath, filesep);
-    %        matlab_dataone_java_lib_dir = ...
-    %            [strjoin( ...
-    %                matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
-    %                filesep) ...
-    %                filesep 'lib' filesep 'java' filesep];
-    %        yw_class_path = [matlab_dataone_java_lib_dir 'yesworkflow-0.2-SNAPSHOT.jar'];
-    %        classpath = javaclasspath('-all');
-    %        presentInClassPath = strmatch(yw_class_path, classpath);
-    %        if ( isempty(presentInClassPath) )
-    %                javaaddpath(yw_class_path);
-    %                disp(['Added new java classpath item: ' yw_class_path]);
-    %        end 
-    %    end
     end
     
     methods  
@@ -198,6 +179,9 @@ classdef RunManager < hgsetget
             
             % Set script file path
             runManager.script_path = path;
+            
+            % Set generate_workflow_graphic to be true
+            runManager.configuration.generate_workflow_graphic = true;
         end
         
                 
@@ -317,40 +301,41 @@ classdef RunManager < hgsetget
             runManager.workflow = runManager.modeler.getWorkflow;
           
             % Call YW-Graph module
-            import org.yesworkflow.graph.GraphView;
-            import org.yesworkflow.graph.CommentVisibility;
+            if (runManager.configuration.generate_workflow_graphic)
+                import org.yesworkflow.graph.GraphView;
+                import org.yesworkflow.graph.CommentVisibility;
             
-            runManager.grapher = runManager.grapher.workflow(runManager.workflow);
-            gconfig = HashMap;
+                runManager.grapher = runManager.grapher.workflow(runManager.workflow);
+                gconfig = HashMap;
+                       
+                % Generate YW.Process_Centric_View
+                gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
+                gconfig.put('comments', CommentVisibility.HIDE);
+                runManager.grapher.config(gconfig);
+                runManager.grapher = runManager.grapher.graph();           
+                % Output the content of dot file to a file (test_mstmip_process_view.gv)
+                fileID = fopen('test_mstmip_process_view.gv','w');
+                fprintf(fileID, '%s', char(runManager.grapher.toString()));
+                fclose(fileID);
             
-            % Generate YW.Process_Centric_View
-            gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
-            gconfig.put('comments', CommentVisibility.HIDE);
-            runManager.grapher.config(gconfig);
-            runManager.grapher = runManager.grapher.graph();           
-            % Output the content of dot file to a file (test_mstmip_process_view.gv)
-            fileID = fopen('test_mstmip_process_view.gv','w');
-            fprintf(fileID, '%s', char(runManager.grapher.toString()));
-            fclose(fileID);
+                % Generate YW.Process_Data_View
+                gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
+                runManager.grapher.config(gconfig);
+                runManager.grapher = runManager.grapher.graph();
+                % Output the content of dot file to a file (test_mstmip_data_view.gv)
+                fileID = fopen('test_mstmip_data_view.gv','w');
+                fprintf(fileID, '%s', char(runManager.grapher.toString()));
+                fclose(fileID);
             
-            % Generate YW.Process_Data_View
-            gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
-            runManager.grapher.config(gconfig);
-            runManager.grapher = runManager.grapher.graph();
-            % Output the content of dot file to a file (test_mstmip_data_view.gv)
-            fileID = fopen('test_mstmip_data_view.gv','w');
-            fprintf(fileID, '%s', char(runManager.grapher.toString()));
-            fclose(fileID);
-            
-            % Generate YW.Process_Combined_View
-            gconfig.put('view', GraphView.COMBINED_VIEW);
-            runManager.grapher.config(gconfig);
-            runManager.grapher = runManager.grapher.graph();
-            % Output the content of dot file to a file (test_mstmip_combined_view.gv)
-            fileID = fopen('test_mstmip_combined_view.gv','w');
-            fprintf(fileID, '%s', char(runManager.grapher.toString()));
-            fclose(fileID);
-            
+                % Generate YW.Process_Combined_View
+                gconfig.put('view', GraphView.COMBINED_VIEW);
+                runManager.grapher.config(gconfig);
+                runManager.grapher = runManager.grapher.graph();
+                % Output the content of dot file to a file (test_mstmip_combined_view.gv)
+                fileID = fopen('test_mstmip_combined_view.gv','w');
+                fprintf(fileID, '%s', char(runManager.grapher.toString()));
+                fclose(fileID);
+            end 
             
             %% Add YesWorkflow-derived triples to the DataPackage
             
