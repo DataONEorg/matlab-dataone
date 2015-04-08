@@ -20,14 +20,15 @@
 
 classdef RunManagerTest < matlab.unittest.TestCase
     
-    properties
+    properties 
+        filename
     end
 
     methods (TestMethodSetup)
         
         function setUp(testCase)
             % SETUP Set up the test environment
-
+            testCase.filename = 'DroughtTimeScale_Markup_v2.m';
         end
     end
     
@@ -80,10 +81,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % reset to the original
             set(mgr.configuration, 'format_id', old_format_id);
 
-            %% Test for YesWorkflow  
-            mgr.record('/Users/syc/Documents/matlab-dataone/DroughtTimeScale_Markup_v2.m', '');
-         %  mgr.startRecord('test_mstmip');
+            %% Test for YesWorkflow              
+            script_path = fullfile(pwd(), filesep, testCase.filename); 
             
+            mgr.record(script_path, '');
+        
             if (mgr.configuration.generate_workflow_graphic)
                 % Convert .gv files to .png files
                 system('/usr/local/bin/dot -Tpng test_mstmip_combined_view.gv -o test_mstmip_combined_view.png');

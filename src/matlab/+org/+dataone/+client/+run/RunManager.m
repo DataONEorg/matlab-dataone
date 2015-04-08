@@ -41,11 +41,8 @@ classdef RunManager < hgsetget
         % The YesWorkflow Grapher object
         grapher;
         
-        % The YesWorkflow workflow object
+        % The generated workflow object built by YesWorkflow 
         workflow;
-        
-        % The file path of a script to be analyzed by YesWorkflow
-        script_path;
     end
 
     properties (Access = private)
@@ -83,7 +80,7 @@ classdef RunManager < hgsetget
                         
             import org.dataone.client.configure.Configuration;
             
-            % Set all jars under lib/java/ to the java dynamic class path 
+            %% Set all jars under lib/java/ to the java dynamic class path (Need further consideration !)
             % RunManager.setJavaClassPath();
                        
             % Set the java class path
@@ -176,10 +173,7 @@ classdef RunManager < hgsetget
             matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB');
             lm = LanguageModel(matCode); 
             runManager.extractor = runManager.extractor.languageModel(lm);  
-            
-            % Set script file path
-            runManager.script_path = path;
-            
+                      
             % Set generate_workflow_graphic to be true
             runManager.configuration.generate_workflow_graphic = true;
         end
@@ -241,16 +235,19 @@ classdef RunManager < hgsetget
                        'a string. The error message was: ' ...
                        classCastException.message]);
             end
-
+            
             runManager.execution = Execution(tagStr);
-            runManager.execution.software_application = filePath;
+            runManager.execution.software_application = filePath; % Set script path
+            
+            % Set up YesWorkflow and pass the path of a script to
+            % YesWorkflow
+            runManager.configYesWorkflow(runManager.execution.software_application);
             
             % Begin recording
             runManager.startRecord(runManager.execution.tag);
 
             % End the recording session
-            runManager.dataPackage = runManager.endRecord();
-            
+            runManager.dataPackage = runManager.endRecord();          
         end
         
         function startRecord(runManager, tag)
@@ -280,20 +277,16 @@ classdef RunManager < hgsetget
             import java.io.FileReader;
             import java.util.List;
             import java.util.HashMap;
-            
-            % Set up YesWorkflow
-            runManager.configYesWorkflow('/Users/syc/Documents/matlab-dataone/DroughtTimeScale_Markup_v2.m');
-            
+                       
             % Read script content from disk
-            script = File(runManager.script_path);
+            script = File(runManager.execution.software_application);
             freader = FileReader(script);
             reader = BufferedReader(freader);
             
             % Call YW-Extract module
             runManager.extractor = runManager.extractor.source(reader);
             annotations = runManager.extractor.extract().getAnnotations();
-         %  celldisp(cell(annotations)); % test annotation
-            
+        
             % Call YW-Model module
             runManager.modeler = runManager.modeler.annotations(annotations);
             runManager.modeler = runManager.modeler.model;
