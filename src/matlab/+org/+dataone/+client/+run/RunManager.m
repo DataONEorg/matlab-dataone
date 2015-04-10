@@ -260,6 +260,19 @@ classdef RunManager < hgsetget
                   
             end                
 
+            % Create the run metadata directory for this run
+            k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
+            runId = runManager.execution.execution_id(k+9:end);
+          % fprintf('k+9=%d\n', k+9);
+            runDir = strcat(runManager.configuration.provenance_storage_directory, filesep,'runs', filesep, runId);
+            [status, message, message_id] = mkdir(runDir);
+          % fprintf('filePath:%s\n', runDir);           
+            if ( status ~= 1 )
+                error(message_id, [ 'The directory %s' ...
+                    ' could not be created. The error message' ...
+                    ' was: ' runId, message]);
+            end
+                           
             %% Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;
@@ -267,7 +280,7 @@ classdef RunManager < hgsetget
             packageIdentifier.setValue(runManager.execution.data_package_id);            
             runManager.dataPackage = DataPackage(packageIdentifier);
             
-            %% Call YesWorkflow
+            % Call YesWorkflow
             % Scan the script for inline YesWorkflow comments
             import java.io.BufferedReader;
             import org.yesworkflow.annotations.Annotation;
@@ -294,13 +307,17 @@ classdef RunManager < hgsetget
             runManager.workflow = runManager.modeler.getWorkflow;
           
             % Call YW-Graph module
-            if (runManager.configuration.generate_workflow_graphic)
+            if runManager.configuration.generate_workflow_graphic
                 import org.yesworkflow.graph.GraphView;
                 import org.yesworkflow.graph.CommentVisibility;
             
                 runManager.grapher = runManager.grapher.workflow(runManager.workflow);
                 gconfig = HashMap;
                        
+                % Set the working directory to run metadata directory for
+                % this run
+                wd = cd(runDir); % do I need to go back to the src/ folder again?
+                
                 % Generate YW.Process_Centric_View
                 gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
                 gconfig.put('comments', CommentVisibility.HIDE);
@@ -334,21 +351,21 @@ classdef RunManager < hgsetget
             
             
             %% Run the script and collect provenance information
-         %  runManager.prov_capture_enabled = true;
-         %  [pathstr, script_name, ext] = ...
-         %      fileparts(runManager.execution.software_application);
-         %  addpath(pathstr);
+          % runManager.prov_capture_enabled = true;
+          % [pathstr, script_name, ext] = ...
+          %     fileparts(runManager.execution.software_application);
+          % addpath(pathstr);
 
-         %  try
-         %      eval(script_name);
+          % try
+          %     eval(script_name);
                 
-         %  catch runtimeError
-         %      error(['The script: ' ...
-         %             runManager.execution.software_application ...
-         %             ' could not be run. The error message was: ' ...
-         %              runtimeError.message]);
+          % catch runtimeError
+          %     error(['The script: ' ...
+          %            runManager.execution.software_application ...
+          %            ' could not be run. The error message was: ' ...
+          %             runtimeError.message]);
                    
-         %  end
+          % end
         end
         
         function data_package = endRecord(runManager)
