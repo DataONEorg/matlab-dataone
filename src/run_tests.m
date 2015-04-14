@@ -22,11 +22,11 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
+% Create a suite of all client tests 
+
 addpath(genpath(pwd));
 
 import matlab.unittest.TestSuite;
-
-% Create a suite of all client tests 
 suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
 run(suite);
 

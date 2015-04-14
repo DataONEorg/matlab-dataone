@@ -23,8 +23,10 @@ classdef NamedConstant
         % Define XML schema
         xsdString = 'http://www.w3.org/2001/XMLSchema#string';
             
-        % Define constants from Open Archives Initiative Obect Reuse
-        % and Exchange
+        % Define constants from Open Archives Initiative Obect Reuse and Exchange
         OREterms_URI = 'http://www.openarchives.org/ore/terms';
+        
+        % Define member node url
+        cnBaseURL = 'https://cn-sandbox-2.test.dataone.org/cn/v1/resolve/';
    end
 end

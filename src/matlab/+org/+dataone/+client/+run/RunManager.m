@@ -168,8 +168,7 @@ classdef RunManager < hgsetget
             runManager.modeler = DefaultModeler;
             runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
             
-            % Get an inner class that's an Enum class because we need the
-            % Enum Language values 
+            % Get an inner class that's an Enum class because we need the Enum Language values 
             matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB');
             lm = LanguageModel(matCode); 
             runManager.extractor = runManager.extractor.languageModel(lm);  
@@ -280,13 +279,20 @@ classdef RunManager < hgsetget
             packageIdentifier.setValue(runManager.execution.data_package_id);            
             runManager.dataPackage = DataPackage(packageIdentifier);
             
-            % Record relationship identifying this id as a
-            % provone:Execution
+            %% Create the derived resources
+            % Create a resource map
+            resourceMapId = Identifier;
+            resourceMapId.setValue([NamedConstant.cnBaseURL 'resourceMap_' char(java.util.UUID.randomUUID())]);
+            
+            % Record relationship identifying this id as a provone:Execution
             import org.dataone.client.run.NamedConstant;
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_id, NamedConstant.provONEexecution, NamedConstant.provNS, NamedConstant.rdfType);
-            
-            
-            
+            import java.util.ArrayList;
+            dataIdsExec = ArrayList; % should be ArrayList<Identifier>, cannot use java generic class !
+            provExecId = Identifier;
+            provExecId.setValue('provone:Execution');
+            dataIdsExec.add(provExecId);
+            runManager.dataPackage.insertRelationship(runManager.execution.execution_id, dataIdsExec, NamedConstant.provNS, NamedConstant.rdfType); % can not use java generic class here !
+                       
             % Call YesWorkflow
             % Scan the script for inline YesWorkflow comments
             import java.io.BufferedReader;
@@ -321,8 +327,7 @@ classdef RunManager < hgsetget
                 runManager.grapher = runManager.grapher.workflow(runManager.workflow);
                 gconfig = HashMap;
                        
-                % Set the working directory to be the run metadata directory for
-                % this run
+                % Set the working directory to be the run metadata directory for this run
                 wd = cd(runDir); % do I need to go back to the src/ folder again?
                 
                 % Generate YW.Process_Centric_View
@@ -357,14 +362,25 @@ classdef RunManager < hgsetget
                     % Convert .gv files to .png files
                     if isunix
                         system('/usr/local/bin/dot -Tpng test_mstmip_combined_view.gv -o test_mstmip_combined_view.png'); % for linux & mac platform, not for windows OS family
+                        % One derived YW combined view image 
                         imgId1 = Identifier;
-                        imgId1.setValue('test_mstmip_combined_view.png'); % a figure image
+                        imgId1.setValue([NamedConstant.cnBaseURL 'test_mstmip_combined_view.png']); % a figure image
+                        % Metadata
+                        metadataId1 = Identifier;
+                        metadataId1.setValue([NamedConstant.cnBaseURL 'test_mstmip_combined_view.xml']);
+                        dataIds1 = ArrayList;
+                        dataIds1.add(imgId1);
+                        runManager.dataPackage.insertRelationship(metadataId1, dataIds1);
+                        
                         system('/usr/local/bin/dot -Tpng test_mstmip_data_view.gv -o test_mstmip_data_view.png');
+                        % One derived YW data view image
                         imgId2 = Identifier;
-                        imgId2.setValue('test_mstmip_data_view.png'); % a figure image
+                        imgId2.setValue([NamedConstant.cnBaseURL 'test_mstmip_data_view.png']); % a figure image
+                        
                         system('/usr/local/bin/dot -Tpng test_mstmip_process_view.gv -o test_mstmip_process_view.png');
+                        % One derived YW process view image
                         imgId3 = Identifier;
-                        imgId3.setValue('test_mstmip_process_view.png'); % a figure image
+                        imgId3.setValue([NamedConstant.cnBaseURL 'test_mstmip_process_view.png']); % a figure image
                     end
                     % Record relationship between the figure impage and the source data
                     runManager.dataPackage.insertRelationship(imgId1, primaryDataIds, NamedConstant.provNS, NamedConstant.provWasDerivedFrom); % ? primaryDataIds should be the input files of the mismip scripts April-13-2015
