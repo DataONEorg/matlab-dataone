@@ -22,7 +22,7 @@
 % limitations under the License.
 
 classdef RunManager < hgsetget
-    
+
     properties
        
         % The instance of the Configuration class used to provide settings 
@@ -57,7 +57,7 @@ classdef RunManager < hgsetget
         dataPackage;
         
     end
-
+   
     methods (Access = private)
 
         function manager = RunManager(configuration)
@@ -280,32 +280,12 @@ classdef RunManager < hgsetget
             packageIdentifier.setValue(runManager.execution.data_package_id);            
             runManager.dataPackage = DataPackage(packageIdentifier);
             
-            % Define constants from the Prov Ontology (http://www.w3.org/TR/prov-dm)
-            RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-            rdfType = strcat(RDF_NS, 'type');
-            provNS = 'http://www.w3.org/ns/prov#';
-            provQualifiedAssociation = strcat(provNS, 'qualifiedAssociation');
-            provWasDerivedFrom = strcat(provNS, 'wasDerivedFrom');
-            provHadPlan = strcat(provNS, 'hadPlan');
-            provUsed = strcat(provNS, 'used');
-            provWasGeneratedBy = strcat(provNS, 'wasGeneratedBy');
-            provAssociation = strcat(provNS, 'Association');
-            provWasAssociatedWith = strcat(provNS, 'wasAssociatedWith');
-            provAgent = strcat(provNS, 'Agent');
+            % Record relationship identifying this id as a
+            % provone:Execution
+            import org.dataone.client.run.NamedConstant;
+            runManager.dataPackage.insertRelationship(runManager.execution.execution_id, NamedConstant.provONEexecution, NamedConstant.provNS, NamedConstant.rdfType);
             
-            % Define constants from the ProvONE Ontology 
-            provONE_NS = 'http://purl.org/provone/2015/15/ontology#';
-            provONEprogram = strcat(provONE_NS, 'Program');
-            provONEexecution = strcat(provONE_NS, 'Execution');
-            provONEdata = strcat(provONE_NS, 'Data');
-            provONEuser = strcat(provONE_NS, 'User');
             
-            % Define XML schema
-            xsdString = 'http://www.w3.org/2001/XMLSchema#string';
-            
-            % Define constants from Open Archives Initiative Obect Reuse
-            % and Exchange
-            OREterms_URI = 'http://www.openarchives.org/ore/terms';
             
             % Call YesWorkflow
             % Scan the script for inline YesWorkflow comments
@@ -375,18 +355,19 @@ classdef RunManager < hgsetget
                 
                 if (runManager.configuration.generate_workflow_graphic)
                     % Convert .gv files to .png files
-                    system('/usr/local/bin/dot -Tpng test_mstmip_combined_view.gv -o test_mstmip_combined_view.png'); % for linux & mac platform, not for windows OS family
-                    imgId1 = Identifier;
-                    imgId1.setValue('test_mstmip_combined_view.png'); % a figure image
-                    system('/usr/local/bin/dot -Tpng test_mstmip_data_view.gv -o test_mstmip_data_view.png');
-                    imgId2 = Identifier;
-                    imgId2.setValue('test_mstmip_data_view.png'); % a figure image
-                    system('/usr/local/bin/dot -Tpng test_mstmip_process_view.gv -o test_mstmip_process_view.png');
-                    imgId3 = Identifier;
-                    imgId3.setValue('test_mstmip_process_view.png'); % a figure image
-                    
+                    if isunix
+                        system('/usr/local/bin/dot -Tpng test_mstmip_combined_view.gv -o test_mstmip_combined_view.png'); % for linux & mac platform, not for windows OS family
+                        imgId1 = Identifier;
+                        imgId1.setValue('test_mstmip_combined_view.png'); % a figure image
+                        system('/usr/local/bin/dot -Tpng test_mstmip_data_view.gv -o test_mstmip_data_view.png');
+                        imgId2 = Identifier;
+                        imgId2.setValue('test_mstmip_data_view.png'); % a figure image
+                        system('/usr/local/bin/dot -Tpng test_mstmip_process_view.gv -o test_mstmip_process_view.png');
+                        imgId3 = Identifier;
+                        imgId3.setValue('test_mstmip_process_view.png'); % a figure image
+                    end
                     % Record relationship between the figure impage and the source data
-                    runManager.dataPackage.insertRelationship(imgId1, primaryDataIds, provNS, provWasDerivedFrom); % ? primaryDataIds should be the input files of the mismip scripts April-13-2015
+                    runManager.dataPackage.insertRelationship(imgId1, primaryDataIds, NamedConstant.provNS, NamedConstant.provWasDerivedFrom); % ? primaryDataIds should be the input files of the mismip scripts April-13-2015
                   
                 end
             end 

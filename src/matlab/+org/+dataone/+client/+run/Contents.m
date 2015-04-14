@@ -5,3 +5,4 @@
 % Classes
 %   RunManager - A class used to manage per-run outputs and products
 %   Execution  - A class representing the metadata associated with a script execution
+%   NamedConstant - A class containing a list of prov, provONE, xmlschema,ORE definition
