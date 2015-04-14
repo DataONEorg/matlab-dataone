@@ -83,14 +83,19 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             %% Test for YesWorkflow              
             script_path = fullfile(pwd(), filesep, testCase.filename); 
-            
+            fprintf('current script path: %s\n', script_path);
             mgr.record(script_path, '');
         
-            if (mgr.configuration.generate_workflow_graphic)
+            if mgr.configuration.include_workflow_graphic
+                curDir = pwd();
+                cd(mgr.runDir); % go to the provenance run directory
+                
                 % Display 3 different views of YesWorkflow output files
-                system('/usr/bin/open test_mstmip_process_view.png');
-                system('/usr/bin/open test_mstmip_data_view.png');
-                system('/usr/bin/open test_mstmip_combined_view.png');
+                system('/usr/bin/open process_view.png');
+                system('/usr/bin/open data_view.png');
+                system('/usr/bin/open combined_view.png');
+                
+                cd(curDir);
             end
             
         end

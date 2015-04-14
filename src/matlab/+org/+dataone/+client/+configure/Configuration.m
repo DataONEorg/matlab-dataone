@@ -98,11 +98,11 @@ classdef Configuration < hgsetget & dynamicprops
         %% YesWorkflow configuration
         
         % A flag indicating whether to generate the graphic
-        generate_workflow_graphic = false;
+        generate_workflow_graphic = true;
         
         % A flag indicating whether to include the workflow graphic as an
         % object in the DataPackage
-        include_workflow_graphic = false;
+        include_workflow_graphic = true;
         
     end
 

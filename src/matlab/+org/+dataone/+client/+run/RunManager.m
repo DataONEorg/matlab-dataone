@@ -43,6 +43,9 @@ classdef RunManager < hgsetget
         
         % The generated workflow object built by YesWorkflow 
         workflow;
+               
+        % The provenance directory for an execution
+        runDir;
     end
 
     properties (Access = private)
@@ -55,7 +58,6 @@ classdef RunManager < hgsetget
         
         % The DataPackage aggregating and describing all objects in a run
         dataPackage;
-        
     end
    
     methods (Access = private)
@@ -263,13 +265,13 @@ classdef RunManager < hgsetget
             k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
             runId = runManager.execution.execution_id(k+9:end);
           % fprintf('k+9=%d\n', k+9);
-            runDir = strcat(runManager.configuration.provenance_storage_directory, filesep,'runs', filesep, runId);
-            [status, message, message_id] = mkdir(runDir);
-          % fprintf('filePath:%s\n', runDir);           
+            runManager.runDir = strcat(runManager.configuration.provenance_storage_directory, filesep,'runs', filesep, runId);
+            [status, message, message_id] = mkdir(runManager.runDir);
+          % fprintf('filePath:%s\n', runManager.runDir);           
             if ( status ~= 1 )
                 error(message_id, [ 'The directory %s' ...
                     ' could not be created. The error message' ...
-                    ' was: ' runDir, message]);
+                    ' was: ' runManager.runDir, message]);
             end
                            
             % Initialize a dataPackage to manage the run
@@ -291,110 +293,51 @@ classdef RunManager < hgsetget
             provExecId = Identifier;
             provExecId.setValue('provone:Execution');
             dataIdsExec.add(provExecId);
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_id, dataIdsExec, NamedConstant.provNS, NamedConstant.rdfType); % can not use java generic class here !
-                       
-            % Call YesWorkflow
-            % Scan the script for inline YesWorkflow comments
-            import java.io.BufferedReader;
-            import org.yesworkflow.annotations.Annotation;
-            import org.yesworkflow.model.Program;
-            import org.yesworkflow.model.Workflow;
-            import java.io.File;
-            import java.io.FileReader;
-            import java.util.List;
-            import java.util.HashMap;
-                       
-            % Read script content from disk
-            script = File(runManager.execution.software_application);
-            freader = FileReader(script);
-            reader = BufferedReader(freader);
-            
-            % Call YW-Extract module
-            runManager.extractor = runManager.extractor.source(reader);
-            annotations = runManager.extractor.extract().getAnnotations();
-        
-            % Call YW-Model module
-            runManager.modeler = runManager.modeler.annotations(annotations);
-            runManager.modeler = runManager.modeler.model;
-            program = runManager.modeler.getModel;
-            runManager.workflow = runManager.modeler.getWorkflow;
-          
-            % Call YW-Graph module
-            if runManager.configuration.generate_workflow_graphic
-                import org.yesworkflow.graph.GraphView;
-                import org.yesworkflow.graph.CommentVisibility;
-            
-                runManager.grapher = runManager.grapher.workflow(runManager.workflow);
-                gconfig = HashMap;
-                       
-                % Set the working directory to be the run metadata directory for this run
-                wd = cd(runDir); % do I need to go back to the src/ folder again?
-                
-                % Generate YW.Process_Centric_View
-                gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
-                gconfig.put('comments', CommentVisibility.HIDE);
-                runManager.grapher.config(gconfig);
-                runManager.grapher = runManager.grapher.graph();           
-                % Output the content of dot file to a file (test_mstmip_process_view.gv)
-                fileID = fopen('test_mstmip_process_view.gv','w');
-                fprintf(fileID, '%s', char(runManager.grapher.toString()));
-                fclose(fileID);
-            
-                % Generate YW.Process_Data_View
-                gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
-                runManager.grapher.config(gconfig);
-                runManager.grapher = runManager.grapher.graph();
-                % Output the content of dot file to a file (test_mstmip_data_view.gv)
-                fileID = fopen('test_mstmip_data_view.gv','w');
-                fprintf(fileID, '%s', char(runManager.grapher.toString()));
-                fclose(fileID);
-            
-                % Generate YW.Process_Combined_View
-                gconfig.put('view', GraphView.COMBINED_VIEW);
-                runManager.grapher.config(gconfig);
-                runManager.grapher = runManager.grapher.graph();
-                % Output the content of dot file to a file (test_mstmip_combined_view.gv)
-                fileID = fopen('test_mstmip_combined_view.gv','w');
-                fprintf(fileID, '%s', char(runManager.grapher.toString()));
-                fclose(fileID);
-                
-                if (runManager.configuration.generate_workflow_graphic)
-                    % Convert .gv files to .png files
-                    if isunix
-                        system('/usr/local/bin/dot -Tpng test_mstmip_combined_view.gv -o test_mstmip_combined_view.png'); % for linux & mac platform, not for windows OS family
-                        % One derived YW combined view image 
-                        imgId1 = Identifier;
-                        imgId1.setValue([NamedConstant.cnBaseURL 'test_mstmip_combined_view.png']); % a figure image
-                        % Metadata
-                        metadataId1 = Identifier;
-                        metadataId1.setValue([NamedConstant.cnBaseURL 'test_mstmip_combined_view.xml']);
-                        dataIds1 = ArrayList;
-                        dataIds1.add(imgId1);
-                        runManager.dataPackage.insertRelationship(metadataId1, dataIds1);
-                        
-                        system('/usr/local/bin/dot -Tpng test_mstmip_data_view.gv -o test_mstmip_data_view.png');
-                        % One derived YW data view image
-                        imgId2 = Identifier;
-                        imgId2.setValue([NamedConstant.cnBaseURL 'test_mstmip_data_view.png']); % a figure image
-                        
-                        system('/usr/local/bin/dot -Tpng test_mstmip_process_view.gv -o test_mstmip_process_view.png');
-                        % One derived YW process view image
-                        imgId3 = Identifier;
-                        imgId3.setValue([NamedConstant.cnBaseURL 'test_mstmip_process_view.png']); % a figure image
-                    end
-                    % Record relationship between the figure impage and the source data
-                    runManager.dataPackage.insertRelationship(imgId1, primaryDataIds, NamedConstant.provNS, NamedConstant.provWasDerivedFrom); % ? primaryDataIds should be the input files of the mismip scripts April-13-2015
+         %  runManager.dataPackage.insertRelationship(runManager.execution.execution_id, dataIdsExec, NamedConstant.provNS, NamedConstant.rdfType); % can not use java generic class here !
                   
+            % Record relationship between the Exectution and the User
+             
+            % Call YesWorkflow to capture prospective provenance for current scirpt
+            curDir = pwd();
+            runManager.captureProspectiveProvenanceWithYW();
+           
+            % Put YesWorkflow outputs to the datapackage
+            if runManager.configuration.include_workflow_graphic
+                cd(runManager.runDir);
+                % Convert .gv files to .png files
+                if isunix
+                    system('/usr/local/bin/dot -Tpng combined_view.gv -o combined_view.png'); % for linux & mac platform, not for windows OS family
+                    % One derived YW combined view image 
+                    imgId1 = Identifier;
+                    imgId1.setValue([NamedConstant.cnBaseURL 'combined_view.png']); % a figure image
+                    % Metadata
+                    metadataId1 = Identifier;
+                    metadataId1.setValue([NamedConstant.cnBaseURL 'combined_view.xml']);
+                    dataIds1 = ArrayList;
+                    dataIds1.add(imgId1);
+                 %  runManager.dataPackage.insertRelationship(metadataId1, dataIds1);
+                        
+                    system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');
+                    % One derived YW data view image
+                    imgId2 = Identifier;
+                    imgId2.setValue([NamedConstant.cnBaseURL 'data_view.png']); % a figure image
+                        
+                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.png');
+                    % One derived YW process view image
+                    imgId3 = Identifier;
+                    imgId3.setValue([NamedConstant.cnBaseURL 'process_view.png']); % a figure image
                 end
-            end 
+                
+                cd(curDir);
+                
+                % Record relationship between the figure impage and the source data
+             %  runManager.dataPackage.insertRelationship(imgId1, primaryDataIds, NamedConstant.provNS, NamedConstant.provWasDerivedFrom); % ? primaryDataIds should be the input files of the mismip scripts April-13-2015                
+            end
+           
+            % Add YesWorkflow-derived triples to the DataPackage
+         
             
-            %% Add YesWorkflow-derived triples to the DataPackage
-          % Record relationship identifying this id as a provone:Execution
-          % insertRelationship(recordrEnv$dataPkg, subjectID=recordrEnv$execMeta@executionId, objectIDs=provONEexecution, predicate=rdfType, objectType="uri")
-          % Record relationship between the Exectution and the User
-          % insertRelationship(recordrEnv$dataPkg, subjectID=recordrEnv$execMeta@executionId, objectIDs=userId, predicate=provWasAssociatedWith, objectType="uri")
-            
-            %% Run the script and collect provenance information
+            % Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
           % [pathstr, script_name, ext] = ...
           %     fileparts(runManager.execution.software_application);
@@ -476,5 +419,78 @@ classdef RunManager < hgsetget
             end
         end
  
+        function captureProspectiveProvenanceWithYW(runManager)
+            % CAPTUREPROSPECTIVEPROVENANCEWITHYW captures the prospective
+            % provenance using YesWorkflow.
+            
+            % Scan the script for inline YesWorkflow comments
+            import java.io.BufferedReader;
+            import org.yesworkflow.annotations.Annotation;
+            import org.yesworkflow.model.Program;
+            import org.yesworkflow.model.Workflow;
+            import java.io.File;
+            import java.io.FileReader;
+            import java.util.List;
+            import java.util.HashMap;
+                       
+            % Read script content from disk
+            script = File(runManager.execution.software_application);
+            freader = FileReader(script);
+            reader = BufferedReader(freader);
+            
+            % Call YW-Extract module
+            runManager.extractor = runManager.extractor.source(reader);
+            annotations = runManager.extractor.extract().getAnnotations();
+        
+            % Call YW-Model module
+            runManager.modeler = runManager.modeler.annotations(annotations);
+            runManager.modeler = runManager.modeler.model;
+            program = runManager.modeler.getModel;
+            runManager.workflow = runManager.modeler.getWorkflow;
+          
+            % Call YW-Graph module
+            if runManager.configuration.generate_workflow_graphic
+                import org.yesworkflow.graph.GraphView;
+                import org.yesworkflow.graph.CommentVisibility;
+            
+                runManager.grapher = runManager.grapher.workflow(runManager.workflow);
+                gconfig = HashMap;
+                       
+                % Set the working directory to be the run metadata directory for this run
+                curDir = pwd();
+                wd = cd(runManager.runDir); % do I need to go back to the src/ folder again?
+                
+                % Generate YW.Process_Centric_View
+                gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
+                gconfig.put('comments', CommentVisibility.HIDE);
+                runManager.grapher.config(gconfig);
+                runManager.grapher = runManager.grapher.graph();           
+                % Output the content of dot file to a file (test_mstmip_process_view.gv)
+                fileID = fopen('process_view.gv','w');
+                fprintf(fileID, '%s', char(runManager.grapher.toString()));
+                fclose(fileID);
+            
+                % Generate YW.Process_Data_View
+                gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
+                runManager.grapher.config(gconfig);
+                runManager.grapher = runManager.grapher.graph();
+                % Output the content of dot file to a file (test_mstmip_data_view.gv)
+                fileID = fopen('data_view.gv','w');
+                fprintf(fileID, '%s', char(runManager.grapher.toString()));
+                fclose(fileID);
+            
+                % Generate YW.Process_Combined_View
+                gconfig.put('view', GraphView.COMBINED_VIEW);
+                runManager.grapher.config(gconfig);
+                runManager.grapher = runManager.grapher.graph();
+                % Output the content of dot file to a file (test_mstmip_combined_view.gv)
+                fileID = fopen('combined_view.gv','w');
+                fprintf(fileID, '%s', char(runManager.grapher.toString()));
+                fclose(fileID);
+                
+                cd(curDir); % go back to current working directory 
+            
+            end    
+        end
     end
 end
