@@ -277,6 +277,7 @@ classdef RunManager < hgsetget
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;
+            
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
             runManager.dataPackage = DataPackage(packageIdentifier);
@@ -288,15 +289,20 @@ classdef RunManager < hgsetget
             
             % Record relationship identifying this id as a provone:Execution
             import org.dataone.client.run.NamedConstant;
-            import java.util.ArrayList;
-            dataIdsExec = ArrayList; % should be ArrayList<Identifier>, cannot use java generic class !
+            import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
+            
+            executionId = Identifier;
+            executionId.setValue(runManager.execution.execution_id);
+            dataIdsExec = ArrayListMatlabWrapper; 
             provExecId = Identifier;
             provExecId.setValue('provone:Execution');
             dataIdsExec.add(provExecId);
-         %  runManager.dataPackage.insertRelationship(runManager.execution.execution_id, dataIdsExec, NamedConstant.provNS, NamedConstant.rdfType); % can not use java generic class here !
+            runManager.dataPackage.insertRelationship(executionId, dataIdsExec, NamedConstant.provNS, NamedConstant.rdfType); 
                   
             % Record relationship between the Exectution and the User
              
+            
+            
             % Call YesWorkflow to capture prospective provenance for current scirpt
             curDir = pwd();
             runManager.captureProspectiveProvenanceWithYW();
@@ -313,9 +319,9 @@ classdef RunManager < hgsetget
                     % Metadata
                     metadataId1 = Identifier;
                     metadataId1.setValue([NamedConstant.cnBaseURL 'combined_view.xml']);
-                    dataIds1 = ArrayList;
+                    dataIds1 = ArrayListMatlabWrapper;
                     dataIds1.add(imgId1);
-                 %  runManager.dataPackage.insertRelationship(metadataId1, dataIds1);
+                    runManager.dataPackage.insertRelationship(metadataId1, dataIds1);
                         
                     system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');
                     % One derived YW data view image
@@ -460,7 +466,7 @@ classdef RunManager < hgsetget
                 curDir = pwd();
                 wd = cd(runManager.runDir); % do I need to go back to the src/ folder again?
                 
-                % Generate YW.Process_Centric_View
+                % Generate YW.Process_View
                 gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
                 gconfig.put('comments', CommentVisibility.HIDE);
                 runManager.grapher.config(gconfig);
@@ -470,7 +476,7 @@ classdef RunManager < hgsetget
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
                 fclose(fileID);
             
-                % Generate YW.Process_Data_View
+                % Generate YW.Data_View
                 gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
                 runManager.grapher.config(gconfig);
                 runManager.grapher = runManager.grapher.graph();
@@ -479,7 +485,7 @@ classdef RunManager < hgsetget
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
                 fclose(fileID);
             
-                % Generate YW.Process_Combined_View
+                % Generate YW.Combined_View
                 gconfig.put('view', GraphView.COMBINED_VIEW);
                 runManager.grapher.config(gconfig);
                 runManager.grapher = runManager.grapher.graph();
