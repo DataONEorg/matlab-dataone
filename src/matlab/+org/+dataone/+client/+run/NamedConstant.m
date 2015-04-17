@@ -26,6 +26,9 @@ classdef NamedConstant
         % Define constants from Open Archives Initiative Obect Reuse and Exchange
         OREterms_URI = 'http://www.openarchives.org/ore/terms';
         
+        % Define cito ontology
+        cito_NS = 'http://purl.org/spar/cito/'; % should I use cito_NS or cito_URI?
+        
         % Define member node url
         cnBaseURL = 'https://cn-sandbox-2.test.dataone.org/cn/v1/resolve/';
    end

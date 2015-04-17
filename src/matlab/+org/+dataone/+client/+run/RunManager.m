@@ -274,25 +274,88 @@ classdef RunManager < hgsetget
                     ' was: ' runManager.runDir, message]);
             end
                            
+            % Call YesWorkflow to capture prospective provenance for current scirpt
+            curDir = pwd();
+            runManager.captureProspectiveProvenanceWithYW();
+           
+            % Generate YesWorkflow image outputs
+            if runManager.configuration.generate_workflow_graphic
+                cd(runManager.runDir);
+                % Convert .gv files to .png files
+                if isunix
+                    system('/usr/local/bin/dot -Tpng combined_view.gv -o combined_view.png'); % for linux & mac platform, not for windows OS family
+                   
+                 %  execIdList = ArrayListMatlabWrapper;
+                 %  execIdList.add(executionId);
+                 %  runManager.dataPackage.insertRelationship(imgId1, execIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);
+                 
+                    system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');
+                    % One derived YW data view image
+                    imgId2 = Identifier;
+                    imgId2.setValue([NamedConstant.cnBaseURL 'data_view.png']); % a figure image
+                        
+                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.png');
+                    % One derived YW process view image
+                    imgId3 = Identifier;
+                    imgId3.setValue([NamedConstant.cnBaseURL 'process_view.png']); % a figure image
+                end    
+                cd(curDir);
+            end
+            
+            %% Package a datapackage for the current run    
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.ore.ResourceMapFactory;
+            import org.dataone.ore.ProvResourceMapBuilder;
+            import org.dataone.ore.HashmapMatlabWrapper;
+            import org.dspace.foresite.ResourceMap;
+            
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
             runManager.dataPackage = DataPackage(packageIdentifier);
             
-            %% Create the derived resources
             % Create a resource map
             resourceMapId = Identifier;
             resourceMapId.setValue([NamedConstant.cnBaseURL 'resourceMap_' char(java.util.UUID.randomUUID())]);
+            rmf = ProvResourceMapBuilder.getInstance();
+                 
+            % Create metadata 
+            metadataId = Identifier;
+            metadataId.setValue('Meta_11111111111');
             
+            % Include YW impages
+            if runManager.configuration.include_workflow_graphic 
+                % One derived YW combined view image 
+                imgId1 = Identifier;
+                imgId1.setValue([NamedConstant.cnBaseURL 'combined_view.png']); % a figure image
+                % Metadata
+                metadataImgId1 = Identifier;
+                metadataImgId1.setValue([NamedConstant.cnBaseURL 'combined_view.xml']);
+                dataIds1 = ArrayListMatlabWrapper;
+                dataIds1.add(imgId1); 
+            end
+            
+            executionId = Identifier;
+            executionId.setValue(['execution_' runId]);
+            
+            % Map the objects in the data package
+            dataIds = ArrayListMatlabWrapper;
+            dataIds.add(executionId);
+            dataIds.add(metadataImgId1);
+            dataIds.add(imgId1);
+            
+            idMap = HashmapMatlabWrapper;
+            idMap.put(metadataId, dataIds);
+                      
+            resourceMap = rmf.createResourceMap(resourceMapId, idMap);
+                                 
             % Record relationship identifying this id as a provone:Execution
             import org.dataone.client.run.NamedConstant;
             import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
             
             executionId = Identifier;
-            executionId.setValue(runManager.execution.execution_id);
+            executionId.setValue(['execution_' runId]);
             dataIdsExec = ArrayListMatlabWrapper; 
             provExecId = Identifier;
             provExecId.setValue('provone:Execution');
@@ -303,65 +366,23 @@ classdef RunManager < hgsetget
              
             
             
-            % Call YesWorkflow to capture prospective provenance for current scirpt
-            curDir = pwd();
-            runManager.captureProspectiveProvenanceWithYW();
-           
-            % Put YesWorkflow outputs to the datapackage
-            if runManager.configuration.include_workflow_graphic
-                cd(runManager.runDir);
-                % Convert .gv files to .png files
-                if isunix
-                    system('/usr/local/bin/dot -Tpng combined_view.gv -o combined_view.png'); % for linux & mac platform, not for windows OS family
-                    % One derived YW combined view image 
-                    imgId1 = Identifier;
-                    imgId1.setValue([NamedConstant.cnBaseURL 'combined_view.png']); % a figure image
-                    % Metadata
-                    metadataId1 = Identifier;
-                    metadataId1.setValue([NamedConstant.cnBaseURL 'combined_view.xml']);
-                    dataIds1 = ArrayListMatlabWrapper;
-                    dataIds1.add(imgId1);
-                    runManager.dataPackage.insertRelationship(metadataId1, dataIds1);
-                    execIdList = ArrayListMatlabWrapper;
-                    execIdList.add(executionId);
-                    runManager.dataPackage.insertRelationship(imgId1, execIdList,NamedConstant.provNS, NamedConstant.provWasGeneratedBy);
-                        
-                    system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');
-                    % One derived YW data view image
-                    imgId2 = Identifier;
-                    imgId2.setValue([NamedConstant.cnBaseURL 'data_view.png']); % a figure image
-                        
-                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.png');
-                    % One derived YW process view image
-                    imgId3 = Identifier;
-                    imgId3.setValue([NamedConstant.cnBaseURL 'process_view.png']); % a figure image
-                end
+
                 
-                cd(curDir);
-                
-                % Record relationship between the figure impage and the source data
-             %  runManager.dataPackage.insertRelationship(imgId1, primaryDataIds, NamedConstant.provNS, NamedConstant.provWasDerivedFrom); % ? primaryDataIds should be the input files of the mismip scripts April-13-2015                
-            end
-           
-            % Add YesWorkflow-derived triples to the DataPackage
-         
-            % Get resourceMap
-            resourceMapText = runManager.dataPackage.serializePackage();
-            fprintf('The resource map (1) is: %s \n\n',char(resourceMapText));
-          % dp2 = runManager.dataPackage.deserializePackage(resourceMapText);
-          % if dp2.getPackageId().equals(packageIdentifier)
-          %    fprintf('PackageIdentifiers are the same !'); 
-          % end
-         
-            resourceMap = runManager.dataPackage.getMap();
+            % Record relationship between the figure impage and the source data
+             
             
-            % Create an XML document iwth the serialized RDF
-            fw = fopen('testCreatedResourceMapWithProv.xml', 'w');
+          
+            % wasGeneratedBy
+            rmf.addWasGeneratedBy(resourceMap, imgId1, executionId);
+            
+            % Create an XML document with the serialized RDF
             rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
+         
             % Print it
+            fw = fopen('testCreatedResourceMapWithProv.xml', 'w');          
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
-            fprintf('The resource map (2) is : %s', char(rdfXml)); % output to the screen
+            fprintf('The resource map is : %s', char(rdfXml)); % output to the screen
             
             % Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
