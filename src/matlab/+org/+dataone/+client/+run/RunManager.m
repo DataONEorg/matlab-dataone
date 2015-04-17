@@ -356,24 +356,15 @@ classdef RunManager < hgsetget
             
             executionId = Identifier;
             executionId.setValue(['execution_' runId]);
-            dataIdsExec = ArrayListMatlabWrapper; 
-            provExecId = Identifier;
-            provExecId.setValue('provone:Execution');
-            dataIdsExec.add(provExecId);
-            runManager.dataPackage.insertRelationship(executionId, dataIdsExec, NamedConstant.provNS, NamedConstant.rdfType); 
-                  
-            % Record relationship between the Exectution and the User
-             
             
-            
-
-                
-            % Record relationship between the figure impage and the source data
-             
-            
-          
             % wasGeneratedBy
             rmf.addWasGeneratedBy(resourceMap, imgId1, executionId);
+                 
+            % Record relationship between the Exectution and the User
+              
+                
+            % Record relationship between the figure impage and the source data
+                   
             
             % Create an XML document with the serialized RDF
             rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
