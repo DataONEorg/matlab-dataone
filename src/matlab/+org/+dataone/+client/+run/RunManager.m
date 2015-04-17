@@ -277,7 +277,7 @@ classdef RunManager < hgsetget
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;
-            
+            import org.dataone.ore.ResourceMapFactory;
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
             runManager.dataPackage = DataPackage(packageIdentifier);
@@ -322,6 +322,9 @@ classdef RunManager < hgsetget
                     dataIds1 = ArrayListMatlabWrapper;
                     dataIds1.add(imgId1);
                     runManager.dataPackage.insertRelationship(metadataId1, dataIds1);
+                    execIdList = ArrayListMatlabWrapper;
+                    execIdList.add(executionId);
+                    runManager.dataPackage.insertRelationship(imgId1, execIdList,NamedConstant.provNS, NamedConstant.provWasGeneratedBy);
                         
                     system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');
                     % One derived YW data view image
@@ -342,6 +345,23 @@ classdef RunManager < hgsetget
            
             % Add YesWorkflow-derived triples to the DataPackage
          
+            % Get resourceMap
+            resourceMapText = runManager.dataPackage.serializePackage();
+            fprintf('The resource map (1) is: %s \n\n',char(resourceMapText));
+          % dp2 = runManager.dataPackage.deserializePackage(resourceMapText);
+          % if dp2.getPackageId().equals(packageIdentifier)
+          %    fprintf('PackageIdentifiers are the same !'); 
+          % end
+         
+            resourceMap = runManager.dataPackage.getMap();
+            
+            % Create an XML document iwth the serialized RDF
+            fw = fopen('testCreatedResourceMapWithProv.xml', 'w');
+            rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
+            % Print it
+            fprintf(fw, '%s', char(rdfXml));
+            fclose(fw);
+            fprintf('The resource map (2) is : %s', char(rdfXml)); % output to the screen
             
             % Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
