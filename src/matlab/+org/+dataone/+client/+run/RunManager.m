@@ -298,6 +298,8 @@ classdef RunManager < hgsetget
             import org.dataone.ore.ProvResourceMapBuilder;
             import org.dataone.ore.HashmapMatlabWrapper;
             import org.dspace.foresite.ResourceMap;
+            import org.dataone.client.run.NamedConstant;
+            import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
             
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
@@ -307,10 +309,8 @@ classdef RunManager < hgsetget
             resourceMapId = Identifier;
             resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
             rmf = ProvResourceMapBuilder.getInstance();
-                 
-            % Create metadata 
-            metadataId = Identifier;
-            metadataId.setValue('Meta_11111111111');
+            
+            idMap = HashmapMatlabWrapper;
             
             % Include YW impages
             if runManager.configuration.include_workflow_graphic 
@@ -323,38 +323,39 @@ classdef RunManager < hgsetget
                 dataImgIds1 = ArrayListMatlabWrapper;
                 dataImgIds1.add(imgId1); 
                 
-                 % One derived YW data view image
-                 imgId2 = Identifier;
-                 imgId2.setValue('data_view.png'); % a figure image
-                 % Metadata
-                 metadataImgId2 = Identifier;
-                 metadataImgId2.setValue('data_view.xml');
-                 dataImgIds2 = ArrayListMatlabWrapper;
-                 dataImgIds2.add(imgId2);
+                % One derived YW data view image
+                imgId2 = Identifier;
+                imgId2.setValue('data_view.png'); % a figure image
+                % Metadata
+                metadataImgId2 = Identifier;
+                metadataImgId2.setValue('data_view.xml');
+                dataImgIds2 = ArrayListMatlabWrapper;
+                dataImgIds2.add(imgId2);
                  
-                 % One derived YW process view image
-                 imgId3 = Identifier;
-                 imgId3.setValue('process_view.png'); % a figure image
-                 % Metadata
-                 metadataImgId3 = Identifier;
-                 metadataImgId3.setValue('process_view.xml');
-                 dataImgIds3 = ArrayListMatlabWrapper;
-                 dataImgIds3.add(imgId3);
+                % One derived YW process view image
+                imgId3 = Identifier;
+                imgId3.setValue('process_view.png'); % a figure image
+                % Metadata
+                metadataImgId3 = Identifier;
+                metadataImgId3.setValue('process_view.xml');
+                dataImgIds3 = ArrayListMatlabWrapper;
+                dataImgIds3.add(imgId3);
+                 
+                % Map the objects in the data package           
+                idMap.put(metadataImgId1, dataImgIds1);
+                idMap.put(metadataImgId2, dataImgIds2);
+                idMap.put(metadataImgId3, dataImgIds3);
             end
             
             executionId = Identifier;
             executionId.setValue(['execution_' runId]);
             
-            % Map the objects in the data package           
-            idMap = HashmapMatlabWrapper;
-            idMap.put(metadataImgId1, dataImgIds1);
-            idMap.put(metadataImgId2, dataImgIds2);
-            idMap.put(metadataImgId3, dataImgIds3);
+            % Create a resource map
             resourceMap = rmf.createResourceMap(resourceMapId, idMap);
                                  
             % Record relationship identifying this id as a provone:Execution
-            import org.dataone.client.run.NamedConstant;
-            import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
+          % import org.dataone.client.run.NamedConstant;
+          % import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
             
             executionId = Identifier;
             executionId.setValue(['execution_' runId]);
