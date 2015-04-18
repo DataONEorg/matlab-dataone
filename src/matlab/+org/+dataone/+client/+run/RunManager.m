@@ -283,21 +283,9 @@ classdef RunManager < hgsetget
                 cd(runManager.runDir);
                 % Convert .gv files to .png files
                 if isunix
-                    system('/usr/local/bin/dot -Tpng combined_view.gv -o combined_view.png'); % for linux & mac platform, not for windows OS family
-                   
-                 %  execIdList = ArrayListMatlabWrapper;
-                 %  execIdList.add(executionId);
-                 %  runManager.dataPackage.insertRelationship(imgId1, execIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);
-                 
-                    system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');
-                    % One derived YW data view image
-                    imgId2 = Identifier;
-                    imgId2.setValue([NamedConstant.cnBaseURL 'data_view.png']); % a figure image
-                        
-                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.png');
-                    % One derived YW process view image
-                    imgId3 = Identifier;
-                    imgId3.setValue([NamedConstant.cnBaseURL 'process_view.png']); % a figure image
+                    system('/usr/local/bin/dot -Tpng combined_view.gv -o combined_view.png'); % for linux & mac platform, not for windows OS family             
+                    system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');            
+                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.png');            
                 end    
                 cd(curDir);
             end
@@ -332,22 +320,36 @@ classdef RunManager < hgsetget
                 % Metadata
                 metadataImgId1 = Identifier;
                 metadataImgId1.setValue('combined_view.xml');
-                dataIds1 = ArrayListMatlabWrapper;
-                dataIds1.add(imgId1); 
+                dataImgIds1 = ArrayListMatlabWrapper;
+                dataImgIds1.add(imgId1); 
+                
+                 % One derived YW data view image
+                 imgId2 = Identifier;
+                 imgId2.setValue('data_view.png'); % a figure image
+                 % Metadata
+                 metadataImgId2 = Identifier;
+                 metadataImgId2.setValue('data_view.xml');
+                 dataImgIds2 = ArrayListMatlabWrapper;
+                 dataImgIds2.add(imgId2);
+                 
+                 % One derived YW process view image
+                 imgId3 = Identifier;
+                 imgId3.setValue('process_view.png'); % a figure image
+                 % Metadata
+                 metadataImgId3 = Identifier;
+                 metadataImgId3.setValue('process_view.xml');
+                 dataImgIds3 = ArrayListMatlabWrapper;
+                 dataImgIds3.add(imgId3);
             end
             
             executionId = Identifier;
             executionId.setValue(['execution_' runId]);
             
-            % Map the objects in the data package
-            dataIds = ArrayListMatlabWrapper;
-            dataIds.add(executionId);
-            dataIds.add(metadataImgId1);
-            dataIds.add(imgId1);
-            
+            % Map the objects in the data package           
             idMap = HashmapMatlabWrapper;
-            idMap.put(metadataId, dataIds);
-                      
+            idMap.put(metadataImgId1, dataImgIds1);
+            idMap.put(metadataImgId2, dataImgIds2);
+            idMap.put(metadataImgId3, dataImgIds3);
             resourceMap = rmf.createResourceMap(resourceMapId, idMap);
                                  
             % Record relationship identifying this id as a provone:Execution
@@ -359,7 +361,9 @@ classdef RunManager < hgsetget
             
             % wasGeneratedBy
             rmf.addWasGeneratedBy(resourceMap, imgId1, executionId);
-                 
+            rmf.addWasGeneratedBy(resourceMap, imgId2, executionId);
+            rmf.addWasGeneratedBy(resourceMap, imgId3, executionId); 
+            
             % Record relationship between the Exectution and the User
               
                 
