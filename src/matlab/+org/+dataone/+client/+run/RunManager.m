@@ -317,7 +317,7 @@ classdef RunManager < hgsetget
             
             % Create a resource map
             resourceMapId = Identifier;
-            resourceMapId.setValue([NamedConstant.cnBaseURL 'resourceMap_' char(java.util.UUID.randomUUID())]);
+            resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
             rmf = ProvResourceMapBuilder.getInstance();
                  
             % Create metadata 
@@ -328,10 +328,10 @@ classdef RunManager < hgsetget
             if runManager.configuration.include_workflow_graphic 
                 % One derived YW combined view image 
                 imgId1 = Identifier;
-                imgId1.setValue([NamedConstant.cnBaseURL 'combined_view.png']); % a figure image
+                imgId1.setValue('combined_view.png'); % a figure image
                 % Metadata
                 metadataImgId1 = Identifier;
-                metadataImgId1.setValue([NamedConstant.cnBaseURL 'combined_view.xml']);
+                metadataImgId1.setValue('combined_view.xml');
                 dataIds1 = ArrayListMatlabWrapper;
                 dataIds1.add(imgId1); 
             end
