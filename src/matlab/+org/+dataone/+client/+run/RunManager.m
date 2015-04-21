@@ -273,13 +273,12 @@ classdef RunManager < hgsetget
                     ' could not be created. The error message' ...
                     ' was: ' runManager.runDir, message]);
             end
-                           
-            % Call YesWorkflow to capture prospective provenance for current scirpt
-            curDir = pwd();
-            runManager.captureProspectiveProvenanceWithYW();
-           
+                            
             % Generate YesWorkflow image outputs
             if runManager.configuration.generate_workflow_graphic
+                % Call YesWorkflow to capture prospective provenance for current scirpt
+                curDir = pwd();
+                runManager.captureProspectiveProvenanceWithYW();
                 cd(runManager.runDir);
                 % Convert .gv files to .png files
                 if isunix
@@ -295,7 +294,6 @@ classdef RunManager < hgsetget
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.ore.ResourceMapFactory;
-            import org.dataone.ore.ProvResourceMapBuilder;
             import org.dataone.ore.HashmapMatlabWrapper;
             import org.dspace.foresite.ResourceMap;
             import org.dataone.client.run.NamedConstant;
@@ -303,14 +301,23 @@ classdef RunManager < hgsetget
             
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
-            runManager.dataPackage = DataPackage(packageIdentifier);
-            
-            % Create a resource map
+            % runManager.dataPackage = DataPackage(packageIdentifier);
+           
+            % Create a resourceMap identifier
             resourceMapId = Identifier;
             resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
-            rmf = ProvResourceMapBuilder.getInstance();
+            % Create a datapackage with resourceMapId
+            runManager.dataPackage = DataPackage(resourceMapId);
             
-            idMap = HashmapMatlabWrapper;
+            % Record relationship identifying this id as a provone:Execution
+            executionId = Identifier;
+            executionId.setValue(['execution_' runId]);
+            
+            provExecIdsList = ArrayListMatlabWrapper;
+            provExecId = Identifier;
+            provExecId.setValue(NamedConstant.provONEexecution);
+            provExecIdsList.add(provExecId);
+            runManager.dataPackage.insertRelationship(executionId, provExecIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
             
             % Include YW impages
             if runManager.configuration.include_workflow_graphic 
@@ -341,39 +348,41 @@ classdef RunManager < hgsetget
                 dataImgIds3 = ArrayListMatlabWrapper;
                 dataImgIds3.add(imgId3);
                  
-                % Map the objects in the data package           
-                idMap.put(metadataImgId1, dataImgIds1);
-                idMap.put(metadataImgId2, dataImgIds2);
-                idMap.put(metadataImgId3, dataImgIds3);
-            end
-            
-            executionId = Identifier;
-            executionId.setValue(['execution_' runId]);
-            
-            % Create a resource map
-            resourceMap = rmf.createResourceMap(resourceMapId, idMap);
-                                 
-            % Record relationship identifying this id as a provone:Execution
-          % import org.dataone.client.run.NamedConstant;
-          % import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
-            
-            executionId = Identifier;
-            executionId.setValue(['execution_' runId]);
-            
-            % wasGeneratedBy
-            rmf.addWasGeneratedBy(resourceMap, imgId1, executionId);
-            rmf.addWasGeneratedBy(resourceMap, imgId2, executionId);
-            rmf.addWasGeneratedBy(resourceMap, imgId3, executionId); 
+                % wasDocumentedBy
+                runManager.dataPackage.insertRelationship(metadataImgId1, dataImgIds1);
+                runManager.dataPackage.insertRelationship(metadataImgId2, dataImgIds2);
+                runManager.dataPackage.insertRelationship(metadataImgId3, dataImgIds3);
+                
+                % wasGeneratedBy
+                execActivityIdList = ArrayListMatlabWrapper;
+                execActivityIdList.add(executionId);
+                runManager.dataPackage.insertRelationship(imgId1, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
+                runManager.dataPackage.insertRelationship(imgId2, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
+                runManager.dataPackage.insertRelationship(imgId3, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
+            end        
             
             % Record relationship between the Exectution and the User
               
-                
+              
+            % Record workflow plan
+            wfId = Identifier;
+            E = strsplit(runManager.execution.software_application,filesep);          
+            wfId.setValue(char(E(end)));
+ 
+            programIdsList = ArrayListMatlabWrapper;
+            programId = Identifier;
+            programId.setValue(NamedConstant.provONEprogram);
+            programIdsList.add(programId);
+            % runManager.dataPackage.insertRelationship(wfId, programIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            
+            
             % Record relationship between the figure impage and the source data
                    
+
+            % Create resource map
+            resourceMap = runManager.dataPackage.getMap(); % ?? get resource map
+            rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap); % Create an XML document with the serialized RDF
             
-            % Create an XML document with the serialized RDF
-            rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
-         
             % Print it
             fw = fopen('testCreatedResourceMapWithProv.xml', 'w');          
             fprintf(fw, '%s', char(rdfXml));
