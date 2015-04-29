@@ -298,6 +298,8 @@ classdef RunManager < hgsetget
             import org.dspace.foresite.ResourceMap;
             import org.dataone.client.run.NamedConstant;
             import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
+            import org.dataone.client.v1.types.D1TypeBuilder;
+            import org.dataone.client.v1.itk.D1Object;
             
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
@@ -317,7 +319,9 @@ classdef RunManager < hgsetget
             provExecId = Identifier;
             provExecId.setValue(NamedConstant.provONEexecution);
             provExecIdsList.add(provExecId);
-            runManager.dataPackage.insertRelationship(executionId, provExecIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            %runManager.dataPackage.insertRelationship(executionId, provExecIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            runManager.dataPackage.insertRelationship(executionId, provExecIdsList, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+            
             
             % Include YW impages
             if runManager.configuration.include_workflow_graphic 
@@ -368,20 +372,40 @@ classdef RunManager < hgsetget
             wfId = Identifier;
             E = strsplit(runManager.execution.software_application,filesep);          
             wfId.setValue(char(E(end)));
- 
+
+            import java.io.File;
+            import javax.activation.DataSource;
+            import javax.activation.FileDataSource;
+
+            fileId = File(runManager.execution.software_application);
+            data = FileDataSource(fileId);
+            
+            scriptFmt = 'text/plain';
+            submitter = runManager.execution.account_name;
+            mnNodeId = runManager.configuration.target_member_node_id;
+            
+            programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(programD1Obj);
+            
             programIdsList = ArrayListMatlabWrapper;
             programId = Identifier;
             programId.setValue(NamedConstant.provONEprogram);
             programIdsList.add(programId);
-            % runManager.dataPackage.insertRelationship(wfId, programIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            
+            % Record relationship identifying prov:hadPlan between
+            % execution and programs
+            %runManager.dataPackage.insertRelationship(executionId, programIdsList, NamedConstant.provNS, NamedConstant.provHadPlan);
+            runManager.dataPackage.insertRelationship(wfId, programIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
             
             
             % Record relationship between the figure impage and the source data
                    
 
             % Create resource map
-            resourceMap = runManager.dataPackage.getMap(); % ?? get resource map
-            rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap); % Create an XML document with the serialized RDF
+            %resourceMap = runManager.dataPackage.getMap(); % ?? get resource map
+            %rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap); % Create an XML document with the serialized RDF
+            rdfXml = runManager.dataPackage.serializePackage();
+            
             
             % Print it
             fw = fopen('testCreatedResourceMapWithProv.xml', 'w');          
