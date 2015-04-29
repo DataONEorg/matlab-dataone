@@ -394,9 +394,11 @@ classdef RunManager < hgsetget
             
             % Record relationship identifying prov:hadPlan between
             % execution and programs
-            %runManager.dataPackage.insertRelationship(executionId, programIdsList, NamedConstant.provNS, NamedConstant.provHadPlan);
-            runManager.dataPackage.insertRelationship(wfId, programIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
             
+            runManager.dataPackage.insertRelationship(wfId, programIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            wfIdsList = ArrayListMatlabWrapper;
+            wfIdsList.add(wfId);
+            runManager.dataPackage.insertRelationship(executionId, wfIdsList, NamedConstant.provNS, NamedConstant.provHadPlan);
             
             % Record relationship between the figure impage and the source data
                    
