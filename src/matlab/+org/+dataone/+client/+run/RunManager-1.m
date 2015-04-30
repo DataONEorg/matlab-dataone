@@ -311,67 +311,42 @@ classdef RunManager < hgsetget
             % Create a datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
             
-            % Record relationship identifying execution id as a provone:Execution
+            % Add the ProvONE Execution type
             executionId = Identifier;
             executionId.setValue(['execution_' runId]);
             
-            provOneExecIdsList = ArrayListMatlabWrapper;
-            provOneExecId = Identifier;
-            provOneExecId.setValue(NamedConstant.provONEexecution);
-            provOneExecIdsList.add(provOneExecId);
-            runManager.dataPackage.insertRelationship(executionId, provOneExecIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
-                      
-              
-            % Record relationship identifying workflow id as a provONE:Program
-            wfId = Identifier;
-            E = strsplit(runManager.execution.software_application,filesep);          
-            wfId.setValue(char(E(end)));
-        
-            provOneProgramIdsList = ArrayListMatlabWrapper;
-            provOneProgramId = Identifier;
-            provOneProgramId.setValue(NamedConstant.provONEprogram);
-            provOneProgramIdsList.add(provOneProgramId);
-            runManager.dataPackage.insertRelationship(wfId, provOneProgramIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
-         
-            % Record relationship identifying prov:hadPlan between
-            % execution and programs           
-            wfIdsList = ArrayListMatlabWrapper;
-            wfIdsList.add(wfId);
-            wfMetadataId = Identifier;
-            wfMetadataId.setValue('wfMeta.1.1');
-            runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.  
-            %%%runManager.dataPackage.insertRelationship(executionId, wfIdsList, NamedConstant.provNS, NamedConstant.provHadPlan);
-                 
-          
-            % Store the prov relationship: execution->prov:qualifiedAssociation->association
-            associationId = Identifier;
-            associationId.setValue(['A0_' char(java.util.UUID.randomUUID())]);
-            provAssociationId = Identifier;
-            provAssociationId.setValue(NamedConstant.provAssociation);
-            provAssociationIdsList = ArrayListMatlabWrapper;
-            provAssociationIdsList.add(provAssociationId);
+            provExecIdsList = ArrayListMatlabWrapper;
+            provExecId = Identifier;
+            provExecId.setValue(NamedConstant.provONEexecution);
+            provExecIdsList.add(provExecId);
+            runManager.dataPackage.insertRelationship(executionId, provExecIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
             
-            % Store the prov relationship: association->prov:hadPlan->program
-            runManager.dataPackage.insertRelationship(associationId, wfIdsList, NamedConstant.provNS, NamedConstant.provHadPlan);
-            % Record relationship identifying association id as a prov:Association
-            runManager.dataPackage.insertRelationship(associationId, provAssociationIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            % Store the prov relationship: execution ->
+            % prov:qualifiedAssociation -> association
+         %   associationId = Identifier;
+         %   associationId.setValue(char(java.util.UUID.randomUUID()));
+         %   provAssociationId = Identifier;
+         %   provAssociationId.setValue(NamedConstant.provAssociation);
+         %   provAssociationIdsList = ArrayListMatlabWrapper;
+         %   provAssociationIdsList.add(provAssociationId);
+          %  runManager.dataPackage.insertRelationship(associationId, provAssociationIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
             
-            associationIdsList = ArrayListMatlabWrapper;
-            associationIdsList.add(associationId);
-            runManager.dataPackage.insertRelationship(executionId, associationIdsList, NamedConstant.provNS, NamedConstant.provQualifiedAssociation);
+         %   associationIdsList = ArrayListMatlabWrapper;
+         %   associationIdsList.add(associationId);
+          %  runManager.dataPackage.insertRelationship(executionId, associationIdsList, NamedConstant.provNS, NamedConstant.provQualifiedAssociation);
            
             % Store the Prov relationship: association->prov:agent->user
-            userId = Identifier;
-            userId.setValue(runManager.execution.account_name);           
-            userIdsList = ArrayListMatlabWrapper;           
-            userIdsList.add(userId);
+          %  userId = Identifier;
+          %  userId.setValue(runManager.execution.account_name);           
+          %  userIdsList = ArrayListMatlabWrapper;           
+          %  userIdsList.add(userId);
             %runManager.dataPackage.insertRelationship(associationId, userIdsList, NamedConstant.provNS, NamedConstant.provAgent);
             
             % Record a relationship identifying the user
-            provONEUser = Identifier;
-            provONEUser.setValue(NamedConstant.provONEuser);
-            provONEUserList = ArrayListMatlabWrapper;
-            provONEUserList.add(provONEUser);
+          %  provONEUser = Identifier;
+          %  provONEUser.setValue(NamedConstant.provONEuser);
+          %  provONEUserList = ArrayListMatlabWrapper;
+          %  provONEUserList.add(provONEUser);
             %runManager.dataPackage.insertRelationship(userId, provONEUserList, NamedConstant.RDF_NS, NamedConstant.rdfType);
             
             % Record the relationship between the Execution and the user
@@ -417,9 +392,16 @@ classdef RunManager < hgsetget
                 runManager.dataPackage.insertRelationship(imgId1, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
                 runManager.dataPackage.insertRelationship(imgId2, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
                 runManager.dataPackage.insertRelationship(imgId3, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
-            end               
+            end        
+            
+            % Record relationship between the Exectution and the User
+              
+              
+            % Record workflow plan
+            wfId = Identifier;
+            E = strsplit(runManager.execution.software_application,filesep);          
+            wfId.setValue(char(E(end)));
 
-            % Create a D1 object for the program that we are running  
             import java.io.File;
             import javax.activation.DataSource;
             import javax.activation.FileDataSource;
@@ -431,14 +413,33 @@ classdef RunManager < hgsetget
             submitter = runManager.execution.account_name;
             mnNodeId = runManager.configuration.target_member_node_id;
             
+            % Create a data package object for the program that we are
+            % running
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(programD1Obj);
             
-            % Record relationship between the Exectution and the User
-             
+            % Add the ProvONE Program type         
+            programIdsList = ArrayListMatlabWrapper;
+            programId = Identifier;
+            programId.setValue(NamedConstant.provONEprogram);
+            programIdsList.add(programId);
+            runManager.dataPackage.insertRelationship(wfId, programIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            
+            % Record relationship identifying prov:hadPlan between
+            % execution and programs
+            wfIdsList = ArrayListMatlabWrapper;
+            wfIdsList.add(wfId);
+            runManager.dataPackage.insertRelationship(executionId, wfIdsList, NamedConstant.provNS, NamedConstant.provHadPlan); %%% correct verison
+         %  runManager.dataPackage.insertRelationship(associationId, wfIdsList, NamedConstant.provNS, NamedConstant.provHadPlan);
+            
+            
+            % Record relationship between the figure impage and the source data
+                   
+
             % Create resource map
             rdfXml = runManager.dataPackage.serializePackage();
-                     
+            
+            
             % Print it
             fw = fopen('testCreatedResourceMapWithProv.xml', 'w');          
             fprintf(fw, '%s', char(rdfXml));
