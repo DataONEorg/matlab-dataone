@@ -339,9 +339,7 @@ classdef RunManager < hgsetget
             wfIdsList.add(wfId);
             wfMetadataId = Identifier;
             wfMetadataId.setValue('wfMeta.1.1');
-            runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.  
-            %%%runManager.dataPackage.insertRelationship(executionId, wfIdsList, NamedConstant.provNS, NamedConstant.provHadPlan);
-                 
+            runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.       
           
             % Store the prov relationship: execution->prov:qualifiedAssociation->association
             associationId = Identifier;
@@ -360,14 +358,14 @@ classdef RunManager < hgsetget
             associationIdsList.add(associationId);
             runManager.dataPackage.insertRelationship(executionId, associationIdsList, NamedConstant.provNS, NamedConstant.provQualifiedAssociation);
            
-            % Store the Prov relationship: association->prov:agent->user
+            % Store the Prov relationship: association->prov:agent->"user"
             userId = Identifier;
             userId.setValue(runManager.execution.account_name);           
             userIdsList = ArrayListMatlabWrapper;           
             userIdsList.add(userId);
             %runManager.dataPackage.insertRelationship(associationId, userIdsList, NamedConstant.provNS, NamedConstant.provAgent);
             
-            % Record a relationship identifying the user
+            % Record a relationship identifying the provONE:user
             provONEUser = Identifier;
             provONEUser.setValue(NamedConstant.provONEuser);
             provONEUserList = ArrayListMatlabWrapper;
@@ -376,6 +374,12 @@ classdef RunManager < hgsetget
             
             % Record the relationship between the Execution and the user
             %runManager.dataPackage.insertRelationship(executionId, userIdsList, NamedConstant.provONE_NS, NamedConstant.provWasAssociatedWith);
+            
+            % Record a data list for provOne:Data
+            provONEdataId = Identifier;
+            provONEdataId.setValue(NamedConstant.provONEdata);
+            provONEdataIdsList = ArrayListMatlabWrapper;
+            provONEdataIdsList.add(provONEdataId);
             
             % Include YW impages
             if runManager.configuration.include_workflow_graphic 
@@ -417,6 +421,11 @@ classdef RunManager < hgsetget
                 runManager.dataPackage.insertRelationship(imgId1, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
                 runManager.dataPackage.insertRelationship(imgId2, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
                 runManager.dataPackage.insertRelationship(imgId3, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
+                
+                % Record relationship identifying as provONE:Data
+                runManager.dataPackage.insertRelationship(imgId1, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
+                runManager.dataPackage.insertRelationship(imgId2, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
+                runManager.dataPackage.insertRelationship(imgId3, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
             end               
 
             % Create a D1 object for the program that we are running  
@@ -433,8 +442,6 @@ classdef RunManager < hgsetget
             
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(programD1Obj);
-            
-            % Record relationship between the Exectution and the User
              
             % Create resource map
             rdfXml = runManager.dataPackage.serializePackage();
