@@ -300,6 +300,9 @@ classdef RunManager < hgsetget
             import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
             import org.dataone.client.v1.types.D1TypeBuilder;
             import org.dataone.client.v1.itk.D1Object;
+            import java.io.File;
+            import javax.activation.DataSource;
+            import javax.activation.FileDataSource;
             
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
@@ -381,6 +384,10 @@ classdef RunManager < hgsetget
             provONEdataIdsList = ArrayListMatlabWrapper;
             provONEdataIdsList.add(provONEdataId);
             
+            % Get submitter and MN node reference
+            submitter = runManager.execution.account_name;
+            mnNodeId = runManager.configuration.target_member_node_id;
+            
             % Include YW impages
             if runManager.configuration.include_workflow_graphic 
                 % One derived YW combined view image 
@@ -426,20 +433,33 @@ classdef RunManager < hgsetget
                 runManager.dataPackage.insertRelationship(imgId1, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
                 runManager.dataPackage.insertRelationship(imgId2, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
                 runManager.dataPackage.insertRelationship(imgId3, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
+                
+                % Create D1Object for each figure and add the D1Object to the DataPackage
+                cd(runManager.runDir);
+                imgFmt = 'image/png';      
+                img1FileId = File(imgId1.getValue());
+                img1Data = FileDataSource(img1FileId);
+                img1D1Obj = D1Object(imgId1, img1Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+                runManager.dataPackage.addData(img1D1Obj);
+             
+                img2FileId = File(imgId2.getValue());
+                img2Data = FileDataSource(img2FileId);
+                img2D1Obj = D1Object(imgId2, img2Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+                runManager.dataPackage.addData(img2D1Obj);
+                
+                img3FileId = File(imgId3.getValue());
+                img3Data = FileDataSource(img3FileId);
+                img3D1Obj = D1Object(imgId3, img3Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+                runManager.dataPackage.addData(img3D1Obj);
+                cd(curDir);
             end               
 
-            % Create a D1 object for the program that we are running  
-            import java.io.File;
-            import javax.activation.DataSource;
-            import javax.activation.FileDataSource;
-
+            % Create a D1Object for the program that we are running  
             fileId = File(runManager.execution.software_application);
             data = FileDataSource(fileId);
             
             scriptFmt = 'text/plain';
-            submitter = runManager.execution.account_name;
-            mnNodeId = runManager.configuration.target_member_node_id;
-            
+         
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(programD1Obj);
              
