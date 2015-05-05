@@ -361,23 +361,14 @@ classdef RunManager < hgsetget
             associationIdsList.add(associationId);
             runManager.dataPackage.insertRelationship(executionId, associationIdsList, NamedConstant.provNS, NamedConstant.provQualifiedAssociation);
            
-            % Store the Prov relationship: association->prov:agent->"user"
+            % Store the ProvONE relationships for user
             userId = Identifier;
             userId.setValue(runManager.execution.account_name);           
             userIdsList = ArrayListMatlabWrapper;           
             userIdsList.add(userId);
-            %runManager.dataPackage.insertRelationship(associationId, userIdsList, NamedConstant.provNS, NamedConstant.provAgent);
-            
-            % Record a relationship identifying the provONE:user
-            provONEUser = Identifier;
-            provONEUser.setValue(NamedConstant.provONEuser);
-            provONEUserList = ArrayListMatlabWrapper;
-            provONEUserList.add(provONEUser);
-            %runManager.dataPackage.insertRelationship(userId, provONEUserList, NamedConstant.RDF_NS, NamedConstant.rdfType);
-            
             % Record the relationship between the Execution and the user
-            %runManager.dataPackage.insertRelationship(executionId, userIdsList, NamedConstant.provONE_NS, NamedConstant.provWasAssociatedWith);
-            
+            runManager.dataPackage.insertRelationship(executionId, userIdsList, NamedConstant.provONE_NS, NamedConstant.provWasAssociatedWith);
+              
             % Record a data list for provOne:Data
             provONEdataId = Identifier;
             provONEdataId.setValue(NamedConstant.provONEdata);
@@ -464,8 +455,30 @@ classdef RunManager < hgsetget
             runManager.dataPackage.addData(programD1Obj);
              
             % Create resource map
-            rdfXml = runManager.dataPackage.serializePackage();
-                     
+            %rdfXml = runManager.dataPackage.serializePackage();
+            resourceMap = runManager.dataPackage.getMap();
+            
+            % Create a new Agent  
+            import org.dspace.foresite.Agent;
+            import org.dspace.foresite.OREFactory;
+            
+            creator = OREFactory.createAgent();
+            creator.addName(userId.getValue());
+            resourceMap.addCreator(creator);
+        
+            % Record the relationship for association->prov:agent->"user"
+            runManager.dataPackage.insertRelationship(associationId, userIdsList, NamedConstant.provNS, NamedConstant.provAgent);
+            
+            % Record a relationship identifying the provONE:user
+            provONEUser = Identifier;
+            provONEUser.setValue(NamedConstant.provONEuser);
+            provONEUserList = ArrayListMatlabWrapper;
+            provONEUserList.add(provONEUser);
+            %runManager.dataPackage.insertRelationship(userId, provONEUserList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            
+            resourceMap = runManager.dataPackage.getMap();
+            rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
+            
             % Print it
             fw = fopen('testCreatedResourceMapWithProv.xml', 'w');          
             fprintf(fw, '%s', char(rdfXml));
