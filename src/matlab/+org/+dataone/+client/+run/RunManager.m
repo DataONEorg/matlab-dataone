@@ -160,7 +160,6 @@ classdef RunManager < hgsetget
         function configYesWorkflow(runManager, path)
             % CONFIGYESWORKFLOW set YesWorkflow extractor language model to be
             % Matlab type
-            import org.yesworkflow.LanguageModel;
             import org.yesworkflow.extract.DefaultExtractor;
             import org.yesworkflow.model.DefaultModeler;
             import org.yesworkflow.graph.DotGrapher;
@@ -170,10 +169,16 @@ classdef RunManager < hgsetget
             runManager.modeler = DefaultModeler;
             runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
             
-            % Get an inner class that's an Enum class because we need the Enum Language values 
-            matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB');
-            lm = LanguageModel(matCode); 
-            runManager.extractor = runManager.extractor.languageModel(lm);  
+            % Configure yesWorkflow language model to be Matlab
+            import org.yesworkflow.extract.HashmapMatlabWrapper;
+            import org.yesworkflow.Language;
+            
+            config = HashmapMatlabWrapper;
+            config.put('language', Language.MATLAB);
+            runManager.extractor = runManager.extractor.configure(config);         
+           % matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB');
+           % lm = LanguageModel(matCode); 
+           % runManager.extractor = runManager.extractor.languageModel(lm);  
                       
             % Set generate_workflow_graphic to be true
             runManager.configuration.generate_workflow_graphic = true;
@@ -454,6 +459,9 @@ classdef RunManager < hgsetget
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(programD1Obj);
              
+            % Record the relationship for association->prov:agent->"user"
+            runManager.dataPackage.insertRelationship(associationId, userIdsList, NamedConstant.provNS, NamedConstant.provAgent);
+            
             % Create resource map
             %rdfXml = runManager.dataPackage.serializePackage();
             resourceMap = runManager.dataPackage.getMap();
@@ -466,17 +474,15 @@ classdef RunManager < hgsetget
             creator.addName(userId.getValue());
             resourceMap.addCreator(creator);
         
-            % Record the relationship for association->prov:agent->"user"
-            runManager.dataPackage.insertRelationship(associationId, userIdsList, NamedConstant.provNS, NamedConstant.provAgent);
             
             % Record a relationship identifying the provONE:user
-            provONEUser = Identifier;
-            provONEUser.setValue(NamedConstant.provONEuser);
-            provONEUserList = ArrayListMatlabWrapper;
-            provONEUserList.add(provONEUser);
+            %provONEUser = Identifier;
+            %provONEUser.setValue(NamedConstant.provONEuser);
+            %provONEUserList = ArrayListMatlabWrapper;
+            %provONEUserList.add(provONEUser);
             %runManager.dataPackage.insertRelationship(userId, provONEUserList, NamedConstant.RDF_NS, NamedConstant.rdfType);
             
-            resourceMap = runManager.dataPackage.getMap();
+            %resourceMap = runManager.dataPackage.getMap();
             rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
             
             % Print it
@@ -587,23 +593,27 @@ classdef RunManager < hgsetget
             reader = BufferedReader(freader);
             
             % Call YW-Extract module
-            runManager.extractor = runManager.extractor.source(reader);
+            %runManager.extractor = runManager.extractor.source(reader);
+            runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
             annotations = runManager.extractor.extract().getAnnotations();
         
             % Call YW-Model module
             runManager.modeler = runManager.modeler.annotations(annotations);
-            runManager.modeler = runManager.modeler.model;
-            program = runManager.modeler.getModel;
-            runManager.workflow = runManager.modeler.getWorkflow;
+            runManager.modeler = runManager.modeler.model();
+            %program = runManager.modeler.getModel();
+            runManager.workflow = runManager.modeler.getModel().program; % April-version yesWorkflow
+            %runManager.workflow = runManager.modeler.getWorkflow;
           
             % Call YW-Graph module
             if runManager.configuration.generate_workflow_graphic
                 import org.yesworkflow.graph.GraphView;
                 import org.yesworkflow.graph.CommentVisibility;
-            
+                import org.yesworkflow.extract.HashmapMatlabWrapper;
+                
                 runManager.grapher = runManager.grapher.workflow(runManager.workflow);
-                gconfig = HashMap;
-                       
+                %gconfig = HashMap;
+                gconfig = HashmapMatlabWrapper;
+                
                 % Set the working directory to be the run metadata directory for this run
                 curDir = pwd();
                 wd = cd(runManager.runDir); % do I need to go back to the src/ folder again?
@@ -611,7 +621,7 @@ classdef RunManager < hgsetget
                 % Generate YW.Process_View
                 gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
                 gconfig.put('comments', CommentVisibility.HIDE);
-                runManager.grapher.config(gconfig);
+                runManager.grapher.configure(gconfig);              
                 runManager.grapher = runManager.grapher.graph();           
                 % Output the content of dot file to a file (test_mstmip_process_view.gv)
                 fileID = fopen('process_view.gv','w');
@@ -620,7 +630,7 @@ classdef RunManager < hgsetget
             
                 % Generate YW.Data_View
                 gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
-                runManager.grapher.config(gconfig);
+                runManager.grapher.configure(gconfig);
                 runManager.grapher = runManager.grapher.graph();
                 % Output the content of dot file to a file (test_mstmip_data_view.gv)
                 fileID = fopen('data_view.gv','w');
@@ -629,7 +639,7 @@ classdef RunManager < hgsetget
             
                 % Generate YW.Combined_View
                 gconfig.put('view', GraphView.COMBINED_VIEW);
-                runManager.grapher.config(gconfig);
+                runManager.grapher.configure(gconfig);
                 runManager.grapher = runManager.grapher.graph();
                 % Output the content of dot file to a file (test_mstmip_combined_view.gv)
                 fileID = fopen('combined_view.gv','w');
