@@ -447,6 +447,36 @@ classdef RunManager < hgsetget
                 img3Data = FileDataSource(img3FileId);
                 img3D1Obj = D1Object(imgId3, img3Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
                 runManager.dataPackage.addData(img3D1Obj);
+                
+                
+                % Create yesWorkflow model prolog dump 
+                import org.yesworkflow.model.ModelFacts;
+                
+                modelFacts = ModelFacts(runManager.modeler.getModel());
+                modelFacts = modelFacts.build();
+                fw = fopen('ywModelFacts.pl', 'w');          
+                fprintf(fw, '%s', char(modelFacts.toString()));
+                fclose(fw);
+               
+                metadataModelFactsId1 = Identifier;
+                metadataModelFactsId1.setValue('ywModelFacts.xml');
+                dataModelFactsIds1 = ArrayListMatlabWrapper;
+                modelFactsId1 = Identifier;
+                modelFactsId1.setValue('ywModelFacts.pl'); % ywModelFacts prolog dump
+                dataModelFactsIds1.add(modelFactsId1); 
+           
+                % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog dump
+                runManager.dataPackage.insertRelationship(metadataModelFactsId1, dataModelFactsIds1);
+                runManager.dataPackage.insertRelationship(modelFactsId1, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
+                runManager.dataPackage.insertRelationship(modelFactsId1, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
+                  
+                % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
+                prologDumpFmt = 'text/plain';      
+                modelFactsFileId = File(modelFactsId1.getValue());
+                modelFactsData = FileDataSource(modelFactsFileId);
+                modelFactsD1Obj = D1Object(modelFactsId1, modelFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+                runManager.dataPackage.addData(modelFactsD1Obj);
+                
                 cd(curDir);
             end               
 
