@@ -449,13 +449,14 @@ classdef RunManager < hgsetget
                 runManager.dataPackage.addData(img3D1Obj);
                 
                 
-                % Create yesWorkflow model prolog dump 
+                % Create yesWorkflow modelFacts prolog dump 
                 import org.yesworkflow.model.ModelFacts;
+                import org.yesworkflow.extract.ExtractFacts;
                 
-                modelFacts = ModelFacts(runManager.modeler.getModel());
-                modelFacts = modelFacts.build();
+                modelFacts = runManager.modeler.getFacts();
+                
                 fw = fopen('ywModelFacts.pl', 'w');          
-                fprintf(fw, '%s', char(modelFacts.toString()));
+                fprintf(fw, '%s', char(modelFacts));
                 fclose(fw);
                
                 metadataModelFactsId1 = Identifier;
@@ -476,6 +477,31 @@ classdef RunManager < hgsetget
                 modelFactsData = FileDataSource(modelFactsFileId);
                 modelFactsD1Obj = D1Object(modelFactsId1, modelFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
                 runManager.dataPackage.addData(modelFactsD1Obj);
+                
+                % Create yewWorkflow extractFacts prolog dump
+                extractFacts = runManager.extractor.getFacts();
+                
+                fw = fopen('ywExtractFacts.pl', 'w');          
+                fprintf(fw, '%s', char(extractFacts));
+                fclose(fw);
+                
+                metadataExtractFactsId1 = Identifier;
+                metadataExtractFactsId1.setValue('ywExtractFacts.xml');
+                dataExtractFactsIds1 = ArrayListMatlabWrapper;
+                extractFactsId1 = Identifier;
+                extractFactsId1.setValue('ywExtractFacts.pl'); % ywExtractFacts prolog dump
+                dataExtractFactsIds1.add(extractFactsId1); 
+           
+                % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywExtractFacts prolog dump
+                runManager.dataPackage.insertRelationship(metadataExtractFactsId1, dataExtractFactsIds1);
+                runManager.dataPackage.insertRelationship(extractFactsId1, execActivityIdList, NamedConstant.provNS, NamedConstant.provWasGeneratedBy);  
+                runManager.dataPackage.insertRelationship(extractFactsId1, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
+                  
+                % Create D1Object for ywExtractFacts prolog dump and add the D1Object to the DataPackage      
+                extractFactsFileId = File(extractFactsId1.getValue());
+                extractFactsData = FileDataSource(extractFactsFileId);
+                extractFactsD1Obj = D1Object(extractFactsId1, extractFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+                runManager.dataPackage.addData(extractFactsD1Obj);
                 
                 cd(curDir);
             end               
