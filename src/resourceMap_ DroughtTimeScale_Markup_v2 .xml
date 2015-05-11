@@ -1,0 +1,144 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:j.0="http://purl.org/provone/2015/15/ontology#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:j.1="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fwww.w3.org%2Fns%2Fprov%23"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:ore="http://www.openarchives.org/ore/terms/"
+    xmlns:dcterms="http://purl.org/dc/terms/"
+    xmlns:j.2="http://www.w3.org/ns/prov#"
+    xmlns:j.3="http://purl.org/spar/cito/"
+    xmlns:j.4="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23" > 
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/combined_view.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">combined_view.xml</dcterms:identifier>
+    <j.3:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/combined_view.png"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A0">
+    <foaf:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">syc</foaf:name>
+    <rdf:type rdf:resource="http://purl.org/dc/terms/Agent"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/data_view.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">data_view.xml</dcterms:identifier>
+    <j.3:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/data_view.png"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/ywExtractFacts.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ywExtractFacts.xml</dcterms:identifier>
+    <j.3:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/ywExtractFacts.pl"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Execution">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://purl.org/provone/2015/15/ontology#Execution</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Program">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://purl.org/provone/2015/15/ontology#Program</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/A0_d5654f74-b08a-41c3-aee3-74302031cb7b">
+    <rdf:type rdf:resource="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fwww.w3.org%2Fns%2Fprov%23Association"/>
+    <j.2:Agent rdf:resource="https://cn.dataone.org/cn/v1/resolve/syc"/>
+    <j.2:hadPlan rdf:resource="https://cn.dataone.org/cn/v1/resolve/DroughtTimeScale_Markup_v2.m"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A0_d5654f74-b08a-41c3-aee3-74302031cb7b</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/ywModelFacts.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ywModelFacts.xml</dcterms:identifier>
+    <j.3:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/ywModelFacts.pl"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/syc">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">syc</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/wfMeta.1.1">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">wfMeta.1.1</dcterms:identifier>
+    <j.3:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/DroughtTimeScale_Markup_v2.m"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/ywModelFacts.pl">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ywModelFacts.pl</dcterms:identifier>
+    <j.3:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/ywModelFacts.xml"/>
+    <j.2:wasGeneratedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/execution_144c6844-bc5c-49dd-b5e2-069a3cf006ab"/>
+    <j.0:Data rdf:resource="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fwww.w3.org%2Fns%2Fprov%23Association">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.w3.org/ns/prov#Association</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f">
+    <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2015-05-11T12:35:00.812-05:00</dcterms:modified>
+    <ore:describes rdf:resource="https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/ResourceMap"/>
+    <dc:creator rdf:nodeID="A1"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f</dcterms:identifier>
+    <dc:creator rdf:nodeID="A0"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/data_view.png">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">data_view.png</dcterms:identifier>
+    <j.3:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/data_view.xml"/>
+    <j.2:wasGeneratedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/execution_144c6844-bc5c-49dd-b5e2-069a3cf006ab"/>
+    <j.0:Data rdf:resource="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/combined_view.png">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">combined_view.png</dcterms:identifier>
+    <j.3:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/combined_view.xml"/>
+    <j.0:Data rdf:resource="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Data"/>
+    <j.2:wasGeneratedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/execution_144c6844-bc5c-49dd-b5e2-069a3cf006ab"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/DroughtTimeScale_Markup_v2.m">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">DroughtTimeScale_Markup_v2.m</dcterms:identifier>
+    <j.3:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/wfMeta.1.1"/>
+    <rdf:type rdf:resource="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Program"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/ywExtractFacts.pl">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ywExtractFacts.pl</dcterms:identifier>
+    <j.3:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/ywExtractFacts.xml"/>
+    <j.0:Data rdf:resource="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Data"/>
+    <j.2:wasGeneratedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/execution_144c6844-bc5c-49dd-b5e2-069a3cf006ab"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Data">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://purl.org/provone/2015/15/ontology#Data</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation">
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/ywModelFacts.pl"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/ywExtractFacts.pl"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/combined_view.xml"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/process_view.xml"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/process_view.png"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/ywModelFacts.xml"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/data_view.xml"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/data_view.png"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/ywExtractFacts.xml"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/combined_view.png"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/wfMeta.1.1"/>
+    <ore:isDescribedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f"/>
+    <dc:title>DataONE Aggregation</dc:title>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/DroughtTimeScale_Markup_v2.m"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/process_view.png">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">process_view.png</dcterms:identifier>
+    <j.3:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/process_view.xml"/>
+    <j.2:wasGeneratedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/execution_144c6844-bc5c-49dd-b5e2-069a3cf006ab"/>
+    <j.0:Data rdf:resource="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/process_view.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_e94916b7-70fe-4b16-a581-6b433a5d441f#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">process_view.xml</dcterms:identifier>
+    <j.3:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/process_view.png"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A1">
+    <foaf:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Java libclient</foaf:name>
+    <rdf:type rdf:resource="http://purl.org/dc/terms/Agent"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/execution_144c6844-bc5c-49dd-b5e2-069a3cf006ab">
+    <j.2:qualifiedAssociation rdf:resource="https://cn.dataone.org/cn/v1/resolve/A0_d5654f74-b08a-41c3-aee3-74302031cb7b"/>
+    <rdf:type rdf:resource="https://cn.dataone.org/cn/v1/resolve/http:%2F%2Fpurl.org%2Fprovone%2F2015%2F15%2Fontology%23Execution"/>
+    <j.2:wasAssociatedWith rdf:resource="https://cn.dataone.org/cn/v1/resolve/syc"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">execution_144c6844-bc5c-49dd-b5e2-069a3cf006ab</dcterms:identifier>
+  </rdf:Description>
+</rdf:RDF>

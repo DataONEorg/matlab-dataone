@@ -14,6 +14,7 @@
 % fetch drought variable --drier is more negative
 % Note: "Standardized Precipitation-Evapotranspiration Index" is zscore, see
 % https://digital.csic.es/handle/10261/72264
+%dv=ncread('C:\Christopher\projects\MMIF\SPEI_01.nc','spei');
 dv=ncread('C:\Christopher\projects\MMIF\SPEI_01.nc','spei');
 dv=permute(dv,[2 1 3]);
 dv=dv(:,:,1:end-12);

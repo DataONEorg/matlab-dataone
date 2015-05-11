@@ -29,6 +29,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function setUp(testCase)
             % SETUP Set up the test environment
             testCase.filename = 'DroughtTimeScale_Markup_v2.m';
+            %testCase.filename = 'C3_C4_map_present_NA.m';
         end
     end
     
@@ -98,6 +99,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 cd(curDir);
             end
             
+            % To simulate a real matlab script run
+            textreadFile('ywModelFacts.pl');
         end
 
     end

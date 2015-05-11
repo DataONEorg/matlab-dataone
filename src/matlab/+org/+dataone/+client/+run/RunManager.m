@@ -529,8 +529,7 @@ classdef RunManager < hgsetget
             creator = OREFactory.createAgent();
             creator.addName(userId.getValue());
             resourceMap.addCreator(creator);
-        
-            
+          
             % Record a relationship identifying the provONE:user
             %provONEUser = Identifier;
             %provONEUser.setValue(NamedConstant.provONEuser);
@@ -542,11 +541,13 @@ classdef RunManager < hgsetget
             rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
             
             % Print it
-            fw = fopen('testCreatedResourceMapWithProv.xml', 'w');          
+            [pathstr,script_name,ext] = fileparts(runManager.execution.software_application);
+            resourceMapName = strjoin({'resourceMap_', script_name, '.xml'});
+            fw = fopen(resourceMapName, 'w');          
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
             fprintf('The resource map is : %s', char(rdfXml)); % output to the screen
-            
+          
             % Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
           % [pathstr, script_name, ext] = ...
