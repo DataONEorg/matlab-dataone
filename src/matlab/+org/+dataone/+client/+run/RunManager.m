@@ -289,7 +289,11 @@ classdef RunManager < hgsetget
                 if isunix
                     system('/usr/local/bin/dot -Tpng combined_view.gv -o combined_view.png'); % for linux & mac platform, not for windows OS family             
                     system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');            
-                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.png');            
+                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.png');    
+                    
+                    delete('combined_view.gv');
+                    delete('data_view.gv');
+                    delete('process_view.gv');
                 end    
                 cd(curDir);
             end
@@ -455,7 +459,9 @@ classdef RunManager < hgsetget
                 
                 modelFacts = runManager.modeler.getFacts();
                 
-                fw = fopen('ywModelFacts.pl', 'w');          
+                mfilename = 'ywModelFacts.pl';
+                fw = fopen(mfilename, 'w'); 
+                if fw == -1, error('Cannot write "%s%".',mfilename); end
                 fprintf(fw, '%s', char(modelFacts));
                 fclose(fw);
                
@@ -463,7 +469,7 @@ classdef RunManager < hgsetget
                 metadataModelFactsId1.setValue('ywModelFacts.xml');
                 dataModelFactsIds1 = ArrayListMatlabWrapper;
                 modelFactsId1 = Identifier;
-                modelFactsId1.setValue('ywModelFacts.pl'); % ywModelFacts prolog dump
+                modelFactsId1.setValue(mfilename); % ywModelFacts prolog dump
                 dataModelFactsIds1.add(modelFactsId1); 
            
                 % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog dump
@@ -481,7 +487,9 @@ classdef RunManager < hgsetget
                 % Create yewWorkflow extractFacts prolog dump
                 extractFacts = runManager.extractor.getFacts();
                 
-                fw = fopen('ywExtractFacts.pl', 'w');          
+                efilename = 'ywExtractFacts.pl';
+                fw = fopen(efilename, 'w');    
+                if fw == -1, error('Cannot write "%s%".',efilename); end
                 fprintf(fw, '%s', char(extractFacts));
                 fclose(fw);
                 
@@ -489,7 +497,7 @@ classdef RunManager < hgsetget
                 metadataExtractFactsId1.setValue('ywExtractFacts.xml');
                 dataExtractFactsIds1 = ArrayListMatlabWrapper;
                 extractFactsId1 = Identifier;
-                extractFactsId1.setValue('ywExtractFacts.pl'); % ywExtractFacts prolog dump
+                extractFactsId1.setValue(efilename); % ywExtractFacts prolog dump
                 dataExtractFactsIds1.add(extractFactsId1); 
            
                 % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywExtractFacts prolog dump
@@ -543,7 +551,8 @@ classdef RunManager < hgsetget
             % Print it
             [pathstr,script_name,ext] = fileparts(runManager.execution.software_application);
             resourceMapName = strjoin({'resourceMap_', script_name, '.xml'});
-            fw = fopen(resourceMapName, 'w');          
+            fw = fopen(resourceMapName, 'w'); 
+            if fw == -1, error('Cannot write "%s%".',resourceMapName); end
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
             fprintf('The resource map is : %s', char(rdfXml)); % output to the screen
@@ -564,6 +573,7 @@ classdef RunManager < hgsetget
           %             runtimeError.message]);
                    
           % end
+          
         end
         
         function data_package = endRecord(runManager)
@@ -682,6 +692,7 @@ classdef RunManager < hgsetget
                 runManager.grapher = runManager.grapher.graph();           
                 % Output the content of dot file to a file (test_mstmip_process_view.gv)
                 fileID = fopen('process_view.gv','w');
+                if fileID == -1, error('Cannot write "%s%".','process_view.gv'); end
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
                 fclose(fileID);
             
@@ -691,6 +702,7 @@ classdef RunManager < hgsetget
                 runManager.grapher = runManager.grapher.graph();
                 % Output the content of dot file to a file (test_mstmip_data_view.gv)
                 fileID = fopen('data_view.gv','w');
+                if fileID == -1, error('Cannot write "%s%".','data_view.gv'); end
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
                 fclose(fileID);
             
@@ -700,6 +712,7 @@ classdef RunManager < hgsetget
                 runManager.grapher = runManager.grapher.graph();
                 % Output the content of dot file to a file (test_mstmip_combined_view.gv)
                 fileID = fopen('combined_view.gv','w');
+                if fileID == -1, error('Cannot write "%s%".','combined_view.gv'); end
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
                 fclose(fileID);
                 
