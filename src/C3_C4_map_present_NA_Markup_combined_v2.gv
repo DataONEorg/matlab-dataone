@@ -1,0 +1,90 @@
+digraph Workflow {
+rankdir=TB
+node[shape=circle style="filled" fillcolor="#FFFFFF" peripheries=1 label="" width=0.2]
+subgraph cluster0 { label="" color="white"
+subgraph cluster1 { label="" color="white"
+node1
+node2
+node3
+}}
+subgraph cluster2 { label="" color="white"
+subgraph cluster3 { label="" color="white"
+node4
+node5
+node6
+}}
+subgraph cluster4 {
+label=""
+penwidth=2
+fontsize=18
+subgraph cluster5 {
+label=""
+color="white"
+graph[fontname=Courier]
+node[fontname=Courier]
+node[shape=box3d style="filled" fillcolor="#CCFFCC" peripheries=1 label="" width=0.2]
+node7 [label="fetch_SYNMAP_land_cover_map_variable"]
+node8 [label="fetch_monthly_mean_air_temperature_data"]
+node9 [label="fetch_monthly_mean_precipitation_data"]
+node10 [label="initialize_Grass_Matrix"]
+node11 [label="examine_pixels_for_grass"]
+node12 [label="output_netcdf_file_for_C3_fraction"]
+node13 [label="output_netcdf_file_for_C4_fraction"]
+node14 [label="output_netcdf_file_for_Grass_fraction"]
+node[fontname=Helvetica]
+node[shape=box style="rounded,filled" fillcolor="#FFFFCC" peripheries=1 label="" width=0.2]
+node15 [label="output_C3_fraction_data"]
+node16 [label="output_C4_fraction_data"]
+node17 [label="output_Grass_fraction_data"]
+node18 [label="SYNMAP_land_cover_map_data"]
+node19 [shape=record  rankdir=LR label="{<f0> mean_airtemp|<f1>file:c3c4input/monthly/2000-2010/air.2m_monthly_2000_2010.mean.\{month\}.nc}"];
+node20 [shape=record  rankdir=LR label="{<f0> mean_precip|<f1>file:c3c4input/monthly/2000-2010/apcp_monthly_2000_2010_mean.\{month\}.nc}"];
+node21 [label="Tair_Matrix"]
+node22 [label="Rain_Matrix"]
+node23 [label="lon_variable"]
+node24 [label="lat_variable"]
+node25 [label="lon_bnds_variable"]
+node26 [label="lat_bnds_variable"]
+node27 [label="C3_Data"]
+node28 [label="C4_Data"]
+node29 [label="Grass_variable"]
+node7 -> node23
+node7 -> node24
+node7 -> node25
+node7 -> node26
+node18 -> node7
+node8 -> node21
+node19 -> node8
+node9 -> node22
+node20 -> node9
+node10 -> node29
+node11 -> node27
+node11 -> node28
+node21 -> node11
+node22 -> node11
+node12 -> node15
+node23 -> node12
+node24 -> node12
+node25 -> node12
+node26 -> node12
+node27 -> node12
+node13 -> node16
+node23 -> node13
+node24 -> node13
+node25 -> node13
+node26 -> node13
+node28 -> node13
+node14 -> node17
+node23 -> node14
+node24 -> node14
+node25 -> node14
+node26 -> node14
+node29 -> node14
+}}
+node1 -> node18
+node2 -> node19
+node3 -> node20
+node15 -> node4
+node16 -> node5
+node17 -> node6
+}
