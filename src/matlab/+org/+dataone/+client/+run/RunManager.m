@@ -287,9 +287,9 @@ classdef RunManager < hgsetget
                 cd(runManager.runDir);
                 % Convert .gv files to .png files
                 if isunix
-                    system('/usr/local/bin/dot -Tpng combined_view.gv -o combined_view.png'); % for linux & mac platform, not for windows OS family             
-                    system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.png');            
-                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.png');    
+                    system('/usr/local/bin/dot -Tpdf combined_view.gv -o combined_view.pdf'); % for linux & mac platform, not for windows OS family             
+                    system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.pdf');            
+                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.pdf');    
                     
                     delete('combined_view.gv');
                     delete('data_view.gv');
@@ -392,7 +392,7 @@ classdef RunManager < hgsetget
             if runManager.configuration.include_workflow_graphic 
                 % One derived YW combined view image 
                 imgId1 = Identifier;
-                imgId1.setValue('combined_view.png'); % a figure image
+                imgId1.setValue('combined_view.pdf'); % a figure image
                 % Metadata
                 metadataImgId1 = Identifier;
                 metadataImgId1.setValue('combined_view.xml');
@@ -401,7 +401,7 @@ classdef RunManager < hgsetget
                 
                 % One derived YW data view image
                 imgId2 = Identifier;
-                imgId2.setValue('data_view.png'); % a figure image
+                imgId2.setValue('data_view.pdf'); % a figure image
                 % Metadata
                 metadataImgId2 = Identifier;
                 metadataImgId2.setValue('data_view.xml');
@@ -410,7 +410,7 @@ classdef RunManager < hgsetget
                  
                 % One derived YW process view image
                 imgId3 = Identifier;
-                imgId3.setValue('process_view.png'); % a figure image
+                imgId3.setValue('process_view.pdf'); % a figure image
                 % Metadata
                 metadataImgId3 = Identifier;
                 metadataImgId3.setValue('process_view.xml');
@@ -436,7 +436,7 @@ classdef RunManager < hgsetget
                 
                 % Create D1Object for each figure and add the D1Object to the DataPackage
                 cd(runManager.runDir);
-                imgFmt = 'image/png';      
+                imgFmt = 'application/pdf';      
                 img1FileId = File(imgId1.getValue());
                 img1Data = FileDataSource(img1FileId);
                 img1D1Obj = D1Object(imgId1, img1Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
@@ -549,14 +549,17 @@ classdef RunManager < hgsetget
             rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
             
             % Print it
+            cd(runManager.runDir);
             [pathstr,script_name,ext] = fileparts(runManager.execution.software_application);
+            script_name =strtrim(script_name);
             resourceMapName = strjoin({'resourceMap_', script_name, '.xml'});
             fw = fopen(resourceMapName, 'w'); 
             if fw == -1, error('Cannot write "%s%".',resourceMapName); end
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
             fprintf('The resource map is : %s', char(rdfXml)); % output to the screen
-          
+            cd(curDir);
+            
             % Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
           % [pathstr, script_name, ext] = ...
@@ -676,6 +679,7 @@ classdef RunManager < hgsetget
                 import org.yesworkflow.graph.GraphView;
                 import org.yesworkflow.graph.CommentVisibility;
                 import org.yesworkflow.extract.HashmapMatlabWrapper;
+                import org.yesworkflow.graph.LayoutDirection;
                 
                 runManager.grapher = runManager.grapher.workflow(runManager.workflow);
                 %gconfig = HashMap;
@@ -685,9 +689,11 @@ classdef RunManager < hgsetget
                 curDir = pwd();
                 wd = cd(runManager.runDir); % do I need to go back to the src/ folder again?
                 
-                % Generate YW.Process_View
-                gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
                 gconfig.put('comments', CommentVisibility.HIDE);
+                gconfig.put('layout', LayoutDirection.TB);
+                
+                 % Generate YW.Process_View
+                gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
                 runManager.grapher.configure(gconfig);              
                 runManager.grapher = runManager.grapher.graph();           
                 % Output the content of dot file to a file (test_mstmip_process_view.gv)

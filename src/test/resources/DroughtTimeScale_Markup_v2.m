@@ -15,7 +15,7 @@
 % Note: "Standardized Precipitation-Evapotranspiration Index" is zscore, see
 % https://digital.csic.es/handle/10261/72264
 %dv=ncread('C:\Christopher\projects\MMIF\SPEI_01.nc','spei');
-dv=ncread('C:\Christopher\projects\MMIF\SPEI_01.nc','spei');
+dv=ncread('DroughtTimeScaleMarkup/inputs/SPEI_01.nc','spei');
 dv=permute(dv,[2 1 3]);
 dv=dv(:,:,1:end-12);
 dv=flipdim(dv,1);
@@ -25,7 +25,8 @@ dv=flipdim(dv,1);
 %  @in “TEM6_BG1_V1.0.1_Monthly_GPP.nc4” @as input_effect_variable
 %  @out ev @as effect_variable_1
 %fetch effect variable --better is more positive
-ev=ncread('Y:\MsTMIP\tem\BG1\TEM6_BG1_V1.0.1_Monthly_GPP.nc4','GPP');
+%ev=ncread('Y:\MsTMIP\tem\BG1\TEM6_BG1_V1.0.1_Monthly_GPP.nc4','GPP');
+ev=ncread('DroughtTimeScaleMarkup/inputs/TEM6_BG1_V1.0.1_Monthly_GPP.nc4','GPP');
 ev(ev<-998)=NaN;
 ev=permute(ev,[2 1 3]);
 %% @end fetch_effect_variable

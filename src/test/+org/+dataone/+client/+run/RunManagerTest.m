@@ -22,14 +22,16 @@ classdef RunManagerTest < matlab.unittest.TestCase
     
     properties 
         filename
+        testDir
     end
 
     methods (TestMethodSetup)
         
         function setUp(testCase)
             % SETUP Set up the test environment
-            %testCase.filename = 'DroughtTimeScale_Markup_v2.m';
-            testCase.filename = 'C3_C4_map_present_NA_Markup.m';
+            %testCase.filename = 'test/resources/DroughtTimeScale_Markup_v2.m';
+            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2.m';
+            testCase.testDir = 'test/resources';
         end
     end
     
@@ -85,6 +87,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %% Test for YesWorkflow              
             script_path = fullfile(pwd(), filesep, testCase.filename); 
             fprintf('current script path: %s\n', script_path);
+            
+            mgr.configuration.provenance_storage_directory = testCase.testDir;
+            
             mgr.record(script_path, '');
         
             if mgr.configuration.include_workflow_graphic
@@ -92,14 +97,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 cd(mgr.runDir); % go to the provenance run directory
                 
                 % Display 3 different views of YesWorkflow output files
-                system('/usr/bin/open process_view.png');
-                system('/usr/bin/open data_view.png');
-                system('/usr/bin/open combined_view.png');
+                %system('/usr/bin/open process_view.pdf');
+                %system('/usr/bin/open data_view.pdf');
+                %system('/usr/bin/open combined_view.pdf');
                 
                 cd(curDir);
             end
             
-            % Call to run a real matlab script
+            % Access a matlab script and run it
             %DroughtTimeScale_Markup_v2;
             %y = textreadFile('ywModelFacts.pl');
             %fprintf('%s', char(y));
