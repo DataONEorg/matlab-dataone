@@ -288,8 +288,8 @@ classdef RunManager < hgsetget
                 % Convert .gv files to .png files
                 if isunix
                     system('/usr/local/bin/dot -Tpdf combined_view.gv -o combined_view.pdf'); % for linux & mac platform, not for windows OS family             
-                    system('/usr/local/bin/dot -Tpng data_view.gv -o data_view.pdf');            
-                    system('/usr/local/bin/dot -Tpng process_view.gv -o process_view.pdf');    
+                    system('/usr/local/bin/dot -Tpdf data_view.gv -o data_view.pdf');            
+                    system('/usr/local/bin/dot -Tpdf process_view.gv -o process_view.pdf');    
                     
                     delete('combined_view.gv');
                     delete('data_view.gv');
