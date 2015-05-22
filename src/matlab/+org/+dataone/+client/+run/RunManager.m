@@ -58,6 +58,16 @@ classdef RunManager < hgsetget
         
         % The DataPackage aggregating and describing all objects in a run
         dataPackage;
+        
+        processViewDotFileName = '';
+        dataViewDotFileName = '';
+        combinedViewDotFileName = '';
+        
+        processViewPdfFileName = '';
+        dataViewPdfFileName = '';
+        combinedViewPdfFileName = '';
+        
+        wfMetaFileName = '';
     end
    
     methods (Access = private)
@@ -176,10 +186,7 @@ classdef RunManager < hgsetget
             config = HashmapMatlabWrapper;
             config.put('language', Language.MATLAB);
             runManager.extractor = runManager.extractor.configure(config);         
-           % matCode = javaMethod('valueOf', 'org.yesworkflow.LanguageModel$Language', 'MATLAB');
-           % lm = LanguageModel(matCode); 
-           % runManager.extractor = runManager.extractor.languageModel(lm);  
-                      
+          
             % Set generate_workflow_graphic to be true
             runManager.configuration.generate_workflow_graphic = true;
         end
@@ -257,8 +264,7 @@ classdef RunManager < hgsetget
         end
         
         function startRecord(runManager, tag)
-            % STARTRECORD Starts recording provenance relationships (see
-            % record()).
+            % STARTRECORD Starts recording provenance relationships (see record()).
 
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
@@ -266,6 +272,15 @@ classdef RunManager < hgsetget
                   
             end                
 
+            % Compute script_base_name if it is not assigned a value
+            if isempty(runManager.configuration.script_base_name)
+                [pathstr,script_base_name,ext] = fileparts(runManager.execution.software_application);
+                runManager.configuration.script_base_name = strtrim(script_base_name);
+                disp(runManager.configuration.script_base_name);
+            else
+                disp(runManager.configuration.script_base_name);
+            end
+            
             % Create the run metadata directory for this run
             k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
             runId = runManager.execution.execution_id(k+9:end);
@@ -285,15 +300,20 @@ classdef RunManager < hgsetget
                 curDir = pwd();
                 runManager.captureProspectiveProvenanceWithYW();
                 cd(runManager.runDir);
-                % Convert .gv files to .png files
-                if isunix
-                    system('/usr/local/bin/dot -Tpdf combined_view.gv -o combined_view.pdf'); % for linux & mac platform, not for windows OS family             
-                    system('/usr/local/bin/dot -Tpdf data_view.gv -o data_view.pdf');            
-                    system('/usr/local/bin/dot -Tpdf process_view.gv -o process_view.pdf');    
+                
+                runManager.combinedViewPdfFileName = [runManager.configuration.script_base_name '_combined_view.pdf'];
+                runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
+                runManager.processViewPdfFileName = [runManager.configuration.script_base_name '_process_view.pdf'];
                     
-                    delete('combined_view.gv');
-                    delete('data_view.gv');
-                    delete('process_view.gv');
+                % Convert .gv files to .png files
+                if isunix    
+                    system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
+                    system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);      
+                    system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);   
+                    
+                    delete(runManager.combinedViewDotFileName);
+                    delete(runManager.dataViewDotFileName);
+                    delete(runManager.processViewDotFileName);
                 end    
                 cd(curDir);
             end
@@ -350,7 +370,8 @@ classdef RunManager < hgsetget
             wfIdsList = ArrayListMatlabWrapper;
             wfIdsList.add(wfId);
             wfMetadataId = Identifier;
-            wfMetadataId.setValue('wfMeta.1.1');
+            runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
+            wfMetadataId.setValue(runManager.wfMetaFileName);
             runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.       
           
             % Store the prov relationship: execution->prov:qualifiedAssociation->association
@@ -392,28 +413,28 @@ classdef RunManager < hgsetget
             if runManager.configuration.include_workflow_graphic 
                 % One derived YW combined view image 
                 imgId1 = Identifier;
-                imgId1.setValue('combined_view.pdf'); % a figure image
+                imgId1.setValue(runManager.combinedViewPdfFileName); % a figure image
                 % Metadata
                 metadataImgId1 = Identifier;
-                metadataImgId1.setValue('combined_view.xml');
+                metadataImgId1.setValue([runManager.configuration.script_base_name '_combined_view.xml']);
                 dataImgIds1 = ArrayListMatlabWrapper;
                 dataImgIds1.add(imgId1); 
                 
                 % One derived YW data view image
                 imgId2 = Identifier;
-                imgId2.setValue('data_view.pdf'); % a figure image
+                imgId2.setValue(runManager.dataViewPdfFileName); % a figure image
                 % Metadata
                 metadataImgId2 = Identifier;
-                metadataImgId2.setValue('data_view.xml');
+                metadataImgId2.setValue([runManager.configuration.script_base_name '_data_view.xml']);
                 dataImgIds2 = ArrayListMatlabWrapper;
                 dataImgIds2.add(imgId2);
                  
                 % One derived YW process view image
                 imgId3 = Identifier;
-                imgId3.setValue('process_view.pdf'); % a figure image
+                imgId3.setValue(runManager.processViewPdfFileName); % a figure image
                 % Metadata
                 metadataImgId3 = Identifier;
-                metadataImgId3.setValue('process_view.xml');
+                metadataImgId3.setValue([runManager.configuration.script_base_name '_process_view.xml']);
                 dataImgIds3 = ArrayListMatlabWrapper;
                 dataImgIds3.add(imgId3);
                  
@@ -459,14 +480,14 @@ classdef RunManager < hgsetget
                 
                 modelFacts = runManager.modeler.getFacts();
                 
-                mfilename = 'ywModelFacts.pl';
+                mfilename = [runManager.configuration.script_base_name  '_ywModelFacts.pl'];
                 fw = fopen(mfilename, 'w'); 
                 if fw == -1, error('Cannot write "%s%".',mfilename); end
                 fprintf(fw, '%s', char(modelFacts));
                 fclose(fw);
                
                 metadataModelFactsId1 = Identifier;
-                metadataModelFactsId1.setValue('ywModelFacts.xml');
+                metadataModelFactsId1.setValue([runManager.configuration.script_base_name  '_ywModelFacts.xml']);
                 dataModelFactsIds1 = ArrayListMatlabWrapper;
                 modelFactsId1 = Identifier;
                 modelFactsId1.setValue(mfilename); % ywModelFacts prolog dump
@@ -487,14 +508,14 @@ classdef RunManager < hgsetget
                 % Create yewWorkflow extractFacts prolog dump
                 extractFacts = runManager.extractor.getFacts();
                 
-                efilename = 'ywExtractFacts.pl';
+                efilename = [runManager.configuration.script_base_name  '_ywExtractFacts.pl'];
                 fw = fopen(efilename, 'w');    
                 if fw == -1, error('Cannot write "%s%".',efilename); end
                 fprintf(fw, '%s', char(extractFacts));
                 fclose(fw);
                 
                 metadataExtractFactsId1 = Identifier;
-                metadataExtractFactsId1.setValue('ywExtractFacts.xml');
+                metadataExtractFactsId1.setValue([runManager.configuration.script_base_name  '_ywExtractFacts.xml']);
                 dataExtractFactsIds1 = ArrayListMatlabWrapper;
                 extractFactsId1 = Identifier;
                 extractFactsId1.setValue(efilename); % ywExtractFacts prolog dump
@@ -550,9 +571,7 @@ classdef RunManager < hgsetget
             
             % Print it
             cd(runManager.runDir);
-            [pathstr,script_name,ext] = fileparts(runManager.execution.software_application);
-            script_name =strtrim(script_name);
-            resourceMapName = strjoin({'resourceMap_', script_name, '.xml'});
+            resourceMapName = ['resourceMap_' runManager.configuration.script_base_name '.xml'];
             fw = fopen(resourceMapName, 'w'); 
             if fw == -1, error('Cannot write "%s%".',resourceMapName); end
             fprintf(fw, '%s', char(rdfXml));
@@ -696,9 +715,10 @@ classdef RunManager < hgsetget
                 gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
                 runManager.grapher.configure(gconfig);              
                 runManager.grapher = runManager.grapher.graph();           
-                % Output the content of dot file to a file (test_mstmip_process_view.gv)
-                fileID = fopen('process_view.gv','w');
-                if fileID == -1, error('Cannot write "%s%".','process_view.gv'); end
+                % Output the content of dot file to a file 
+                runManager.processViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv'];
+                fileID = fopen(runManager.processViewDotFileName,'w');
+                if fileID == -1, error('Cannot write "%s%".', runManager.processViewDotFileName); end
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
                 fclose(fileID);
             
@@ -706,9 +726,10 @@ classdef RunManager < hgsetget
                 gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
                 runManager.grapher.configure(gconfig);
                 runManager.grapher = runManager.grapher.graph();
-                % Output the content of dot file to a file (test_mstmip_data_view.gv)
-                fileID = fopen('data_view.gv','w');
-                if fileID == -1, error('Cannot write "%s%".','data_view.gv'); end
+                % Output the content of dot file to a file 
+                runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv'];
+                fileID = fopen(runManager.dataViewDotFileName,'w');
+                if fileID == -1, error('Cannot write "%s%".', runManager.dataViewDotFileName); end
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
                 fclose(fileID);
             
@@ -716,9 +737,10 @@ classdef RunManager < hgsetget
                 gconfig.put('view', GraphView.COMBINED_VIEW);
                 runManager.grapher.configure(gconfig);
                 runManager.grapher = runManager.grapher.graph();
-                % Output the content of dot file to a file (test_mstmip_combined_view.gv)
-                fileID = fopen('combined_view.gv','w');
-                if fileID == -1, error('Cannot write "%s%".','combined_view.gv'); end
+                % Output the content of dot file to a file 
+                runManager.combinedViewDotFileName = [runManager.configuration.script_base_name '_combined_view.gv'];
+                fileID = fopen(runManager.combinedViewDotFileName,'w');
+                if fileID == -1, error('Cannot write "%s%".',runManager.combinedViewDotFileName); end
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
                 fclose(fileID);
                 

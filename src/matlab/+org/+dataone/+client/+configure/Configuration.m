@@ -104,6 +104,9 @@ classdef Configuration < hgsetget & dynamicprops
         % object in the DataPackage
         include_workflow_graphic = true;
         
+        % A script base name will be used to name yesWorkflow artifacts.
+        script_base_name = '';
+        
     end
 
     methods(Static)
