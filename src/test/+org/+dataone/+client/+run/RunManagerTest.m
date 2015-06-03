@@ -51,6 +51,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             import org.dataone.client.run.RunManager;
             
+            disp('In testGetInstanceNoConfiguration() ...');
+            
             mgr = RunManager.getInstance();
             old_format_id = get(mgr.configuration, 'format_id');
             set(mgr.configuration, 'format_id', 'application/octet-stream');
@@ -63,6 +65,19 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
         end
         
+        
+        function testPublish(testCase)
+            import org.dataone.client.run.RunManager;
+            import org.dataone.client.configure.Configuration;
+            
+            disp('In testPublish() ...');
+            configuration = Configuration();
+            
+            mgr = RunManager.getInstance(configuration);
+            set(mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo2');
+        end
+        
+        
         function testGetInstanceWithConfiguration(testCase)
             % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
             % function while passing a Configuration object
@@ -70,6 +85,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Configuration;
             
+            disp('In testGetInstanceWithConfiguration() ...');
+             
             configuration = Configuration();
             
             mgr = RunManager.getInstance(configuration);
@@ -112,6 +129,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %fprintf('%s', char(y));
             
         end
+        
+
 
     end
 end

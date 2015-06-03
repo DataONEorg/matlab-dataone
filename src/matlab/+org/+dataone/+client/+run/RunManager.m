@@ -633,6 +633,12 @@ classdef RunManager < hgsetget
             % PUBLISH Uploads a data package produced by an execution (run)
             % to the configured DataONE Member Node server.
             
+            curRunDir = [runManager.runDir pathsep packageId pathsep];
+            if ~exist(curRunDir, 'dir')
+                error([' A directory was not found for execution identifier: %s' packageId]);       
+            end
+            
+            
         end
         
         function init(runManager)
@@ -711,41 +717,29 @@ classdef RunManager < hgsetget
                 gconfig.put('comments', CommentVisibility.HIDE);
                 
                 
-                 % Generate YW.Process_View
+                 % Generate YW.Process_View dot file
+                runManager.processViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv']; 
                 gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
                 gconfig.put('layout', LayoutDirection.LR);
+                gconfig.put('dotfile', runManager.processViewDotFileName);
                 runManager.grapher.configure(gconfig);              
                 runManager.grapher = runManager.grapher.graph();           
-                % Output the content of dot file to a file 
-                runManager.processViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv'];
-                fileID = fopen(runManager.processViewDotFileName,'w');
-                if fileID == -1, error('Cannot write "%s%".', runManager.processViewDotFileName); end
-                fprintf(fileID, '%s', char(runManager.grapher.toString()));
-                fclose(fileID);
             
-                % Generate YW.Data_View
+                % Generate YW.Data_View dot file
+                runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_data_view.gv'];
                 gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
                 gconfig.put('layout', LayoutDirection.LR);
+                gconfig.put('dotfile', runManager.dataViewDotFileName);
                 runManager.grapher.configure(gconfig);
                 runManager.grapher = runManager.grapher.graph();
-                % Output the content of dot file to a file 
-                runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_data_view.gv'];
-                fileID = fopen(runManager.dataViewDotFileName,'w');
-                if fileID == -1, error('Cannot write "%s%".', runManager.dataViewDotFileName); end
-                fprintf(fileID, '%s', char(runManager.grapher.toString()));
-                fclose(fileID);
             
-                % Generate YW.Combined_View
+                % Generate YW.Combined_View dot file
+                runManager.combinedViewDotFileName = [runManager.configuration.script_base_name '_combined_view.gv'];
                 gconfig.put('view', GraphView.COMBINED_VIEW);
-                 gconfig.put('layout', LayoutDirection.TB);
+                gconfig.put('layout', LayoutDirection.TB);
+                gconfig.put('dotfile', runManager.combinedViewDotFileName);                
                 runManager.grapher.configure(gconfig);
                 runManager.grapher = runManager.grapher.graph();
-                % Output the content of dot file to a file 
-                runManager.combinedViewDotFileName = [runManager.configuration.script_base_name '_combined_view.gv'];
-                fileID = fopen(runManager.combinedViewDotFileName,'w');
-                if fileID == -1, error('Cannot write "%s%".',runManager.combinedViewDotFileName); end
-                fprintf(fileID, '%s', char(runManager.grapher.toString()));
-                fclose(fileID);
                 
                 cd(curDir); % go back to current working directory 
             
