@@ -14,18 +14,9 @@ nodatavalue = -999.0;
 
 %% @begin fetch_SYNMAP_land_cover_map_variable
 %  @in mstmip_SYNMAP_NA_QD.nc @as SYNMAP_land_cover_map_data
-%  @out sncid @as sncid_variable
-%  @out fvid @as fvid_variable
-%  @out frac @as frac_variable
-%  @out tvid @as tvid_variable
-%  @out type @as type_variable
-%  @out lon_vid @as lon_vid_variable
 %  @out lon @as lon_variable
-%  @out lat_vid @as lat_vid_variable
 %  @out lat @as lat_variable
-%  @out lon_bnds_vid @as lon_bnds_vid_variable
 %  @out lon_bnds @as lon_bnds_variable
-%  @out lat_bnds_vid @as lat_bnds_vid_variable
 %  @out lat_bnds @as lat_bnds_variable
 
 %% Load input: SYNMAP land cover classification map; also read coordinate variables to re-use them later
@@ -177,11 +168,11 @@ end
 %}
 
 %% @begin output_netcdf_file_for_C3_fraction
-%  @in lon @as lon_variable
-%  @in lat @as lat_variable
-%  @in lon_bnds @as lon_bnds_variable
-%  @in lat_bnds @as lat_bnds_variable
-%  @in C3 @as C3_Data
+%  @in lon_variable
+%  @in lat_variable
+%  @in lon_bnds_variable
+%  @in lat_bnds_variable
+%  @in C3_Data
 %  @out mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc @as output_C3_fraction_data
 
 %% Output the netcdf file for C3 fraction
@@ -241,11 +232,11 @@ netcdf.close(moncid)
 
 
 %% @begin output_netcdf_file_for_C4_fraction
-%  @in lon @as lon_variable
-%  @in lat @as lat_variable
-%  @in lon_bnds @as lon_bnds_variable
-%  @in lat_bnds @as lat_bnds_variable
-%  @in C4 @as C4_Data
+%  @in lon_variable
+%  @in lat_variable
+%  @in lon_bnds_variable
+%  @in lat_bnds_variable
+%  @in C4_Data
 %  @out mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc @as output_C4_fraction_data
 
 %% Output the netcdf file for C4 fraction
@@ -303,11 +294,11 @@ netcdf.close(moncid)
 
 
 %% @begin output_netcdf_file_for_Grass_fraction
-%  @in lon @as lon_variable
-%  @in lat @as lat_variable
-%  @in lon_bnds @as lon_bnds_variable
-%  @in lat_bnds @as lat_bnds_variable
-%  @in Grass @as Grass_variable
+%  @in lon_variable
+%  @in lat_variable
+%  @in lon_bnds_variable
+%  @in lat_bnds_variable
+%  @in Grass_variable
 %  @out mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc @as output_Grass_fraction_data
 
 %% Output the netcdf file for Grass fraction

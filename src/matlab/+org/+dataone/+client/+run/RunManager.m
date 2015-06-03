@@ -307,10 +307,10 @@ classdef RunManager < hgsetget
                     
                 % Convert .gv files to .png files
                 if isunix    
+                    system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);  
                     system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
                     system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);      
-                    system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);   
-                    
+                          
                     delete(runManager.combinedViewDotFileName);
                     delete(runManager.dataViewDotFileName);
                     delete(runManager.processViewDotFileName);
@@ -709,10 +709,11 @@ classdef RunManager < hgsetget
                 wd = cd(runManager.runDir); % do I need to go back to the src/ folder again?
                 
                 gconfig.put('comments', CommentVisibility.HIDE);
-                gconfig.put('layout', LayoutDirection.TB);
+                
                 
                  % Generate YW.Process_View
                 gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
+                gconfig.put('layout', LayoutDirection.LR);
                 runManager.grapher.configure(gconfig);              
                 runManager.grapher = runManager.grapher.graph();           
                 % Output the content of dot file to a file 
@@ -724,10 +725,11 @@ classdef RunManager < hgsetget
             
                 % Generate YW.Data_View
                 gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
+                gconfig.put('layout', LayoutDirection.LR);
                 runManager.grapher.configure(gconfig);
                 runManager.grapher = runManager.grapher.graph();
                 % Output the content of dot file to a file 
-                runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv'];
+                runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_data_view.gv'];
                 fileID = fopen(runManager.dataViewDotFileName,'w');
                 if fileID == -1, error('Cannot write "%s%".', runManager.dataViewDotFileName); end
                 fprintf(fileID, '%s', char(runManager.grapher.toString()));
@@ -735,6 +737,7 @@ classdef RunManager < hgsetget
             
                 % Generate YW.Combined_View
                 gconfig.put('view', GraphView.COMBINED_VIEW);
+                 gconfig.put('layout', LayoutDirection.TB);
                 runManager.grapher.configure(gconfig);
                 runManager.grapher = runManager.grapher.graph();
                 % Output the content of dot file to a file 

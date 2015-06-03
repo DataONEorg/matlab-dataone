@@ -107,6 +107,9 @@ classdef Configuration < hgsetget & dynamicprops
         % A script base name will be used to name yesWorkflow artifacts.
         script_base_name = '';
         
+        % A token string used to store authentication information (to be verified with Chris May-31-2015)
+        authentication_token = '';
+        
     end
 
     methods(Static)
@@ -207,6 +210,13 @@ classdef Configuration < hgsetget & dynamicprops
                         i = i+1;
                     end    
                 end    
+            end
+            
+            if strcmp(paraName, 'authentication_token')
+                disp(['Your authentication token has been set in your configuration file. Please be careful to safeguard this token.' ...
+                      'Anyone with access to it can call operations as you. Be careful to not add this token to any published scripts,' ...
+                      'but rather set it only using a command prompt. This token will expire at {add the expiration time from the token here}.' ...
+                      'Please log in again and set the token again after it expires.']);
             end
             
             % Set value of a field

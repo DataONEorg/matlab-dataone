@@ -90,7 +90,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             mgr.configuration.provenance_storage_directory = testCase.testDir;
             
-            mgr.configuration.script_base_name = 'apple_'; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
+            mgr.configuration.script_base_name = ''; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
             
             mgr.record(script_path, '');
         
