@@ -275,11 +275,10 @@ classdef RunManager < hgsetget
             % Compute script_base_name if it is not assigned a value
             if isempty(runManager.configuration.script_base_name)
                 [pathstr,script_base_name,ext] = fileparts(runManager.execution.software_application);
-                runManager.configuration.script_base_name = strtrim(script_base_name);
-                disp(runManager.configuration.script_base_name);
-            else
-                disp(runManager.configuration.script_base_name);
+                runManager.configuration.script_base_name = strtrim(script_base_name);      
             end
+            
+            %disp(runManager.configuration.script_base_name);
             
             % Create the run metadata directory for this run
             k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
@@ -293,36 +292,11 @@ classdef RunManager < hgsetget
                     ' could not be created. The error message' ...
                     ' was: ' runManager.runDir, message]);
             end
-                            
-            % Generate YesWorkflow image outputs
-            if runManager.configuration.generate_workflow_graphic
-                % Call YesWorkflow to capture prospective provenance for current scirpt
-                curDir = pwd();
-                runManager.captureProspectiveProvenanceWithYW();
-                cd(runManager.runDir);
-                
-                runManager.combinedViewPdfFileName = [runManager.configuration.script_base_name '_combined_view.pdf'];
-                runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
-                runManager.processViewPdfFileName = [runManager.configuration.script_base_name '_process_view.pdf'];
-                    
-                % Convert .gv files to .png files
-                if isunix    
-                    system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);  
-                    system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
-                    system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);      
-                          
-                    delete(runManager.combinedViewDotFileName);
-                    delete(runManager.dataViewDotFileName);
-                    delete(runManager.processViewDotFileName);
-                end    
-                cd(curDir);
-            end
-            
+          
             %% Package a datapackage for the current run    
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;
-            import org.dataone.ore.ResourceMapFactory;
             import org.dataone.ore.HashmapMatlabWrapper;
             import org.dspace.foresite.ResourceMap;
             import org.dataone.client.run.NamedConstant;
@@ -351,8 +325,7 @@ classdef RunManager < hgsetget
             provOneExecId = Identifier;
             provOneExecId.setValue(NamedConstant.provONEexecution);
             provOneExecIdsList.add(provOneExecId);
-            runManager.dataPackage.insertRelationship(executionId, provOneExecIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
-                      
+            runManager.dataPackage.insertRelationship(executionId, provOneExecIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);                    
               
             % Record relationship identifying workflow id as a provONE:Program
             wfId = Identifier;
@@ -365,8 +338,7 @@ classdef RunManager < hgsetget
             provOneProgramIdsList.add(provOneProgramId);
             runManager.dataPackage.insertRelationship(wfId, provOneProgramIdsList, NamedConstant.RDF_NS, NamedConstant.rdfType);
          
-            % Record relationship identifying prov:hadPlan between
-            % execution and programs           
+            % Record relationship identifying prov:hadPlan between execution and programs           
             wfIdsList = ArrayListMatlabWrapper;
             wfIdsList.add(wfId);
             wfMetadataId = Identifier;
@@ -396,9 +368,62 @@ classdef RunManager < hgsetget
             userId.setValue(runManager.execution.account_name);           
             userIdsList = ArrayListMatlabWrapper;           
             userIdsList.add(userId);
+            
+            % Record a relationship identifying the provONE:user
+            provONEUser = Identifier;
+            provONEUser.setValue(NamedConstant.provONEuser);
+            provONEUserList = ArrayListMatlabWrapper;
+            provONEUserList.add(provONEUser);
+            runManager.dataPackage.insertRelationship(userId, provONEUserList, NamedConstant.RDF_NS, NamedConstant.rdfType);
+            
             % Record the relationship between the Execution and the user
             runManager.dataPackage.insertRelationship(executionId, userIdsList, NamedConstant.provONE_NS, NamedConstant.provWasAssociatedWith);
-              
+       
+            % Record the relationship for association->prov:agent->"user"
+            runManager.dataPackage.insertRelationship(associationId, userIdsList, NamedConstant.provNS, NamedConstant.provAgent);            
+          
+            %% Run the script and collect provenance information
+          % runManager.prov_capture_enabled = true;
+          % [pathstr, script_name, ext] = ...
+          %     fileparts(runManager.execution.software_application);
+          % addpath(pathstr);
+
+          % try
+          %     eval(script_name);
+                
+          % catch runtimeError
+          %     error(['The script: ' ...
+          %            runManager.execution.software_application ...
+          %            ' could not be run. The error message was: ' ...
+          %             runtimeError.message]);
+                   
+          % end
+          
+        end
+        
+        function data_package = endRecord(runManager)
+            % ENDRECORD Ends the recording of an execution (run).
+            
+            import org.dataone.service.types.v1.Identifier;
+            import org.dataone.client.v1.itk.ArrayListMatlabWrapper; 
+            import org.dataone.client.v1.itk.D1Object;
+            import org.dataone.client.v1.itk.DataPackage;
+            import org.dataone.client.run.NamedConstant;
+            import java.io.File;
+            import javax.activation.FileDataSource;
+            import org.dataone.client.v1.types.D1TypeBuilder;
+            
+            % Stop recording
+            runManager.recording = false;
+            runManager.prov_capture_enabled = false;
+            
+            % Create the run metadata directory for this run
+            k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
+            runId = runManager.execution.execution_id(k+9:end);
+            % Record relationship identifying execution id as a provone:Execution
+            executionId = Identifier;
+            executionId.setValue(['execution_' runId]);
+            
             % Record a data list for provOne:Data
             provONEdataId = Identifier;
             provONEdataId.setValue(NamedConstant.provONEdata);
@@ -408,6 +433,40 @@ classdef RunManager < hgsetget
             % Get submitter and MN node reference
             submitter = runManager.execution.account_name;
             mnNodeId = runManager.configuration.target_member_node_id;
+            
+            % Create a D1Object for the program that we are running  
+            fileId = File(runManager.execution.software_application);
+            data = FileDataSource(fileId);           
+            scriptFmt = 'text/plain';        
+            wfId = Identifier;
+            E = strsplit(runManager.execution.software_application,filesep);          
+            wfId.setValue(char(E(end)));        
+            programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(programD1Obj);
+            
+            % Generate YesWorkflow image outputs
+            if runManager.configuration.generate_workflow_graphic
+                % Call YesWorkflow to capture prospective provenance for current scirpt
+                curDir = pwd();
+                runManager.captureProspectiveProvenanceWithYW();
+                cd(runManager.runDir);
+                
+                runManager.combinedViewPdfFileName = [runManager.configuration.script_base_name '_combined_view.pdf'];
+                runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
+                runManager.processViewPdfFileName = [runManager.configuration.script_base_name '_process_view.pdf'];
+                    
+                % Convert .gv files to .png files
+                if isunix    
+                    system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);  
+                    system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
+                    system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);      
+                          
+                    delete(runManager.combinedViewDotFileName);
+                    delete(runManager.dataViewDotFileName);
+                    delete(runManager.processViewDotFileName);
+                end    
+                cd(curDir);
+            end
             
             % Include YW impages
             if runManager.configuration.include_workflow_graphic 
@@ -472,8 +531,7 @@ classdef RunManager < hgsetget
                 img3Data = FileDataSource(img3FileId);
                 img3D1Obj = D1Object(imgId3, img3Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
                 runManager.dataPackage.addData(img3D1Obj);
-                
-                
+              
                 % Create yesWorkflow modelFacts prolog dump 
                 import org.yesworkflow.model.ModelFacts;
                 import org.yesworkflow.extract.ExtractFacts;
@@ -535,38 +593,19 @@ classdef RunManager < hgsetget
                 cd(curDir);
             end               
 
-            % Create a D1Object for the program that we are running  
-            fileId = File(runManager.execution.software_application);
-            data = FileDataSource(fileId);
-            
-            scriptFmt = 'text/plain';
-         
-            programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
-            runManager.dataPackage.addData(programD1Obj);
-             
-            % Record the relationship for association->prov:agent->"user"
-            runManager.dataPackage.insertRelationship(associationId, userIdsList, NamedConstant.provNS, NamedConstant.provAgent);
-            
             % Create resource map
-            %rdfXml = runManager.dataPackage.serializePackage();
             resourceMap = runManager.dataPackage.getMap();
             
             % Create a new Agent  
             import org.dspace.foresite.Agent;
             import org.dspace.foresite.OREFactory;
+            import org.dataone.ore.ResourceMapFactory;
             
             creator = OREFactory.createAgent();
-            creator.addName(userId.getValue());
+            creator.addName(runManager.execution.account_name);
             resourceMap.addCreator(creator);
-          
-            % Record a relationship identifying the provONE:user
-            %provONEUser = Identifier;
-            %provONEUser.setValue(NamedConstant.provONEuser);
-            %provONEUserList = ArrayListMatlabWrapper;
-            %provONEUserList.add(provONEUser);
-            %runManager.dataPackage.insertRelationship(userId, provONEUserList, NamedConstant.RDF_NS, NamedConstant.rdfType);
             
-            %resourceMap = runManager.dataPackage.getMap();
+            % Serialize a datapackage
             rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
             
             % Print it
@@ -576,34 +615,8 @@ classdef RunManager < hgsetget
             if fw == -1, error('Cannot write "%s%".',resourceMapName); end
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
-            fprintf('The resource map is : %s', char(rdfXml)); % output to the screen
+            fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % output to the screen
             cd(curDir);
-            
-            % Run the script and collect provenance information
-          % runManager.prov_capture_enabled = true;
-          % [pathstr, script_name, ext] = ...
-          %     fileparts(runManager.execution.software_application);
-          % addpath(pathstr);
-
-          % try
-          %     eval(script_name);
-                
-          % catch runtimeError
-          %     error(['The script: ' ...
-          %            runManager.execution.software_application ...
-          %            ' could not be run. The error message was: ' ...
-          %             runtimeError.message]);
-                   
-          % end
-          
-        end
-        
-        function data_package = endRecord(runManager)
-            % ENDRECORD Ends the recording of an execution (run).
-            
-            % Stop recording
-            runManager.recording = false;
-            runManager.prov_capture_enabled = false;
             
             % Return the Java DataPackage as a Matlab structured array
             data_package = struct(runManager.dataPackage);
@@ -633,13 +646,70 @@ classdef RunManager < hgsetget
             % PUBLISH Uploads a data package produced by an execution (run)
             % to the configured DataONE Member Node server.
             
-            curRunDir = [runManager.runDir pathsep packageId pathsep];
+            import org.dataone.client.v2.MNode;
+            import org.dataone.client.v2.itk.D1Client;
+            import org.dataone.service.types.v1.NodeReference;
+            
+            curRunDir = [runManager.runDir filesep packageId filesep];
+            fprintf('curRunDir: %s\n', curRunDir);
             if ~exist(curRunDir, 'dir')
-                error([' A directory was not found for execution identifier: %s' packageId]);       
+                error([' A directory was not found for execution identifier: ' packageId]);       
+            end       
+            
+            % Get a MNode instance to the Member Node
+            try 
+                % Get D1 cilogon certificate stored at /tmp/x509up_u501
+                certificate = runManager.getCertificate();
+                % Pull the subject DN out of the certificate for use in system metadata
+                runManager.configuration.submitter = certificate.getSubjectDN();
+                
+                % Get D1 cilogon authToken string
+                %authToken = runManager.configuration.get('authentication_token');
+                %fprintf('authToken is: %s\n', authToken);
+                %D1Client.setAuthToken(authToken);
+            
+                % Set the Node ID
+                nref = NodeReference();
+                nref.setValue(runManager.configuration.target_member_node_id);
+                
+                % Get a MNode instance to the Member Node using the Node ID
+                mnNode = D1Client.getMN(nref);
+                if isempty(mnNode)
+                   error(['Member node' runManager.configuration.target_member_node_id 'encounted an error on the getMN() request.']); 
+                end
+                    
+                fprintf('mn ndoe base url is: %s\n', char(mnNode.getNodeBaseServiceUrl())); 
+                
+                
+                
+                package_id = packageId; % temporary
+         
+            catch runtimeError 
+                error(['Could not create member node reference: ' runtimeError.message]);
             end
+        end  
+       
+        
+        function certificate = getCertificate(runManager)
+            % GETCERTIFICATE Gets a certificate 
+            import org.dataone.client.auth.CertificateManager;
+            import java.security.cert.X509Certificate;
+            import java.security.PrivateKey;
             
+            % Load the manager itself
+            cm = CertificateManager.getInstance();
             
+            % Get a certificate for the Root CA           
+            certificate = CertificateManager.getInstance().loadCertificate();
+            fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));
+            
+            % get the private key
+            privateKey = CertificateManager.getInstance().loadKey();
+            % register as the subject
+            subjectDN = CertificateManager.getInstance().getSubjectDN(certificate);
+            CertificateManager.getInstance().registerCertificate(subjectDN, certificate, privateKey);       
         end
+        
         
         function init(runManager)
             % INIT initializes the RunManager instance
@@ -682,68 +752,76 @@ classdef RunManager < hgsetget
             import java.util.List;
             import java.util.HashMap;
                        
-            % Read script content from disk
-            script = File(runManager.execution.software_application);
-            freader = FileReader(script);
-            reader = BufferedReader(freader);
+            try
+                % Read script content from disk
+                script = File(runManager.execution.software_application);
+                freader = FileReader(script);
+                reader = BufferedReader(freader);
             
-            % Call YW-Extract module
-            %runManager.extractor = runManager.extractor.source(reader);
-            runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
-            annotations = runManager.extractor.extract().getAnnotations();
+                % Call YW-Extract module
+                %runManager.extractor = runManager.extractor.source(reader);
+                runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
+                annotations = runManager.extractor.extract().getAnnotations();
         
-            % Call YW-Model module
-            runManager.modeler = runManager.modeler.annotations(annotations);
-            runManager.modeler = runManager.modeler.model();
-            %program = runManager.modeler.getModel();
-            runManager.workflow = runManager.modeler.getModel().program; % April-version yesWorkflow
-            %runManager.workflow = runManager.modeler.getWorkflow;
+                % Call YW-Model module
+                runManager.modeler = runManager.modeler.annotations(annotations);
+                runManager.modeler = runManager.modeler.model();
+                %program = runManager.modeler.getModel();
+                runManager.workflow = runManager.modeler.getModel().program; % April-version yesWorkflow
+                %runManager.workflow = runManager.modeler.getWorkflow;
           
-            % Call YW-Graph module
-            if runManager.configuration.generate_workflow_graphic
-                import org.yesworkflow.graph.GraphView;
-                import org.yesworkflow.graph.CommentVisibility;
-                import org.yesworkflow.extract.HashmapMatlabWrapper;
-                import org.yesworkflow.graph.LayoutDirection;
+                % Call YW-Graph module
+                if runManager.configuration.generate_workflow_graphic
+                    import org.yesworkflow.graph.GraphView;
+                    import org.yesworkflow.graph.CommentVisibility;
+                    import org.yesworkflow.extract.HashmapMatlabWrapper;
+                    import org.yesworkflow.graph.LayoutDirection;
                 
-                runManager.grapher = runManager.grapher.workflow(runManager.workflow);
-                %gconfig = HashMap;
-                gconfig = HashmapMatlabWrapper;
+                    runManager.grapher = runManager.grapher.workflow(runManager.workflow);
+                    %gconfig = HashMap;
+                    gconfig = HashmapMatlabWrapper;
                 
-                % Set the working directory to be the run metadata directory for this run
-                curDir = pwd();
-                wd = cd(runManager.runDir); % do I need to go back to the src/ folder again?
+                    % Set the working directory to be the run metadata directory for this run
+                    curDir = pwd();
+                    wd = cd(runManager.runDir); % do I need to go back to the src/ folder again?
                 
-                gconfig.put('comments', CommentVisibility.HIDE);
-                
-                
-                 % Generate YW.Process_View dot file
-                runManager.processViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv']; 
-                gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
-                gconfig.put('layout', LayoutDirection.LR);
-                gconfig.put('dotfile', runManager.processViewDotFileName);
-                runManager.grapher.configure(gconfig);              
-                runManager.grapher = runManager.grapher.graph();           
+                    gconfig.put('comments', CommentVisibility.HIDE);
+                               
+                    % Generate YW.Process_View dot file
+                    runManager.processViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv']; 
+                    gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
+                    gconfig.put('layout', LayoutDirection.LR);
+                    gconfig.put('dotfile', runManager.processViewDotFileName);
+                    runManager.grapher.configure(gconfig);              
+                    runManager.grapher = runManager.grapher.graph();           
             
-                % Generate YW.Data_View dot file
-                runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_data_view.gv'];
-                gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
-                gconfig.put('layout', LayoutDirection.LR);
-                gconfig.put('dotfile', runManager.dataViewDotFileName);
-                runManager.grapher.configure(gconfig);
-                runManager.grapher = runManager.grapher.graph();
+                    % Generate YW.Data_View dot file
+                    runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_data_view.gv'];
+                    gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
+                    gconfig.put('layout', LayoutDirection.LR);
+                    gconfig.put('dotfile', runManager.dataViewDotFileName);
+                    runManager.grapher.configure(gconfig);
+                    runManager.grapher = runManager.grapher.graph();
             
-                % Generate YW.Combined_View dot file
-                runManager.combinedViewDotFileName = [runManager.configuration.script_base_name '_combined_view.gv'];
-                gconfig.put('view', GraphView.COMBINED_VIEW);
-                gconfig.put('layout', LayoutDirection.TB);
-                gconfig.put('dotfile', runManager.combinedViewDotFileName);                
-                runManager.grapher.configure(gconfig);
-                runManager.grapher = runManager.grapher.graph();
+                    % Generate YW.Combined_View dot file
+                    runManager.combinedViewDotFileName = [runManager.configuration.script_base_name '_combined_view.gv'];
+                    gconfig.put('view', GraphView.COMBINED_VIEW);
+                    gconfig.put('layout', LayoutDirection.TB);
+                    gconfig.put('dotfile', runManager.combinedViewDotFileName);                
+                    runManager.grapher.configure(gconfig);
+                    runManager.grapher = runManager.grapher.graph();
                 
-                cd(curDir); % go back to current working directory 
-            
-            end    
+                    cd(curDir); % go back to current working directory          
+                end  
+                
+                %% ToDo: close file open using java FileReader API
+                if isempty(br) == 0  
+                    br.close();
+                    fprintf('close file.');
+                end
+            catch ME      
+            end      
         end
+        
     end
 end

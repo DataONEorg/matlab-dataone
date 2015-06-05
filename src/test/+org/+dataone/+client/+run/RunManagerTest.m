@@ -23,15 +23,20 @@ classdef RunManagerTest < matlab.unittest.TestCase
     properties 
         filename
         testDir
+        mgr
     end
 
     methods (TestMethodSetup)
         
         function setUp(testCase)
             % SETUP Set up the test environment
+            
+            import org.dataone.client.run.RunManager;
+            
             %testCase.filename = 'test/resources/DroughtTimeScale_Markup_v2.m';
             testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2.m';
             testCase.testDir = 'test/resources';
+            testCase.mgr = RunManager.getInstance();
         end
     end
     
@@ -49,35 +54,22 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
             % function without passing a Configuration object
 
-            import org.dataone.client.run.RunManager;
+            %import org.dataone.client.run.RunManager;
             
-            disp('In testGetInstanceNoConfiguration() ...');
+            fprintf('\nIn testGetInstanceNoConfiguration() ...\n');
             
-            mgr = RunManager.getInstance();
-            old_format_id = get(mgr.configuration, 'format_id');
-            set(mgr.configuration, 'format_id', 'application/octet-stream');
-            assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
+            %mgr = RunManager.getInstance();
+            old_format_id = get(testCase.mgr.configuration, 'format_id');
+            set(testCase.mgr.configuration, 'format_id', 'application/octet-stream');
+            assertInstanceOf(testCase, testCase.mgr, 'org.dataone.client.run.RunManager');
             % Test a single default property to ensure the configuration was set
-            assertEqual(testCase, mgr.configuration.format_id, 'application/octet-stream');
+            assertEqual(testCase, testCase.mgr.configuration.format_id, 'application/octet-stream');
             
             % reset to the original
-            set(mgr.configuration, 'format_id', old_format_id);
+            set(testCase.mgr.configuration, 'format_id', old_format_id);
 
         end
-        
-        
-        function testPublish(testCase)
-            import org.dataone.client.run.RunManager;
-            import org.dataone.client.configure.Configuration;
-            
-            disp('In testPublish() ...');
-            configuration = Configuration();
-            
-            mgr = RunManager.getInstance(configuration);
-            set(mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo2');
-        end
-        
-        
+              
         function testGetInstanceWithConfiguration(testCase)
             % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
             % function while passing a Configuration object
@@ -85,35 +77,33 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Configuration;
             
-            disp('In testGetInstanceWithConfiguration() ...');
-             
-            configuration = Configuration();
-            
-            mgr = RunManager.getInstance(configuration);
-            old_format_id = get(mgr.configuration, 'format_id');
-            set(mgr.configuration, 'format_id', 'text/csv');
+            fprintf('\nIn testGetInstanceWithConfiguration() ...\n');
+           
+            %mgr = RunManager.getInstance(configuration);
+            old_format_id = get(testCase.mgr.configuration, 'format_id');
+            set(testCase.mgr.configuration, 'format_id', 'text/csv');
             
             % Test the instance type
-            assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
+            assertInstanceOf(testCase, testCase.mgr, 'org.dataone.client.run.RunManager');
             % Test a single preset property
-            assertEqual(testCase, mgr.configuration.format_id, 'text/csv');
+            assertEqual(testCase, testCase.mgr.configuration.format_id, 'text/csv');
             
             % reset to the original
-            set(mgr.configuration, 'format_id', old_format_id);
+            set(testCase.mgr.configuration, 'format_id', old_format_id);
 
             %% Test for YesWorkflow              
             script_path = fullfile(pwd(), filesep, testCase.filename); 
-            fprintf('current script path: %s\n', script_path);
+            %fprintf('current script path: %s\n', script_path);
             
-            mgr.configuration.provenance_storage_directory = testCase.testDir;
+            testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
             
-            mgr.configuration.script_base_name = ''; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
+            testCase.mgr.configuration.script_base_name = ''; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
             
-            mgr.record(script_path, '');
+            testCase.mgr.record(script_path, '');
         
-            if mgr.configuration.include_workflow_graphic
+            if testCase.mgr.configuration.include_workflow_graphic
                 curDir = pwd();
-                cd(mgr.runDir); % go to the provenance run directory
+                cd(testCase.mgr.runDir); % go to the provenance run directory
                 
                 % Display 3 different views of YesWorkflow output files
                 %system('/usr/bin/open process_view.pdf');
@@ -129,8 +119,20 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %fprintf('%s', char(y));
             
         end
-        
-
-
+       
+        function testPublish(testCase)
+            import org.dataone.client.run.RunManager;
+            import org.dataone.client.configure.Configuration;
+            
+            fprintf('\nIn testPublish() ...\n');
+           
+            %mgr = RunManager.getInstance(configuration);
+            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo2');
+            %authToken = 'abc';
+            %set(mgr.configuration, 'authentication_token', authToken);
+       
+            testCase.mgr.runDir = 'test/resources/runs';
+            pkgId = testCase.mgr.publish('0ab94735-93fc-458c-b638-562a715a95be');
+        end
     end
 end
