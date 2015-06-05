@@ -119,7 +119,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %fprintf('%s', char(y));
             
         end
-       
+        
+        % The function testPublish() has to be put behind the function testGetInstanceWithConfiguration(). 
         function testPublish(testCase)
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Configuration;
