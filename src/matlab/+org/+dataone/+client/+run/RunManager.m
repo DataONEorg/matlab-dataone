@@ -283,10 +283,9 @@ classdef RunManager < hgsetget
             % Create the run metadata directory for this run
             k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
             runId = runManager.execution.execution_id(k+9:end);
-          % fprintf('k+9=%d\n', k+9);
             runManager.runDir = strcat(runManager.configuration.provenance_storage_directory, filesep,'runs', filesep, runId);
             [status, message, message_id] = mkdir(runManager.runDir);
-          % fprintf('filePath:%s\n', runManager.runDir);           
+            
             if ( status ~= 1 )
                 error(message_id, [ 'The directory %s' ...
                     ' could not be created. The error message' ...
@@ -417,7 +416,7 @@ classdef RunManager < hgsetget
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
             
-            % Create the run metadata directory for this run
+            % Create the runId again. There is a runId created in startRecord() already. 
             k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
             runId = runManager.execution.execution_id(k+9:end);
             % Record relationship identifying execution id as a provone:Execution
@@ -434,7 +433,7 @@ classdef RunManager < hgsetget
             submitter = runManager.execution.account_name;
             mnNodeId = runManager.configuration.target_member_node_id;
             
-            % Create a D1Object for the program that we are running  
+            % Create a D1Object for the program that we are running and add to the datapackage
             fileId = File(runManager.execution.software_application);
             data = FileDataSource(fileId);           
             scriptFmt = 'text/plain';        
@@ -514,7 +513,7 @@ classdef RunManager < hgsetget
                 runManager.dataPackage.insertRelationship(imgId2, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
                 runManager.dataPackage.insertRelationship(imgId3, provONEdataIdsList, NamedConstant.provONE_NS, NamedConstant.provONEdata);
                 
-                % Create D1Object for each figure and add the D1Object to the DataPackage
+                % Create D1Object for each figure and add the D1Object to the dataPackage
                 cd(runManager.runDir);
                 imgFmt = 'application/pdf';      
                 img1FileId = File(imgId1.getValue());
@@ -759,16 +758,13 @@ classdef RunManager < hgsetget
                 reader = BufferedReader(freader);
             
                 % Call YW-Extract module
-                %runManager.extractor = runManager.extractor.source(reader);
-                runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
+                runManager.extractor = runManager.extractor.reader(reader); 
                 annotations = runManager.extractor.extract().getAnnotations();
         
                 % Call YW-Model module
                 runManager.modeler = runManager.modeler.annotations(annotations);
                 runManager.modeler = runManager.modeler.model();
-                %program = runManager.modeler.getModel();
-                runManager.workflow = runManager.modeler.getModel().program; % April-version yesWorkflow
-                %runManager.workflow = runManager.modeler.getWorkflow;
+                runManager.workflow = runManager.modeler.getModel().program; 
           
                 % Call YW-Graph module
                 if runManager.configuration.generate_workflow_graphic
@@ -778,7 +774,6 @@ classdef RunManager < hgsetget
                     import org.yesworkflow.graph.LayoutDirection;
                 
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
-                    %gconfig = HashMap;
                     gconfig = HashmapMatlabWrapper;
                 
                     % Set the working directory to be the run metadata directory for this run
