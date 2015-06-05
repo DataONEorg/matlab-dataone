@@ -454,7 +454,7 @@ classdef RunManager < hgsetget
                 runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
                 runManager.processViewPdfFileName = [runManager.configuration.script_base_name '_process_view.pdf'];
                     
-                % Convert .gv files to .png files
+                % Convert .gv files to .pdf files
                 if isunix    
                     system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);  
                     system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
@@ -701,12 +701,6 @@ classdef RunManager < hgsetget
             % Get a certificate for the Root CA           
             certificate = CertificateManager.getInstance().loadCertificate();
             fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));
-            
-            % get the private key
-            privateKey = CertificateManager.getInstance().loadKey();
-            % register as the subject
-            subjectDN = CertificateManager.getInstance().getSubjectDN(certificate);
-            CertificateManager.getInstance().registerCertificate(subjectDN, certificate, privateKey);       
         end
         
         
@@ -778,7 +772,7 @@ classdef RunManager < hgsetget
                 
                     % Set the working directory to be the run metadata directory for this run
                     curDir = pwd();
-                    wd = cd(runManager.runDir); % do I need to go back to the src/ folder again?
+                    wd = cd(runManager.runDir); 
                 
                     gconfig.put('comments', CommentVisibility.HIDE);
                                
