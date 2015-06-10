@@ -87,8 +87,7 @@ classdef RunManager < hgsetget
         end
         
         function predicate = asPredicate(runManager, property, prefix)
-            %import com.hp.hpl.jena.rdf.model.*;
-            %import com.hp.hpl.jena.rdf.model.impl.PropertyImpl;
+            import com.hp.hpl.jena.rdf.model.Property;
             import org.dspace.foresite.Predicate;
             import java.net.URI;
              
@@ -100,7 +99,8 @@ classdef RunManager < hgsetget
                 predicate.setPrefix(prefix);               
             end
             predicate.setURI(URI(property.getURI()));
-            fprintf('property.URI = %s\n', char(property.getURI()));
+            fprintf('predicate.URI = %s\n', char(predicate.getURI()));
+            fprintf('predicate.nameSpace = %s\n', char(predicate.getNamespace()));
         end
         
     end
@@ -313,8 +313,7 @@ classdef RunManager < hgsetget
             %% Package a datapackage for the current run    
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
-            import org.dataone.service.types.v1.Identifier;
-            import org.dspace.foresite.ResourceMap;
+            import org.dataone.service.types.v1.Identifier;            
             import org.dataone.client.run.NamedConstant;
             import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
             import org.dataone.client.v1.types.D1TypeBuilder;
@@ -322,8 +321,10 @@ classdef RunManager < hgsetget
             import com.hp.hpl.jena.vocabulary.RDF;
             import org.dataone.vocabulary.PROV;
             import org.dataone.vocabulary.ProvONE;
+            import org.dataone.vocabulary.ProvONE_V1;
             import java.net.URI;
-            import org.dataone.ore.ListGenericURIMatlabWrapper;
+            %import org.dataone.ore.ListGenericURIMatlabWrapper;
+            import org.dspace.foresite.ResourceMap;
             
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
@@ -336,18 +337,18 @@ classdef RunManager < hgsetget
             runManager.dataPackage = DataPackage(resourceMapId);
             
             % Record relationship identifying execution id as a provone:Execution                              
-            global execSubjectURI;
-            execSubjectURI = URI([runManager.configuration.coordinating_node_base_url  'execution_' runId]);
-            provOneExecURIsList = ListGenericURIMatlabWrapper().add(URI(ProvONE.Execution.getURI()));
+            global execURI;
+            execURI = URI([runManager.configuration.coordinating_node_base_url  'execution_' runId]);
+            provOneExecURI = URI(ProvONE.Execution.getURI());
             global aTypePredicate;
             aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-            runManager.dataPackage.insertRelationship(execSubjectURI, aTypePredicate, provOneExecURIsList);         
+            runManager.dataPackage.insertRelationship(execURI, aTypePredicate, provOneExecURI);         
           
             % Record relationship identifying workflow id as a provONE:Program
             E = strsplit(runManager.execution.software_application,filesep);           
-            wfSubjectURI = URI(char(E(end)));
-            provOneProgramURIsList = ListGenericURIMatlabWrapper().add(URI(ProvONE.Program.getURI()));
-            runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURIsList);
+            wfSubjectURI = URI([runManager.configuration.coordinating_node_base_url char(E(end))]);
+            provOneProgramURI = URI(ProvONE.Program.getURI());
+            runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
          
             % Record relationship identifying prov:hadPlan between execution and programs   
             global wfIdentifier;
@@ -361,33 +362,32 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.                
             
             global associationSubjectURI; 
-            associationSubjectURI = URI(['A0_' char(java.util.UUID.randomUUID())]);
-            provOneProgramURIsList = ListGenericURIMatlabWrapper().add(URI(ProvONE.Program.getURI()));
+            associationSubjectURI = URI([runManager.configuration.coordinating_node_base_url  'A0_' char(java.util.UUID.randomUUID())]);
+            provOneProgramURI = URI(ProvONE.Program.getURI());
             % Store the prov relationship: association->prov:hadPlan->program
             predicate = PROV.predicate('hadPlan');
-            runManager.dataPackage.insertRelationship(associationSubjectURI, predicate, provOneProgramURIsList);
+            runManager.dataPackage.insertRelationship(associationSubjectURI, predicate, provOneProgramURI);
             % Record relationship identifying association id as a prov:Association
-            provAssociationURIsList = ListGenericURIMatlabWrapper().add(URI(PROV.Association.getURI()));
-            runManager.dataPackage.insertRelationship(associationSubjectURI, aTypePredicate, provAssociationURIsList);
+            provAssociationURI = URI(PROV.Association.getURI());
+            runManager.dataPackage.insertRelationship(associationSubjectURI, aTypePredicate, provAssociationURI);
                         
             % Store the prov relationship: execution->prov:qualifiedAssociation->association
-            associationURIsList = ListGenericURIMatlabWrapper().add(URI(PROV.Association.getURI()));
+            provAssociationObjURI = URI(PROV.Association.getURI());
             predicate = PROV.predicate('qualifiedAssociation');
-            runManager.dataPackage.insertRelationship( execSubjectURI, predicate, associationURIsList);
+            runManager.dataPackage.insertRelationship( execURI, predicate, provAssociationObjURI);
            
             % Store the ProvONE relationships for user
             global userURI;
-            userURI = URI(runManager.execution.account_name);        
+            userURI = URI([runManager.configuration.coordinating_node_base_url runManager.execution.account_name]);        
             % Record a relationship identifying the provONE:user
-            provONEUserURIsList = ListGenericURIMatlabWrapper().add(URI(ProvONE.User.getURI()));
-            runManager.dataPackage.insertRelationship(userURI, aTypePredicate, provONEUserURIsList);           
+            provONEUserURI = URI(ProvONE.User.getURI());
+            runManager.dataPackage.insertRelationship(userURI, aTypePredicate, provONEUserURI);           
             % Record the relationship between the Execution and the user
             predicate = PROV.predicate('wasAssociatedWith');
-            userURIsList = ListGenericURIMatlabWrapper().add(userURI);
-            runManager.dataPackage.insertRelationship(execSubjectURI, predicate, userURIsList);      
+            runManager.dataPackage.insertRelationship(execURI, predicate, userURI);      
             % Record the relationship for association->prov:agent->"user"
             predicate = PROV.predicate('agent');
-            runManager.dataPackage.insertRelationship(associationSubjectURI, predicate, userURIsList);            
+            runManager.dataPackage.insertRelationship(associationSubjectURI, predicate, userURI);            
           
             %% Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
@@ -422,20 +422,19 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.PROV;
             import org.dataone.vocabulary.ProvONE;
             import java.net.URI;
-            import org.dataone.ore.ListGenericURIMatlabWrapper;
+            %import org.dataone.ore.ListGenericURIMatlabWrapper;
             import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
             
             % Stop recording
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
                         
-            global provONEdataURIsList;
-            global execURIsList;
-            global execSubjectURI;
+            global provONEdataURI;
+            global execURI;
             global aTypePredicate;
             
             % Record a data list for provOne:Data
-            provONEdataURIsList = ListGenericURIMatlabWrapper().add(URI(ProvONE.Data .getURI()));
+            provONEdataURI = URI(ProvONE.Data .getURI());
                       
             % Get submitter and MN node reference
             submitter = runManager.execution.account_name;
@@ -480,7 +479,7 @@ classdef RunManager < hgsetget
                 % One derived YW combined view image 
                 imgId1 = Identifier();
                 imgId1.setValue(runManager.combinedViewPdfFileName); % a figure image
-                imgURI1 = URI(runManager.combinedViewPdfFileName);
+                imgURI1 = URI([runManager.configuration.coordinating_node_base_url  runManager.combinedViewPdfFileName]);
                 % Metadata
                 metadataImgId1 = Identifier();
                 metadataImgId1.setValue([runManager.configuration.script_base_name '_combined_view.xml']);
@@ -490,7 +489,7 @@ classdef RunManager < hgsetget
                 % One derived YW data view image
                 imgId2 = Identifier();
                 imgId2.setValue(runManager.dataViewPdfFileName); % a figure image
-                imgURI2 = URI(runManager.dataViewPdfFileName);
+                imgURI2 = URI([runManager.configuration.coordinating_node_base_url  runManager.dataViewPdfFileName]);
                 % Metadata
                 metadataImgId2 = Identifier();
                 metadataImgId2.setValue([runManager.configuration.script_base_name '_data_view.xml']);
@@ -500,7 +499,7 @@ classdef RunManager < hgsetget
                 % One derived YW process view image
                 imgId3 = Identifier();
                 imgId3.setValue(runManager.processViewPdfFileName); % a figure image
-                imgURI3 = URI(runManager.processViewPdfFileName);
+                imgURI3 = URI([runManager.configuration.coordinating_node_base_url  runManager.processViewPdfFileName]);
                 % Metadata
                 metadataImgId3 = Identifier();
                 metadataImgId3.setValue([runManager.configuration.script_base_name '_process_view.xml']);
@@ -514,16 +513,16 @@ classdef RunManager < hgsetget
                 
                 % wasGeneratedBy
                 
-                execURIsList = ListGenericURIMatlabWrapper().add(execSubjectURI);
+                %execURIsList = ListGenericURIMatlabWrapper().add(execSubjectURI);
                 predicate = PROV.predicate('wasGeneratedBy');
-                runManager.dataPackage.insertRelationship(imgURI1, predicate, execURIsList);  
-                runManager.dataPackage.insertRelationship(imgURI2, predicate, execURIsList);  
-                runManager.dataPackage.insertRelationship(imgURI3, predicate, execURIsList);  
+                runManager.dataPackage.insertRelationship(imgURI1, predicate, execURI);  
+                runManager.dataPackage.insertRelationship(imgURI2, predicate, execURI);  
+                runManager.dataPackage.insertRelationship(imgURI3, predicate, execURI);  
                 
                 % Record relationship identifying as provONE:Data              
-                runManager.dataPackage.insertRelationship(imgURI1, aTypePredicate, provONEdataURIsList);
-                runManager.dataPackage.insertRelationship(imgURI2, aTypePredicate, provONEdataURIsList);
-                runManager.dataPackage.insertRelationship(imgURI3, aTypePredicate, provONEdataURIsList);
+                runManager.dataPackage.insertRelationship(imgURI1, aTypePredicate, provONEdataURI);
+                runManager.dataPackage.insertRelationship(imgURI2, aTypePredicate, provONEdataURI);
+                runManager.dataPackage.insertRelationship(imgURI3, aTypePredicate, provONEdataURI);
                 
                 % Create D1Object for each figure and add the D1Object to the DataPackage
                 cd(runManager.runDir);
@@ -549,7 +548,7 @@ classdef RunManager < hgsetget
                 modelFactsId = Identifier();
                 modelFactsId.setValue(runManager.mfilename); % ywModelFacts prolog dump
                 dataModelFactsIds.add(modelFactsId); 
-                modelFactsURI = URI(runManager.mfilename);
+                modelFactsURI = URI([runManager.configuration.coordinating_node_base_url  runManager.mfilename]);
                 
                 % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
                 prologDumpFmt = 'text/plain';      
@@ -564,14 +563,14 @@ classdef RunManager < hgsetget
                 extractFactsId = Identifier;
                 extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump
                 dataExtractFactsIds.add(extractFactsId); 
-                extractFactsURI = URI(runManager.efilename);
+                extractFactsURI = URI([runManager.configuration.coordinating_node_base_url  runManager.efilename]);
                 
                 % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
                 predicate = PROV.predicate('wasGeneratedBy');
-                runManager.dataPackage.insertRelationship(modelFactsURI, predicate, execURIsList);  
-                runManager.dataPackage.insertRelationship(extractFactsURI, predicate, execURIsList); 
-                runManager.dataPackage.insertRelationship(modelFactsURI, aTypePredicate, provONEdataURIsList);
-                runManager.dataPackage.insertRelationship(extractFactsURI, aTypePredicate, provONEdataURIsList);
+                runManager.dataPackage.insertRelationship(modelFactsURI, predicate, execURI);  
+                runManager.dataPackage.insertRelationship(extractFactsURI, predicate, execURI); 
+                runManager.dataPackage.insertRelationship(modelFactsURI, aTypePredicate, provONEdataURI);
+                runManager.dataPackage.insertRelationship(extractFactsURI, aTypePredicate, provONEdataURI);
                 runManager.dataPackage.insertRelationship(metadataExtractFactsId, dataExtractFactsIds);
                 runManager.dataPackage.insertRelationship(metadataModelFactsId, dataModelFactsIds); 
                                   
