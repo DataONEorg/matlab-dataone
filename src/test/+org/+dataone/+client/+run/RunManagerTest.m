@@ -133,7 +133,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %set(mgr.configuration, 'authentication_token', authToken);
        
             testCase.mgr.runDir = 'test/resources/runs';
-            pkgId = testCase.mgr.publish('0ab94735-93fc-458c-b638-562a715a95be');
+            pkgId = testCase.mgr.publish('5870f4fa-b2d2-48c1-b651-731388a83dcc');
         end
     end
 end

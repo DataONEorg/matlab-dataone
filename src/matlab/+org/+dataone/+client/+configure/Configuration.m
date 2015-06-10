@@ -60,7 +60,8 @@ classdef Configuration < hgsetget & dynamicprops
         blocked_replica_node_list = '';
         
         % The base URL of the DataONE coordinating node server
-        coordinating_node_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
+        %coordinating_node_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
+        coordinating_node_base_url = 'https://cn-dev.test.dataone.org/cn/v1/resolve/';
         
         % The researcher's ORCID
         orcid_identifier = '';
