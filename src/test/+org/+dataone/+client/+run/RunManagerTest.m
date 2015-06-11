@@ -97,7 +97,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
             
-            testCase.mgr.configuration.script_base_name = ''; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
+            testCase.mgr.configuration.script_base_name = 'pubTest'; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
             
             testCase.mgr.record(script_path, '');
         
@@ -133,7 +133,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %set(mgr.configuration, 'authentication_token', authToken);
        
             testCase.mgr.runDir = 'test/resources/runs';
-            pkgId = testCase.mgr.publish('0527106f-db96-4bef-a82a-1ed541215a26');
+            k = strfind(testCase.mgr.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
+            runId = testCase.mgr.execution.execution_id(k+9:end);
+            pkgId = testCase.mgr.publish(runId);
         end
     end
 end

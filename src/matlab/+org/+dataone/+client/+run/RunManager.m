@@ -58,7 +58,7 @@ classdef RunManager < hgsetget
         
         % The DataPackage aggregating and describing all objects in a run
         dataPackage;
-        
+       
         processViewDotFileName = '';
         dataViewDotFileName = '';
         combinedViewDotFileName = '';
@@ -287,7 +287,8 @@ classdef RunManager < hgsetget
             runManager.startRecord(runManager.execution.tag);
 
             % End the recording session
-            runManager.dataPackage = runManager.endRecord();          
+            %runManager.dataPackage = runManager.endRecord(); 
+            data_package = runManager.endRecord();
         end
         
         function startRecord(runManager, tag)
@@ -309,7 +310,7 @@ classdef RunManager < hgsetget
             D1_URI_PREFIX = runManager.getD1UriPrefix(); % get the base URL of the DataONE coordinating node server
             
             % Create the run metadata directory for this run
-            k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
+            k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
             runId = runManager.execution.execution_id(k+9:end);
             runManager.runDir = strcat(runManager.configuration.provenance_storage_directory, filesep,'runs', filesep, runId);
             [status, message, message_id] = mkdir(runManager.runDir);         
@@ -332,7 +333,6 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.ProvONE;
             import org.dataone.vocabulary.ProvONE_V1;
             import java.net.URI;
-            %import org.dataone.ore.ListGenericURIMatlabWrapper;
             import org.dspace.foresite.ResourceMap;
             
             packageIdentifier = Identifier();
@@ -522,8 +522,6 @@ classdef RunManager < hgsetget
                 runManager.dataPackage.insertRelationship(metadataImgId3, dataImgIds3);
                 
                 % wasGeneratedBy
-                
-                %execURIsList = ListGenericURIMatlabWrapper().add(execSubjectURI);
                 predicate = PROV.predicate('wasGeneratedBy');
                 runManager.dataPackage.insertRelationship(imgURI1, predicate, execURI);  
                 runManager.dataPackage.insertRelationship(imgURI2, predicate, execURI);  
@@ -589,21 +587,14 @@ classdef RunManager < hgsetget
                 extractFactsData = FileDataSource(extractFactsFileId);
                 extractFactsD1Obj = D1Object(extractFactsId, extractFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
                 runManager.dataPackage.addData(extractFactsD1Obj);
-                
+                         
                 cd(curDir);
-            end               
-
-            % Create resource map
-            %resourceMap = runManager.dataPackage.getMap();
-            
+            end    
+        
             % Create a new Agent  
             import org.dspace.foresite.Agent;
             import org.dspace.foresite.OREFactory;
             import org.dataone.ore.ResourceMapFactory;
-            
-            %creator = OREFactory.createAgent();
-            %creator.addName(runManager.execution.account_name);
-            %resourceMap.addCreator(creator);
             
             % Serialize a datapackage
             %rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
@@ -621,8 +612,8 @@ classdef RunManager < hgsetget
             cd(curDir);
             
             % Return the Java DataPackage as a Matlab structured array
-            data_package = struct(runManager.dataPackage);
-            
+            data_package = struct(runManager.dataPackage);        
+                
             % Unlock the RunManager instance
             munlock('RunManager');
             
@@ -651,12 +642,22 @@ classdef RunManager < hgsetget
             import org.dataone.client.v2.MNode;
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
+            import org.dataone.client.v1.itk.DataPackage;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.Subject;
+            import org.dataone.service.types.v1.SystemMetadata;
+            import org.apache.commons.io.input.CountingInputStream;
+            import org.dataone.service.types.v1.Checksum;
+            import org.dataone.service.types.v1.util.ChecksumUtil;
+            import org.dataone.client.v1.types.D1TypeBuilder;
             
             curRunDir = [runManager.runDir filesep packageId filesep];
             fprintf('curRunDir: %s\n', curRunDir);
             if ~exist(curRunDir, 'dir')
                 error([' A directory was not found for execution identifier: ' packageId]);       
             end       
+            
+            cd(curRunDir); % go the the selected run directory
             
             % Get a MNode instance to the Member Node
             try 
@@ -671,18 +672,39 @@ classdef RunManager < hgsetget
                 %D1Client.setAuthToken(authToken);
             
                 % Set the Node ID
-                nref = NodeReference();
-                nref.setValue(runManager.configuration.target_member_node_id);
+                mnRef = NodeReference();
+                mnRef.setValue(runManager.configuration.target_member_node_id);
                 
                 % Get a MNode instance to the Member Node using the Node ID
-                mnNode = D1Client.getMN(nref);
+                mnNode = D1Client.getMN(mnRef);
                 if isempty(mnNode)
                    error(['Member node' runManager.configuration.target_member_node_id 'encounted an error on the getMN() request.']); 
                 end
                     
-                fprintf('mn ndoe base url is: %s\n', char(mnNode.getNodeBaseServiceUrl())); 
+                fprintf('mn ndoe base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
+                fprintf('dataPackage.size()= %d\n',runManager.dataPackage.size());
                 
                 % Upload each data object that was added to the datapackage
+                dataObjIdentifiers = runManager.dataPackage.identifiers();
+                iter = dataObjIdentifiers.iterator();
+                while iter.hasNext()
+                    dataObjId = iter.next();
+                    fprintf('Uploading id: %s\n', char(dataObjId.getValue()));
+                    
+                    % get the DataSource representing the data for the dataObjId
+                    dataObj = runManager.dataPackage.get(dataObjId);
+                    dataSource = dataObj.getDataSource();
+                    
+                    % generate system metadata for dataObj
+                    fmtIdentifier = ObjectFormatIdentifier();
+                    fmtIdentifier.setValue('text/csv');
+                    subject = D1TypeBuilder.buildSubject('someone');
+                    sysmeta = dataObj.generateSystemMetadata(dataObjId, dataSource.getInputStream(), fmtIdentifier, subject, mnRef);
+                   
+                    % upload the data to the MN using create(), checking for success and a returned identifier
+                    % pid = mnNode.create(sysmeta.getIdentifier(), dataSource.getInputStream(), sysmeta); 
+                    % fprintf('Success uploaded %s\n.', pid);
+                end
                 
                 package_id = packageId; % temporary
          
@@ -840,6 +862,6 @@ classdef RunManager < hgsetget
             catch ME      
             end      
         end
-                
+ 
     end
 end
