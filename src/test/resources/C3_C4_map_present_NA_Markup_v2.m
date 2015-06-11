@@ -3,9 +3,9 @@
 %  @in mean_airtemp @uri file:c3c4input/monthly/2000-2010/air.2m_monthly_2000_2010.mean.{month}.nc
 %  @in mean_precip @uri file:c3c4input/monthly/2000-2010/apcp_monthly_2000_2010_mean.{month}.nc
 
-%  @out mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc @as output_C3_fraction_data
-%  @out mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc @as output_C4_fraction_data
-%  @out mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc @as output_Grass_fraction_data
+%  @out C3_fraction_data @uri file:mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc
+%  @out C4_fraction_data @uri file:mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc
+%  @out Grass_fraction_data @uri file:mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc
 
 clear all
 ncols=480;
@@ -167,13 +167,13 @@ for i=1:ncols
 end
 %}
 
-%% @begin output_netcdf_file_for_C3_fraction
+%% @begin generate_netcdf_file_for_C3_fraction
 %  @in lon_variable
 %  @in lat_variable
 %  @in lon_bnds_variable
 %  @in lat_bnds_variable
 %  @in C3_Data
-%  @out mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc @as output_C3_fraction_data
+%  @out C3_fraction_data @uri file:mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc
 
 %% Output the netcdf file for C3 fraction
 % reuse longitude, latitude, and boundary variables from land cover input file
@@ -227,17 +227,17 @@ netcdf.putVar(moncid, mvid_lat_bnds, lat_bnds);
 netcdf.putVar(moncid, mvid_data, C3);
 
 netcdf.close(moncid)
-%% @end output_netcdf_file_for_C3_fraction
+%% @end generate_netcdf_file_for_C3_fraction
 
 
 
-%% @begin output_netcdf_file_for_C4_fraction
+%% @begin generate_netcdf_file_for_C4_fraction
 %  @in lon_variable
 %  @in lat_variable
 %  @in lon_bnds_variable
 %  @in lat_bnds_variable
 %  @in C4_Data
-%  @out mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc @as output_C4_fraction_data
+%  @out C4_fraction_data @uri file:mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc
 
 %% Output the netcdf file for C4 fraction
 % reuse longitude, latitude, and boundary variables from land cover input file
@@ -290,16 +290,16 @@ netcdf.putVar(moncid, mvid_lat_bnds, lat_bnds);
 netcdf.putVar(moncid, mvid_data, C4);
 
 netcdf.close(moncid)
-%% @end output_netcdf_file_for_C4_fraction
+%% @end generate_netcdf_file_for_C4_fraction
 
 
-%% @begin output_netcdf_file_for_Grass_fraction
+%% @begin generate_netcdf_file_for_Grass_fraction
 %  @in lon_variable
 %  @in lat_variable
 %  @in lon_bnds_variable
 %  @in lat_bnds_variable
 %  @in Grass_variable
-%  @out mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc @as output_Grass_fraction_data
+%  @out Grass_fraction_data @uri file:mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc
 
 %% Output the netcdf file for Grass fraction
 % reuse longitude, latitude, and boundary variables from land cover input file
@@ -352,7 +352,7 @@ netcdf.putVar(moncid, mvid_lat_bnds, lat_bnds);
 netcdf.putVar(moncid, mvid_data, Grass);
 
 netcdf.close(moncid)
-%% @end output_netcdf_file_for_Grass_fraction
+%% @end generate_netcdf_file_for_Grass_fraction
 
 
 %% @end main

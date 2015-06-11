@@ -1,0 +1,135 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:j.0="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:ore="http://www.openarchives.org/ore/terms/"
+    xmlns:dcterms="http://purl.org/dc/terms/"
+    xmlns:j.1="http://www.w3.org/ns/prov#"
+    xmlns:j.2="http://purl.org/spar/cito/" > 
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveexecution_0527106f-db96-4bef-a82a-1ed541215a26">
+    <j.1:wasAssociatedWith rdf:resource="https://cn-sandbox-2.test.dataone.org/cn/v1/resolve/syc"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Execution"/>
+    <j.1:qualifiedAssociation rdf:resource="http://www.w3.org/ns/prov#Association"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_combined_view.pdf">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_combined_view.pdf</dcterms:identifier>
+    <j.2:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_combined_view.xml"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywExtractFacts.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_ywExtractFacts.xml</dcterms:identifier>
+    <j.2:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywExtractFacts.pl"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolve/syc">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#User"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveC3_C4_map_present_NA_Markup_v2_combined_view.pdf">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <j.1:wasGeneratedBy rdf:resource="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveexecution_0527106f-db96-4bef-a82a-1ed541215a26"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveC3_C4_map_present_NA_Markup_v2_ywExtractFacts.pl">
+    <j.1:wasGeneratedBy rdf:resource="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveexecution_0527106f-db96-4bef-a82a-1ed541215a26"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_meta1.1">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_meta1.1</dcterms:identifier>
+    <j.2:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2.m"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation">
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywExtractFacts.pl"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_combined_view.xml"/>
+    <dc:title>DataONE Aggregation</dc:title>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_data_view.xml"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_data_view.pdf"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2.m"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywModelFacts.pl"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywExtractFacts.xml"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_meta1.1"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_combined_view.pdf"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywModelFacts.xml"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_process_view.xml"/>
+    <ore:aggregates rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_process_view.pdf"/>
+    <ore:isDescribedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_data_view.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_data_view.xml</dcterms:identifier>
+    <j.2:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_data_view.pdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20">
+    <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2015-06-11T09:50:11.325-05:00</dcterms:modified>
+    <ore:describes rdf:resource="https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/ResourceMap"/>
+    <dc:creator rdf:nodeID="A0"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_combined_view.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_combined_view.xml</dcterms:identifier>
+    <j.2:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_combined_view.pdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywModelFacts.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_ywModelFacts.xml</dcterms:identifier>
+    <j.2:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywModelFacts.pl"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywModelFacts.pl">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_ywModelFacts.pl</dcterms:identifier>
+    <j.2:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywModelFacts.xml"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveC3_C4_map_present_NA_Markup_v2_data_view.pdf">
+    <j.1:wasGeneratedBy rdf:resource="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveexecution_0527106f-db96-4bef-a82a-1ed541215a26"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_process_view.xml">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_process_view.xml</dcterms:identifier>
+    <j.2:documents rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_process_view.pdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A0">
+    <foaf:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Java libclient</foaf:name>
+    <rdf:type rdf:resource="http://purl.org/dc/terms/Agent"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywExtractFacts.pl">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_ywExtractFacts.pl</dcterms:identifier>
+    <j.2:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_ywExtractFacts.xml"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2.m">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2.m</dcterms:identifier>
+    <j.2:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_meta1.1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveC3_C4_map_present_NA_Markup_v2.m">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Program"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveC3_C4_map_present_NA_Markup_v2_process_view.pdf">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <j.1:wasGeneratedBy rdf:resource="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveexecution_0527106f-db96-4bef-a82a-1ed541215a26"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_data_view.pdf">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_data_view.pdf</dcterms:identifier>
+    <j.2:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_data_view.xml"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveA0_4a690917-27e9-488f-a563-f31efef5f920">
+    <j.1:hadPlan rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Program"/>
+    <rdf:type rdf:resource="http://www.w3.org/ns/prov#Association"/>
+    <j.1:agent rdf:resource="https://cn-sandbox-2.test.dataone.org/cn/v1/resolve/syc"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveC3_C4_map_present_NA_Markup_v2_ywModelFacts.pl">
+    <j.1:wasGeneratedBy rdf:resource="https://cn-sandbox-2.test.dataone.org/cn/v1/resolveexecution_0527106f-db96-4bef-a82a-1ed541215a26"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_process_view.pdf">
+    <ore:isAggregatedBy>https://cn.dataone.org/cn/v1/resolve/resourceMap_dea7eec4-4e00-4f53-ad60-c50402b5db20#aggregation</ore:isAggregatedBy>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2_process_view.pdf</dcterms:identifier>
+    <j.2:isDocumentedBy rdf:resource="https://cn.dataone.org/cn/v1/resolve/C3_C4_map_present_NA_Markup_v2_process_view.xml"/>
+  </rdf:Description>
+</rdf:RDF>

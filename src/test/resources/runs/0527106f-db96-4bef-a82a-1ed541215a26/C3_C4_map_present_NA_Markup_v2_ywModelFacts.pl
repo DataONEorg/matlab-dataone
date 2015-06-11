@@ -6,9 +6,9 @@ program(3, 'fetch_monthly_mean_air_temperature_data', 26, 31).
 program(4, 'fetch_monthly_mean_precipitation_data', 32, 37).
 program(5, 'initialize_Grass_Matrix', 38, 41).
 program(6, 'examine_pixels_for_grass', 42, 51).
-program(7, 'output_netcdf_file_for_C3_fraction', 52, 60).
-program(8, 'output_netcdf_file_for_C4_fraction', 61, 69).
-program(9, 'output_netcdf_file_for_Grass_fraction', 70, 78).
+program(7, 'generate_netcdf_file_for_C3_fraction', 52, 60).
+program(8, 'generate_netcdf_file_for_C4_fraction', 61, 69).
+program(9, 'generate_netcdf_file_for_Grass_fraction', 70, 78).
 
 % FACT: workflow(program_id).
 workflow(1).
@@ -29,9 +29,9 @@ has_sub_program(1, 9).
 port(1, 'in', 'mstmip_SYNMAP_NA_QD.nc', 2).
 port(2, 'in', 'mean_airtemp', 4).
 port(3, 'in', 'mean_precip', 6).
-port(4, 'out', 'mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc', 8).
-port(5, 'out', 'mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc', 10).
-port(6, 'out', 'mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc', 12).
+port(4, 'out', 'C3_fraction_data', 8).
+port(5, 'out', 'C4_fraction_data', 10).
+port(6, 'out', 'Grass_fraction_data', 12).
 port(7, 'in', 'mstmip_SYNMAP_NA_QD.nc', 15).
 port(8, 'out', 'lon', 17).
 port(9, 'out', 'lat', 19).
@@ -51,25 +51,22 @@ port(22, 'in', 'lat_variable', 54).
 port(23, 'in', 'lon_bnds_variable', 55).
 port(24, 'in', 'lat_bnds_variable', 56).
 port(25, 'in', 'C3_Data', 57).
-port(26, 'out', 'mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc', 58).
+port(26, 'out', 'C3_fraction_data', 58).
 port(27, 'in', 'lon_variable', 62).
 port(28, 'in', 'lat_variable', 63).
 port(29, 'in', 'lon_bnds_variable', 64).
 port(30, 'in', 'lat_bnds_variable', 65).
 port(31, 'in', 'C4_Data', 66).
-port(32, 'out', 'mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc', 67).
+port(32, 'out', 'C4_fraction_data', 67).
 port(33, 'in', 'lon_variable', 71).
 port(34, 'in', 'lat_variable', 72).
 port(35, 'in', 'lon_bnds_variable', 73).
 port(36, 'in', 'lat_bnds_variable', 74).
 port(37, 'in', 'Grass_variable', 75).
-port(38, 'out', 'mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc', 76).
+port(38, 'out', 'Grass_fraction_data', 76).
 
 % FACT: port_alias(port_id, alias).
 port_alias(1, 'SYNMAP_land_cover_map_data').
-port_alias(4, 'output_C3_fraction_data').
-port_alias(5, 'output_C4_fraction_data').
-port_alias(6, 'output_Grass_fraction_data').
 port_alias(7, 'SYNMAP_land_cover_map_data').
 port_alias(8, 'lon_variable').
 port_alias(9, 'lat_variable').
@@ -82,15 +79,18 @@ port_alias(17, 'Tair_Matrix').
 port_alias(18, 'Rain_Matrix').
 port_alias(19, 'C3_Data').
 port_alias(20, 'C4_Data').
-port_alias(26, 'output_C3_fraction_data').
-port_alias(32, 'output_C4_fraction_data').
-port_alias(38, 'output_Grass_fraction_data').
 
 % FACT: port_uri(port_id, uri).
 port_uri(2, 'file:c3c4input/monthly/2000-2010/air.2m_monthly_2000_2010.mean.{month}.nc').
 port_uri(3, 'file:c3c4input/monthly/2000-2010/apcp_monthly_2000_2010_mean.{month}.nc').
+port_uri(4, 'file:mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc').
+port_uri(5, 'file:mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc').
+port_uri(6, 'file:mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc').
 port_uri(12, 'file:c3c4input/monthly/2000-2010/air.2m_monthly_2000_2010.mean.{month}.nc').
 port_uri(14, 'file:c3c4input/monthly/2000-2010/apcp_monthly_2000_2010_mean.{month}.nc').
+port_uri(26, 'file:mstmip_SYNMAP_PRESENTVEG_C3Grass_RelaFrac_NA_v2.0.nc').
+port_uri(32, 'file:mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc').
+port_uri(38, 'file:mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc').
 
 % FACT: has_in_port(block_id, port_id).
 has_in_port(1, 1).
@@ -135,9 +135,9 @@ has_out_port(8, 32).
 has_out_port(9, 38).
 
 % FACT: channel(channel_id, binding).
-channel(1, 'output_C3_fraction_data').
-channel(2, 'output_C4_fraction_data').
-channel(3, 'output_Grass_fraction_data').
+channel(1, 'C3_fraction_data').
+channel(2, 'C4_fraction_data').
+channel(3, 'Grass_fraction_data').
 channel(4, 'SYNMAP_land_cover_map_data').
 channel(5, 'mean_airtemp').
 channel(6, 'mean_precip').

@@ -103,6 +103,14 @@ classdef RunManager < hgsetget
             fprintf('predicate.nameSpace = %s\n', char(predicate.getNamespace()));
         end
         
+        function D1_URI_PREFIX = getD1UriPrefix(runManager)
+            import org.dataone.configuration.Settings;
+            import org.dataone.client.v2.itk.D1Client;
+            
+            cn_url = Settings.getConfiguration().getString('D1Client.CN_URL', 'https://cn-dev.test.dataone.org/cn');
+            fprintf('cn_url=%s\n', char(cn_url));
+            D1_URI_PREFIX = [char(cn_url) '/v1/resolve'];
+        end
     end
 
     methods (Static)
@@ -111,7 +119,7 @@ classdef RunManager < hgsetget
             % creating a new instance or returning an existing one.
                         
             import org.dataone.client.configure.Configuration;
-            
+           
             %% Set all jars under lib/java/ to the java dynamic class path (Need further consideration !)
             % RunManager.setJavaClassPath();
                        
@@ -297,7 +305,8 @@ classdef RunManager < hgsetget
                 runManager.configuration.script_base_name = strtrim(script_base_name);      
             end
             
-            % disp(runManager.configuration.script_base_name);
+            global D1_URI_PREFIX;
+            D1_URI_PREFIX = runManager.getD1UriPrefix(); % get the base URL of the DataONE coordinating node server
             
             % Create the run metadata directory for this run
             k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'
@@ -338,7 +347,7 @@ classdef RunManager < hgsetget
             
             % Record relationship identifying execution id as a provone:Execution                              
             global execURI;
-            execURI = URI([runManager.configuration.coordinating_node_base_url  'execution_' runId]);
+            execURI = URI([D1_URI_PREFIX  'execution_' runId]);
             provOneExecURI = URI(ProvONE.Execution.getURI());
             global aTypePredicate;
             aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
@@ -346,7 +355,7 @@ classdef RunManager < hgsetget
           
             % Record relationship identifying workflow id as a provONE:Program
             E = strsplit(runManager.execution.software_application,filesep);           
-            wfSubjectURI = URI([runManager.configuration.coordinating_node_base_url char(E(end))]);
+            wfSubjectURI = URI([D1_URI_PREFIX char(E(end))]);
             provOneProgramURI = URI(ProvONE.Program.getURI());
             runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
          
@@ -362,7 +371,7 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.                
             
             global associationSubjectURI; 
-            associationSubjectURI = URI([runManager.configuration.coordinating_node_base_url  'A0_' char(java.util.UUID.randomUUID())]);
+            associationSubjectURI = URI([D1_URI_PREFIX  'A0_' char(java.util.UUID.randomUUID())]);
             provOneProgramURI = URI(ProvONE.Program.getURI());
             % Store the prov relationship: association->prov:hadPlan->program
             predicate = PROV.predicate('hadPlan');
@@ -378,7 +387,7 @@ classdef RunManager < hgsetget
            
             % Store the ProvONE relationships for user
             global userURI;
-            userURI = URI([runManager.configuration.coordinating_node_base_url runManager.execution.account_name]);        
+            userURI = URI([D1_URI_PREFIX filesep runManager.execution.account_name]);        
             % Record a relationship identifying the provONE:user
             provONEUserURI = URI(ProvONE.User.getURI());
             runManager.dataPackage.insertRelationship(userURI, aTypePredicate, provONEUserURI);           
@@ -432,6 +441,7 @@ classdef RunManager < hgsetget
             global provONEdataURI;
             global execURI;
             global aTypePredicate;
+            global D1_URI_PREFIX;
             
             % Record a data list for provOne:Data
             provONEdataURI = URI(ProvONE.Data .getURI());
@@ -479,7 +489,7 @@ classdef RunManager < hgsetget
                 % One derived YW combined view image 
                 imgId1 = Identifier();
                 imgId1.setValue(runManager.combinedViewPdfFileName); % a figure image
-                imgURI1 = URI([runManager.configuration.coordinating_node_base_url  runManager.combinedViewPdfFileName]);
+                imgURI1 = URI([D1_URI_PREFIX  runManager.combinedViewPdfFileName]);
                 % Metadata
                 metadataImgId1 = Identifier();
                 metadataImgId1.setValue([runManager.configuration.script_base_name '_combined_view.xml']);
@@ -489,7 +499,7 @@ classdef RunManager < hgsetget
                 % One derived YW data view image
                 imgId2 = Identifier();
                 imgId2.setValue(runManager.dataViewPdfFileName); % a figure image
-                imgURI2 = URI([runManager.configuration.coordinating_node_base_url  runManager.dataViewPdfFileName]);
+                imgURI2 = URI([D1_URI_PREFIX  runManager.dataViewPdfFileName]);
                 % Metadata
                 metadataImgId2 = Identifier();
                 metadataImgId2.setValue([runManager.configuration.script_base_name '_data_view.xml']);
@@ -499,7 +509,7 @@ classdef RunManager < hgsetget
                 % One derived YW process view image
                 imgId3 = Identifier();
                 imgId3.setValue(runManager.processViewPdfFileName); % a figure image
-                imgURI3 = URI([runManager.configuration.coordinating_node_base_url  runManager.processViewPdfFileName]);
+                imgURI3 = URI([D1_URI_PREFIX  runManager.processViewPdfFileName]);
                 % Metadata
                 metadataImgId3 = Identifier();
                 metadataImgId3.setValue([runManager.configuration.script_base_name '_process_view.xml']);
@@ -548,7 +558,7 @@ classdef RunManager < hgsetget
                 modelFactsId = Identifier();
                 modelFactsId.setValue(runManager.mfilename); % ywModelFacts prolog dump
                 dataModelFactsIds.add(modelFactsId); 
-                modelFactsURI = URI([runManager.configuration.coordinating_node_base_url  runManager.mfilename]);
+                modelFactsURI = URI([D1_URI_PREFIX runManager.mfilename]);
                 
                 % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
                 prologDumpFmt = 'text/plain';      
@@ -563,7 +573,7 @@ classdef RunManager < hgsetget
                 extractFactsId = Identifier;
                 extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump
                 dataExtractFactsIds.add(extractFactsId); 
-                extractFactsURI = URI([runManager.configuration.coordinating_node_base_url  runManager.efilename]);
+                extractFactsURI = URI([D1_URI_PREFIX runManager.efilename]);
                 
                 % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
                 predicate = PROV.predicate('wasGeneratedBy');
