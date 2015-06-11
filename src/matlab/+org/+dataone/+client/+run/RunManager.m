@@ -94,7 +94,7 @@ classdef RunManager < hgsetget
             predicate = Predicate();
             fprintf('property.localName = %s\n', char(property.getLocalName()));
             predicate.setName(property.getLocalName());
-            %predicate.setNamespace(property.getNamespace());
+            %predicate.setNamespace(property.getNamespace()); % There is an error here !
             if isempty(prefix) ~= 1
                 predicate.setPrefix(prefix);               
             end
@@ -108,8 +108,8 @@ classdef RunManager < hgsetget
             import org.dataone.client.v2.itk.D1Client;
             
             cn_url = Settings.getConfiguration().getString('D1Client.CN_URL', 'https://cn-dev.test.dataone.org/cn');
-            fprintf('cn_url=%s\n', char(cn_url));
-            D1_URI_PREFIX = [char(cn_url) '/v1/resolve'];
+            %fprintf('cn_url=%s\n', char(cn_url));
+            D1_URI_PREFIX = [char(cn_url) '/v1/resolve/'];
         end
     end
 
@@ -371,7 +371,7 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.                
             
             global associationSubjectURI; 
-            associationSubjectURI = URI([D1_URI_PREFIX  'A0_' char(java.util.UUID.randomUUID())]);
+            associationSubjectURI = URI([D1_URI_PREFIX 'A0_' char(java.util.UUID.randomUUID())]);
             provOneProgramURI = URI(ProvONE.Program.getURI());
             % Store the prov relationship: association->prov:hadPlan->program
             predicate = PROV.predicate('hadPlan');
@@ -387,7 +387,7 @@ classdef RunManager < hgsetget
            
             % Store the ProvONE relationships for user
             global userURI;
-            userURI = URI([D1_URI_PREFIX filesep runManager.execution.account_name]);        
+            userURI = URI([D1_URI_PREFIX runManager.execution.account_name]);        
             % Record a relationship identifying the provONE:user
             provONEUserURI = URI(ProvONE.User.getURI());
             runManager.dataPackage.insertRelationship(userURI, aTypePredicate, provONEUserURI);           
@@ -444,7 +444,7 @@ classdef RunManager < hgsetget
             global D1_URI_PREFIX;
             
             % Record a data list for provOne:Data
-            provONEdataURI = URI(ProvONE.Data .getURI());
+            provONEdataURI = URI(ProvONE.Data.getURI());
                       
             % Get submitter and MN node reference
             submitter = runManager.execution.account_name;
@@ -499,7 +499,7 @@ classdef RunManager < hgsetget
                 % One derived YW data view image
                 imgId2 = Identifier();
                 imgId2.setValue(runManager.dataViewPdfFileName); % a figure image
-                imgURI2 = URI([D1_URI_PREFIX  runManager.dataViewPdfFileName]);
+                imgURI2 = URI([D1_URI_PREFIX runManager.dataViewPdfFileName]);
                 % Metadata
                 metadataImgId2 = Identifier();
                 metadataImgId2.setValue([runManager.configuration.script_base_name '_data_view.xml']);
@@ -509,7 +509,7 @@ classdef RunManager < hgsetget
                 % One derived YW process view image
                 imgId3 = Identifier();
                 imgId3.setValue(runManager.processViewPdfFileName); % a figure image
-                imgURI3 = URI([D1_URI_PREFIX  runManager.processViewPdfFileName]);
+                imgURI3 = URI([D1_URI_PREFIX runManager.processViewPdfFileName]);
                 % Metadata
                 metadataImgId3 = Identifier();
                 metadataImgId3.setValue([runManager.configuration.script_base_name '_process_view.xml']);
