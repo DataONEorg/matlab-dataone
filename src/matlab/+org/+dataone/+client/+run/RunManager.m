@@ -587,7 +587,7 @@ classdef RunManager < hgsetget
                 extractFactsData = FileDataSource(extractFactsFileId);
                 extractFactsD1Obj = D1Object(extractFactsId, extractFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
                 runManager.dataPackage.addData(extractFactsD1Obj);
-                         
+               
                 cd(curDir);
             end    
         
@@ -640,16 +640,16 @@ classdef RunManager < hgsetget
             % to the configured DataONE Member Node server.
             
             import org.dataone.client.v2.MNode;
+            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
-            import org.dataone.client.v1.itk.DataPackage;
-            import org.dataone.service.types.v1.ObjectFormatIdentifier;
-            import org.dataone.service.types.v1.Subject;
+            import org.dataone.client.v1.itk.DataPackage;           
             import org.dataone.service.types.v1.SystemMetadata;
-            import org.apache.commons.io.input.CountingInputStream;
-            import org.dataone.service.types.v1.Checksum;
-            import org.dataone.service.types.v1.util.ChecksumUtil;
-            import org.dataone.client.v1.types.D1TypeBuilder;
+            import org.dataone.service.types.v2.SystemMetadata;
+            import org.dataone.service.types.v1.Session;
+            import org.dataone.service.util.TypeMarshaller;
+            
+            global D1_URI_PREFIX;
             
             curRunDir = [runManager.runDir filesep packageId filesep];
             fprintf('curRunDir: %s\n', curRunDir);
@@ -671,10 +671,9 @@ classdef RunManager < hgsetget
                 %fprintf('authToken is: %s\n', authToken);
                 %D1Client.setAuthToken(authToken);
             
-                % Set the Node ID
+                % Set the MNode ID
                 mnRef = NodeReference();
-                mnRef.setValue(runManager.configuration.target_member_node_id);
-                
+                mnRef.setValue(runManager.configuration.target_member_node_id);            
                 % Get a MNode instance to the Member Node using the Node ID
                 mnNode = D1Client.getMN(mnRef);
                 if isempty(mnNode)
@@ -683,6 +682,14 @@ classdef RunManager < hgsetget
                     
                 fprintf('mn ndoe base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
                 fprintf('dataPackage.size()= %d\n',runManager.dataPackage.size());
+                
+                % Set the CNode ID
+                cnRef = NodeReference();
+                cnRef.setValue(D1_URI_PREFIX);
+                cnNode = D1Client.getCN(cnRef.getValue());
+                if isempty(cnNode)
+                   error(['Coordinatior node' D1_URI_PREFIX 'encounted an error on the getMN() request.']); 
+                end
                 
                 % Upload each data object that was added to the datapackage
                 dataObjIdentifiers = runManager.dataPackage.identifiers();
@@ -695,15 +702,16 @@ classdef RunManager < hgsetget
                     dataObj = runManager.dataPackage.get(dataObjId);
                     dataSource = dataObj.getDataSource();
                     
-                    % generate system metadata for dataObj
-                    fmtIdentifier = ObjectFormatIdentifier();
-                    fmtIdentifier.setValue('text/csv');
-                    subject = D1TypeBuilder.buildSubject('someone');
-                    sysmeta = dataObj.generateSystemMetadata(dataObjId, dataSource.getInputStream(), fmtIdentifier, subject, mnRef);
-                   
+                    % get system metadata for dataObj and convert v1 systemetadata to v2 systemmetadata
+                    v1Sysmeta = dataObj.getSystemMetadata(); % version 1 system metadata
+                    v2SysMeta = org.dataone.service.types.v2.SystemMetadata();
+                    v2SysMeta = TypeMarshaller.convertTypeFromType(v1Sysmeta, v2SysMeta.getClass());
+                    
                     % upload the data to the MN using create(), checking for success and a returned identifier
-                    % pid = mnNode.create(sysmeta.getIdentifier(), dataSource.getInputStream(), sysmeta); 
-                    % fprintf('Success uploaded %s\n.', pid);
+                    session = Session();
+                    pid = cnNode.reserveIdentifier(session, v1Sysmeta.getIdentifier());
+                    pid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta); 
+                    fprintf('Success uploaded %s\n.', pid);
                 end
                 
                 package_id = packageId; % temporary
@@ -719,10 +727,7 @@ classdef RunManager < hgsetget
             import org.dataone.client.auth.CertificateManager;
             import java.security.cert.X509Certificate;
             import java.security.PrivateKey;
-            
-            % Load the manager itself
-            cm = CertificateManager.getInstance();
-            
+          
             % Get a certificate for the Root CA           
             certificate = CertificateManager.getInstance().loadCertificate();
             fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));
