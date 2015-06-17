@@ -591,11 +591,6 @@ classdef RunManager < hgsetget
                 cd(curDir);
             end    
         
-            % Create a new Agent  
-            import org.dspace.foresite.Agent;
-            import org.dspace.foresite.OREFactory;
-            import org.dataone.ore.ResourceMapFactory;
-            
             % Serialize a datapackage
             %rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
             rdfXml = runManager.dataPackage.serializePackage();
@@ -634,13 +629,17 @@ classdef RunManager < hgsetget
             % is the result of an execution (run).
             
         end
+  
         
         function package_id = publish(runManager, packageId)
             % PUBLISH Uploads a data package produced by an execution (run)
             % to the configured DataONE Member Node server.
-            
+            import java.lang.String;
+            import java.lang.Boolean;
+            import java.lang.Integer;
             import org.dataone.client.v2.MNode;
             import org.dataone.client.v2.impl.MultipartMNode;
+            import org.dataone.client.v2.impl.MultipartCNode;
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
             import org.dataone.client.v1.itk.DataPackage;           
@@ -648,8 +647,14 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v2.SystemMetadata;
             import org.dataone.service.types.v1.Session;
             import org.dataone.service.util.TypeMarshaller;
+            import org.dataone.service.types.v1.AccessPolicy;
+            import org.dataone.service.types.v1.util.AccessUtil;
+            import org.dataone.service.types.v1.Permission;            
+            import org.dataone.service.types.v1.ReplicationPolicy;
             
             global D1_URI_PREFIX;
+            
+            curDir = pwd();
             
             curRunDir = [runManager.runDir filesep packageId filesep];
             fprintf('curRunDir: %s\n', curRunDir);
@@ -691,6 +696,8 @@ classdef RunManager < hgsetget
                    error(['Coordinatior node' D1_URI_PREFIX 'encounted an error on the getMN() request.']); 
                 end
                 
+                session = Session();
+                
                 % Upload each data object that was added to the datapackage
                 dataObjIdentifiers = runManager.dataPackage.identifiers();
                 iter = dataObjIdentifiers.iterator();
@@ -703,17 +710,45 @@ classdef RunManager < hgsetget
                     dataSource = dataObj.getDataSource();
                     
                     % get system metadata for dataObj and convert v1 systemetadata to v2 systemmetadata
-                    v1Sysmeta = dataObj.getSystemMetadata(); % version 1 system metadata
+                    v1SysMeta = dataObj.getSystemMetadata(); % version 1 system metadata
                     v2SysMeta = org.dataone.service.types.v2.SystemMetadata();
-                    v2SysMeta = TypeMarshaller.convertTypeFromType(v1Sysmeta, v2SysMeta.getClass());
+                    v2SysMeta = TypeMarshaller.convertTypeFromType(v1SysMeta, v2SysMeta.getClass());
                     
-                    % upload the data to the MN using create(), checking for success and a returned identifier
-                    session = Session();
-                    pid = cnNode.reserveIdentifier(session, v1Sysmeta.getIdentifier());
+                    fprintf('d1Obj.size=%d (bytes)\n', v1SysMeta.getSize().longValue());                   
+                    fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v1SysMeta.getChecksum().getAlgorithm()), char(v1SysMeta.getChecksum().getValue()));
+                    fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
+                    fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
+                    fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
+                    % fprintf('d1Obj.submitter=%s\n', char(v1SysMeta.getSubmitter().getValue()));  
+                    
+                    % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                   
+                    if runManager.configuration.public_read_allowed == 1
+                        strArray = javaArray('java.lang.String', 1);
+                        permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
+                        strArray(1,1) = String('public');
+                        permsArray(1,1) = Permission.READ;
+                        ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                        v2SysMeta.setAccessPolicy(ap);
+                        fprintf('d1Obj.accessPolicySize=%d\n', v2SysMeta.getAccessPolicy().sizeAllowList());
+                    end                   
+                                    
+                    if runManager.configuration.replication_allowed == 1
+                        rp = ReplicationPolicy();
+                        numReplicasStr = String.valueOf(int32(runManager.configuration.number_of_replicas));
+                        rp.setNumberReplicas(Integer(numReplicasStr));                       
+                        rp.setReplicationAllowed(java.lang.Boolean.TRUE);                      
+                        v2SysMeta.setReplicationPolicy(rp);                                               
+                        fprintf('d1Obj.numReplicas=%d\n', v2SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
+                    end
+                    
+                    % upload the data to the MN using create(), checking for success and a returned identifier                    
+                    %pid = cnNode.reserveIdentifier(session, v1SysMeta.getIdentifier());
+                    pid = v1SysMeta.getIdentifier();
                     pid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta); 
                     fprintf('Success uploaded %s\n.', pid);
                 end
                 
+                cd(curDir);
                 package_id = packageId; % temporary
          
             catch runtimeError 
