@@ -651,6 +651,7 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.util.AccessUtil;
             import org.dataone.service.types.v1.Permission;            
             import org.dataone.service.types.v1.ReplicationPolicy;
+            import org.dataone.service.types.v1.Subject;
             
             global D1_URI_PREFIX;
             
@@ -669,7 +670,7 @@ classdef RunManager < hgsetget
                 % Get D1 cilogon certificate stored at /tmp/x509up_u501
                 certificate = runManager.getCertificate();
                 % Pull the subject DN out of the certificate for use in system metadata
-                runManager.configuration.submitter = certificate.getSubjectDN();
+                runManager.configuration.submitter = certificate.getSubjectDN().toString();
                 
                 % Get D1 cilogon authToken string
                 %authToken = runManager.configuration.get('authentication_token');
@@ -693,10 +694,14 @@ classdef RunManager < hgsetget
                 cnRef.setValue(D1_URI_PREFIX);
                 cnNode = D1Client.getCN(cnRef.getValue());
                 if isempty(cnNode)
-                   error(['Coordinatior node' D1_URI_PREFIX 'encounted an error on the getMN() request.']); 
+                   error(['Coordinatior node' D1_URI_PREFIX 'encounted an error on the getCN() request.']); 
                 end
                 
+                mySubject = Subject();
+                mySubject.setValue(runManager.configuration.submitter);
+                    
                 session = Session();
+                %session.setSubject(mySubject);
                 
                 % Upload each data object that was added to the datapackage
                 dataObjIdentifiers = runManager.dataPackage.identifiers();
@@ -719,9 +724,11 @@ classdef RunManager < hgsetget
                     fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
                     fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
                     fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
-                    % fprintf('d1Obj.submitter=%s\n', char(v1SysMeta.getSubmitter().getValue()));  
+                   
+                    % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
+                    v2SysMeta.setSubmitter(mySubject);
+                    v2SysMeta.setRightsHolder(mySubject);
                     
-                    % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                   
                     if runManager.configuration.public_read_allowed == 1
                         strArray = javaArray('java.lang.String', 1);
                         permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
@@ -741,10 +748,14 @@ classdef RunManager < hgsetget
                         fprintf('d1Obj.numReplicas=%d\n', v2SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
                     end
                     
+                    % Set the node fields
+                    v2SysMeta.setOriginMemberNode(mnRef);
+                    v2SysMeta.setAuthoritativeMemberNode(mnRef);
+        
                     % upload the data to the MN using create(), checking for success and a returned identifier                    
                     %pid = cnNode.reserveIdentifier(session, v1SysMeta.getIdentifier());
-                    pid = v1SysMeta.getIdentifier();
-                    pid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta); 
+                    pid = v2SysMeta.getIdentifier();                  
+                    pid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta);                 
                     fprintf('Success uploaded %s\n.', pid);
                 end
                 
