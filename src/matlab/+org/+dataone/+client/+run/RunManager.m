@@ -23,8 +23,7 @@
 
 classdef RunManager < hgsetget
 
-    properties
-       
+    properties      
         % The instance of the Configuration class used to provide settings 
         % details for this RunManager
         configuration;
@@ -48,8 +47,7 @@ classdef RunManager < hgsetget
         runDir;
     end
 
-    properties (Access = private)
-               
+    properties (Access = private)               
         % Enable or disable the provenance capture state
         prov_capture_enabled = false;
 
@@ -108,11 +106,11 @@ classdef RunManager < hgsetget
             import org.dataone.client.v2.itk.D1Client;
             
             cn_url = Settings.getConfiguration().getString('D1Client.CN_URL', 'https://cn-dev.test.dataone.org/cn');
-            %fprintf('cn_url=%s\n', char(cn_url));
             D1_URI_PREFIX = [char(cn_url) '/v1/resolve/'];
         end
     end
 
+    
     methods (Static)
         function runManager = getInstance(configuration)
             % GETINSTANCE returns an instance of the RunManager by either
@@ -286,8 +284,7 @@ classdef RunManager < hgsetget
             % Begin recording
             runManager.startRecord(runManager.execution.tag);
 
-            % End the recording session
-            %runManager.dataPackage = runManager.endRecord(); 
+            % End the recording session 
             data_package = runManager.endRecord();
         end
         
@@ -344,24 +341,12 @@ classdef RunManager < hgsetget
             resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
             % Create a datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
-            
-            % Record relationship identifying execution id as a provone:Execution                              
-            global execURI;
-            execURI = URI([D1_URI_PREFIX  'execution_' runId]);
-            provOneExecURI = URI(ProvONE.Execution.getURI());
-            global aTypePredicate;
-            aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-            runManager.dataPackage.insertRelationship(execURI, aTypePredicate, provOneExecURI);         
-          
-            % Record relationship identifying workflow id as a provONE:Program
-            E = strsplit(runManager.execution.software_application,filesep);           
-            wfSubjectURI = URI([D1_URI_PREFIX char(E(end))]);
-            provOneProgramURI = URI(ProvONE.Program.getURI());
-            runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
-         
+                     
             % Record relationship identifying prov:hadPlan between execution and programs   
             global wfIdentifier;
             wfIdentifier = Identifier();
+            E = strsplit(runManager.execution.software_application,filesep);           
+            wfSubjectURI = URI([D1_URI_PREFIX char(E(end))]);
             wfIdentifier.setValue(char(E(end)));
             wfIdsList = ArrayListMatlabWrapper();
             wfIdsList.add(wfIdentifier);        
@@ -369,7 +354,17 @@ classdef RunManager < hgsetget
             wfMetadataId = Identifier();
             wfMetadataId.setValue(runManager.wfMetaFileName);
             runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.                
+           
+            % Record relationship identifying workflow id as a provONE:Program
+            global aTypePredicate;
+            aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
+            provOneProgramURI = URI(ProvONE.Program.getURI());
+            runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
             
+            % Record relationship identifying execution id as a provone:Execution                              
+            global execURI;
+            execURI = URI([D1_URI_PREFIX  'execution_' runId]);
+ 
             global associationSubjectURI; 
             associationSubjectURI = URI([D1_URI_PREFIX 'A0_' char(java.util.UUID.randomUUID())]);
             provOneProgramURI = URI(ProvONE.Program.getURI());
@@ -383,20 +378,23 @@ classdef RunManager < hgsetget
             % Store the prov relationship: execution->prov:qualifiedAssociation->association
             provAssociationObjURI = URI(PROV.Association.getURI());
             predicate = PROV.predicate('qualifiedAssociation');
-            runManager.dataPackage.insertRelationship( execURI, predicate, provAssociationObjURI);
-           
+            runManager.dataPackage.insertRelationship(execURI, predicate, provAssociationObjURI);
+            
+            provOneExecURI = URI(ProvONE.Execution.getURI());           
+            runManager.dataPackage.insertRelationship(execURI, aTypePredicate, provOneExecURI);  
+                      
             % Store the ProvONE relationships for user
             global userURI;
-            userURI = URI([D1_URI_PREFIX runManager.execution.account_name]);        
-            % Record a relationship identifying the provONE:user
-            provONEUserURI = URI(ProvONE.User.getURI());
-            runManager.dataPackage.insertRelationship(userURI, aTypePredicate, provONEUserURI);           
+            userURI = URI([D1_URI_PREFIX runManager.execution.account_name]);                 
             % Record the relationship between the Execution and the user
             predicate = PROV.predicate('wasAssociatedWith');
-            runManager.dataPackage.insertRelationship(execURI, predicate, userURI);      
+            runManager.dataPackage.insertRelationship(execURI, predicate, userURI);    
             % Record the relationship for association->prov:agent->"user"
             predicate = PROV.predicate('agent');
-            runManager.dataPackage.insertRelationship(associationSubjectURI, predicate, userURI);            
+            runManager.dataPackage.insertRelationship(associationSubjectURI, predicate, userURI);
+            % Record a relationship identifying the provONE:user
+            provONEUserURI = URI(ProvONE.User.getURI());
+            runManager.dataPackage.insertRelationship(userURI, aTypePredicate, provONEUserURI); 
           
             %% Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
@@ -753,7 +751,7 @@ classdef RunManager < hgsetget
                     v2SysMeta.setAuthoritativeMemberNode(mnRef);
         
                     % upload the data to the MN using create(), checking for success and a returned identifier                    
-                    %pid = cnNode.reserveIdentifier(session, v1SysMeta.getIdentifier());
+                    % pid = cnNode.reserveIdentifier(session, v1SysMeta.getIdentifier());
                     pid = v2SysMeta.getIdentifier();                  
                     pid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta);                 
                     fprintf('Success uploaded %s\n.', pid);
