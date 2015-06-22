@@ -763,8 +763,18 @@ classdef RunManager < hgsetget
                     
                     % upload the data to the MN using create(), checking for success and a returned identifier       
                     pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier()); 
-                    pid = mnNode.create(session, pid, dataSource.getInputStream(), v1SysMeta);                      
-                    fprintf('Success uploaded %s\n.', char(pid.getValue()));
+                    if isempty(pid) ~= 1
+                        returnPid = mnNode.create(session, pid, dataSource.getInputStream(), v1SysMeta);  
+                        if isempty(returnPid) ~= 1
+                            fprintf('Success uploaded %s\n.', char(returnPid.getValue()));
+                        else
+                            % TODO: Process the error correctly.
+                            error('Error on returned identifier %s', char(v1SysMeta.getIdentifier()));
+                        end
+                    else
+                        % TODO: Process the error correctly.
+                        error('Error on duplicate identifier %s', v1SysMeta.getIdentifier());
+                    end
                 end
                 
                 cd(curDir);
