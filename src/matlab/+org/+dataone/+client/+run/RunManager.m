@@ -736,7 +736,8 @@ classdef RunManager < hgsetget
                     fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
                     fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
                     fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
-                                      
+                    fprintf('d1Obj.originalMNode=%s\n', char(v1SysMeta.getOriginMemberNode().getValue()));
+                    
                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
                     v1SysMeta.setSubmitter(mySubject);
                     v1SysMeta.setRightsHolder(mySubject);
@@ -759,9 +760,6 @@ classdef RunManager < hgsetget
                         v1SysMeta.setReplicationPolicy(rp);                                               
                         fprintf('d1Obj.numReplicas=%d\n', v1SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
                     end
-                    
-                    % Set the node fields
-                    fprintf('d1Obj.originalMNode=%s\n', char(v1SysMeta.getOriginMemberNode().getValue()));
                     
                     % upload the data to the MN using create(), checking for success and a returned identifier       
                     pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier()); 
