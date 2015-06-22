@@ -106,7 +106,7 @@ classdef RunManager < hgsetget
             import org.dataone.client.v2.itk.D1Client;
             
             cn_url = Settings.getConfiguration().getString('D1Client.CN_URL', 'https://cn-dev.test.dataone.org/cn');
-            D1_URI_PREFIX = [char(cn_url) '/v1/resolve/'];
+            D1_URI_PREFIX = [char(cn_url) 'v1/resolve/'];
         end
     end
 
@@ -346,21 +346,23 @@ classdef RunManager < hgsetget
             global wfIdentifier;
             wfIdentifier = Identifier();
             E = strsplit(runManager.execution.software_application,filesep);           
-            wfSubjectURI = URI([D1_URI_PREFIX char(E(end))]);
+            %wfSubjectURI = URI([D1_URI_PREFIX char(E(end))]);
             wfIdentifier.setValue(char(E(end)));
             wfIdsList = ArrayListMatlabWrapper();
-            wfIdsList.add(wfIdentifier);        
+            wfIdsList.add(wfIdentifier);   
+            wfIdsList.add(wfSubjectURI);
             runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
             wfMetadataId = Identifier();
             wfMetadataId.setValue(runManager.wfMetaFileName);
-            runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList); % Attention here: add a sciemetadata to a program, so the program can be added to the aggregation. Only DataPackage.addData() can not achieve this.                
+            runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);        
            
             % Record relationship identifying workflow id as a provONE:Program
             global aTypePredicate;
             aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
             provOneProgramURI = URI(ProvONE.Program.getURI());
-            runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
-            
+            runManager.dataPackage.insertRelationship(wfIdentifier, aTypePredicate, provOneProgramURI);
+            %runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
+                       
             % Record relationship identifying execution id as a provone:Execution                              
             global execURI;
             execURI = URI([D1_URI_PREFIX  'execution_' runId]);
@@ -689,6 +691,7 @@ classdef RunManager < hgsetget
                 % Set the CNode ID
                 cnRef = NodeReference();
                 cnRef.setValue(D1_URI_PREFIX);
+                fprintf('D1_URI_PREFIX=%s\n', D1_URI_PREFIX);
                 cnNode = D1Client.getCN(cnRef.getValue());
                 if isempty(cnNode)
                    error(['Coordinatior node' D1_URI_PREFIX 'encounted an error on the getCN() request.']); 
@@ -747,9 +750,11 @@ classdef RunManager < hgsetget
                     v1SysMeta.setOriginMemberNode(mnRef);
                     v1SysMeta.setAuthoritativeMemberNode(mnRef);
         
-                    % upload the data to the MN using create(), checking for success and a returned identifier                    
-                    % pid = cnNode.reserveIdentifier(session, v1SysMeta.getIdentifier());
-                    pid = v1SysMeta.getIdentifier();                       
+                    % upload the data to the MN using create(), checking for success and a returned identifier       
+                    fprintf('blah');
+                    pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier());
+                    %pid = v1SysMeta.getIdentifier();  
+                    fprintf('blah blah');
                     pid = mnNode.create(session, pid, dataSource.getInputStream(), v1SysMeta);                      
                     fprintf('Success uploaded %s\n.', char(pid.getValue()));
                 end
