@@ -184,8 +184,8 @@ classdef Configuration < hgsetget & dynamicprops
                 import org.dataone.service.types.v1.ObjectFormatIdentifier;
                 
                 %cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
-                cn_base_url = 'https://cn-dev.test.dataone.org/cn/';
-                Settings.getConfiguration.setProperty('D1Client.CN_URL', cn_base_url);
+                %cn_base_url = 'https://cn-dev.test.dataone.org/cn/';
+                Settings.getConfiguration.setProperty('D1Client.CN_URL', configuration.coordinating_node_base_url);
                 ofc = ObjectFormatCache.getInstance();
                 objFmtId = ObjectFormatIdentifier();
                 objFmtId.setValue(value);
@@ -212,17 +212,7 @@ classdef Configuration < hgsetget & dynamicprops
                 
                % if found ~= 1
                %     error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
-               % end
-            
-               % if false %configuration.debug  
-                    % to display each element in the format list                    
-               %     fprintf('\nLength=%d \n', size);
-               %     for i = 1:size
-               %         fmt = fmtList.getObjectFormatList().get(i-1);               
-               %         fprintf('%s %s %s \n',char(fmt.getFormatType()), char(fmt.getFormatId().getValue()), char(fmt.getFormatName()));
-               %         i = i+1;
-               %     end    
-               % end    
+               % end  
             end
             
             if strcmp(paraName, 'authentication_token')

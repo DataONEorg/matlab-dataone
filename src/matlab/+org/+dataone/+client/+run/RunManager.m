@@ -308,7 +308,7 @@ classdef RunManager < hgsetget
             global CN_URL;
             global D1_URI_PREFIX;           
             CN_URL = runManager.getD1UriPrefix(); % get the base URL of the DataONE coordinating node server
-            D1_URI_PREFIX = [char(cn_url) 'v1/resolve/'];
+            D1_URI_PREFIX = [char(CN_URL) 'v1/resolve/'];
                
             % Create the run metadata directory for this run
             k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
@@ -351,7 +351,7 @@ classdef RunManager < hgsetget
             global wfIdentifier;
             wfIdentifier = Identifier();
             E = strsplit(runManager.execution.software_application,filesep);                     
-            wfIdentifier.setValue(char(E(end)));
+            wfIdentifier.setValue([runManager.configuration.script_base_name '_' char(E(end))]);
             wfIdsList = ArrayListMatlabWrapper();
             wfIdsList.add(wfIdentifier);   
             runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
@@ -360,7 +360,6 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);        
            
             % Now describe the workflow identifier with another literal identifier
-            %URI metadataURI = new URI(D1_URI_PREFIX + "meta.1.1");
             wfSubjectURI = URI([D1_URI_PREFIX char(wfIdentifier.getValue())]);
             runManager.dataPackage.insertRelationship(wfSubjectURI, DC_TERMS.predicate('identifier'), wfIdentifier.getValue());
                 
@@ -464,7 +463,7 @@ classdef RunManager < hgsetget
             scriptFmt = 'text/plain';        
             wfId = Identifier;
             E = strsplit(runManager.execution.software_application,filesep);          
-            wfId.setValue(char(E(end)));        
+            wfId.setValue([runManager.configuration.script_base_name char(E(end))]);        
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(programD1Obj);
             
@@ -600,18 +599,26 @@ classdef RunManager < hgsetget
             end    
         
             % Serialize a datapackage
-            %rdfXml = ResourceMapFactory.getInstance().serializeResourceMap(resourceMap);
             rdfXml = runManager.dataPackage.serializePackage();
             fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % print it to stdout
              
             % Print it
             cd(runManager.runDir);
-            resourceMapName = ['resourceMap_' runManager.configuration.script_base_name '.xml'];
-            fw = fopen(resourceMapName, 'w'); 
-            if fw == -1, error('Cannot write "%s%".',resourceMapName); end
+            resMapName = ['resourceMap_' runManager.configuration.script_base_name '.xml'];
+            fw = fopen(resMapName, 'w'); 
+            if fw == -1, error('Cannot write "%s%".',resMapName); end
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
            
+            % Add resourceMap D1Object to the DataPackage
+            resMapId = Identifier();
+            resMapId.setValue(resMapName);
+            resMapFmt = 'http://www.openarchives.org/ore/terms'; % Reconsideration !
+            resMapFileId = File(resMapId.getValue());
+            resMapData = FileDataSource(resMapFileId);
+            resMapD1Obj = D1Object(resMapId, resMapData, D1TypeBuilder.buildFormatIdentifier(resMapFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(resMapD1Obj);
+            
             cd(curDir);
             
             % Return the Java DataPackage as a Matlab structured array
@@ -729,7 +736,7 @@ classdef RunManager < hgsetget
                     fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
                     fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
                     fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
-                   
+                                      
                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
                     v1SysMeta.setSubmitter(mySubject);
                     v1SysMeta.setRightsHolder(mySubject);
@@ -754,8 +761,7 @@ classdef RunManager < hgsetget
                     end
                     
                     % Set the node fields
-                    v1SysMeta.setOriginMemberNode(mnRef);
-                    v1SysMeta.setAuthoritativeMemberNode(mnRef);
+                    fprintf('d1Obj.originalMNode=%s\n', char(v1SysMeta.getOriginMemberNode().getValue()));
                     
                     % upload the data to the MN using create(), checking for success and a returned identifier       
                     pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier()); 
