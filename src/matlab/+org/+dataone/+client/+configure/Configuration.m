@@ -181,35 +181,48 @@ classdef Configuration < hgsetget & dynamicprops
                
                 import org.dataone.client.v2.formats.ObjectFormatCache;
                 import org.dataone.configuration.Settings;
+                import org.dataone.service.types.v1.ObjectFormatIdentifier;
                 
-                cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
+                %cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
+                cn_base_url = 'https://cn-dev.test.dataone.org/cn/';
                 Settings.getConfiguration.setProperty('D1Client.CN_URL', cn_base_url);
-                fmtList = ObjectFormatCache.getInstance.listFormats;
-                size = fmtList.getObjectFormatList.size;
-                
-                found = false;
-                for i = 1:size
-                    fmt = fmtList.getObjectFormatList.get(i-1);
-                    if strcmp(value, char(fmt.getFormatId.getValue))
-                        found = true;
-                        break;
-                    end                    
-                end 
-                
-                if found ~= 1
-                    error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
+                ofc = ObjectFormatCache.getInstance();
+                objFmtId = ObjectFormatIdentifier();
+                objFmtId.setValue(value);
+                objFmt = ofc.getFormat(objFmtId);
+                if isempty(objFmt) == 1
+                   error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
                 end
+                
+                size = ofc.listFormats().sizeObjectFormatList();
+                fprintf('objectFormatList.size=%d\n', size);
+                
+               % fmtList = ofc.listFormats();
+               % size = fmtList.getObjectFormatList().size();
+               % fprintf('objectFormatList.size=%d\n', size);
+                
+               % found = false;
+               % for i = 1:size
+               %     fmt = fmtList.getObjectFormatList.get(i-1);
+               %     if strcmp(value, char(fmt.getFormatId().getValue()))
+               %         found = true;
+               %         break;
+               %     end                    
+               % end 
+                
+               % if found ~= 1
+               %     error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
+               % end
             
-                if false %configuration.debug  
+               % if false %configuration.debug  
                     % to display each element in the format list                    
-                    fprintf('\nLength=%d \n', size);
-                    for i = 1:size
-                        fmt = fmtList.getObjectFormatList.get(i-1);
-               
-                        fprintf('%s %s %s \n',char(fmt.getFormatType), char(fmt.getFormatId.getValue), char(fmt.getFormatName));
-                        i = i+1;
-                    end    
-                end    
+               %     fprintf('\nLength=%d \n', size);
+               %     for i = 1:size
+               %         fmt = fmtList.getObjectFormatList().get(i-1);               
+               %         fprintf('%s %s %s \n',char(fmt.getFormatType()), char(fmt.getFormatId().getValue()), char(fmt.getFormatName()));
+               %         i = i+1;
+               %     end    
+               % end    
             end
             
             if strcmp(paraName, 'authentication_token')

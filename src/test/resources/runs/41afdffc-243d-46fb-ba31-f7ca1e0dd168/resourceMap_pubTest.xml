@@ -1,0 +1,135 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:j.0="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:ore="http://www.openarchives.org/ore/terms/"
+    xmlns:dcterms="http://purl.org/dc/terms/"
+    xmlns:j.1="http://www.w3.org/ns/prov#"
+    xmlns:j.2="http://purl.org/spar/cito/" > 
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_combined_view.xml">
+    <j.2:documents rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_combined_view.pdf"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_combined_view.xml</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/C3_C4_map_present_NA_Markup_v2.m">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">C3_C4_map_present_NA_Markup_v2.m</dcterms:identifier>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <j.2:isDocumentedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_meta1.1"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Program"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywModelFacts.pl">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_ywModelFacts.pl</dcterms:identifier>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <j.1:wasGeneratedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/execution_41afdffc-243d-46fb-ba31-f7ca1e0dd168"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <j.2:isDocumentedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywModelFacts.xml"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywModelFacts.xml">
+    <j.2:documents rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywModelFacts.pl"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_ywModelFacts.xml</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywExtractFacts.xml">
+    <j.2:documents rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywExtractFacts.pl"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_ywExtractFacts.xml</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_meta1.1">
+    <j.2:documents rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/C3_C4_map_present_NA_Markup_v2.m"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_meta1.1</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/syc">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#User"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A0">
+    <foaf:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">DataONE Java Client Library</foaf:name>
+    <rdf:type rdf:resource="http://purl.org/dc/terms/Agent"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005">
+    <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2015-06-22T09:32:02.361-05:00</dcterms:modified>
+    <ore:describes rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/ResourceMap"/>
+    <dc:creator rdf:nodeID="A0"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation">
+    <ore:isDescribedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/C3_C4_map_present_NA_Markup_v2.m"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_process_view.xml"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_data_view.pdf"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywExtractFacts.pl"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_data_view.xml"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywExtractFacts.xml"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_combined_view.pdf"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywModelFacts.xml"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_process_view.pdf"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_combined_view.xml"/>
+    <dc:title>DataONE Aggregation</dc:title>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_meta1.1"/>
+    <ore:aggregates rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywModelFacts.pl"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_process_view.pdf">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_process_view.pdf</dcterms:identifier>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <j.2:isDocumentedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_process_view.xml"/>
+    <j.1:wasGeneratedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/execution_41afdffc-243d-46fb-ba31-f7ca1e0dd168"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_process_view.xml">
+    <j.2:documents rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_process_view.pdf"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_process_view.xml</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_data_view.xml">
+    <j.2:documents rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_data_view.pdf"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_data_view.xml</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/execution_41afdffc-243d-46fb-ba31-f7ca1e0dd168">
+    <j.1:wasAssociatedWith rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/syc"/>
+    <j.1:qualifiedAssociation rdf:resource="http://www.w3.org/ns/prov#Association"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Execution"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywExtractFacts.pl">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_ywExtractFacts.pl</dcterms:identifier>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <j.1:wasGeneratedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/execution_41afdffc-243d-46fb-ba31-f7ca1e0dd168"/>
+    <j.2:isDocumentedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_ywExtractFacts.xml"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/A0_1f29bf54-eceb-4239-af65-0bbb43727914">
+    <j.1:hadPlan rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Program"/>
+    <rdf:type rdf:resource="http://www.w3.org/ns/prov#Association"/>
+    <j.1:agent rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/syc"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_combined_view.pdf">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_combined_view.pdf</dcterms:identifier>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <j.2:isDocumentedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_combined_view.xml"/>
+    <j.1:wasGeneratedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/execution_41afdffc-243d-46fb-ba31-f7ca1e0dd168"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_data_view.pdf">
+    <j.1:wasGeneratedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/execution_41afdffc-243d-46fb-ba31-f7ca1e0dd168"/>
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">pubTest_data_view.pdf</dcterms:identifier>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <ore:isAggregatedBy>https://cn-dev.test.dataone.org/cn//v1/resolve/resourceMap_f090ab4f-aeb9-45c5-b337-7b0e893e6005#aggregation</ore:isAggregatedBy>
+    <j.2:isDocumentedBy rdf:resource="https://cn-dev.test.dataone.org/cn//v1/resolve/pubTest_data_view.xml"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+</rdf:RDF>

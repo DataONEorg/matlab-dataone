@@ -635,14 +635,13 @@ classdef RunManager < hgsetget
             import java.lang.String;
             import java.lang.Boolean;
             import java.lang.Integer;
-            import org.dataone.client.v2.MNode;
-            import org.dataone.client.v2.impl.MultipartMNode;
-            import org.dataone.client.v2.impl.MultipartCNode;
-            import org.dataone.client.v2.itk.D1Client;
+            import org.dataone.client.v1.MNode;
+            %import org.dataone.client.v2.impl.MultipartMNode;
+            %import org.dataone.client.v2.impl.MultipartCNode;
+            import org.dataone.client.v1.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
             import org.dataone.client.v1.itk.DataPackage;           
             import org.dataone.service.types.v1.SystemMetadata;
-            import org.dataone.service.types.v2.SystemMetadata;
             import org.dataone.service.types.v1.Session;
             import org.dataone.service.util.TypeMarshaller;
             import org.dataone.service.types.v1.AccessPolicy;
@@ -714,9 +713,7 @@ classdef RunManager < hgsetget
                     
                     % get system metadata for dataObj and convert v1 systemetadata to v2 systemmetadata
                     v1SysMeta = dataObj.getSystemMetadata(); % version 1 system metadata
-                    v2SysMeta = org.dataone.service.types.v2.SystemMetadata();
-                    v2SysMeta = TypeMarshaller.convertTypeFromType(v1SysMeta, v2SysMeta.getClass());
-                    
+                                      
                     fprintf('d1Obj.size=%d (bytes)\n', v1SysMeta.getSize().longValue());                   
                     fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v1SysMeta.getChecksum().getAlgorithm()), char(v1SysMeta.getChecksum().getValue()));
                     fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
@@ -724,8 +721,8 @@ classdef RunManager < hgsetget
                     fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
                    
                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
-                    v2SysMeta.setSubmitter(mySubject);
-                    v2SysMeta.setRightsHolder(mySubject);
+                    v1SysMeta.setSubmitter(mySubject);
+                    v1SysMeta.setRightsHolder(mySubject);
                     
                     if runManager.configuration.public_read_allowed == 1
                         strArray = javaArray('java.lang.String', 1);
@@ -733,8 +730,8 @@ classdef RunManager < hgsetget
                         strArray(1,1) = String('public');
                         permsArray(1,1) = Permission.READ;
                         ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
-                        v2SysMeta.setAccessPolicy(ap);
-                        fprintf('d1Obj.accessPolicySize=%d\n', v2SysMeta.getAccessPolicy().sizeAllowList());
+                        v1SysMeta.setAccessPolicy(ap);
+                        fprintf('d1Obj.accessPolicySize=%d\n', v1SysMeta.getAccessPolicy().sizeAllowList());
                     end                   
                                     
                     if runManager.configuration.replication_allowed == 1
@@ -742,19 +739,19 @@ classdef RunManager < hgsetget
                         numReplicasStr = String.valueOf(int32(runManager.configuration.number_of_replicas));
                         rp.setNumberReplicas(Integer(numReplicasStr));                       
                         rp.setReplicationAllowed(java.lang.Boolean.TRUE);                      
-                        v2SysMeta.setReplicationPolicy(rp);                                               
-                        fprintf('d1Obj.numReplicas=%d\n', v2SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
+                        v1SysMeta.setReplicationPolicy(rp);                                               
+                        fprintf('d1Obj.numReplicas=%d\n', v1SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
                     end
                     
                     % Set the node fields
-                    v2SysMeta.setOriginMemberNode(mnRef);
-                    v2SysMeta.setAuthoritativeMemberNode(mnRef);
+                    v1SysMeta.setOriginMemberNode(mnRef);
+                    v1SysMeta.setAuthoritativeMemberNode(mnRef);
         
                     % upload the data to the MN using create(), checking for success and a returned identifier                    
                     % pid = cnNode.reserveIdentifier(session, v1SysMeta.getIdentifier());
-                    pid = v2SysMeta.getIdentifier();                  
-                    pid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta);                 
-                    fprintf('Success uploaded %s\n.', pid);
+                    pid = v1SysMeta.getIdentifier();                       
+                    pid = mnNode.create(session, pid, dataSource.getInputStream(), v1SysMeta);                      
+                    fprintf('Success uploaded %s\n.', char(pid.getValue()));
                 end
                 
                 cd(curDir);
@@ -770,17 +767,10 @@ classdef RunManager < hgsetget
             % GETCERTIFICATE Gets a certificate 
             import org.dataone.client.auth.CertificateManager;
             import java.security.cert.X509Certificate;
-            import java.security.PrivateKey;
-          
+            
             % Get a certificate for the Root CA           
             certificate = CertificateManager.getInstance().loadCertificate();
-            fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));
-            
-            % get the private key
-            privateKey = CertificateManager.getInstance().loadKey();
-            % register as the subject
-            subjectDN = CertificateManager.getInstance().getSubjectDN(certificate);
-            CertificateManager.getInstance().registerCertificate(subjectDN, certificate, privateKey);       
+            fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));      
         end
         
         

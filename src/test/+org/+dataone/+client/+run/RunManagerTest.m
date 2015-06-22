@@ -97,7 +97,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
             
-            testCase.mgr.configuration.script_base_name = 'pubTest'; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
+            testCase.mgr.configuration.script_base_name = '123'; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
             
             testCase.mgr.record(script_path, '');
         
@@ -111,13 +111,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 %system('/usr/bin/open combined_view.pdf');
                 
                 cd(curDir);
-            end
-            
-            % Access a matlab script and run it
-            %DroughtTimeScale_Markup_v2;
-            %y = textreadFile('ywModelFacts.pl');
-            %fprintf('%s', char(y));
-            
+            end  
         end
         
         % The function testPublish() has to be put behind the function testGetInstanceWithConfiguration(). 
@@ -128,7 +122,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             fprintf('\nIn testPublish() ...\n');
            
             %mgr = RunManager.getInstance(configuration);
-            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo2');
+            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
             %authToken = 'abc';
             %set(mgr.configuration, 'authentication_token', authToken);
        
