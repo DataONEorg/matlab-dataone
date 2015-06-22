@@ -101,12 +101,14 @@ classdef RunManager < hgsetget
             fprintf('predicate.nameSpace = %s\n', char(predicate.getNamespace()));
         end
         
-        function D1_URI_PREFIX = getD1UriPrefix(runManager)
+        function cn_url = getD1UriPrefix(runManager)
             import org.dataone.configuration.Settings;
             import org.dataone.client.v2.itk.D1Client;
             
             cn_url = Settings.getConfiguration().getString('D1Client.CN_URL', 'https://cn-dev.test.dataone.org/cn');
-            D1_URI_PREFIX = [char(cn_url) 'v1/resolve/'];
+            fprintf('char(cn_url)=%s\n', char(cn_url));
+            % D1_URI_PREFIX = [char(cn_url) '/v1/resolve/'];
+            %D1_URI_PREFIX = [char(cn_url) 'v1/resolve/'];
         end
     end
 
@@ -303,9 +305,11 @@ classdef RunManager < hgsetget
                 runManager.configuration.script_base_name = strtrim(script_base_name);      
             end
             
-            global D1_URI_PREFIX;
-            D1_URI_PREFIX = runManager.getD1UriPrefix(); % get the base URL of the DataONE coordinating node server
-            
+            global CN_URL;
+            global D1_URI_PREFIX;           
+            CN_URL = runManager.getD1UriPrefix(); % get the base URL of the DataONE coordinating node server
+            D1_URI_PREFIX = [char(cn_url) 'v1/resolve/'];
+               
             % Create the run metadata directory for this run
             k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
             runId = runManager.execution.execution_id(k+9:end);
@@ -331,6 +335,7 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.ProvONE_V1;
             import java.net.URI;
             import org.dspace.foresite.ResourceMap;
+            import org.dataone.vocabulary.DC_TERMS;
             
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
@@ -345,23 +350,26 @@ classdef RunManager < hgsetget
             % Record relationship identifying prov:hadPlan between execution and programs   
             global wfIdentifier;
             wfIdentifier = Identifier();
-            E = strsplit(runManager.execution.software_application,filesep);           
-            %wfSubjectURI = URI([D1_URI_PREFIX char(E(end))]);
+            E = strsplit(runManager.execution.software_application,filesep);                     
             wfIdentifier.setValue(char(E(end)));
             wfIdsList = ArrayListMatlabWrapper();
             wfIdsList.add(wfIdentifier);   
-            wfIdsList.add(wfSubjectURI);
             runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
             wfMetadataId = Identifier();
             wfMetadataId.setValue(runManager.wfMetaFileName);
             runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);        
            
+            % Now describe the workflow identifier with another literal identifier
+            %URI metadataURI = new URI(D1_URI_PREFIX + "meta.1.1");
+            wfSubjectURI = URI([D1_URI_PREFIX char(wfIdentifier.getValue())]);
+            runManager.dataPackage.insertRelationship(wfSubjectURI, DC_TERMS.predicate('identifier'), wfIdentifier.getValue());
+                
             % Record relationship identifying workflow id as a provONE:Program
             global aTypePredicate;
             aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
             provOneProgramURI = URI(ProvONE.Program.getURI());
-            runManager.dataPackage.insertRelationship(wfIdentifier, aTypePredicate, provOneProgramURI);
-            %runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
+            %runManager.dataPackage.insertRelationship(wfIdentifier, aTypePredicate, provOneProgramURI);          
+            runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
                        
             % Record relationship identifying execution id as a provone:Execution                              
             global execURI;
@@ -442,7 +450,7 @@ classdef RunManager < hgsetget
             global execURI;
             global aTypePredicate;
             global D1_URI_PREFIX;
-            
+                       
             % Record a data list for provOne:Data
             provONEdataURI = URI(ProvONE.Data.getURI());
                       
@@ -652,6 +660,7 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.ReplicationPolicy;
             import org.dataone.service.types.v1.Subject;
             
+            global CN_URL;
             global D1_URI_PREFIX;
             
             curDir = pwd();
@@ -687,11 +696,10 @@ classdef RunManager < hgsetget
                     
                 fprintf('mn ndoe base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
                 fprintf('dataPackage.size()= %d\n',runManager.dataPackage.size());
-                
+                            
                 % Set the CNode ID
                 cnRef = NodeReference();
-                cnRef.setValue(D1_URI_PREFIX);
-                fprintf('D1_URI_PREFIX=%s\n', D1_URI_PREFIX);
+                cnRef.setValue(CN_URL);
                 cnNode = D1Client.getCN(cnRef.getValue());
                 if isempty(cnNode)
                    error(['Coordinatior node' D1_URI_PREFIX 'encounted an error on the getCN() request.']); 
@@ -701,8 +709,7 @@ classdef RunManager < hgsetget
                 mySubject.setValue(runManager.configuration.submitter);
                     
                 session = Session();
-                %session.setSubject(mySubject);
-                
+            
                 % Upload each data object that was added to the datapackage
                 dataObjIdentifiers = runManager.dataPackage.identifiers();
                 iter = dataObjIdentifiers.iterator();
@@ -749,12 +756,9 @@ classdef RunManager < hgsetget
                     % Set the node fields
                     v1SysMeta.setOriginMemberNode(mnRef);
                     v1SysMeta.setAuthoritativeMemberNode(mnRef);
-        
+                    
                     % upload the data to the MN using create(), checking for success and a returned identifier       
-                    fprintf('blah');
-                    pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier());
-                    %pid = v1SysMeta.getIdentifier();  
-                    fprintf('blah blah');
+                    pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier()); 
                     pid = mnNode.create(session, pid, dataSource.getInputStream(), v1SysMeta);                      
                     fprintf('Success uploaded %s\n.', char(pid.getValue()));
                 end
