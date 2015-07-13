@@ -60,7 +60,7 @@ classdef Configuration < hgsetget & dynamicprops
         blocked_replica_node_list = '';
         
         % The base URL of the DataONE coordinating node server
-        coordinating_node_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
+        coordinating_node_base_url = 'https://cn-dev.test.dataone.org/cn/v1/resolve/';
         
         % The researcher's ORCID
         orcid_identifier = '';
@@ -103,6 +103,12 @@ classdef Configuration < hgsetget & dynamicprops
         % A flag indicating whether to include the workflow graphic as an
         % object in the DataPackage
         include_workflow_graphic = true;
+        
+        % A script base name will be used to name yesWorkflow artifacts.
+        script_base_name = '';
+        
+        % A token string used to store authentication information (to be verified with Chris May-31-2015)
+        authentication_token = '';
         
     end
 
@@ -175,35 +181,45 @@ classdef Configuration < hgsetget & dynamicprops
                
                 import org.dataone.client.v2.formats.ObjectFormatCache;
                 import org.dataone.configuration.Settings;
+                import org.dataone.service.types.v1.ObjectFormatIdentifier;
                 
-                cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
-                Settings.getConfiguration.setProperty('D1Client.CN_URL', cn_base_url);
-                fmtList = ObjectFormatCache.getInstance.listFormats;
-                size = fmtList.getObjectFormatList.size;
-                
-                found = false;
-                for i = 1:size
-                    fmt = fmtList.getObjectFormatList.get(i-1);
-                    if strcmp(value, char(fmt.getFormatId.getValue))
-                        found = true;
-                        break;
-                    end                    
-                end 
-                
-                if found ~= 1
-                    error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
+                %cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
+                %cn_base_url = 'https://cn-dev.test.dataone.org/cn/';
+                Settings.getConfiguration.setProperty('D1Client.CN_URL', configuration.coordinating_node_base_url);
+                ofc = ObjectFormatCache.getInstance();
+                objFmtId = ObjectFormatIdentifier();
+                objFmtId.setValue(value);
+                objFmt = ofc.getFormat(objFmtId);
+                if isempty(objFmt) == 1
+                   error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
                 end
+                
+                size = ofc.listFormats().sizeObjectFormatList();
+                fprintf('objectFormatList.size=%d\n', size);
+                
+               % fmtList = ofc.listFormats();
+               % size = fmtList.getObjectFormatList().size();
+               % fprintf('objectFormatList.size=%d\n', size);
+                
+               % found = false;
+               % for i = 1:size
+               %     fmt = fmtList.getObjectFormatList.get(i-1);
+               %     if strcmp(value, char(fmt.getFormatId().getValue()))
+               %         found = true;
+               %         break;
+               %     end                    
+               % end 
+                
+               % if found ~= 1
+               %     error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
+               % end  
+            end
             
-                if false %configuration.debug  
-                    % to display each element in the format list                    
-                    fprintf('\nLength=%d \n', size);
-                    for i = 1:size
-                        fmt = fmtList.getObjectFormatList.get(i-1);
-               
-                        fprintf('%s %s %s \n',char(fmt.getFormatType), char(fmt.getFormatId.getValue), char(fmt.getFormatName));
-                        i = i+1;
-                    end    
-                end    
+            if strcmp(paraName, 'authentication_token')
+                disp(['Your authentication token has been set in your configuration file. Please be careful to safeguard this token.' ...
+                      'Anyone with access to it can call operations as you. Be careful to not add this token to any published scripts,' ...
+                      'but rather set it only using a command prompt. This token will expire at {add the expiration time from the token here}.' ...
+                      'Please log in again and set the token again after it expires.']);
             end
             
             % Set value of a field

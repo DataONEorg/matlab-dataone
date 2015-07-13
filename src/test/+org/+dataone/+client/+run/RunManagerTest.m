@@ -23,15 +23,20 @@ classdef RunManagerTest < matlab.unittest.TestCase
     properties 
         filename
         testDir
+        mgr
     end
 
     methods (TestMethodSetup)
         
         function setUp(testCase)
             % SETUP Set up the test environment
+            
+            import org.dataone.client.run.RunManager;
+            
             %testCase.filename = 'test/resources/DroughtTimeScale_Markup_v2.m';
             testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2.m';
             testCase.testDir = 'test/resources';
+            testCase.mgr = RunManager.getInstance();
         end
     end
     
@@ -49,20 +54,22 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
             % function without passing a Configuration object
 
-            import org.dataone.client.run.RunManager;
+            %import org.dataone.client.run.RunManager;
             
-            mgr = RunManager.getInstance();
-            old_format_id = get(mgr.configuration, 'format_id');
-            set(mgr.configuration, 'format_id', 'application/octet-stream');
-            assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
+            fprintf('\nIn testGetInstanceNoConfiguration() ...\n');
+            
+            %mgr = RunManager.getInstance();
+            old_format_id = get(testCase.mgr.configuration, 'format_id');
+            set(testCase.mgr.configuration, 'format_id', 'application/octet-stream');
+            assertInstanceOf(testCase, testCase.mgr, 'org.dataone.client.run.RunManager');
             % Test a single default property to ensure the configuration was set
-            assertEqual(testCase, mgr.configuration.format_id, 'application/octet-stream');
+            assertEqual(testCase, testCase.mgr.configuration.format_id, 'application/octet-stream');
             
             % reset to the original
-            set(mgr.configuration, 'format_id', old_format_id);
+            set(testCase.mgr.configuration, 'format_id', old_format_id);
 
         end
-        
+              
         function testGetInstanceWithConfiguration(testCase)
             % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
             % function while passing a Configuration object
@@ -70,46 +77,83 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Configuration;
             
-            configuration = Configuration();
-            
-            mgr = RunManager.getInstance(configuration);
-            old_format_id = get(mgr.configuration, 'format_id');
-            set(mgr.configuration, 'format_id', 'text/csv');
+            fprintf('\nIn testGetInstanceWithConfiguration() ...\n');
+           
+            %mgr = RunManager.getInstance(configuration);
+            old_format_id = get(testCase.mgr.configuration, 'format_id');
+            set(testCase.mgr.configuration, 'format_id', 'text/csv');
             
             % Test the instance type
-            assertInstanceOf(testCase, mgr, 'org.dataone.client.run.RunManager');
+            assertInstanceOf(testCase, testCase.mgr, 'org.dataone.client.run.RunManager');
             % Test a single preset property
-            assertEqual(testCase, mgr.configuration.format_id, 'text/csv');
+            assertEqual(testCase, testCase.mgr.configuration.format_id, 'text/csv');
             
             % reset to the original
-            set(mgr.configuration, 'format_id', old_format_id);
+            set(testCase.mgr.configuration, 'format_id', old_format_id);
 
-%             % Test for YesWorkflow              
-%             script_path = fullfile(pwd(), filesep, testCase.filename); 
-%             fprintf('current script path: %s\n', script_path);
-%             
-%             mgr.configuration.provenance_storage_directory = testCase.testDir;
-%             
-%             mgr.record(script_path, '');
-%         
-%             if mgr.configuration.include_workflow_graphic
-%                 curDir = pwd();
-%                 cd(mgr.runDir); % go to the provenance run directory
-%                 
-%                 % Display 3 different views of YesWorkflow output files
-%                 %system('/usr/bin/open process_view.pdf');
-%                 %system('/usr/bin/open data_view.pdf');
-%                 %system('/usr/bin/open combined_view.pdf');
-%                 
-%                 cd(curDir);
-%             end
-%             
-%             % Access a matlab script and run it
-%             %DroughtTimeScale_Markup_v2;
-%             %y = textreadFile('ywModelFacts.pl');
-%             %fprintf('%s', char(y));
+            % Test for YesWorkflow              
+            script_path = fullfile(pwd(), filesep, testCase.filename); 
+            fprintf('current script path: %s\n', script_path);
             
+            mgr.configuration.provenance_storage_directory = testCase.testDir;
+            
+            mgr.record(script_path, '');
+        
+            if mgr.configuration.include_workflow_graphic
+                curDir = pwd();
+                cd(mgr.runDir); % go to the provenance run directory
+                
+                % Display 3 different views of YesWorkflow output files
+                %system('/usr/bin/open process_view.pdf');
+                %system('/usr/bin/open data_view.pdf');
+                %system('/usr/bin/open combined_view.pdf');
+                
+                cd(curDir);
+            end
+            
+            % Access a matlab script and run it
+            %DroughtTimeScale_Markup_v2;
+            %y = textreadFile('ywModelFacts.pl');
+            %fprintf('%s', char(y));
+            %% Test for YesWorkflow              
+            script_path = fullfile(pwd(), filesep, testCase.filename); 
+            %fprintf('current script path: %s\n', script_path);
+            
+            testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
+            
+            testCase.mgr.configuration.script_base_name = '0'; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
+            
+            testCase.mgr.record(script_path, '');
+        
+            if testCase.mgr.configuration.include_workflow_graphic
+                curDir = pwd();
+                cd(testCase.mgr.runDir); % go to the provenance run directory
+                
+                % Display 3 different views of YesWorkflow output files
+                %system('/usr/bin/open process_view.pdf');
+                %system('/usr/bin/open data_view.pdf');
+                %system('/usr/bin/open combined_view.pdf');
+                
+                cd(curDir);
+            end  
         end
-
+        
+        % The function testPublish() has to be put behind the function testGetInstanceWithConfiguration(). 
+        function testPublish(testCase)
+            import org.dataone.client.run.RunManager;
+            import org.dataone.client.configure.Configuration;
+            
+            fprintf('\nIn testPublish() ...\n');
+           
+            %mgr = RunManager.getInstance(configuration);
+            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo2');
+            %authToken = 'abc';
+            %set(mgr.configuration, 'authentication_token', authToken);
+       
+            testCase.mgr.runDir = 'test/resources/runs';
+            k = strfind(testCase.mgr.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
+            runId = testCase.mgr.execution.execution_id(k+9:end);
+            pkgId = testCase.mgr.publish(runId);
+        end
     end
 end
