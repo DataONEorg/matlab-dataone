@@ -84,30 +84,30 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % reset to the original
             set(mgr.configuration, 'format_id', old_format_id);
 
-            %% Test for YesWorkflow              
-            script_path = fullfile(pwd(), filesep, testCase.filename); 
-            fprintf('current script path: %s\n', script_path);
-            
-            mgr.configuration.provenance_storage_directory = testCase.testDir;
-            
-            mgr.record(script_path, '');
-        
-            if mgr.configuration.include_workflow_graphic
-                curDir = pwd();
-                cd(mgr.runDir); % go to the provenance run directory
-                
-                % Display 3 different views of YesWorkflow output files
-                %system('/usr/bin/open process_view.pdf');
-                %system('/usr/bin/open data_view.pdf');
-                %system('/usr/bin/open combined_view.pdf');
-                
-                cd(curDir);
-            end
-            
-            % Access a matlab script and run it
-            %DroughtTimeScale_Markup_v2;
-            %y = textreadFile('ywModelFacts.pl');
-            %fprintf('%s', char(y));
+%             % Test for YesWorkflow              
+%             script_path = fullfile(pwd(), filesep, testCase.filename); 
+%             fprintf('current script path: %s\n', script_path);
+%             
+%             mgr.configuration.provenance_storage_directory = testCase.testDir;
+%             
+%             mgr.record(script_path, '');
+%         
+%             if mgr.configuration.include_workflow_graphic
+%                 curDir = pwd();
+%                 cd(mgr.runDir); % go to the provenance run directory
+%                 
+%                 % Display 3 different views of YesWorkflow output files
+%                 %system('/usr/bin/open process_view.pdf');
+%                 %system('/usr/bin/open data_view.pdf');
+%                 %system('/usr/bin/open combined_view.pdf');
+%                 
+%                 cd(curDir);
+%             end
+%             
+%             % Access a matlab script and run it
+%             %DroughtTimeScale_Markup_v2;
+%             %y = textreadFile('ywModelFacts.pl');
+%             %fprintf('%s', char(y));
             
         end
 
