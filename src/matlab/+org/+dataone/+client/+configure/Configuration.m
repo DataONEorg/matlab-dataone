@@ -22,9 +22,8 @@ classdef Configuration < hgsetget & dynamicprops
     % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
     
     properties
-        
-         % A boolean property that enables or disables debugging 
-        debug = true; 
+        % A boolean property that enables or disables debugging 
+        debug = false;  
         
         % The Operating System account username
         account_name = '';
@@ -68,7 +67,7 @@ classdef Configuration < hgsetget & dynamicprops
         % The researcher's DataONE subject as a distinguished name string
         subject_dn = '';
         
-        %The absolute file system path to the X509 certificate downloaded from https://cilogon.org
+        % The absolute file system path to the X509 certificate downloaded from https://cilogon.org
         certificate_path = '';
         
         % The friend of a friend 'name' vocabulary term
@@ -89,7 +88,7 @@ classdef Configuration < hgsetget & dynamicprops
         % A flag indicating whether to trigger provenance capture for writing with DataONE MNStorage.create() or MNStorage.update()
         capture_dataone_writes = true;
         
-         % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
+        % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
         capture_yesworkflow_comments = true;
         
         % The directory used to store persistent configuration file Eg: $HOME/.d1/configuration.json
@@ -100,8 +99,7 @@ classdef Configuration < hgsetget & dynamicprops
         % A flag indicating whether to generate the graphic
         generate_workflow_graphic = true;
         
-        % A flag indicating whether to include the workflow graphic as an
-        % object in the DataPackage
+        % A flag indicating whether to include the workflow graphic as an object in the DataPackage
         include_workflow_graphic = true;
         
         % A script base name will be used to name yesWorkflow artifacts.
@@ -120,6 +118,10 @@ classdef Configuration < hgsetget & dynamicprops
         
         function configuration = Configuration()
             % CONFIGURATION A class used to set configuration options for the DataONE Toolbox  
+            
+            import org.dataone.configuration.Settings;
+            
+            Settings.getConfiguration().setProperty('D1Client.CN_URL', 'https://cn-dev.test.dataone.org/cn');
             
             % Find path for persistent_configuration_file_name
             if ispc
@@ -180,39 +182,22 @@ classdef Configuration < hgsetget & dynamicprops
             if strcmp(paraName, 'format_id')
                
                 import org.dataone.client.v2.formats.ObjectFormatCache;
-                import org.dataone.configuration.Settings;
                 import org.dataone.service.types.v1.ObjectFormatIdentifier;
-                
-                %cn_base_url = 'https://cn-sandbox-2.test.dataone.org/cn';
-                %cn_base_url = 'https://cn-dev.test.dataone.org/cn/';
-                Settings.getConfiguration.setProperty('D1Client.CN_URL', configuration.coordinating_node_base_url);
-                ofc = ObjectFormatCache.getInstance();
+           
                 objFmtId = ObjectFormatIdentifier();
                 objFmtId.setValue(value);
+                                
+                ofc = ObjectFormatCache.getInstance();
                 objFmt = ofc.getFormat(objFmtId);
                 if isempty(objFmt) == 1
                    error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
                 end
                 
                 size = ofc.listFormats().sizeObjectFormatList();
-                fprintf('objectFormatList.size=%d\n', size);
-                
-               % fmtList = ofc.listFormats();
-               % size = fmtList.getObjectFormatList().size();
-               % fprintf('objectFormatList.size=%d\n', size);
-                
-               % found = false;
-               % for i = 1:size
-               %     fmt = fmtList.getObjectFormatList.get(i-1);
-               %     if strcmp(value, char(fmt.getFormatId().getValue()))
-               %         found = true;
-               %         break;
-               %     end                    
-               % end 
-                
-               % if found ~= 1
-               %     error('ConfigurationError:format_id', 'format_id should use ObjectFormat.');
-               % end  
+                if configuration.debug
+                    disp(configuration.debug);
+                    fprintf('objectFormatList.size=%d\n', size);
+                end
             end
             
             if strcmp(paraName, 'authentication_token')
@@ -288,7 +273,7 @@ classdef Configuration < hgsetget & dynamicprops
                 if exist(configuration_file_absolute_path, 'file') == 0
                     % The configuration.json does not exist under the default directory
                     % Create an empty configuration.json here.             
-                    if configuration.debug 
+                    if configuration.debug == 1
                         fprintf('\nCreate a new and empty configuration.json at %s.', ...
                             configuration_file_absolute_path);
                     end

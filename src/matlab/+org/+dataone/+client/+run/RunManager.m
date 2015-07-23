@@ -24,27 +24,23 @@
 classdef RunManager < hgsetget
 
     properties      
-        % The instance of the Configuration class used to provide settings 
-        % details for this RunManager
+        % The instance of the Configuration class used to provide settings details for this RunManager
         configuration;
                 
         % The execution metadata associated with this run
         execution;
-        
-        % The YesWorkflow Extractor object
-        extractor;
-        
-        % The YesWorkflow Modeler object
-        modeler;
-        
-        % The YesWorkflow Grapher object
-        grapher;
-        
+      
         % The generated workflow object built by YesWorkflow 
         workflow;
                
         % The provenance directory for an execution
         runDir;
+        
+        % Control switch for printing debug messaging 
+        debug = false;
+                       
+        % runID
+        runId;
     end
 
     properties (Access = private)               
@@ -69,6 +65,38 @@ classdef RunManager < hgsetget
         mfilename = '';
         efilename = '';
         
+        % DataONE CN URL
+        CN_URL; 
+        
+        % DataONE CN URI resolve endpoint 
+        D1_CN_Resolve_Endpoint;
+        
+        % Current workflow identifier
+        wfIdentifier;
+        
+        % Predicate for the rdf:type
+        aTypePredicate;
+        
+        % Current execution instance URI
+        execURI;
+        
+        % Current association instance URI
+        associationSubjectURI;
+        
+        % Current user URI
+        userURI;
+        
+        % Predicate for provone: Data
+        provONEdataURI;
+        
+        % The YesWorkflow Extractor object
+        extractor;
+        
+        % The YesWorkflow Modeler object
+        modeler;
+        
+        % The YesWorkflow Grapher object
+        grapher;
     end
    
     methods (Access = private)
@@ -84,39 +112,378 @@ classdef RunManager < hgsetget
             mlock; % Lock the RunManager instance to prevent clears          
         end
         
+        
         function predicate = asPredicate(runManager, property, prefix)
             import com.hp.hpl.jena.rdf.model.Property;
             import org.dspace.foresite.Predicate;
             import java.net.URI;
              
             predicate = Predicate();
-            fprintf('property.localName = %s\n', char(property.getLocalName()));
+            if runManager.debug
+                fprintf('property.localName = %s\n', char(property.getLocalName()));
+            end
             predicate.setName(property.getLocalName());
             %predicate.setNamespace(property.getNamespace()); % There is an error here !
             if isempty(prefix) ~= 1
                 predicate.setPrefix(prefix);               
             end
             predicate.setURI(URI(property.getURI()));
-            fprintf('predicate.URI = %s\n', char(predicate.getURI()));
-            fprintf('predicate.nameSpace = %s\n', char(predicate.getNamespace()));
+            
+            if runManager.debug
+                fprintf('predicate.URI = %s\n', char(predicate.getURI()));
+                fprintf('predicate.nameSpace = %s\n', char(predicate.getNamespace()));
+            end
         end
+        
         
         function cn_url = getD1UriPrefix(runManager)
             import org.dataone.configuration.Settings;
             import org.dataone.client.v2.itk.D1Client;
             
-            cn_url = Settings.getConfiguration().getString('D1Client.CN_URL', 'https://cn-dev.test.dataone.org/cn');
-            fprintf('char(cn_url)=%s\n', char(cn_url));
-            % D1_URI_PREFIX = [char(cn_url) '/v1/resolve/'];
-            %D1_URI_PREFIX = [char(cn_url) 'v1/resolve/'];
+            cn_url = Settings.getConfiguration().getString('D1Client.CN_URL');
+            
+            if runManager.debug
+                fprintf('char(cn_url)=%s\n', char(cn_url));
+            end
+
+        end
+        
+        
+        function configYesWorkflow(runManager, path)
+            % CONFIGYESWORKFLOW set YesWorkflow extractor language model to be Matlab type
+            import org.yesworkflow.extract.DefaultExtractor;
+            import org.yesworkflow.model.DefaultModeler;
+            import org.yesworkflow.graph.DotGrapher;
+            import java.io.PrintStream;
+            
+            runManager.extractor = DefaultExtractor;
+            runManager.modeler = DefaultModeler;
+            runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
+            
+            % Configure yesWorkflow language model to be Matlab
+            import org.yesworkflow.extract.HashmapMatlabWrapper;
+            import org.yesworkflow.Language;
+            
+            config = HashmapMatlabWrapper;
+            config.put('language', Language.MATLAB);
+            runManager.extractor = runManager.extractor.configure(config);         
+          
+            % Set generate_workflow_graphic to be true
+            runManager.configuration.generate_workflow_graphic = true;
+        end
+        
+        
+        function certificate = getCertificate(runManager)
+            % GETCERTIFICATE Gets a certificate 
+            import org.dataone.client.auth.CertificateManager;
+            import java.security.cert.X509Certificate;
+            
+            % Get a certificate for the Root CA           
+            certificate = CertificateManager.getInstance().loadCertificate();
+            
+            if runManager.debug
+                fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));  
+            end
+        end
+        
+        
+        function captureProspectiveProvenanceWithYW(runManager)
+            % CAPTUREPROSPECTIVEPROVENANCEWITHYW captures the prospective provenance using YesWorkflow 
+            %   by scannning the inline yesWorkflow comments.
+         
+            import java.io.BufferedReader;
+            import org.yesworkflow.annotations.Annotation;
+            import org.yesworkflow.model.Program;
+            import org.yesworkflow.model.Workflow;
+            import java.io.File;
+            import java.io.FileReader;
+            import java.util.List;
+            import java.util.HashMap;
+                       
+            try
+                % Read script content from disk
+                script = File(runManager.execution.software_application);
+                freader = FileReader(script);
+                reader = BufferedReader(freader);
+            
+                % Call YW-Extract module
+                runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
+                annotations = runManager.extractor.extract().getAnnotations();
+        
+                % Call YW-Model module
+                runManager.modeler = runManager.modeler.annotations(annotations);
+                runManager.modeler = runManager.modeler.model();
+                runManager.workflow = runManager.modeler.getModel().program; % April-version yesWorkflow
+               
+                % Call YW-Graph module
+                if runManager.configuration.generate_workflow_graphic
+                    import org.yesworkflow.graph.GraphView;
+                    import org.yesworkflow.graph.CommentVisibility;
+                    import org.yesworkflow.extract.HashmapMatlabWrapper;
+                    import org.yesworkflow.graph.LayoutDirection;
+                
+                    runManager.grapher = runManager.grapher.workflow(runManager.workflow);
+                    gconfig = HashmapMatlabWrapper;
+                 
+                    % Set the working directory to be the run metadata directory for this run
+                    curDir = pwd();
+                    wd = cd(runManager.runDir); 
+                
+                    gconfig.put('comments', CommentVisibility.OFF);
+     
+                    % Generate YW.Process_View dot file
+                    runManager.processViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv']; 
+                    gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
+                    gconfig.put('layout', LayoutDirection.LR);
+                    gconfig.put('dotfile', runManager.processViewDotFileName);
+                    runManager.grapher.configure(gconfig);              
+                    runManager.grapher = runManager.grapher.graph();           
+                   
+                    % Generate YW.Data_View dot file
+                    runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_data_view.gv'];
+                    gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
+                    gconfig.put('layout', LayoutDirection.LR);
+                    gconfig.put('dotfile', runManager.dataViewDotFileName);
+                    runManager.grapher.configure(gconfig);
+                    runManager.grapher = runManager.grapher.graph();
+                   
+                    % Generate YW.Combined_View dot file
+                    runManager.combinedViewDotFileName = [runManager.configuration.script_base_name '_combined_view.gv'];
+                    gconfig.put('view', GraphView.COMBINED_VIEW);
+                    gconfig.put('layout', LayoutDirection.TB);
+                    gconfig.put('dotfile', runManager.combinedViewDotFileName);                
+                    runManager.grapher.configure(gconfig);
+                    runManager.grapher = runManager.grapher.graph();
+                   
+                    % Create yesWorkflow modelFacts prolog dump 
+                    import org.yesworkflow.model.ModelFacts;
+                    import org.yesworkflow.extract.ExtractFacts;
+                    
+                    modelFacts = runManager.modeler.getFacts();               
+                    runManager.mfilename = [runManager.configuration.script_base_name  '_ywModelFacts.pl'];
+                    fw = fopen(runManager.mfilename, 'w'); 
+                    if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
+                    fprintf(fw, '%s', char(modelFacts));
+                    fclose(fw);
+                    
+                    % Create yewWorkflow extractFacts prolog dump
+                    extractFacts = runManager.extractor.getFacts();              
+                    runManager.efilename = [runManager.configuration.script_base_name  '_ywExtractFacts.pl'];
+                    fw = fopen(runManager.efilename, 'w');    
+                    if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
+                    fprintf(fw, '%s', char(extractFacts));
+                    fclose(fw);
+                   
+                    cd(curDir); % go back to current working directory          
+                end  
+                
+            catch ME      
+            end      
+        end
+ 
+       
+        function generateYesWorkflowGraphic(runManager)
+            % GENERATEYESWORKFLOWGRAPHIC generates yesWorkflow graphcis in
+            %   pdf format. 
+            
+            runManager.combinedViewPdfFileName = [runManager.configuration.script_base_name '_combined_view.pdf'];
+            runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
+            runManager.processViewPdfFileName = [runManager.configuration.script_base_name '_process_view.pdf'];
+                    
+            % Convert .gv files to .pdf files
+            if isunix    
+                system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);  
+                system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
+                system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);      
+                          
+                delete(runManager.combinedViewDotFileName);
+                delete(runManager.dataViewDotFileName);
+                delete(runManager.processViewDotFileName);
+            end
+        end
+        
+        
+        function buildPackage(runManager, submitter, mnNodeId) 
+            % BUILDPACKAGE  packages a datapackage for the current run
+            %   including the workflow script and yesWorkflow graphics
+            import org.dataone.client.v1.itk.DataPackage;
+            import org.dataone.service.types.v1.Identifier;            
+            import org.dataone.client.run.NamedConstant;
+            import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
+            import org.dataone.client.v1.types.D1TypeBuilder;
+            import org.dataone.client.v1.itk.D1Object;
+            import com.hp.hpl.jena.vocabulary.RDF;
+            import org.dataone.vocabulary.PROV;
+            import org.dataone.vocabulary.ProvONE;
+            import org.dataone.vocabulary.ProvONE_V1;
+            import java.net.URI;
+            import org.dspace.foresite.ResourceMap;
+            import org.dataone.vocabulary.DC_TERMS;
+            import java.io.File;
+            import javax.activation.FileDataSource;
+            
+            % Get the base URL of the DataONE coordinating node server
+            runManager.CN_URL = runManager.getD1UriPrefix(); 
+            runManager.D1_CN_Resolve_Endpoint = [char(runManager.CN_URL) '/v1/resolve/'];
+            
+            % Record relationship identifying prov:hadPlan between execution and programs   
+            runManager.wfIdentifier = Identifier();
+            E = strsplit(runManager.execution.software_application,filesep);                     
+            runManager.wfIdentifier.setValue([runManager.configuration.script_base_name '_' char(E(end))]);
+            wfIdsList = ArrayListMatlabWrapper();
+            wfIdsList.add(runManager.wfIdentifier);   
+            runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
+            wfMetadataId = Identifier();
+            wfMetadataId.setValue(runManager.wfMetaFileName);
+            runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);    
+            
+             % Describe the workflow identifier with another literal identifier
+            wfSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint char(runManager.wfIdentifier.getValue())]);
+            runManager.dataPackage.insertRelationship(wfSubjectURI, DC_TERMS.predicate('identifier'), runManager.wfIdentifier.getValue());
+                
+            % Record relationship identifying workflow id as a provONE:Program
+            runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
+            provOneProgramURI = URI(ProvONE.Program.getURI());        
+            runManager.dataPackage.insertRelationship(wfSubjectURI, runManager.aTypePredicate, provOneProgramURI);
+                       
+            % Record relationship identifying execution id as a provone:Execution                              
+            runManager.execURI = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' runManager.runId]);
+ 
+            runManager.associationSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint 'A0_' char(java.util.UUID.randomUUID())]);
+            provOneProgramURI = URI(ProvONE.Program.getURI());
+            % Store the prov relationship: association->prov:hadPlan->program
+            predicate = PROV.predicate('hadPlan');
+            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, predicate, provOneProgramURI);
+            % Record relationship identifying association id as a prov:Association
+            provAssociationURI = URI(PROV.Association.getURI());
+            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, runManager.aTypePredicate, provAssociationURI);
+                        
+            % Store the prov relationship: execution->prov:qualifiedAssociation->association
+            provAssociationObjURI = URI(PROV.Association.getURI());
+            predicate = PROV.predicate('qualifiedAssociation');
+            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, provAssociationObjURI);
+            
+            provOneExecURI = URI(ProvONE.Execution.getURI());           
+            runManager.dataPackage.insertRelationship(runManager.execURI, runManager.aTypePredicate, provOneExecURI);  
+                      
+            % Store the ProvONE relationships for user
+            runManager.userURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.execution.account_name]);                 
+            % Record the relationship between the Execution and the user
+            predicate = PROV.predicate('wasAssociatedWith');
+            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, runManager.userURI);    
+            % Record the relationship for association->prov:agent->"user"
+            predicate = PROV.predicate('agent');
+            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, predicate, runManager.userURI);
+            % Record a relationship identifying the provONE:user
+            provONEUserURI = URI(ProvONE.User.getURI());
+            runManager.dataPackage.insertRelationship(runManager.userURI, runManager.aTypePredicate, provONEUserURI); 
+            
+             % YesWorkflow combined view image (.pdf)
+            combinedViewId = Identifier();
+            combinedViewId.setValue(runManager.combinedViewPdfFileName);
+            combinedViewURI = URI([runManager.D1_CN_Resolve_Endpoint  runManager.combinedViewPdfFileName]);
+            metaCombinedView = Identifier(); % metadata
+            metaCombinedView.setValue([runManager.configuration.script_base_name '_combined_view.xml']);
+            combinedViewIds = ArrayListMatlabWrapper;
+            combinedViewIds.add(combinedViewId); 
+                
+            % YesWorkflow data view image (.pdf)
+            dataViewId = Identifier();
+            dataViewId.setValue(runManager.dataViewPdfFileName); 
+            dataViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.dataViewPdfFileName]);
+            metaDataView = Identifier(); % metadata
+            metaDataView.setValue([runManager.configuration.script_base_name '_data_view.xml']);
+            dataViewIds = ArrayListMatlabWrapper;
+            dataViewIds.add(dataViewId);
+                 
+            % YesWorkflow process view image (.pdf)
+            processViewId = Identifier();
+            processViewId.setValue(runManager.processViewPdfFileName); 
+            processViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.processViewPdfFileName]);
+            metaProcessView = Identifier(); % metadata
+            metaProcessView.setValue([runManager.configuration.script_base_name '_process_view.xml']);
+            processViewIds = ArrayListMatlabWrapper;
+            processViewIds.add(processViewId);
+                 
+            % wasDocumentedBy
+            runManager.dataPackage.insertRelationship(metaCombinedView, combinedViewIds);
+            runManager.dataPackage.insertRelationship(metaDataView, dataViewIds);
+            runManager.dataPackage.insertRelationship(metaProcessView, processViewIds);
+                
+            % wasGeneratedBy
+            predicate = PROV.predicate('wasGeneratedBy');
+            runManager.dataPackage.insertRelationship(combinedViewURI, predicate, runManager.execURI);  
+            runManager.dataPackage.insertRelationship(dataViewURI, predicate, runManager.execURI);  
+            runManager.dataPackage.insertRelationship(processViewURI, predicate, runManager.execURI);  
+                
+            % Record relationship identifying as provONE:Data              
+            runManager.dataPackage.insertRelationship(combinedViewURI, runManager.aTypePredicate, runManager.provONEdataURI);
+            runManager.dataPackage.insertRelationship(dataViewURI, runManager.aTypePredicate, runManager.provONEdataURI);
+            runManager.dataPackage.insertRelationship(processViewURI, runManager.aTypePredicate, runManager.provONEdataURI);
+                
+            % Create D1Object for each figure and add the D1Object to the DataPackage
+            imgFmt = 'application/pdf';      
+            combinedViewFileId = File(combinedViewId.getValue());
+            combinedViewData = FileDataSource(combinedViewFileId);
+            combinedViewD1Obj = D1Object(combinedViewId, combinedViewData, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(combinedViewD1Obj);
+             
+            dataViewFileId = File(dataViewId.getValue());
+            dataViewData = FileDataSource(dataViewFileId);
+            dataViewD1Obj = D1Object(dataViewId, dataViewData, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(dataViewD1Obj);
+                
+            processViewFileId = File(processViewId.getValue());
+            processViewData = FileDataSource(processViewFileId);
+            processViewD1Obj = D1Object(processViewId, processViewData, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(processViewD1Obj);               
+               
+            metadataModelFactsId = Identifier;
+            metadataModelFactsId.setValue([runManager.configuration.script_base_name  '_ywModelFacts.xml']);
+            dataModelFactsIds = ArrayListMatlabWrapper;               
+            modelFactsId = Identifier();
+            modelFactsId.setValue(runManager.mfilename); % ywModelFacts prolog dump
+            dataModelFactsIds.add(modelFactsId); 
+            modelFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.mfilename]);
+                
+            % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
+            prologDumpFmt = 'text/plain';      
+            modelFactsFileId = File(modelFactsId.getValue());
+            modelFactsData = FileDataSource(modelFactsFileId);
+            modelFactsD1Obj = D1Object(modelFactsId, modelFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(modelFactsD1Obj);
+              
+            metadataExtractFactsId = Identifier;
+            metadataExtractFactsId.setValue([runManager.configuration.script_base_name  '_ywExtractFacts.xml']);
+            dataExtractFactsIds = ArrayListMatlabWrapper;
+            extractFactsId = Identifier;
+            extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump
+            dataExtractFactsIds.add(extractFactsId); 
+            extractFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.efilename]);
+                
+            % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
+            predicate = PROV.predicate('wasGeneratedBy');
+            runManager.dataPackage.insertRelationship(modelFactsURI, predicate, runManager.execURI);  
+            runManager.dataPackage.insertRelationship(extractFactsURI, predicate, runManager.execURI); 
+            runManager.dataPackage.insertRelationship(modelFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
+            runManager.dataPackage.insertRelationship(extractFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
+            runManager.dataPackage.insertRelationship(metadataExtractFactsId, dataExtractFactsIds);
+            runManager.dataPackage.insertRelationship(metadataModelFactsId, dataModelFactsIds); 
+                                  
+            % Create D1Object for ywExtractFacts prolog dump and add the D1Object to the DataPackage      
+            extractFactsFileId = File(extractFactsId.getValue());
+            extractFactsData = FileDataSource(extractFactsFileId);
+            extractFactsD1Obj = D1Object(extractFactsId, extractFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(extractFactsD1Obj);
+                                
         end
     end
-
+ 
     
     methods (Static)
         function runManager = getInstance(configuration)
             % GETINSTANCE returns an instance of the RunManager by either
-            % creating a new instance or returning an existing one.
+            %   creating a new instance or returning an existing one.
                         
             import org.dataone.client.configure.Configuration;
            
@@ -147,10 +514,9 @@ classdef RunManager < hgsetget
         
         function setJavaClassPath()
             % SETJAVACLASSPATH adds all Java libraries found in 
-            % $matalab-dataone/lib to the java class path
+            %   $matalab-dataone/lib to the java class path
             
-            % Determine the lib directory relative to the RunManager
-            % location
+            % Determine the lib directory relative to the RunManager location
             filePath = mfilename('fullpath');
             matlab_dataone_dir_array = strsplit(filePath, filesep);
             matlab_dataone_java_lib_dir = ...
@@ -176,10 +542,9 @@ classdef RunManager < hgsetget
         
         function setMatlabPath()
             % SETMATLABPATH adds all Matlab libraries found in 
-            % $matalab-dataone/lib/matlab to the Matlab path
+            %   $matalab-dataone/lib/matlab to the Matlab path
             
-            % Determine the lib directory relative to the RunManager
-            % location
+            % Determine the lib directory relative to the RunManager location
             filePath = mfilename('fullpath');
             matlab_dataone_dir_array = strsplit(filePath, filesep);
             matlab_dataone_lib_dir = ...
@@ -189,37 +554,12 @@ classdef RunManager < hgsetget
                     filesep 'lib' filesep 'matlab' filesep];
            
            % Add subdirectories of lib/matlab to the Matlab path,
-           addpath(genpath(matlab_dataone_lib_dir));
-                
+           addpath(genpath(matlab_dataone_lib_dir));               
         end
     end
     
-    methods  
-        function configYesWorkflow(runManager, path)
-            % CONFIGYESWORKFLOW set YesWorkflow extractor language model to be
-            % Matlab type
-            import org.yesworkflow.extract.DefaultExtractor;
-            import org.yesworkflow.model.DefaultModeler;
-            import org.yesworkflow.graph.DotGrapher;
-            import java.io.PrintStream;
-            
-            runManager.extractor = DefaultExtractor;
-            runManager.modeler = DefaultModeler;
-            runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
-            
-            % Configure yesWorkflow language model to be Matlab
-            import org.yesworkflow.extract.HashmapMatlabWrapper;
-            import org.yesworkflow.Language;
-            
-            config = HashmapMatlabWrapper;
-            config.put('language', Language.MATLAB);
-            runManager.extractor = runManager.extractor.configure(config);         
-          
-            % Set generate_workflow_graphic to be true
-            runManager.configuration.generate_workflow_graphic = true;
-        end
+    methods    
         
-                
         function data_package = record(runManager, filePath, tag)
             % RECORD Records provenance relationships between data and scripts
             % When record() is called, data input files, data output files,
@@ -290,6 +630,7 @@ classdef RunManager < hgsetget
             data_package = runManager.endRecord();
         end
         
+        
         function startRecord(runManager, tag)
             % STARTRECORD Starts recording provenance relationships (see record()).
 
@@ -304,122 +645,45 @@ classdef RunManager < hgsetget
                 [pathstr,script_base_name,ext] = fileparts(runManager.execution.software_application);
                 runManager.configuration.script_base_name = strtrim(script_base_name);      
             end
-            
-            global CN_URL;
-            global D1_URI_PREFIX;           
-            CN_URL = runManager.getD1UriPrefix(); % get the base URL of the DataONE coordinating node server
-            D1_URI_PREFIX = [char(CN_URL) 'v1/resolve/'];
-               
+                        
             % Create the run metadata directory for this run
-            k = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
-            runId = runManager.execution.execution_id(k+9:end);
-            runManager.runDir = strcat(runManager.configuration.provenance_storage_directory, filesep,'runs', filesep, runId);
+            position = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
+            runManager.runId = runManager.execution.execution_id(position+9:end);
+            runManager.runDir = strcat(runManager.configuration.provenance_storage_directory, filesep,'runs', filesep, runManager.runId);
             [status, message, message_id] = mkdir(runManager.runDir);         
             if ( status ~= 1 )
                 error(message_id, [ 'The directory %s' ...
                     ' could not be created. The error message' ...
                     ' was: ' runManager.runDir, message]);
             end
-          
-            %% Package a datapackage for the current run    
+            
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
-            import org.dataone.client.run.NamedConstant;
-            import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
-            import org.dataone.client.v1.types.D1TypeBuilder;
-            import org.dataone.client.v1.itk.D1Object;
-            import com.hp.hpl.jena.vocabulary.RDF;
-            import org.dataone.vocabulary.PROV;
-            import org.dataone.vocabulary.ProvONE;
-            import org.dataone.vocabulary.ProvONE_V1;
-            import java.net.URI;
-            import org.dspace.foresite.ResourceMap;
-            import org.dataone.vocabulary.DC_TERMS;
-            
+          
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
-            % runManager.dataPackage = DataPackage(packageIdentifier);
-           
+            
             % Create a resourceMap identifier
             resourceMapId = Identifier();
             resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
-            % Create a datapackage with resourceMapId
+            % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
-                     
-            % Record relationship identifying prov:hadPlan between execution and programs   
-            global wfIdentifier;
-            wfIdentifier = Identifier();
-            E = strsplit(runManager.execution.software_application,filesep);                     
-            wfIdentifier.setValue([runManager.configuration.script_base_name '_' char(E(end))]);
-            wfIdsList = ArrayListMatlabWrapper();
-            wfIdsList.add(wfIdentifier);   
-            runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
-            wfMetadataId = Identifier();
-            wfMetadataId.setValue(runManager.wfMetaFileName);
-            runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);        
-           
-            % Now describe the workflow identifier with another literal identifier
-            wfSubjectURI = URI([D1_URI_PREFIX char(wfIdentifier.getValue())]);
-            runManager.dataPackage.insertRelationship(wfSubjectURI, DC_TERMS.predicate('identifier'), wfIdentifier.getValue());
-                
-            % Record relationship identifying workflow id as a provONE:Program
-            global aTypePredicate;
-            aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-            provOneProgramURI = URI(ProvONE.Program.getURI());
-            %runManager.dataPackage.insertRelationship(wfIdentifier, aTypePredicate, provOneProgramURI);          
-            runManager.dataPackage.insertRelationship(wfSubjectURI, aTypePredicate, provOneProgramURI);
-                       
-            % Record relationship identifying execution id as a provone:Execution                              
-            global execURI;
-            execURI = URI([D1_URI_PREFIX  'execution_' runId]);
- 
-            global associationSubjectURI; 
-            associationSubjectURI = URI([D1_URI_PREFIX 'A0_' char(java.util.UUID.randomUUID())]);
-            provOneProgramURI = URI(ProvONE.Program.getURI());
-            % Store the prov relationship: association->prov:hadPlan->program
-            predicate = PROV.predicate('hadPlan');
-            runManager.dataPackage.insertRelationship(associationSubjectURI, predicate, provOneProgramURI);
-            % Record relationship identifying association id as a prov:Association
-            provAssociationURI = URI(PROV.Association.getURI());
-            runManager.dataPackage.insertRelationship(associationSubjectURI, aTypePredicate, provAssociationURI);
-                        
-            % Store the prov relationship: execution->prov:qualifiedAssociation->association
-            provAssociationObjURI = URI(PROV.Association.getURI());
-            predicate = PROV.predicate('qualifiedAssociation');
-            runManager.dataPackage.insertRelationship(execURI, predicate, provAssociationObjURI);
-            
-            provOneExecURI = URI(ProvONE.Execution.getURI());           
-            runManager.dataPackage.insertRelationship(execURI, aTypePredicate, provOneExecURI);  
-                      
-            % Store the ProvONE relationships for user
-            global userURI;
-            userURI = URI([D1_URI_PREFIX runManager.execution.account_name]);                 
-            % Record the relationship between the Execution and the user
-            predicate = PROV.predicate('wasAssociatedWith');
-            runManager.dataPackage.insertRelationship(execURI, predicate, userURI);    
-            % Record the relationship for association->prov:agent->"user"
-            predicate = PROV.predicate('agent');
-            runManager.dataPackage.insertRelationship(associationSubjectURI, predicate, userURI);
-            % Record a relationship identifying the provONE:user
-            provONEUserURI = URI(ProvONE.User.getURI());
-            runManager.dataPackage.insertRelationship(userURI, aTypePredicate, provONEUserURI); 
+                             
           
-            %% Run the script and collect provenance information
+            % Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
           % [pathstr, script_name, ext] = ...
           %     fileparts(runManager.execution.software_application);
           % addpath(pathstr);
 
           % try
-          %     eval(script_name);
-                
+          %     eval(script_name);             
           % catch runtimeError
           %     error(['The script: ' ...
           %            runManager.execution.software_application ...
           %            ' could not be run. The error message was: ' ...
-          %             runtimeError.message]);
-                   
+          %             runtimeError.message]);                
           % end
           
         end
@@ -428,7 +692,6 @@ classdef RunManager < hgsetget
             % ENDRECORD Ends the recording of an execution (run).
             
             import org.dataone.service.types.v1.Identifier;
-            %import org.dataone.client.v1.itk.ArrayListMatlabWrapper; 
             import org.dataone.client.v1.itk.D1Object;
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.client.run.NamedConstant;
@@ -438,20 +701,14 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.PROV;
             import org.dataone.vocabulary.ProvONE;
             import java.net.URI;
-            %import org.dataone.ore.ListGenericURIMatlabWrapper;
             import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
             
             % Stop recording
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
-                        
-            global provONEdataURI;
-            global execURI;
-            global aTypePredicate;
-            global D1_URI_PREFIX;
-                       
+               
             % Record a data list for provOne:Data
-            provONEdataURI = URI(ProvONE.Data.getURI());
+            runManager.provONEdataURI = URI(ProvONE.Data.getURI());
                       
             % Get submitter and MN node reference
             submitter = runManager.execution.account_name;
@@ -462,8 +719,8 @@ classdef RunManager < hgsetget
             data = FileDataSource(fileId);           
             scriptFmt = 'text/plain';        
             wfId = Identifier;
-            E = strsplit(runManager.execution.software_application,filesep);          
-            wfId.setValue([runManager.configuration.script_base_name char(E(end))]);        
+            scriptNameArray = strsplit(runManager.execution.software_application,filesep);          
+            wfId.setValue([runManager.configuration.script_base_name char(scriptNameArray(end))]);        
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(programD1Obj);
             
@@ -472,136 +729,26 @@ classdef RunManager < hgsetget
                 % Call YesWorkflow to capture prospective provenance for current scirpt
                 curDir = pwd();
                 runManager.captureProspectiveProvenanceWithYW();
-                cd(runManager.runDir);
-                
-                runManager.combinedViewPdfFileName = [runManager.configuration.script_base_name '_combined_view.pdf'];
-                runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
-                runManager.processViewPdfFileName = [runManager.configuration.script_base_name '_process_view.pdf'];
-                    
-                % Convert .gv files to .pdf files
-                if isunix    
-                    system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);  
-                    system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
-                    system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);      
-                          
-                    delete(runManager.combinedViewDotFileName);
-                    delete(runManager.dataViewDotFileName);
-                    delete(runManager.processViewDotFileName);
-                end    
-                cd(curDir);
             end
             
-            % Include YW impages
+            % Include yesWorkflow graphics
             if runManager.configuration.include_workflow_graphic 
-                % One derived YW combined view image 
-                imgId1 = Identifier();
-                imgId1.setValue(runManager.combinedViewPdfFileName); % a figure image
-                imgURI1 = URI([D1_URI_PREFIX  runManager.combinedViewPdfFileName]);
-                % Metadata
-                metadataImgId1 = Identifier();
-                metadataImgId1.setValue([runManager.configuration.script_base_name '_combined_view.xml']);
-                dataImgIds1 = ArrayListMatlabWrapper;
-                dataImgIds1.add(imgId1); 
-                
-                % One derived YW data view image
-                imgId2 = Identifier();
-                imgId2.setValue(runManager.dataViewPdfFileName); % a figure image
-                imgURI2 = URI([D1_URI_PREFIX runManager.dataViewPdfFileName]);
-                % Metadata
-                metadataImgId2 = Identifier();
-                metadataImgId2.setValue([runManager.configuration.script_base_name '_data_view.xml']);
-                dataImgIds2 = ArrayListMatlabWrapper;
-                dataImgIds2.add(imgId2);
-                 
-                % One derived YW process view image
-                imgId3 = Identifier();
-                imgId3.setValue(runManager.processViewPdfFileName); % a figure image
-                imgURI3 = URI([D1_URI_PREFIX runManager.processViewPdfFileName]);
-                % Metadata
-                metadataImgId3 = Identifier();
-                metadataImgId3.setValue([runManager.configuration.script_base_name '_process_view.xml']);
-                dataImgIds3 = ArrayListMatlabWrapper;
-                dataImgIds3.add(imgId3);
-                 
-                % wasDocumentedBy
-                runManager.dataPackage.insertRelationship(metadataImgId1, dataImgIds1);
-                runManager.dataPackage.insertRelationship(metadataImgId2, dataImgIds2);
-                runManager.dataPackage.insertRelationship(metadataImgId3, dataImgIds3);
-                
-                % wasGeneratedBy
-                predicate = PROV.predicate('wasGeneratedBy');
-                runManager.dataPackage.insertRelationship(imgURI1, predicate, execURI);  
-                runManager.dataPackage.insertRelationship(imgURI2, predicate, execURI);  
-                runManager.dataPackage.insertRelationship(imgURI3, predicate, execURI);  
-                
-                % Record relationship identifying as provONE:Data              
-                runManager.dataPackage.insertRelationship(imgURI1, aTypePredicate, provONEdataURI);
-                runManager.dataPackage.insertRelationship(imgURI2, aTypePredicate, provONEdataURI);
-                runManager.dataPackage.insertRelationship(imgURI3, aTypePredicate, provONEdataURI);
-                
-                % Create D1Object for each figure and add the D1Object to the DataPackage
                 cd(runManager.runDir);
-                imgFmt = 'application/pdf';      
-                img1FileId = File(imgId1.getValue());
-                img1Data = FileDataSource(img1FileId);
-                img1D1Obj = D1Object(imgId1, img1Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
-                runManager.dataPackage.addData(img1D1Obj);
-             
-                img2FileId = File(imgId2.getValue());
-                img2Data = FileDataSource(img2FileId);
-                img2D1Obj = D1Object(imgId2, img2Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
-                runManager.dataPackage.addData(img2D1Obj);
-                
-                img3FileId = File(imgId3.getValue());
-                img3Data = FileDataSource(img3FileId);
-                img3D1Obj = D1Object(imgId3, img3Data, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
-                runManager.dataPackage.addData(img3D1Obj);               
-               
-                metadataModelFactsId = Identifier;
-                metadataModelFactsId.setValue([runManager.configuration.script_base_name  '_ywModelFacts.xml']);
-                dataModelFactsIds = ArrayListMatlabWrapper;               
-                modelFactsId = Identifier();
-                modelFactsId.setValue(runManager.mfilename); % ywModelFacts prolog dump
-                dataModelFactsIds.add(modelFactsId); 
-                modelFactsURI = URI([D1_URI_PREFIX runManager.mfilename]);
-                
-                % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
-                prologDumpFmt = 'text/plain';      
-                modelFactsFileId = File(modelFactsId.getValue());
-                modelFactsData = FileDataSource(modelFactsFileId);
-                modelFactsD1Obj = D1Object(modelFactsId, modelFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
-                runManager.dataPackage.addData(modelFactsD1Obj);
-              
-                metadataExtractFactsId = Identifier;
-                metadataExtractFactsId.setValue([runManager.configuration.script_base_name  '_ywExtractFacts.xml']);
-                dataExtractFactsIds = ArrayListMatlabWrapper;
-                extractFactsId = Identifier;
-                extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump
-                dataExtractFactsIds.add(extractFactsId); 
-                extractFactsURI = URI([D1_URI_PREFIX runManager.efilename]);
-                
-                % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
-                predicate = PROV.predicate('wasGeneratedBy');
-                runManager.dataPackage.insertRelationship(modelFactsURI, predicate, execURI);  
-                runManager.dataPackage.insertRelationship(extractFactsURI, predicate, execURI); 
-                runManager.dataPackage.insertRelationship(modelFactsURI, aTypePredicate, provONEdataURI);
-                runManager.dataPackage.insertRelationship(extractFactsURI, aTypePredicate, provONEdataURI);
-                runManager.dataPackage.insertRelationship(metadataExtractFactsId, dataExtractFactsIds);
-                runManager.dataPackage.insertRelationship(metadataModelFactsId, dataModelFactsIds); 
-                                  
-                % Create D1Object for ywExtractFacts prolog dump and add the D1Object to the DataPackage      
-                extractFactsFileId = File(extractFactsId.getValue());
-                extractFactsData = FileDataSource(extractFactsFileId);
-                extractFactsD1Obj = D1Object(extractFactsId, extractFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
-                runManager.dataPackage.addData(extractFactsD1Obj);
-               
+                runManager.generateYesWorkflowGraphic();
                 cd(curDir);
             end    
         
+            % Build a D1 datapackage
+            cd(runManager.runDir);
+            runManager.buildPackage(submitter, mnNodeId);
+            cd(curDir);
+            
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
-            fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % print it to stdout
-             
+            if runManager.debug 
+                fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % print it to stdout
+            end
+            
             % Print it
             cd(runManager.runDir);
             resMapName = ['resourceMap_' runManager.configuration.script_base_name '.xml'];
@@ -626,12 +773,14 @@ classdef RunManager < hgsetget
                 
             % Unlock the RunManager instance
             munlock('RunManager');
-            
+                     
         end
+        
         
         function runs = listRuns(runManager, quiet, startDate, endDate, tags)
             % LISTRUNS Lists prior executions (runs) and information about them.
         end
+        
         
         function deleted_runs = deleteRuns(runIdList, startDate, endDate, tags)
             % DELETERUNS Deletes prior executions (runs) from the stored
@@ -639,16 +788,17 @@ classdef RunManager < hgsetget
             
         end
         
+        
         function package_id = view(runManager, packageId)
             % VIEW Displays detailed information about a data package that
-            % is the result of an execution (run).
+            %   is the result of an execution (run).
             
         end
   
         
         function package_id = publish(runManager, packageId)
             % PUBLISH Uploads a data package produced by an execution (run)
-            % to the configured DataONE Member Node server.
+            %   to the configured DataONE Member Node server.
             import java.lang.String;
             import java.lang.Boolean;
             import java.lang.Integer;
@@ -666,10 +816,7 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.Permission;            
             import org.dataone.service.types.v1.ReplicationPolicy;
             import org.dataone.service.types.v1.Subject;
-            
-            global CN_URL;
-            global D1_URI_PREFIX;
-            
+           
             curDir = pwd();
             
             curRunDir = [runManager.runDir filesep packageId filesep];
@@ -686,12 +833,7 @@ classdef RunManager < hgsetget
                 certificate = runManager.getCertificate();
                 % Pull the subject DN out of the certificate for use in system metadata
                 runManager.configuration.submitter = certificate.getSubjectDN().toString();
-                
-                % Get D1 cilogon authToken string
-                %authToken = runManager.configuration.get('authentication_token');
-                %fprintf('authToken is: %s\n', authToken);
-                %D1Client.setAuthToken(authToken);
-            
+               
                 % Set the MNode ID
                 mnRef = NodeReference();
                 mnRef.setValue(runManager.configuration.target_member_node_id);            
@@ -706,14 +848,14 @@ classdef RunManager < hgsetget
                             
                 % Set the CNode ID
                 cnRef = NodeReference();
-                cnRef.setValue(CN_URL);
+                cnRef.setValue(runManager.CN_URL);
                 cnNode = D1Client.getCN(cnRef.getValue());
                 if isempty(cnNode)
-                   error(['Coordinatior node' D1_URI_PREFIX 'encounted an error on the getCN() request.']); 
+                   error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint 'encounted an error on the getCN() request.']); 
                 end
                 
-                mySubject = Subject();
-                mySubject.setValue(runManager.configuration.submitter);
+                submitter = Subject();
+                submitter.setValue(runManager.configuration.submitter);
                     
                 session = Session();
             
@@ -730,17 +872,21 @@ classdef RunManager < hgsetget
                     
                     % get system metadata for dataObj and convert v1 systemetadata to v2 systemmetadata
                     v1SysMeta = dataObj.getSystemMetadata(); % version 1 system metadata
-                                      
-                    fprintf('d1Obj.size=%d (bytes)\n', v1SysMeta.getSize().longValue());                   
-                    fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v1SysMeta.getChecksum().getAlgorithm()), char(v1SysMeta.getChecksum().getValue()));
-                    fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
-                    fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
-                    fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
-                    fprintf('d1Obj.originalMNode=%s\n', char(v1SysMeta.getOriginMemberNode().getValue()));
+                     
+                    if runManager.debug
+                        fprintf('***********************************************************\n');
+                        fprintf('d1Obj.size=%d (bytes)\n', v1SysMeta.getSize().longValue());                   
+                        fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v1SysMeta.getChecksum().getAlgorithm()), char(v1SysMeta.getChecksum().getValue()));
+                        fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
+                        fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
+                        fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
+                        fprintf('d1Obj.originalMNode=%s\n', char(v1SysMeta.getOriginMemberNode().getValue()));
+                        fprintf('***********************************************************');
+                    end
                     
                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
-                    v1SysMeta.setSubmitter(mySubject);
-                    v1SysMeta.setRightsHolder(mySubject);
+                    v1SysMeta.setSubmitter(submitter);
+                    v1SysMeta.setRightsHolder(submitter);
                     
                     if runManager.configuration.public_read_allowed == 1
                         strArray = javaArray('java.lang.String', 1);
@@ -761,7 +907,7 @@ classdef RunManager < hgsetget
                         fprintf('d1Obj.numReplicas=%d\n', v1SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
                     end
                     
-                    % upload the data to the MN using create(), checking for success and a returned identifier       
+                    % Upload the data to the MN using create(), checking for success and a returned identifier       
                     pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier()); 
                     if isempty(pid) ~= 1
                         returnPid = mnNode.create(session, pid, dataSource.getInputStream(), v1SysMeta);  
@@ -785,18 +931,7 @@ classdef RunManager < hgsetget
             end
         end  
        
-        
-        function certificate = getCertificate(runManager)
-            % GETCERTIFICATE Gets a certificate 
-            import org.dataone.client.auth.CertificateManager;
-            import java.security.cert.X509Certificate;
-            
-            % Get a certificate for the Root CA           
-            certificate = CertificateManager.getInstance().loadCertificate();
-            fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));      
-        end
-        
-        
+          
         function init(runManager)
             % INIT initializes the RunManager instance
                         
@@ -823,107 +958,8 @@ classdef RunManager < hgsetget
                 end
             end
         end
- 
-        function captureProspectiveProvenanceWithYW(runManager)
-            % CAPTUREPROSPECTIVEPROVENANCEWITHYW captures the prospective
-            % provenance using YesWorkflow.
-            
-            % Scan the script for inline YesWorkflow comments
-            import java.io.BufferedReader;
-            import org.yesworkflow.annotations.Annotation;
-            import org.yesworkflow.model.Program;
-            import org.yesworkflow.model.Workflow;
-            import java.io.File;
-            import java.io.FileReader;
-            import java.util.List;
-            import java.util.HashMap;
-                       
-            try
-                % Read script content from disk
-                script = File(runManager.execution.software_application);
-                freader = FileReader(script);
-                reader = BufferedReader(freader);
-            
-                % Call YW-Extract module
-                runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
-                annotations = runManager.extractor.extract().getAnnotations();
         
-                % Call YW-Model module
-                runManager.modeler = runManager.modeler.annotations(annotations);
-                runManager.modeler = runManager.modeler.model();
-                runManager.workflow = runManager.modeler.getModel().program; % April-version yesWorkflow
-               
-                % Call YW-Graph module
-                if runManager.configuration.generate_workflow_graphic
-                    import org.yesworkflow.graph.GraphView;
-                    import org.yesworkflow.graph.CommentVisibility;
-                    import org.yesworkflow.extract.HashmapMatlabWrapper;
-                    import org.yesworkflow.graph.LayoutDirection;
-                
-                    runManager.grapher = runManager.grapher.workflow(runManager.workflow);
-                    %gconfig = HashMap;
-                    gconfig = HashmapMatlabWrapper;
-                
-                    % Set the working directory to be the run metadata directory for this run
-                    curDir = pwd();
-                    wd = cd(runManager.runDir); 
-                
-                    gconfig.put('comments', CommentVisibility.HIDE);
-                               
-                    % Generate YW.Process_View dot file
-                    runManager.processViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv']; 
-                    gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
-                    gconfig.put('layout', LayoutDirection.LR);
-                    gconfig.put('dotfile', runManager.processViewDotFileName);
-                    runManager.grapher.configure(gconfig);              
-                    runManager.grapher = runManager.grapher.graph();           
-            
-                    % Generate YW.Data_View dot file
-                    runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_data_view.gv'];
-                    gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
-                    gconfig.put('layout', LayoutDirection.LR);
-                    gconfig.put('dotfile', runManager.dataViewDotFileName);
-                    runManager.grapher.configure(gconfig);
-                    runManager.grapher = runManager.grapher.graph();
-            
-                    % Generate YW.Combined_View dot file
-                    runManager.combinedViewDotFileName = [runManager.configuration.script_base_name '_combined_view.gv'];
-                    gconfig.put('view', GraphView.COMBINED_VIEW);
-                    gconfig.put('layout', LayoutDirection.TB);
-                    gconfig.put('dotfile', runManager.combinedViewDotFileName);                
-                    runManager.grapher.configure(gconfig);
-                    runManager.grapher = runManager.grapher.graph();
-                              
-                    % Create yesWorkflow modelFacts prolog dump 
-                    import org.yesworkflow.model.ModelFacts;
-                    import org.yesworkflow.extract.ExtractFacts;
-                    
-                    modelFacts = runManager.modeler.getFacts();               
-                    runManager.mfilename = [runManager.configuration.script_base_name  '_ywModelFacts.pl'];
-                    fw = fopen(runManager.mfilename, 'w'); 
-                    if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
-                    fprintf(fw, '%s', char(modelFacts));
-                    fclose(fw);
-                
-                    % Create yewWorkflow extractFacts prolog dump
-                    extractFacts = runManager.extractor.getFacts();              
-                    runManager.efilename = [runManager.configuration.script_base_name  '_ywExtractFacts.pl'];
-                    fw = fopen(runManager.efilename, 'w');    
-                    if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
-                    fprintf(fw, '%s', char(extractFacts));
-                    fclose(fw);
-                
-                    cd(curDir); % go back to current working directory          
-                end  
-                
-                %% ToDo: close file open using java FileReader API
-                if isempty(br) == 0  
-                    br.close();
-                    fprintf('close file.');
-                end
-            catch ME      
-            end      
-        end
- 
     end
+
 end
+
