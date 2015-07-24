@@ -327,6 +327,16 @@ classdef RunManager < hgsetget
             runManager.CN_URL = runManager.getD1UriPrefix(); 
             runManager.D1_CN_Resolve_Endpoint = [char(runManager.CN_URL) '/v1/resolve/'];
             
+            % Create a D1Object for the program that we are running  
+            fileId = File(runManager.execution.software_application);
+            data = FileDataSource(fileId);           
+            scriptFmt = 'text/plain';        
+            wfId = Identifier;
+            scriptNameArray = strsplit(runManager.execution.software_application,filesep);          
+            wfId.setValue([runManager.configuration.script_base_name char(scriptNameArray(end))]);        
+            programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(programD1Obj);
+            
             % Record relationship identifying prov:hadPlan between execution and programs   
             runManager.wfIdentifier = Identifier();
             scriptNameArray  = strsplit(runManager.execution.software_application,filesep);                     
@@ -714,17 +724,7 @@ classdef RunManager < hgsetget
             % Get submitter and MN node reference
             submitter = runManager.execution.account_name;
             mnNodeId = runManager.configuration.target_member_node_id;
-            
-            % Create a D1Object for the program that we are running  
-            fileId = File(runManager.execution.software_application);
-            data = FileDataSource(fileId);           
-            scriptFmt = 'text/plain';        
-            wfId = Identifier;
-            scriptNameArray = strsplit(runManager.execution.software_application,filesep);          
-            wfId.setValue([runManager.configuration.script_base_name char(scriptNameArray(end))]);        
-            programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
-            runManager.dataPackage.addData(programD1Obj);
-            
+                     
             % Generate YesWorkflow image outputs
             if runManager.configuration.generate_workflow_graphic
                 % Call YesWorkflow to capture prospective provenance for current scirpt
