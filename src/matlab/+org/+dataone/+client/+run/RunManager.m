@@ -327,6 +327,9 @@ classdef RunManager < hgsetget
             runManager.CN_URL = runManager.getD1UriPrefix(); 
             runManager.D1_CN_Resolve_Endpoint = [char(runManager.CN_URL) '/v1/resolve/'];
             
+            % Record a data list for provOne:Data
+            runManager.provONEdataURI = URI(ProvONE.Data.getURI());
+                      
             % Create a D1Object for the program that we are running  
             fileId = File(runManager.execution.software_application);
             data = FileDataSource(fileId);           
@@ -718,9 +721,6 @@ classdef RunManager < hgsetget
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
                
-            % Record a data list for provOne:Data
-            runManager.provONEdataURI = URI(ProvONE.Data.getURI());
-                      
             % Get submitter and MN node reference
             submitter = runManager.execution.account_name;
             mnNodeId = runManager.configuration.target_member_node_id;
