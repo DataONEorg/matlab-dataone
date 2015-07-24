@@ -151,6 +151,7 @@ classdef RunManager < hgsetget
         
         function configYesWorkflow(runManager, path)
             % CONFIGYESWORKFLOW set YesWorkflow extractor language model to be Matlab type
+            %   Default configuration is used now.
             import org.yesworkflow.extract.DefaultExtractor;
             import org.yesworkflow.model.DefaultModeler;
             import org.yesworkflow.graph.DotGrapher;
@@ -328,8 +329,8 @@ classdef RunManager < hgsetget
             
             % Record relationship identifying prov:hadPlan between execution and programs   
             runManager.wfIdentifier = Identifier();
-            E = strsplit(runManager.execution.software_application,filesep);                     
-            runManager.wfIdentifier.setValue([runManager.configuration.script_base_name '_' char(E(end))]);
+            scriptNameArray  = strsplit(runManager.execution.software_application,filesep);                     
+            runManager.wfIdentifier.setValue([runManager.configuration.script_base_name '_' char(scriptNameArray (end))]);
             wfIdsList = ArrayListMatlabWrapper();
             wfIdsList.add(runManager.wfIdentifier);   
             runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
