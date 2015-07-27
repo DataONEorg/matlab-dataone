@@ -856,6 +856,7 @@ classdef RunManager < hgsetget
                 % Convert a cell array to a matrix
                 execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
               
+                % Process the query constraints
                 startDateFlag = false;
                 endDateFlag = false;
                 
@@ -869,8 +870,7 @@ classdef RunManager < hgsetget
                 
                 if startDateFlag && endDateFlag
                     startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                    endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                   
+                    endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
                     % Extract multiple rows from a matrix 
                     startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
                     endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
@@ -884,10 +884,19 @@ classdef RunManager < hgsetget
                 elseif endDateFlag == 1
                      endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
                      endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
+                     % Extract multiple rows from a matrix 
                      runs = execMetaMatrix(endColCondition, :);
+                else % No query parameters are required
+                     runs = execMetaMatrix; 
                 end
                 
-                % TODO: process "tag" and quiet
+                if isempty(quiet) ~= 1 && quiet == 1
+                     % Convert a cell array to a table                 
+                       T = cell2table(runs,'VariableNames', [header{:}]);  
+                       T                      
+                end
+                
+                % TODO: process "tag" 
             end
             
             cd(curDir);           

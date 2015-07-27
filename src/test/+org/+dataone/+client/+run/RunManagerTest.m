@@ -108,16 +108,17 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end  
             
             fprintf('*** startDate and endDate both required: ***\n');
-            runs = testCase.mgr.listRuns(false, '20150727T152515', '20150727T154300', '');
-            runs
-            
+            quiet = true;
+            runs = testCase.mgr.listRuns(quiet, '20150727T180015', '20150727T184300', '');
+                     
             fprintf('*** startDate only required: ***\n');
-            runs = testCase.mgr.listRuns(false, '20150727T152515', '', '');
-            runs
-            
+            runs = testCase.mgr.listRuns(quiet, '20150727T162515', '', '');
+  
             fprintf('*** endDate only required: ***\n');
-            runs = testCase.mgr.listRuns(false, '', '20150727T154300', '');
-            runs
+            runs = testCase.mgr.listRuns(quiet, '', '20150727T164300', '');
+            
+            fprintf('*** No query parameters are required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, '', '', '');
         end
         
         % function testPublish(testCase)
