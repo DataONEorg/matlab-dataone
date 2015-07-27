@@ -32,22 +32,22 @@ classdef Execution < hgsetget
         sequence_number;
         
         % A label that allows the scientist to characterize the run
-        tag;
+        tag = '';
         
         % The unique identifier of the execution
-        execution_id;
+        execution_id = '';
 
         % the time this execution was published to a permanent repository
-        publish_time;
+        publish_time = '';
         
         % The start time of the execution
-        start_time;
+        start_time = '';
         
         % The end time of the execution
-        end_time;
+        end_time = '';
         
         % The user's system account name
-        account_name;
+        account_name = '';
         
         % The name of the host the script was run on
         host_id;
@@ -59,10 +59,10 @@ classdef Execution < hgsetget
         operating_system;
         
         % The identifier for the DataONE data package associated with this run
-        data_package_id;
+        data_package_id = '';
         
         % The software application associated with this run (script name)
-        software_application;
+        software_application = '';
         
         % The Matlab module (toolbox) dependencies associated with this run
         module_dependencies;

@@ -29,11 +29,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
     methods (TestMethodSetup)
         
         function setUp(testCase)
-            % SETUP Set up the test environment
+            % SETUP Set up the test environment  
             
             import org.dataone.client.run.RunManager;
             
-            %testCase.filename = 'test/resources/DroughtTimeScale_Markup_v2.m';
+            % testCase.filename = 'test/resources/DroughtTimeScale_Markup_v2.m';
             testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2.m';
             testCase.testDir = 'test/resources';
             testCase.mgr = RunManager.getInstance();
@@ -54,11 +54,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
             % function without passing a Configuration object
 
-            %import org.dataone.client.run.RunManager;
-            
             fprintf('\nIn testGetInstanceNoConfiguration() ...\n');
-            
-            %mgr = RunManager.getInstance();
             old_format_id = get(testCase.mgr.configuration, 'format_id');
             set(testCase.mgr.configuration, 'format_id', 'application/octet-stream');
             assertInstanceOf(testCase, testCase.mgr, 'org.dataone.client.run.RunManager');
@@ -78,8 +74,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.configure.Configuration;
             
             fprintf('\nIn testGetInstanceWithConfiguration() ...\n');
-           
-            %mgr = RunManager.getInstance(configuration);
+ 
             old_format_id = get(testCase.mgr.configuration, 'format_id');
             set(testCase.mgr.configuration, 'format_id', 'text/csv');
             
@@ -117,11 +112,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %fprintf('%s', char(y));
             %% Test for YesWorkflow              
             script_path = fullfile(pwd(), filesep, testCase.filename); 
-            %fprintf('current script path: %s\n', script_path);
-            
+                 
             testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
             
-            testCase.mgr.configuration.script_base_name = '0'; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
+            testCase.mgr.configuration.script_base_name = ''; % A user can give a prefix name to output files; otherwise, the script name will be used as prefix name.
             
             testCase.mgr.record(script_path, '');
         
@@ -130,30 +124,29 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 cd(testCase.mgr.runDir); % go to the provenance run directory
                 
                 % Display 3 different views of YesWorkflow output files
-                %system('/usr/bin/open process_view.pdf');
-                %system('/usr/bin/open data_view.pdf');
-                %system('/usr/bin/open combined_view.pdf');
+                % system('/usr/bin/open process_view.pdf');
+                % system('/usr/bin/open data_view.pdf');
+                % system('/usr/bin/open combined_view.pdf');
                 
                 cd(curDir);
             end  
+            
+            testCase.mgr.listRuns(false, '20150727T122515', '20150727T122517', '');
         end
         
-        % The function testPublish() has to be put behind the function testGetInstanceWithConfiguration(). 
-        function testPublish(testCase)
-            import org.dataone.client.run.RunManager;
-            import org.dataone.client.configure.Configuration;
+        % function testPublish(testCase)
+           % TESTPUBLISH tests calling the RunManager.publish() function
+
+        %    import org.dataone.client.run.RunManager;
+        %    import org.dataone.client.configure.Configuration;
             
-            fprintf('\nIn testPublish() ...\n');
+        %    disp('In testPublish() ...');
+        %    set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
            
-            %mgr = RunManager.getInstance(configuration);
-            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo2');
-            %authToken = 'abc';
-            %set(mgr.configuration, 'authentication_token', authToken);
-       
-            testCase.mgr.runDir = 'test/resources/runs';
-            k = strfind(testCase.mgr.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
-            runId = testCase.mgr.execution.execution_id(k+9:end);
-            pkgId = testCase.mgr.publish(runId);
-        end
+        %    testCase.mgr.runDir = 'test/resources/runs';
+        %    k = strfind(testCase.mgr.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
+        %    runId = testCase.mgr.execution.execution_id(k+9:end);
+        %    pkgId = testCase.mgr.publish(runId);
+        % end
     end
 end

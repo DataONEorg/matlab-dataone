@@ -71,10 +71,7 @@ classdef ConfigurationTest < matlab.unittest.TestCase
             
             c.set('format_id', 'FGDC-STD-001-1998');
             testCase.verifyEqual(c.get('format_id'), 'FGDC-STD-001-1998');
-            
-         %  c.set('format_id', 'aaa');
-         %  testCase.verifyError(@() Configuration.set('format_id', 'aaa'),'ConfigurationError:format_id');
-            
+
             c.set('certificate_path', '/tmp');
             testCase.verifyEqual(c.get('certificate_path'), '/tmp');
             
@@ -83,10 +80,7 @@ classdef ConfigurationTest < matlab.unittest.TestCase
             
             c.set('number_of_replicas', 3.0);
             testCase.verifyEqual(c.get(' number_of_replicas'), 3.0);
-            
-         %   c.set('number_of_replicas', 3.5);
-         %   testCase.verifyError(@() Configuration.set('number_of_replicas', 3.5),'ConfigurationError:IntegerRequired')
-                      
+             
         end
     end
     
