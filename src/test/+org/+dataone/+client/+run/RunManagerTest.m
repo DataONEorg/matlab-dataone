@@ -106,6 +106,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 
                 cd(curDir);
             end  
+            
+            testCase.mgr.listRuns(false, '20150727T122515', '20150727T122517', '');
         end
         
         % function testPublish(testCase)

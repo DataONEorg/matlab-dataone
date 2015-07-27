@@ -41,6 +41,9 @@ classdef RunManager < hgsetget
                        
         % runID
         runId;
+        
+        % The name for the execution database
+        executionDatabaseName = 'executions.csv';
     end
 
     properties (Access = private)               
@@ -103,8 +106,8 @@ classdef RunManager < hgsetget
 
         function manager = RunManager(configuration)
             % RUNMANAGER Constructor: creates an instance of the RunManager class
-            %   The RunManager class manages outputs of a script based on the
-            %   settings in the given configuration passed in.            
+            % The RunManager class manages outputs of a script based on the
+            % settings in the given configuration passed in.            
             import org.dataone.client.configure.Configuration;
             manager.configuration = configuration;
             configuration.saveConfig();
@@ -151,7 +154,7 @@ classdef RunManager < hgsetget
         
         function configYesWorkflow(runManager, path)
             % CONFIGYESWORKFLOW set YesWorkflow extractor language model to be Matlab type
-            %   Default configuration is used now.
+            % Default configuration is used now.
             import org.yesworkflow.extract.DefaultExtractor;
             import org.yesworkflow.model.DefaultModeler;
             import org.yesworkflow.graph.DotGrapher;
@@ -190,7 +193,7 @@ classdef RunManager < hgsetget
         
         function captureProspectiveProvenanceWithYW(runManager)
             % CAPTUREPROSPECTIVEPROVENANCEWITHYW captures the prospective provenance using YesWorkflow 
-            %   by scannning the inline yesWorkflow comments.
+            % by scannning the inline yesWorkflow comments.
          
             import java.io.BufferedReader;
             import org.yesworkflow.annotations.Annotation;
@@ -285,7 +288,7 @@ classdef RunManager < hgsetget
        
         function generateYesWorkflowGraphic(runManager)
             % GENERATEYESWORKFLOWGRAPHIC generates yesWorkflow graphcis in
-            %   pdf format. 
+            % pdf format. 
             
             runManager.combinedViewPdfFileName = [runManager.configuration.script_base_name '_combined_view.pdf'];
             runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
@@ -306,7 +309,7 @@ classdef RunManager < hgsetget
         
         function buildPackage(runManager, submitter, mnNodeId) 
             % BUILDPACKAGE  packages a datapackage for the current run
-            %   including the workflow script and yesWorkflow graphics
+            % including the workflow script and yesWorkflow graphics
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
             import org.dataone.client.run.NamedConstant;
@@ -491,13 +494,54 @@ classdef RunManager < hgsetget
             runManager.dataPackage.addData(extractFactsD1Obj);
                                 
         end
+        
+        
+        function saveExecution(runManager, fileName)
+            % SAVEEXECUTION saves the summary of each execution to an
+            % execution database, a CSV file named execution.csv in the
+            % provenance_storage_directory with the columns: runId,
+            % filePath, startTime, endTime, publishedTime, packageId,
+            % errorMessage.
+            %   fileName - the name of the execution database
+  
+            runID = char(runManager.runId);
+            filePath = char(runManager.execution.software_application);
+            startTime = char(runManager.execution.start_time);
+            endTime = char(runManager.execution.end_time);
+            publishedTime = char(runManager.execution.publish_time);
+            packageId = char(runManager.execution.data_package_id);
+            errorMessage = char(runManager.execution.error_message);
+     
+            formatSpec = '%s, %s, %s, %s, %s, %s, %s\n';
+           
+            curDir = pwd();
+            cd(runManager.configuration.provenance_storage_directory);
+            if exist(fileName, 'file') ~= 2
+                [fileId, message] = fopen(fileName,'w');
+                if fileId == -1
+                    disp(message);
+                end
+                fprintf(fileId, formatSpec, 'runId', 'filePath', 'startTime', 'endTime', 'publishedTime', 'packageId', 'errorMessage'); % write header
+                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, errorMessage); % write the metadata for the current execution
+                fclose(fileId); 
+            else
+                [fileId, message] = fopen(fileName,'a');
+                if fileId == -1
+                    disp(message);
+                end
+                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, errorMessage); % write the metadata for the current execution     
+                fclose(fileId); 
+            end
+            cd(curDir);
+        end
+       
     end
  
     
     methods (Static)
         function runManager = getInstance(configuration)
             % GETINSTANCE returns an instance of the RunManager by either
-            %   creating a new instance or returning an existing one.
+            % creating a new instance or returning an existing one.
                         
             import org.dataone.client.configure.Configuration;
            
@@ -528,7 +572,7 @@ classdef RunManager < hgsetget
         
         function setJavaClassPath()
             % SETJAVACLASSPATH adds all Java libraries found in 
-            %   $matalab-dataone/lib to the java class path
+            % $matalab-dataone/lib to the java class path
             
             % Determine the lib directory relative to the RunManager location
             filePath = mfilename('fullpath');
@@ -556,7 +600,7 @@ classdef RunManager < hgsetget
         
         function setMatlabPath()
             % SETMATLABPATH adds all Matlab libraries found in 
-            %   $matalab-dataone/lib/matlab to the Matlab path
+            % $matalab-dataone/lib/matlab to the Matlab path
             
             % Determine the lib directory relative to the RunManager location
             filePath = mfilename('fullpath');
@@ -596,8 +640,9 @@ classdef RunManager < hgsetget
                    
             % Do we have a script as input?
             if ( nargin < 2 )
-                error(['Please provide the path to the script you want to ' ...
-                       'record, and (optionally) a tag that labels your run.']);
+                message = ['Please provide the path to the script you want to ' ...
+                       'record, and (optionally) a tag that labels your run.'];
+                error(message);
             end
             
             % Does the script exist?
@@ -629,6 +674,7 @@ classdef RunManager < hgsetget
                        ' a string or a data type that can be cast to ' ...
                        'a string. The error message was: ' ...
                        classCastException.message]);
+                runManager.execution.error_message = [runManager.execution.error_message ' ' classCastException.message];
             end
             
             runManager.execution = Execution(tagStr);
@@ -648,12 +694,15 @@ classdef RunManager < hgsetget
         function startRecord(runManager, tag)
             % STARTRECORD Starts recording provenance relationships (see record()).
 
+            % Record the starting time when record() started 
+            runManager.execution.start_time = datestr(now,30); % Use datestr to format the time and use now to get the current time          
+            
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
                          'endRecord() if you wish to close this session']);
                   
             end                
-
+           
             % Compute script_base_name if it is not assigned a value
             if isempty(runManager.configuration.script_base_name)
                 [pathstr,script_base_name,ext] = fileparts(runManager.execution.software_application);
@@ -669,6 +718,7 @@ classdef RunManager < hgsetget
                 error(message_id, [ 'The directory %s' ...
                     ' could not be created. The error message' ...
                     ' was: ' runManager.runDir, message]);
+                runManager.execution.error_message = [runManager.execution.error_message ' ' message]; 
             end
             
             % Initialize a dataPackage to manage the run
@@ -677,14 +727,14 @@ classdef RunManager < hgsetget
           
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.data_package_id);            
+            runManager.execution.data_package_id = packageIdentifier.getValue();
             
             % Create a resourceMap identifier
             resourceMapId = Identifier();
             resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
             % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
-                             
-          
+                                      
             % Run the script and collect provenance information
           % runManager.prov_capture_enabled = true;
           % [pathstr, script_name, ext] = ...
@@ -701,6 +751,7 @@ classdef RunManager < hgsetget
           % end
           
         end
+        
         
         function data_package = endRecord(runManager)
             % ENDRECORD Ends the recording of an execution (run).
@@ -750,7 +801,7 @@ classdef RunManager < hgsetget
                 fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % print it to stdout
             end
             
-            % Print it
+            % Print to a resourceMap 
             cd(runManager.runDir);
             resMapName = ['resourceMap_' runManager.configuration.script_base_name '.xml'];
             fw = fopen(resMapName, 'w'); 
@@ -774,12 +825,47 @@ classdef RunManager < hgsetget
                 
             % Unlock the RunManager instance
             munlock('RunManager');
-                     
+            
+            % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
+            runManager.execution.end_time = datestr(now,30);
+            
+            % Save the metadata for the current execution
+            runManager.saveExecution(runManager.executionDatabaseName);                      
         end
         
         
         function runs = listRuns(runManager, quiet, startDate, endDate, tags)
             % LISTRUNS Lists prior executions (runs) and information about them.
+ 
+            curDir = pwd();
+            cd(runManager.configuration.provenance_storage_directory);
+            
+            formatSpec = '%s %s %s %s %s %s %s\n';
+            [fileId, message] = fopen(runManager.executionDatabaseName,'r');
+            if fileId == -1
+               disp(message); 
+            else
+                header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
+                execMetaData = textscan(fileId,formatSpec,'Delimiter',',');
+                fclose(fileId);
+ 
+                % Convert a cell array to a matrix
+                alphaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
+              
+                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
+                [rows, cols] = size(alphaMatrix)
+         
+                
+                %copyAlphaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
+                %copyAlphaMatrix{3} = datenum(alphaMatrix{3}, 'yyyymmddTHHMMSS');
+                %copyAlphaMatrix{4} = datenum(alphaMatrix{4}, 'yyyymmddTHHMMSS');              
+                %alphaMatrix([copyAlphaMatrix{:,3}] > startDateNum,:) 
+
+            end
+            
+            cd(curDir);
+            
         end
         
         
@@ -792,14 +878,14 @@ classdef RunManager < hgsetget
         
         function package_id = view(runManager, packageId)
             % VIEW Displays detailed information about a data package that
-            %   is the result of an execution (run).
+            % is the result of an execution (run).
             
         end
   
         
         function package_id = publish(runManager, packageId)
             % PUBLISH Uploads a data package produced by an execution (run)
-            %   to the configured DataONE Member Node server.
+            % to the configured DataONE Member Node server.
             import java.lang.String;
             import java.lang.Boolean;
             import java.lang.Integer;
@@ -929,7 +1015,11 @@ classdef RunManager < hgsetget
          
             catch runtimeError 
                 error(['Could not create member node reference: ' runtimeError.message]);
+                runManager.execution.error_message = [runManager.execution.error_message ' ' runtimeError.message];
             end
+            
+            % Record the date and time that the package from this run is uploaded to DataONE
+            runManager.execution.publish_time = save(datestr(now,30));
         end  
        
           
