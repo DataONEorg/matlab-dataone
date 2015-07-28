@@ -836,6 +836,10 @@ classdef RunManager < hgsetget
         
         function runs = listRuns(runManager, quiet, startDate, endDate, tags)
             % LISTRUNS Lists prior executions (runs) and information about them.
+            %   quiet --
+            %   startDate -- the starting timestamp for an execution
+            %   endDate -- the ending timestamp for an execution
+            %   tag -- a tag given to an execution
  
             curDir = pwd();
             cd(runManager.configuration.provenance_storage_directory);
@@ -850,22 +854,52 @@ classdef RunManager < hgsetget
                 fclose(fileId);
  
                 % Convert a cell array to a matrix
-                alphaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
+                execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
               
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                [rows, cols] = size(alphaMatrix)
-         
+                % Process the query constraints
+                startDateFlag = false;
+                endDateFlag = false;
                 
-                %copyAlphaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
-                %copyAlphaMatrix{3} = datenum(alphaMatrix{3}, 'yyyymmddTHHMMSS');
-                %copyAlphaMatrix{4} = datenum(alphaMatrix{4}, 'yyyymmddTHHMMSS');              
-                %alphaMatrix([copyAlphaMatrix{:,3}] > startDateNum,:) 
-
+                if isempty(startDate) ~= 1
+                    startDateFlag = true;
+                end
+                
+                if isempty(endDate) ~= 1
+                    endDateFlag = true;
+                end
+                
+                if startDateFlag && endDateFlag
+                    startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                    endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
+                    % Extract multiple rows from a matrix 
+                    startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
+                    endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
+                    bothAllowed = startCondition & endColCondition;
+                    runs = execMetaMatrix(bothAllowed, :);
+                elseif startDateFlag == 1
+                    startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                    % Extract multiple rows from a matrix 
+                    startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
+                    runs = execMetaMatrix(startCondition, :);
+                elseif endDateFlag == 1
+                     endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
+                     endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
+                     % Extract multiple rows from a matrix 
+                     runs = execMetaMatrix(endColCondition, :);
+                else % No query parameters are required
+                     runs = execMetaMatrix; 
+                end
+                
+                if isempty(quiet) ~= 1 && quiet == 1
+                     % Convert a cell array to a table                 
+                       T = cell2table(runs,'VariableNames', [header{:}]);  
+                       T                      
+                end
+                
+                % TODO: process "tag" 
             end
             
-            cd(curDir);
-            
+            cd(curDir);           
         end
         
         
