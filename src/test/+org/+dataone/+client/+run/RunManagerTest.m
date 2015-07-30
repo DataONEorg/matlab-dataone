@@ -95,30 +95,34 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             testCase.mgr.record(script_path, '');
         
-            if testCase.mgr.configuration.include_workflow_graphic
-                curDir = pwd();
-                cd(testCase.mgr.runDir); % go to the provenance run directory
-                
+            %if testCase.mgr.configuration.include_workflow_graphic
+            %    curDir = pwd();
+            %    cd(testCase.mgr.runDir); % go to the provenance run directory 
                 % Display 3 different views of YesWorkflow output files
-                % system('/usr/bin/open process_view.pdf');
-                % system('/usr/bin/open data_view.pdf');
-                % system('/usr/bin/open combined_view.pdf');
-                
-                cd(curDir);
-            end  
+                % system('/usr/bin/open process_view.pdf');              
+            %    cd(curDir);
+            %end  
             
-            fprintf('*** startDate and endDate both required: ***\n');
-            quiet = true;
-            runs = testCase.mgr.listRuns(quiet, '20150727T180015', '20150727T184300', '');
+            %quiet = true;
+            %fprintf('*** startDate and endDate both required: ***\n');
+            %runs = testCase.mgr.listRuns(quiet, '20150727T180015', '20150727T184300', '');
                      
-            fprintf('*** startDate only required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '20150727T162515', '', '');
+            %fprintf('*** startDate only required: ***\n');
+            %runs = testCase.mgr.listRuns(quiet, '20150727T162515', '', '');
   
-            fprintf('*** endDate only required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', '20150727T164300', '');
+            %fprintf('*** endDate only required: ***\n');
+            %runs = testCase.mgr.listRuns(quiet, '', '20150727T164300', '');
             
-            fprintf('*** No query parameters are required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', '', '');
+            %fprintf('*** No query parameters are required: ***\n');
+            %runs = testCase.mgr.listRuns(quiet, '', '', '');
+                     
+        end
+        
+        
+        function testView(testCase)
+            disp('Test for view(packageId) function:');
+            testCase.mgr.view(testCase.mgr.execution.data_package_id);
+           
         end
         
         % function testPublish(testCase)

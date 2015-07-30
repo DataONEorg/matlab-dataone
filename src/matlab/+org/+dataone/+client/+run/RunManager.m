@@ -492,7 +492,29 @@ classdef RunManager < hgsetget
             extractFactsData = FileDataSource(extractFactsFileId);
             extractFactsD1Obj = D1Object(extractFactsId, extractFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(extractFactsD1Obj);
-                                
+            
+            % Serialize a datapackage
+            rdfXml = runManager.dataPackage.serializePackage();
+            if runManager.debug 
+                fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % print it to stdout
+            end
+            
+            % Print to a resourceMap 
+            resMapName = ['resourceMap_' runManager.configuration.script_base_name '.rdf'];  
+            fw = fopen(resMapName, 'w'); 
+            if fw == -1, error('Cannot write "%s%".',resMapName); end
+            fprintf(fw, '%s', char(rdfXml));
+            fclose(fw);
+
+            % Add resourceMap D1Object to the DataPackage                      
+            resMapId = Identifier();
+            resMapId.setValue(resMapName);
+            resMapFmt = 'http://www.openarchives.org/ore/terms'; 
+            resMapFileId = File(resMapId.getValue());
+            resMapData = FileDataSource(resMapFileId);
+            resMapD1Obj = D1Object(resMapId, resMapData, D1TypeBuilder.buildFormatIdentifier(resMapFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));          
+            runManager.dataPackage.addData(resMapD1Obj);     
+                    
         end
         
         
@@ -535,6 +557,50 @@ classdef RunManager < hgsetget
             cd(curDir);
         end
        
+        
+        function subjectHashSet = getSubjectsRelatedToProperty(runManager, filePath, p)
+           % GETSUBJECTRELATEDTOPROPERTY get all related subjects related to a given property from all
+           % triples contained in a resourcemap.
+           %  filePath - the path to the resourcemap
+           %  p - the given property of a RDF triple
+           
+           import org.dataone.ore.QueryResourceMap; % ! Need to add a new class in d1_libclient_java
+           import org.dataone.vocabulary.PROV;
+           import org.dspace.foresite.Predicate;
+           import com.hp.hpl.jena.graph.Node;
+           import com.hp.hpl.jena.graph.Triple;
+           import com.hp.hpl.jena.rdf.model.Model;
+           import com.hp.hpl.jena.rdf.model.ModelFactory;
+           import com.hp.hpl.jena.rdf.model.Property;
+           import com.hp.hpl.jena.rdf.model.RDFNode;
+           import com.hp.hpl.jena.rdf.model.Statement;
+           import com.hp.hpl.jena.rdf.model.StmtIterator;
+           import com.hp.hpl.jena.util.FileManager;
+           import java.io.InputStream;
+           import java.util.HashSet;
+           import java.util.ArrayList;
+           
+           % Read the RDF/XML file
+           fm = FileManager.get();
+           in = fm.open(filePath);          
+           if isempty(in) == 1 
+               error('File: %s not found.', filePath);
+           end         
+           model = ModelFactory.createDefaultModel(); % Create an empty model
+           model.read(in, '');
+           queryPredicate= model.createProperty(p.getNamespace(), p.getName());
+           stmts = model.listStatements([], queryPredicate, QueryResourceMap.nullRDFNode); % null, (RDFNode)null
+           subjectHashSet = HashSet();
+           while (stmts.hasNext()) 
+	            s = stmts.nextStatement();
+	       	    t = s.asTriple();
+	       	    subject = t.getSubject();
+	    	    subjectName = subject.getLocalName();
+                subjectHashSet.add(subjectName);
+           end 
+          
+        end
+        
     end
  
     
@@ -792,32 +858,7 @@ classdef RunManager < hgsetget
         
             % Build a D1 datapackage
             cd(runManager.runDir);
-            runManager.buildPackage(submitter, mnNodeId);
-            cd(curDir);
-            
-            % Serialize a datapackage
-            rdfXml = runManager.dataPackage.serializePackage();
-            if runManager.debug 
-                fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % print it to stdout
-            end
-            
-            % Print to a resourceMap 
-            cd(runManager.runDir);
-            resMapName = ['resourceMap_' runManager.configuration.script_base_name '.xml'];
-            fw = fopen(resMapName, 'w'); 
-            if fw == -1, error('Cannot write "%s%".',resMapName); end
-            fprintf(fw, '%s', char(rdfXml));
-            fclose(fw);
-           
-            % Add resourceMap D1Object to the DataPackage
-            resMapId = Identifier();
-            resMapId.setValue(resMapName);
-            resMapFmt = 'http://www.openarchives.org/ore/terms'; % Reconsideration !
-            resMapFileId = File(resMapId.getValue());
-            resMapData = FileDataSource(resMapFileId);
-            resMapD1Obj = D1Object(resMapId, resMapData, D1TypeBuilder.buildFormatIdentifier(resMapFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
-            runManager.dataPackage.addData(resMapD1Obj);
-            
+            runManager.buildPackage(submitter, mnNodeId);              
             cd(curDir);
             
             % Return the Java DataPackage as a Matlab structured array
@@ -836,7 +877,7 @@ classdef RunManager < hgsetget
         
         function runs = listRuns(runManager, quiet, startDate, endDate, tags)
             % LISTRUNS Lists prior executions (runs) and information about them.
-            %   quiet --
+            %   quiet -- control the output or not
             %   startDate -- the starting timestamp for an execution
             %   endDate -- the ending timestamp for an execution
             %   tag -- a tag given to an execution
@@ -891,9 +932,9 @@ classdef RunManager < hgsetget
                 end
                 
                 if isempty(quiet) ~= 1 && quiet == 1
-                     % Convert a cell array to a table                 
-                       T = cell2table(runs,'VariableNames', [header{:}]);  
-                       T                      
+                    % Convert a cell array to a table with headers                 
+                    T = cell2table(runs,'VariableNames', [header{:}]);  
+                    T                      
                 end
                 
                 % TODO: process "tag" 
@@ -911,9 +952,94 @@ classdef RunManager < hgsetget
         
         
         function package_id = view(runManager, packageId)
-            % VIEW Displays detailed information about a data package that
-            % is the result of an execution (run).
+           % VIEW Displays detailed information about a data package that
+           % is the result of an execution (run).
+ 
+           % Display a warning message to the user
+           disp('Warning: There is no scientific metadata in this data package.');
+           % Select runs based on the packageID. Report ?No runs can be found as a match? 
+           % and returns if no runs are matched, 
+           if(isempty(packageId) ~= 1)
+               curDir = pwd();
+               fprintf('current directory: %s\n', curDir);
+               cd(runManager.configuration.provenance_storage_directory);
             
+               formatSpec = '%s %s %s %s %s %s %s\n';
+               [fileId, message] = fopen(runManager.executionDatabaseName,'r');
+               if fileId == -1
+                   error('Error in opening a file: %s', message); 
+               else
+                   header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
+                   execMetaData = textscan(fileId,formatSpec,'Delimiter',',');
+                   fclose(fileId);
+ 
+                   % Convert a cell array to a matrix
+                   execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
+              
+                   pkgIdCondition = strcmp(execMetaMatrix(:,6), packageId);
+                   selectedRuns = execMetaMatrix(pkgIdCondition, :);
+                   if isempty(selectedRuns)
+                       error('No runs can be found as a match.');
+                   end
+                   
+                   % Get the runId from the selectedRuns
+                   % Todo: need to check if the number of rows of selectedRunId is 1 or not?
+                   selectedRunId = selectedRuns{1,1}; 
+                  
+               end
+           else
+               error('Missing the packageId parameter.');
+           end
+           
+           import org.dataone.ore.QueryResourceMap; % ! Need to add a new class in d1_libclient_java
+           import org.dataone.vocabulary.PROV;
+           import org.dspace.foresite.Predicate;
+           import com.hp.hpl.jena.rdf.model.Property;
+           import com.hp.hpl.jena.rdf.model.RDFNode;
+           import java.util.Iterator;
+           
+           selectedRunDir = fullfile(curDir, filesep, runManager.configuration.provenance_storage_directory, filesep, 'runs', selectedRunId, filesep);
+           cd(selectedRunDir);
+
+           resMapFileName = strtrim(ls('*.rdf')); % list the reosurceMap.rdf and remove the whitespace and return characters  
+           wasGeneratedByPredicate = PROV.predicate('wasGeneratedBy');
+           % Call Java getSubjectsRelatedToProperty() method (Way 1)
+           subjectNameSet = QueryResourceMap.getSubjectsRelatedToProperty(resMapFileName, wasGeneratedByPredicate); 
+           
+           % Call Matlab getSubjectRelatedToProperty() method (Way 2)
+           % subjectNameSet = runManager.getSubjectsRelatedToProperty(resMapFileName, wasGeneratedByPredicate);
+      
+           fprintf('\n\n**************************************************************************\n');
+           fprintf('Package identifer: %s\n', char(packageId));
+           fprintf('This package was created by run: %s\n\n', selectedRunId);
+           
+           fprintf('Files created from this run:\n\n');
+           iter = subjectNameSet.iterator(); % show values of a hashset object
+           while iter.hasNext()
+               fprintf('%s\n', char(iter.next())); 
+           end
+                 
+           fprintf('\n\nLocal data files used:\n');
+           
+           fprintf('\n\nDataPackage to be published to DataONE\n');
+           fprintf('======================================\n');
+       
+           fprintf('\n\n**************************************************************************\n\n\n');
+           
+           %3. Loop through the selected runs:
+               %(1) find the data package in the runs directory. Here I assume that we can parse the runID from the packageID.       
+               %    Alternative option: read the executions.csv, do the filtering based on packageID. Then, find the runID from the matched row.
+               %(2) Go the the selected run directory, deserialize the saved data package (resourceMap)
+               %(3) Get all relationships from the data package 
+               %(4) output:
+                   %?> publishedTime, dataPackageID, scriptURL, softwareApplication, tag, sequence
+                   %?> Files generated by this runs ordered by the files most recently modified time
+                   %Header: fileNameLength, FileName, size, modifiedTime 
+                   %?> Find the datasets downloaded / read by this run
+                   %?> Print the provenance relationships contained in this data package
+                   %?> Page console output control if multiple rums are being viewed.
+                   
+            cd(curDir);
         end
   
         

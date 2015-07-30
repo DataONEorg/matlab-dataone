@@ -21,10 +21,7 @@
 classdef Configuration < hgsetget & dynamicprops 
     % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
     
-    properties
-        % A boolean property that enables or disables debugging 
-        debug = false;  
-        
+    properties     
         % The Operating System account username
         account_name = '';
       
@@ -110,6 +107,11 @@ classdef Configuration < hgsetget & dynamicprops
         
     end
 
+    properties (Access = private)
+        % A boolean property that enables or disables debugging 
+        debug = false;   
+    end
+    
     methods(Static)
         
     end
