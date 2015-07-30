@@ -876,7 +876,7 @@ classdef RunManager < hgsetget
         
         
         function runs = listRuns(runManager, quiet, startDate, endDate, tags)
-            % LISTRUNS Lists prior executions (runs) and information about them.
+            % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
             %   startDate -- the starting timestamp for an execution
             %   endDate -- the ending timestamp for an execution
