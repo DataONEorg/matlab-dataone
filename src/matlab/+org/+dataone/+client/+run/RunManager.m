@@ -356,7 +356,7 @@ classdef RunManager < hgsetget
             %wfMetadataId.setValue(runManager.wfMetaFileName);
             %runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);    
        
-            % Record relationship identifying workflow id as a provONE:Program
+            % Record relationship identifying workflow identifier and URI as a provONE:Program
             runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
             provOneProgramURI = URI(ProvONE.Program.getURI());        
             runManager.dataPackage.insertRelationship(runManager.wfIdentifier.getValue(), runManager.aTypePredicate, provOneProgramURI);
@@ -559,6 +559,26 @@ classdef RunManager < hgsetget
             cd(curDir);
         end
        
+        
+        function [execMetaMatrix, header] = getExecMetadataMatrix(runManager)
+            % GETEXECMETADATAMATRIX returns a matrix storing the
+            % metadata summary for all executions from the exeucton
+            % database.
+            %   runManager - 
+            formatSpec = '%s %s %s %s %s %s %s\n';
+            [fileId, message] = fopen(runManager.executionDatabaseName,'r');
+            if fileId == -1
+               disp(message); 
+            else
+                header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
+                execMetaData = textscan(fileId,formatSpec,'Delimiter',',');
+                fclose(fileId);
+ 
+                % Convert a cell array to a matrix
+                execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
+            end
+        end
+        
         
         function subjectHashSet = getSubjectsRelatedToProperty(runManager, filePath, p)
            % GETSUBJECTRELATEDTOPROPERTY get all related subjects related to a given property from all
@@ -887,68 +907,114 @@ classdef RunManager < hgsetget
             curDir = pwd();
             cd(runManager.configuration.provenance_storage_directory);
             
-            formatSpec = '%s %s %s %s %s %s %s\n';
-            [fileId, message] = fopen(runManager.executionDatabaseName,'r');
-            if fileId == -1
-               disp(message); 
-            else
-                header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
-                execMetaData = textscan(fileId,formatSpec,'Delimiter',',');
-                fclose(fileId);
- 
-                % Convert a cell array to a matrix
-                execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
-              
-                % Process the query constraints
-                startDateFlag = false;
-                endDateFlag = false;
+            % Read the exeuction metadata summary from the exeuction
+            % metadata database
+            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+           
+            % Process the query constraints
+            startDateFlag = false;
+            endDateFlag = false;
                 
-                if isempty(startDate) ~= 1
-                    startDateFlag = true;
-                end
-                
-                if isempty(endDate) ~= 1
-                    endDateFlag = true;
-                end
-                
-                if startDateFlag && endDateFlag
-                    startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                    endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
-                    % Extract multiple rows from a matrix 
-                    startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
-                    endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
-                    bothAllowed = startCondition & endColCondition;
-                    runs = execMetaMatrix(bothAllowed, :);
-                elseif startDateFlag == 1
-                    startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                    % Extract multiple rows from a matrix 
-                    startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
-                    runs = execMetaMatrix(startCondition, :);
-                elseif endDateFlag == 1
-                     endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                     endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
-                     % Extract multiple rows from a matrix 
-                     runs = execMetaMatrix(endColCondition, :);
-                else % No query parameters are required
-                     runs = execMetaMatrix; 
-                end
-                
-                if isempty(quiet) ~= 1 && quiet == 1
-                    % Convert a cell array to a table with headers                 
-                    T = cell2table(runs,'VariableNames', [header{:}]);  
-                    T                      
-                end
-                
-                % TODO: process "tag" 
+            if isempty(startDate) ~= 1
+                startDateFlag = true;
             end
+                
+            if isempty(endDate) ~= 1
+                endDateFlag = true;
+            end
+                
+            if startDateFlag && endDateFlag
+                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
+                % Extract multiple rows from a matrix 
+                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
+                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
+                bothAllowed = startCondition & endColCondition;
+                runs = execMetaMatrix(bothAllowed, :);
+            elseif startDateFlag == 1
+                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                % Extract multiple rows from a matrix 
+                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
+                runs = execMetaMatrix(startCondition, :);
+            elseif endDateFlag == 1
+                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
+                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
+                % Extract multiple rows from a matrix 
+                runs = execMetaMatrix(endColCondition, :);
+            else % No query parameters are required
+                runs = execMetaMatrix; 
+            end
+                
+            if isempty(quiet) ~= 1 && quiet ~= 1
+                % Convert a cell array to a table with headers                 
+                tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
+                disp(tableForSelectedRuns);                      
+            end
+                
+            % TODO: process "tag" 
             
             cd(curDir);           
         end
         
         
-        function deleted_runs = deleteRuns(runIdList, startDate, endDate, tags)
+        function deleted_runs = deleteRuns(runManager, runIdList, startDate, endDate, tags, noop, quiet)
             % DELETERUNS Deletes prior executions (runs) from the stored
-            % list.            
+            % list.    
+            
+            curDir = pwd();
+            cd(runManager.configuration.provenance_storage_directory);
+             % Read the exeuction metadata summary from the exeuction
+            % metadata database
+            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+            
+            % Todo: Process the query parameter: runIdList
+            
+            
+            % Process the query parameters: startDate and endDate
+            cd(curDir);
+            selectedRuns = runManager.listRuns(quiet, startDate, endDate, tags);
+          
+            if noop == 1
+                % Show the selected run list only when quiet is turned on
+                if isempty(quiet) ~= 1 && quiet ~= 1
+                    % Convert a cell array to a table with headers    
+                    disp('The following runs are matched and to be deleted:');
+                    tableForSelectedRuns = cell2table(selectedRuns,'VariableNames', [header{:}]);  
+                    disp(tableForSelectedRuns);                      
+                end
+            else
+                % Show the selected run list and do the deletion operation
+                
+                selectedIdSet = execMetaMatrix(:,1);
+            
+                % Loop through the selectedIdSet cell
+                runsDir = fullfile(curDir, filesep, runManager.configuration.provenance_storage_directory, filesep, 'runs', filesep);
+                cd(runsDir); % go to the runs/ direcotry
+                
+                for k = 1:length(selectedIdSet)                   
+                    selectedRunDir = fullfile(selectedIdSet{k}, filesep);
+                    if exist(selectedRunDir, 'dir') ~= 0
+                        [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
+                        if success == 1
+                            fprintf('Succeed in deleting the directory %s\n', selectedRunDir);
+                            % Todo: update the execuction metadata matrix by
+                            % setting the row k to be empty
+                            % execMetaMatrix(k, :) = []; % To test
+                        else
+                            fprintf('Error in deleting a directory %s and the error message is %s \n', ...
+                            selectedRunDir, errMessage);
+                        end 
+                    else
+                        fprintf('The %s directory to be deleted not exist.\n', selectedRunDir);
+                    end
+                end
+                cd(curDir);
+                
+                %T = cell2table(execMetaMatrix,'VariableNames', [header{:}]);  
+                %disp(T);
+                
+            end
+            
         end
         
         
@@ -962,32 +1028,21 @@ classdef RunManager < hgsetget
            % and returns if no runs are matched, 
            if(isempty(packageId) ~= 1)
                curDir = pwd();
-               fprintf('current directory: %s\n', curDir);
                cd(runManager.configuration.provenance_storage_directory);
             
-               formatSpec = '%s %s %s %s %s %s %s\n';
-               [fileId, message] = fopen(runManager.executionDatabaseName,'r');
-               if fileId == -1
-                   error('Error in opening a file: %s', message); 
-               else
-                   header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
-                   execMetaData = textscan(fileId,formatSpec,'Delimiter',',');
-                   fclose(fileId);
- 
-                   % Convert a cell array to a matrix
-                   execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7]}];
-              
-                   pkgIdCondition = strcmp(execMetaMatrix(:,6), packageId);
-                   selectedRuns = execMetaMatrix(pkgIdCondition, :);
-                   if isempty(selectedRuns)
-                       error('No runs can be found as a match.');
-                   end
-                   
-                   % Get the runId from the selectedRuns
-                   % Todo: need to check if the number of rows of selectedRunId is 1 or not?
-                   selectedRunId = selectedRuns{1,1}; 
-                  
+               % Read the exeuction metadata summary from the exeuction
+               % metadata database
+               [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+               pkgIdCondition = strcmp(execMetaMatrix(:,6), packageId);
+               selectedRuns = execMetaMatrix(pkgIdCondition, :);
+               if isempty(selectedRuns)
+                   error('No runs can be found as a match.');
                end
+                   
+               % Get the runId from the selectedRuns
+               % Todo: need to check if the number of rows of selectedRunId is 1 or not?
+               selectedRunId = selectedRuns{1,1}; 
+             
            else
                error('Missing the packageId parameter.');
            end
@@ -999,6 +1054,7 @@ classdef RunManager < hgsetget
            import com.hp.hpl.jena.rdf.model.RDFNode;
            import java.util.Iterator;
            
+           % Go to the runs/ directory
            selectedRunDir = fullfile(curDir, filesep, runManager.configuration.provenance_storage_directory, filesep, 'runs', selectedRunId, filesep);
            cd(selectedRunDir);
 
@@ -1010,6 +1066,7 @@ classdef RunManager < hgsetget
            % Call Matlab getSubjectRelatedToProperty() method (Way 2)
            % subjectNameSet = runManager.getSubjectsRelatedToProperty(resMapFileName, wasGeneratedByPredicate);
       
+           % Create a struct for created files during the current run
            subjectNameArray = subjectNameSet.toArray(); % convert a java set instance to an array instance
            for i = 1:subjectNameSet.size()
                 createdFileNameStruct(i,1).FileName = char(subjectNameArray(i));
@@ -1024,8 +1081,7 @@ classdef RunManager < hgsetget
           
            % Warning: this call works but the returned identifiers is an
            % empty set. So I use the runManager.dataPackage instead.
-           % resMapData =
-           % String(Files.readAllBytes(Paths.get(selectedRunDir, resMapFileName)));  % Read resourceMap into a string using Java 7 API
+           % resMapData = String(Files.readAllBytes(Paths.get(selectedRunDir, resMapFileName)));  % Read resourceMap into a string using Java 7 API
            % dataPkg = DataPackage.deserializePackage(resMapData);
            % identifierList = dataPkg.identifiers(); % Get all the identifiers in the datapackage
            % fprintf('pkgID: %s\n', char(dataPkg.getPackageId().getValue()));
@@ -1040,6 +1096,7 @@ classdef RunManager < hgsetget
                d1ObjFileSize = d1ObjSysMeta.getSize().longValue();
                d1ObjMetaModifiedTime = d1ObjSysMeta.getDateSysMetadataModified();
                
+               % Create a table for files to be published in a datapackage
                publishFileStruct(i,1).FileName = char(d1ObjName);
                publishFileStruct(i,1).FileSize = d1ObjFileSize;
                publishFileStruct(i,1).SysMetaModifiedTime = char(d1ObjMetaModifiedTime.toGMTString()); % Todo: find the file modified date
@@ -1051,15 +1108,17 @@ classdef RunManager < hgsetget
            fprintf('This package was created by run: %s\n\n', selectedRunId);
            
            fprintf('Files created from this run:\n\n');
-           TableForFileCreated = struct2table(createdFileNameStruct);
+           TableForFileCreated = struct2table(createdFileNameStruct); % Convert a struct to a table
            disp(TableForFileCreated);
-           
-                 
+                  
            fprintf('\n\nLocal data files used:\n');
+           %Todo: local data files
            
            fprintf('\n\nDataPackage to be published to DataONE\n');
            fprintf('======================================\n');
-           TableForFile2Published = struct2table(publishFileStruct);
+           %Todo: provenance 
+           
+           TableForFile2Published = struct2table(publishFileStruct); % Convert a struct to a table
            disp(TableForFile2Published);
            
            fprintf('\n**************************************************************************\n');

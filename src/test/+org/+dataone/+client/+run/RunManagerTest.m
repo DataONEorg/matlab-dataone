@@ -102,26 +102,47 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 % system('/usr/bin/open process_view.pdf');              
             %    cd(curDir);
             %end  
+                
+        end
+        
+        function testListRuns(testCase)
+            fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
             
-            %quiet = true;
-            %fprintf('*** startDate and endDate both required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, '20150727T180015', '20150727T184300', '');
+            quiet = false;
+            startDate = '20150731T102515';
+            endDate = datestr(now, 30);
+            
+            fprintf('*** startDate and endDate both required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
                      
-            %fprintf('*** startDate only required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, '20150727T162515', '', '');
+            fprintf('*** startDate only required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, startDate, '', '');
   
-            %fprintf('*** endDate only required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, '', '20150727T164300', '');
+            fprintf('*** endDate only required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, '', endDate, '');
             
-            %fprintf('*** No query parameters are required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, '', '', '');
-                     
+            fprintf('*** No query parameters are required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, '', '', '');
         end
         
         
         function testView(testCase)
-            disp('Test for view(packageId) function:');
+            fprintf('\n\nTest for view(packageId) function:\n');
             testCase.mgr.view(testCase.mgr.execution.data_package_id);
+           
+        end
+        
+        
+        function testDeletion(testCase)
+            fprintf('\n\nTest for deletion(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
+            
+            quiet = false;
+            noop = false;
+            startDate = '20150731T102515';
+            endDate = datestr(now, 30);
+            tag = '';
+            runIdList = [];
+            testCase.mgr.deleteRuns(runIdList, startDate, endDate, tag, noop, quiet);
            
         end
         
