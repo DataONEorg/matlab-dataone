@@ -1014,18 +1014,25 @@ classdef RunManager < hgsetget
            for i = 1:subjectNameSet.size()
                 createdFileNameStruct(i,1).FileName = char(subjectNameArray(i));
            end
-
+           
+           
+           %iter = subjectNameSet.iterator(); % show values of a hashset object
+           %while iter.hasNext()
+           %    fprintf('%s\n', char(iter.next())); 
+           %end
+           
            % Deserialize the datapackage
            import org.dataone.client.v1.itk.DataPackage;
            import java.nio.file.Files;
            import java.nio.file.Path;
            import java.nio.file.Paths;
            import java.lang.String;
-          
+
+           % Read resourceMap into a string using Java 7 API
+           resMapData = String(Files.readAllBytes(Paths.get(selectedRunDir, resMapFileName)));
+           
            % Warning: this call works but the returned identifiers is an
            % empty set. So I use the runManager.dataPackage instead.
-           % resMapData =
-           % String(Files.readAllBytes(Paths.get(selectedRunDir, resMapFileName)));  % Read resourceMap into a string using Java 7 API
            % dataPkg = DataPackage.deserializePackage(resMapData);
            % identifierList = dataPkg.identifiers(); % Get all the identifiers in the datapackage
            % fprintf('pkgID: %s\n', char(dataPkg.getPackageId().getValue()));
@@ -1039,14 +1046,15 @@ classdef RunManager < hgsetget
                d1ObjName = d1Obj.getIdentifier().getValue();
                d1ObjFileSize = d1ObjSysMeta.getSize().longValue();
                d1ObjMetaModifiedTime = d1ObjSysMeta.getDateSysMetadataModified();
-               
-               publishFileStruct(i,1).FileName = char(d1ObjName);
-               publishFileStruct(i,1).FileSize = d1ObjFileSize;
-               publishFileStruct(i,1).SysMetaModifiedTime = char(d1ObjMetaModifiedTime.toGMTString()); % Todo: find the file modified date
+               fprintf('%s, %d, %s\n', char(d1ObjName), d1ObjFileSize, char(d1ObjMetaModifiedTime.toGMTString()));
+              
+               toPublishFileS(i,1).FileName = char(d1ObjName);
+               S(i,1).FileSize = d1ObjFileSize;
+               S(i,1).SysMetaModifiedTime = char(d1ObjMetaModifiedTime.toGMTString());
               
            end
           
-           fprintf('\n**************************************************************************\n');
+           fprintf('\n\n**************************************************************************\n');
            fprintf('Package identifer: %s\n', char(packageId));
            fprintf('This package was created by run: %s\n\n', selectedRunId);
            
@@ -1059,11 +1067,12 @@ classdef RunManager < hgsetget
            
            fprintf('\n\nDataPackage to be published to DataONE\n');
            fprintf('======================================\n');
-           TableForFile2Published = struct2table(publishFileStruct);
+           TableForFile2Published = struct2table(S);
            disp(TableForFile2Published);
            
-           fprintf('\n**************************************************************************\n');
-                          
+           fprintf('\n\n**************************************************************************\n');
+          
+                   
            cd(curDir);
         end
   
