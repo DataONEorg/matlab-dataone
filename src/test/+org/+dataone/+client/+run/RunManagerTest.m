@@ -138,8 +138,15 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             quiet = false;
             noop = false;
-            startDate = '20150731T102515';
-            endDate = datestr(now, 30);
+            
+            % With query parameters for startDate or endDate
+            %startDate = '20150731T102515';
+            %endDate = datestr(now, 30);
+            
+            % Without query parameters for startDate and endDate
+            startDate = '';
+            endDate = '';
+            
             tag = '';
             runIdList = [];
             testCase.mgr.deleteRuns(runIdList, startDate, endDate, tag, noop, quiet);

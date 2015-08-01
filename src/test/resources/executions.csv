@@ -1,2 +1,1 @@
-runId, filePath, startTime, endTime, publishedTime, packageId, errorMessage
-ee2477d3-d90f-4147-8e04-5a0d71f7518d, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150731T180207, 20150731T180208, , urn:uuid:14f50509-637b-40b4-bae1-24eecadeaf02, 
+runId,filePath,startTime,endTime,publishedTime,packageId,errorMessage

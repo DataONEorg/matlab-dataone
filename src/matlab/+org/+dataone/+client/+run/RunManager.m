@@ -963,13 +963,11 @@ classdef RunManager < hgsetget
             
             curDir = pwd();
             cd(runManager.configuration.provenance_storage_directory);
-             % Read the exeuction metadata summary from the exeuction
-            % metadata database
+            % Read the exeuction metadata summary from the exeuction metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-            
+           
             % Todo: Process the query parameter: runIdList
-            
-            
+                      
             % Process the query parameters: startDate and endDate
             cd(curDir);
             selectedRuns = runManager.listRuns(quiet, startDate, endDate, tags);
@@ -983,9 +981,8 @@ classdef RunManager < hgsetget
                     disp(tableForSelectedRuns);                      
                 end
             else
-                % Show the selected run list and do the deletion operation
-                
-                selectedIdSet = execMetaMatrix(:,1);
+                % Show the selected run list and do the deletion operation                
+                selectedIdSet = selectedRuns(:,1);
             
                 % Loop through the selectedIdSet cell
                 runsDir = fullfile(curDir, filesep, runManager.configuration.provenance_storage_directory, filesep, 'runs', filesep);
@@ -996,10 +993,7 @@ classdef RunManager < hgsetget
                     if exist(selectedRunDir, 'dir') ~= 0
                         [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
                         if success == 1
-                            fprintf('Succeed in deleting the directory %s\n', selectedRunDir);
-                            % Todo: update the execuction metadata matrix by
-                            % setting the row k to be empty
-                            % execMetaMatrix(k, :) = []; % To test
+                            fprintf('Succeed in deleting the directory %s\n', selectedRunDir);                         
                         else
                             fprintf('Error in deleting a directory %s and the error message is %s \n', ...
                             selectedRunDir, errMessage);
@@ -1008,11 +1002,52 @@ classdef RunManager < hgsetget
                         fprintf('The %s directory to be deleted not exist.\n', selectedRunDir);
                     end
                 end
+
+                % Todo: update the execuction metadata matrix by
+                % setting the row k to be empty
+                if noop ~= 1
+                    startDateFlag = false;
+                    endDateFlag = false;
+                
+                    if isempty(startDate) ~= 1
+                        startDateFlag = true;
+                    end
+                
+                    if isempty(endDate) ~= 1
+                        endDateFlag = true;
+                    end
+            
+                    if startDateFlag && endDateFlag
+                        startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                        endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
+                        % Extract multiple rows from a matrix 
+                        startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
+                        endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
+                        deleteRows = startCondition & endColCondition;
+                    elseif startDateFlag == 1
+                        startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                        % Extract multiple rows from a matrix 
+                        deleteRows = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum; % logical vector for rows to delete                
+                    elseif endDateFlag == 1
+                        endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
+                        deleteRows = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;                   
+                    else % No query parameters are required
+                        deleteRows = true(size(execMetaMatrix, 1), 1);
+                    end
+                        
+                    execMetaMatrix(deleteRows, :) = []; % To test
+                    %execMetaMatrix
+                    
+                    cd(curDir);
+                    cd(runManager.configuration.provenance_storage_directory);
+                    
+                    % Write the updated execution metadata with headers to the execution database
+                    T = cell2table(execMetaMatrix,'VariableNames',[header{:}]);
+                    writetable(T, runManager.executionDatabaseName);                  
+                end
+                
                 cd(curDir);
-                
-                %T = cell2table(execMetaMatrix,'VariableNames', [header{:}]);  
-                %disp(T);
-                
+          
             end
             
         end
