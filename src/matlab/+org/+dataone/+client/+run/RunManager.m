@@ -1003,48 +1003,44 @@ classdef RunManager < hgsetget
                     end
                 end
 
-                % Update the execuction metadata matrix by removing the deleted rows and write the update metadata back to the execution database
-                if noop ~= 1
-                    startDateFlag = false;
-                    endDateFlag = false;
+                % Update the execuction metadata matrix by removing the deleted rows and write the update metadata back to the execution database               
+                startDateFlag = false;
+                endDateFlag = false;
                 
-                    if isempty(startDate) ~= 1
-                        startDateFlag = true;
-                    end
-                
-                    if isempty(endDate) ~= 1
-                        endDateFlag = true;
-                    end
-            
-                    if startDateFlag && endDateFlag
-                        startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                        endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
-                        % Extract multiple rows from a matrix 
-                        startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
-                        endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
-                        deleteRows = startCondition & endColCondition;
-                    elseif startDateFlag == 1
-                        startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                        % Extract multiple rows from a matrix 
-                        deleteRows = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum; % logical vector for rows to delete                
-                    elseif endDateFlag == 1
-                        endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                        deleteRows = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;                   
-                    else % No query parameters are required
-                        deleteRows = true(size(execMetaMatrix, 1), 1);
-                    end
-                        
-                    execMetaMatrix(deleteRows, :) = []; % To test
-                    %execMetaMatrix
-                    
-                    cd(curDir);
-                    cd(runManager.configuration.provenance_storage_directory);
-                    
-                    % Write the updated execution metadata with headers to the execution database
-                    T = cell2table(execMetaMatrix,'VariableNames',[header{:}]);
-                    writetable(T, runManager.executionDatabaseName);                  
+                if isempty(startDate) ~= 1
+                    startDateFlag = true;
                 end
                 
+                if isempty(endDate) ~= 1
+                    endDateFlag = true;
+                end
+            
+                if startDateFlag && endDateFlag
+                    startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                    endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
+                    startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
+                    endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
+                    deleteRows = startCondition & endColCondition;
+                elseif startDateFlag == 1
+                    startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                    deleteRows = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum; % logical vector for rows to delete                
+                elseif endDateFlag == 1
+                    endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
+                    deleteRows = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;                   
+                else % No query parameters are required
+                    deleteRows = true(size(execMetaMatrix, 1), 1);
+                end
+                        
+                execMetaMatrix(deleteRows, :) = []; % To test
+                execMetaMatrix
+                    
+                cd(curDir);
+                cd(runManager.configuration.provenance_storage_directory);
+                    
+                % Write the updated execution metadata with headers to the execution database
+                T = cell2table(execMetaMatrix,'VariableNames',[header{:}]);
+                writetable(T, runManager.executionDatabaseName);                  
+                             
                 cd(curDir);
           
             end

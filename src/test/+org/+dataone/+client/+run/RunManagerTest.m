@@ -140,12 +140,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
             noop = false;
             
             % With query parameters for startDate or endDate
-            %startDate = '20150731T102515';
-            %endDate = datestr(now, 30);
+            startDate = '20150731T102515';
+            endDate = datestr(now, 30);
             
             % Without query parameters for startDate and endDate
-            startDate = '';
-            endDate = '';
+            %startDate = '';
+            %endDate = '';
             
             tag = '';
             runIdList = [];
