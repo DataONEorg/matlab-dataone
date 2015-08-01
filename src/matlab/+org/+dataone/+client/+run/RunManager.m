@@ -1003,8 +1003,7 @@ classdef RunManager < hgsetget
                     end
                 end
 
-                % Todo: update the execuction metadata matrix by
-                % setting the row k to be empty
+                % Update the execuction metadata matrix by removing the deleted rows and write the update metadata back to the execution database
                 if noop ~= 1
                     startDateFlag = false;
                     endDateFlag = false;
