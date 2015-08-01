@@ -1031,7 +1031,7 @@ classdef RunManager < hgsetget
                     deleteRows = true(size(execMetaMatrix, 1), 1);
                 end
                         
-                execMetaMatrix(deleteRows, :) = []; % To test
+                execMetaMatrix(deleteRows, :) = []; % deleted the selected rows
                 execMetaMatrix
                     
                 cd(curDir);
