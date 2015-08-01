@@ -966,7 +966,7 @@ classdef RunManager < hgsetget
             % Read the exeuction metadata summary from the exeuction metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
            
-            % Todo: Process the query parameter: runIdList
+            % Todo: Process the query parameter: runIdList, tags
                       
             % Process the query parameters: startDate and endDate
             cd(curDir);
