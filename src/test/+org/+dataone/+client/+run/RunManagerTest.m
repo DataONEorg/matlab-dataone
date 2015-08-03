@@ -133,7 +133,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
-        function testDeletion(testCase)
+        function testDeleteRuns(testCase)
             fprintf('\n\nTest for deletion(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
             
             quiet = false;
