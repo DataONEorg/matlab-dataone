@@ -623,6 +623,35 @@ classdef RunManager < hgsetget
           
         end
         
+        
+        function u = union2Cells(runManager, m, n)
+            % Process data
+            a = [n;m];          % All
+            u = cell(size(a));  % Unique
+     
+            ku = 1;      % Unique counter
+            u(ku,:) = a(1,:);   % Add first row
+
+            % Add only rows that do not exist in u
+            for ia = 2:size(a,1)
+                found = false;   % search flag
+                for iu = 1:ku
+                    if all(strcmp(a(ia,:), u(iu,:)))
+                            % row is already registered
+                            found = true;
+                            break;
+                    end;
+                end;
+                if ~found
+                    % add row
+                    ku = ku+1;
+                    u(ku,:) = a(ia,:);
+                end;
+            end;
+
+            u = u(1:ku,:); % Trim unused space in u           
+        end
+        
     end
  
     
@@ -768,7 +797,7 @@ classdef RunManager < hgsetget
             runManager.execution = Execution(tagStr);
             runManager.execution.software_application = filePath; % Set script path
             
-            % Set up YesWorkflow and pass the path of a script to YesWorkflow
+            % Set up yesWorkflow and pass the path of a script to yesWorkflow
             runManager.configYesWorkflow(runManager.execution.software_application);
             
             % Begin recording
@@ -864,9 +893,9 @@ classdef RunManager < hgsetget
             submitter = runManager.execution.account_name;
             mnNodeId = runManager.configuration.target_member_node_id;
                      
-            % Generate YesWorkflow image outputs
+            % Generate yesWorkflow image outputs
             if runManager.configuration.generate_workflow_graphic
-                % Call YesWorkflow to capture prospective provenance for current scirpt
+                % Call yesWorkflow to capture prospective provenance for current scirpt
                 curDir = pwd();
                 runManager.captureProspectiveProvenanceWithYW();
             end
@@ -966,23 +995,49 @@ classdef RunManager < hgsetget
             % Read the exeuction metadata summary from the exeuction metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
            
-            % Todo: Process the query parameter: runIdList, tags
-                      
+            size(execMetaMatrix)
+            
+            % Process the query parameter: runIdList
+            deleted_runs_1 = [];
+            runIdCondition = [];
+            if ~isempty(runIdList) 
+                runIdArray = char(runIdList);
+                runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existence between two arrays 
+                deleted_runs_1 = execMetaMatrix(runIdCondition, :);
+                size(deleted_runs_1)
+            end
+            
             % Process the query parameters: startDate and endDate
             cd(curDir);
-            selectedRuns = runManager.listRuns(quiet, startDate, endDate, tags);
-          
+            deleted_runs_2 = runManager.listRuns(quiet, startDate, endDate, tags);
+            size(deleted_runs_2)
+            
+            % Merge the two selected runs cell array into a larger cell
+            % array and duplicate rows are removed.
+            if ~isempty(deleted_runs_1) && ~isempty(deleted_runs_2)
+                deleted_runs = runManager.union2Cells(deleted_runs_1, deleted_runs_2);
+                %size(deleted_runs)
+            elseif ~isempty(deleted_runs_1)
+                deleted_runs = deleted_runs_1;
+            else
+                deleted_runs = deleted_runs_2;
+            end
+            
+            % Todo: process the argument "tag"
+                      
+                                    
+            % Delete the selected runs and update the exeucution database
             if noop == 1
                 % Show the selected run list only when quiet is turned on
                 if isempty(quiet) ~= 1 && quiet ~= 1
                     % Convert a cell array to a table with headers    
                     disp('The following runs are matched and to be deleted:');
-                    tableForSelectedRuns = cell2table(selectedRuns,'VariableNames', [header{:}]);  
+                    tableForSelectedRuns = cell2table(deleted_runs,'VariableNames', [header{:}]);  
                     disp(tableForSelectedRuns);                      
                 end
             else
                 % Show the selected run list and do the deletion operation                
-                selectedIdSet = selectedRuns(:,1);
+                selectedIdSet = deleted_runs(:,1);
             
                 % Loop through the selectedIdSet cell
                 runsDir = fullfile(curDir, filesep, runManager.configuration.provenance_storage_directory, filesep, 'runs', filesep);
@@ -1020,19 +1075,24 @@ classdef RunManager < hgsetget
                     endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
                     startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
                     endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
-                    deleteRows = startCondition & endColCondition;
+                    deleteRows_date = startCondition & endColCondition;
                 elseif startDateFlag == 1
                     startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                    deleteRows = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum; % logical vector for rows to delete                
+                    deleteRows_date = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum; % logical vector for rows to delete                
                 elseif endDateFlag == 1
                     endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                    deleteRows = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;                   
+                    deleteRows_date = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;                   
                 else % No query parameters are required
-                    deleteRows = true(size(execMetaMatrix, 1), 1);
+                    deleteRows_date = true(size(execMetaMatrix, 1), 1);
                 end
                         
+                if ~isempty(runIdList)
+                    deleteRows = deleteRows_date | runIdCondition;
+                else
+                    deleteRows = deleteRows_date;
+                end
                 execMetaMatrix(deleteRows, :) = []; % deleted the selected rows
-                execMetaMatrix
+                size(execMetaMatrix)
                     
                 cd(curDir);
                 cd(runManager.configuration.provenance_storage_directory);
@@ -1152,7 +1212,8 @@ classdef RunManager < hgsetget
            disp(TableForFile2Published);
            
            fprintf('\n**************************************************************************\n');
-                          
+                      
+           package_id = packageId;
            cd(curDir);
         end
   
@@ -1242,7 +1303,7 @@ classdef RunManager < hgsetget
                         fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
                         fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
                         fprintf('d1Obj.originalMNode=%s\n', char(v1SysMeta.getOriginMemberNode().getValue()));
-                        fprintf('***********************************************************');
+                        fprintf('***********************************************************\n');
                     end
                     
                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
