@@ -535,7 +535,7 @@ classdef RunManager < hgsetget
             endTime = char(runManager.execution.end_time);
             publishedTime = char(runManager.execution.publish_time);
             packageId = char(runManager.execution.data_package_id);
-            tagCounter = num2str(unidrnd(100)); % generate a random integer
+            tag = num2str(unidrnd(100)); % generate a random integer
             errorMessage = char(runManager.execution.error_message);
      
             formatSpec = '%s, %s, %s, %s, %s, %s, %s, %s\n';
@@ -548,14 +548,14 @@ classdef RunManager < hgsetget
                     disp(message);
                 end
                 fprintf(fileId, formatSpec, 'runId', 'filePath', 'startTime', 'endTime', 'publishedTime', 'packageId', 'tag', 'errorMessage'); % write header
-                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tagCounter, errorMessage); % write the metadata for the current execution
+                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tag, errorMessage); % write the metadata for the current execution
                 fclose(fileId); 
             else
                 [fileId, message] = fopen(fileName,'a');
                 if fileId == -1
                     disp(message);
                 end
-                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tagCounter, errorMessage); % write the metadata for the current execution     
+                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tag, errorMessage); % write the metadata for the current execution     
                 fclose(fileId); 
             end
             cd(curDir);
