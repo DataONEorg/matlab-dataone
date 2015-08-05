@@ -7,7 +7,7 @@
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2009-2014 DataONE
+%   Copyright 2009-2015 DataONE
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -118,6 +118,10 @@ classdef RunManager < hgsetget
         
         
         function predicate = asPredicate(runManager, property, prefix)
+            % ASPREDICATE  Given a Jena Property and namespace prefix, create an ORE Predicate. 
+            % This allows us to use the Jena vocabularies.
+            %   property -- predicate
+            %   prefix -- namespace prefix
             import com.hp.hpl.jena.rdf.model.Property;
             import org.dspace.foresite.Predicate;
             import java.net.URI;
@@ -141,6 +145,7 @@ classdef RunManager < hgsetget
         
         
         function cn_url = getD1UriPrefix(runManager)
+            % GETD1URIPREFIX Get the URL for dataone coordinator node 
             import org.dataone.configuration.Settings;
             import org.dataone.client.v2.itk.D1Client;
             
@@ -154,7 +159,7 @@ classdef RunManager < hgsetget
         
         
         function configYesWorkflow(runManager, path)
-            % CONFIGYESWORKFLOW set YesWorkflow extractor language model to be Matlab type
+            % CONFIGYESWORKFLOW Set YesWorkflow extractor language model to be Matlab type
             % Default configuration is used now.
             import org.yesworkflow.extract.DefaultExtractor;
             import org.yesworkflow.model.DefaultModeler;
@@ -204,13 +209,18 @@ classdef RunManager < hgsetget
             import java.io.FileReader;
             import java.util.List;
             import java.util.HashMap;
-                       
+            %import org.yesworkflow.config.YWConfiguration;
+            
             try
                 % Read script content from disk
                 script = File(runManager.execution.software_application);
                 freader = FileReader(script);
                 reader = BufferedReader(freader);
             
+                % Todo: try to use yw.properties
+                %config = YWConfiguration.fromYamlFile(YAML_FILE_NAME);
+                %config.applyPropertyFile(PROPERTY_FILE_NAME);
+                
                 % Call YW-Extract module
                 runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
                 annotations = runManager.extractor.extract().getAnnotations();
@@ -288,8 +298,7 @@ classdef RunManager < hgsetget
  
        
         function generateYesWorkflowGraphic(runManager)
-            % GENERATEYESWORKFLOWGRAPHIC generates yesWorkflow graphcis in
-            % pdf format. 
+            % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format. 
             
             runManager.combinedViewPdfFileName = [runManager.configuration.script_base_name '_combined_view.pdf'];
             runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
@@ -350,12 +359,12 @@ classdef RunManager < hgsetget
             runManager.wfIdentifier.setValue([runManager.configuration.script_base_name '_' char(scriptNameArray (end))]);
             
             % Todo: how to generate the science meta for the workflow scripts ?
-            %wfIdsList = ArrayListMatlabWrapper();
-            %wfIdsList.add(runManager.wfIdentifier);   
-            %runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
-            %wfMetadataId = Identifier();
-            %wfMetadataId.setValue(runManager.wfMetaFileName);
-            %runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);    
+            % wfIdsList = ArrayListMatlabWrapper();
+            % wfIdsList.add(runManager.wfIdentifier);   
+            % runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
+            % wfMetadataId = Identifier();
+            % wfMetadataId.setValue(runManager.wfMetaFileName);
+            % runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);    
        
             % Record relationship identifying workflow identifier and URI as a provONE:Program
             runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
@@ -627,6 +636,11 @@ classdef RunManager < hgsetget
         
         
         function u = union2Cells(runManager, m, n)
+            % UNION2CELLS Merge two cell arrays by rows and remove
+            % duplicate rows
+            %   m -- cell array to be merged
+            %   n -- cell array to be merged
+            
             % Process data
             a = [n;m];          % All
             u = cell(size(a));  % Unique
@@ -933,7 +947,8 @@ classdef RunManager < hgsetget
             %   quiet -- control the output or not
             %   startDate -- the starting timestamp for an execution
             %   endDate -- the ending timestamp for an execution
-            %   tag -- a tag given to an execution            
+            %   tag -- a tag given to an execution 
+            
             curDir = pwd();
             cd(runManager.configuration.provenance_storage_directory);
                                  
@@ -941,7 +956,7 @@ classdef RunManager < hgsetget
             % metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
            
-            % Initialize the logical cell for the next call for listRuns()
+            % Initialize the logical cell arrays for the next call for listRuns()
             dateCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
             allCondition = false(size(execMetaMatrix, 1), 1);
@@ -1012,8 +1027,9 @@ classdef RunManager < hgsetget
            
             size(execMetaMatrix)
             
-            % Initialize the logical array to have false value
+            % Initialize the logical cell arrays to have false value
             dateCondition = false(size(execMetaMatrix, 1), 1);
+            runIdCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
             allDeleteCondition = false(size(execMetaMatrix, 1), 1);
             
@@ -1246,6 +1262,7 @@ classdef RunManager < hgsetget
         function package_id = publish(runManager, packageId)
             % PUBLISH Uploads a data package produced by an execution (run)
             % to the configured DataONE Member Node server.
+            
             import java.lang.String;
             import java.lang.Boolean;
             import java.lang.Integer;
