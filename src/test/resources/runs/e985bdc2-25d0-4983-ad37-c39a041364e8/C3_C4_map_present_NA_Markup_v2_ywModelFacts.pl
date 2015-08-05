@@ -208,7 +208,7 @@ port_connects_to_channel(16, 23).
 port_connects_to_channel(37, 23).
 
 % FACT: uri_variable(uri_variable_id, variable_name, port_id).
-uri_variable(9, 'month', 2).
-uri_variable(10, 'month', 3).
-uri_variable(11, 'month', 12).
-uri_variable(12, 'month', 14).
+uri_variable(137, 'month', 2).
+uri_variable(138, 'month', 3).
+uri_variable(139, 'month', 12).
+uri_variable(140, 'month', 14).

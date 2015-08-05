@@ -1,1 +1,3 @@
-runId,filePath,startTime,endTime,publishedTime,packageId,errorMessage
+runId, filePath, startTime, endTime, publishedTime, packageId, tag, errorMessage
+68b23ae6-9768-4e7e-abab-b8129308c3e9, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150805T115018, 20150805T115020, , urn:uuid:1f72be43-8e01-47c3-81b9-0713120a7636, 67, 
+e985bdc2-25d0-4983-ad37-c39a041364e8, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150805T115038, 20150805T115039, , urn:uuid:e3175191-c772-43ac-8d14-ede155561763, 18, 
