@@ -150,7 +150,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
             
             quiet = false;
-            noop = true;
+            noop = false;
             
             % With query parameters for startDate or endDate
             startDate = '20150804T102515';

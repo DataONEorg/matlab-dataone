@@ -980,7 +980,7 @@ classdef RunManager < hgsetget
             if ~isempty(tags)
                 tagsArray = char(tags);
                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-                tagsCondition
+                %tagsCondition
                 allCondition = dateCondition | tagsCondition; % Logical OR operator
             else
                 allCondition = dateCondition;
@@ -1011,6 +1011,10 @@ classdef RunManager < hgsetget
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
            
             size(execMetaMatrix)
+            
+            % Initialize the logical array to have false value
+            dateCondition = false(size(execMetaMatrix, 1), 1);
+            allDeleteCondition = false(size(execMetaMatrix, 1), 1);
             
             % Step 1: find all runs to be deleted using the query parameter: runIdList
             deleted_runs_1 = [];
@@ -1100,11 +1104,11 @@ classdef RunManager < hgsetget
                 end
                         
                 if ~isempty(runIdList)
-                    deleteRows = dateCondition | runIdCondition;
+                    allDeleteCondition = dateCondition | runIdCondition;
                 else
-                    deleteRows = dateCondition;
+                    allDeleteCondition = dateCondition;
                 end
-                execMetaMatrix(deleteRows, :) = []; % deleted the selected rows
+                execMetaMatrix(allDeleteCondition, :) = []; % deleted the selected rows
                 size(execMetaMatrix)
                     
                 cd(curDir);
