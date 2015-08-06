@@ -1,1 +1,10 @@
-runId,filePath,startTime,endTime,publishedTime,packageId,tag,errorMessage
+runId, filePath, startTime, endTime, publishedTime, packageId, tag, errorMessage
+4126b26d-8374-448c-a6d8-66abc1143cf2, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T135057, 20150806T135059, , urn:uuid:5ef63216-59b7-4ffd-8a5d-ff3720bbcd1e, 82, 
+70382714-cf0f-4722-8fd6-835d9255376e, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T135124, 20150806T135125, , urn:uuid:9ff62e0c-76c9-4b0a-890c-1ef0f9c694ff, 91, 
+5af9b05e-dfd8-4f88-8991-80d8ea608c1a, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T135219, 20150806T135220, , urn:uuid:7505d678-7c28-4853-b962-c1a6bc5e60b8, 13, 
+b2b7c45c-614d-4058-ab29-3dcc0f47001a, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T140618, 20150806T140621, , urn:uuid:8cbfb742-7b6b-472e-ba57-3952088cc6b3, 82, 
+97dcdd2d-2bad-4869-abc5-f3fac235fc41, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T140819, 20150806T140820, , urn:uuid:20464396-77bd-4929-8775-392348dd1ca2, 91, 
+04027523-a750-4753-b3d3-e66c6b610c6c, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T140850, 20150806T140851, , urn:uuid:1974e7e6-d065-4955-9a0a-562d2d114352, 13, 
+cf3c542b-b299-4d63-afc1-0c9641b0016d, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T140915, 20150806T140916, , urn:uuid:2901251d-178f-46f9-90e5-ca73d24df374, 92, 
+e6abaeef-d709-488f-a088-b58a1ff751bc, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T141405, 20150806T141406, , urn:uuid:08d76dd3-58b0-41eb-a871-b2ddfdfa13ae, 82, 
+024ee782-a9c7-4312-8d86-84bf5cec9fdf, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150806T141455, 20150806T141456, , urn:uuid:c4b2803a-cb07-40b1-b8e7-e5c3f2900ee5, 91, 

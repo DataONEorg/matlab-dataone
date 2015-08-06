@@ -44,6 +44,11 @@ classdef RunManager < hgsetget
         
         % The name for the execution database
         executionDatabaseName = 'executions.csv';
+        
+        % The name for the yesWorkflow configuration file
+        PROCESS_VIEW_PROPERTY_FILE_NAME;
+        DATA_VIEW_PROPERTY_FILE_NAME;
+        COMBINED_VIEW_PROPERTY_FILE_NAME;
     end
 
     properties (Access = private)               
@@ -209,7 +214,7 @@ classdef RunManager < hgsetget
             import java.io.FileReader;
             import java.util.List;
             import java.util.HashMap;
-            %import org.yesworkflow.config.YWConfiguration;
+            import org.yesworkflow.config.YWConfiguration;
             
             try
                 % Read script content from disk
@@ -217,10 +222,9 @@ classdef RunManager < hgsetget
                 freader = FileReader(script);
                 reader = BufferedReader(freader);
             
-                % Todo: try to use yw.properties
-                %config = YWConfiguration.fromYamlFile(YAML_FILE_NAME);
-                %config.applyPropertyFile(PROPERTY_FILE_NAME);
-                
+                % Use yw.properties for configuration                                     
+                config = YWConfiguration();
+
                 % Call YW-Extract module
                 runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
                 annotations = runManager.extractor.extract().getAnnotations();
@@ -238,35 +242,29 @@ classdef RunManager < hgsetget
                     import org.yesworkflow.graph.LayoutDirection;
                 
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
-                    gconfig = HashmapMatlabWrapper;
-                 
+                    
                     % Set the working directory to be the run metadata directory for this run
                     curDir = pwd();
-                    wd = cd(runManager.runDir); 
+                    cd(runManager.runDir); 
                 
-                    gconfig.put('comments', CommentVisibility.OFF);
-     
-                    % Generate YW.Process_View dot file
-                    runManager.processViewDotFileName = [runManager.configuration.script_base_name '_process_view.gv']; 
-                    gconfig.put('view', GraphView.PROCESS_CENTRIC_VIEW);
-                    gconfig.put('layout', LayoutDirection.LR);
-                    gconfig.put('dotfile', runManager.processViewDotFileName);
-                    runManager.grapher.configure(gconfig);              
+                    % Generate YW.Process_View dot file                   
+                    config.applyPropertyFile(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME); 
+                    gconfig = config.getSection('graph');
+                    runManager.processViewDotFileName = gconfig.get('dotfile');
+                    runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();           
                    
-                    % Generate YW.Data_View dot file
-                    runManager.dataViewDotFileName = [runManager.configuration.script_base_name '_data_view.gv'];
-                    gconfig.put('view', GraphView.DATA_CENTRIC_VIEW);
-                    gconfig.put('layout', LayoutDirection.LR);
-                    gconfig.put('dotfile', runManager.dataViewDotFileName);
+                    % Generate YW.Data_View dot file                  
+                    config.applyPropertyFile(runManager.DATA_VIEW_PROPERTY_FILE_NAME); 
+                    gconfig = config.getSection('graph');
+                    runManager.dataViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();
                    
-                    % Generate YW.Combined_View dot file
-                    runManager.combinedViewDotFileName = [runManager.configuration.script_base_name '_combined_view.gv'];
-                    gconfig.put('view', GraphView.COMBINED_VIEW);
-                    gconfig.put('layout', LayoutDirection.TB);
-                    gconfig.put('dotfile', runManager.combinedViewDotFileName);                
+                    % Generate YW.Combined_View dot file                   
+                    config.applyPropertyFile(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME);
+                    gconfig = config.getSection('graph');
+                    runManager.combinedViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();
                    
@@ -300,19 +298,27 @@ classdef RunManager < hgsetget
         function generateYesWorkflowGraphic(runManager)
             % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format. 
             
-            runManager.combinedViewPdfFileName = [runManager.configuration.script_base_name '_combined_view.pdf'];
-            runManager.dataViewPdfFileName = [runManager.configuration.script_base_name '_data_view.pdf'];
-            runManager.processViewPdfFileName = [runManager.configuration.script_base_name '_process_view.pdf'];
-                    
+            position = strfind(runManager.processViewDotFileName, '.gv'); % get the index of '.gv'            
+            processViewDotName = strtrim(runManager.processViewDotFileName(1:(position-1)));
+            runManager.processViewPdfFileName = [processViewDotName '.pdf'];
+            
+            position = strfind(runManager.dataViewDotFileName, '.gv'); % get the index of '.gv'            
+            dataViewDotName = strtrim(runManager.dataViewDotFileName(1:(position-1)));
+            runManager.dataViewPdfFileName = [dataViewDotName '.pdf'];
+            
+            position = strfind(runManager.combinedViewDotFileName, '.gv'); % get the index of '.gv'            
+            combViewDotName = strtrim(runManager.combinedViewDotFileName(1:(position-1)));
+            runManager.combinedViewPdfFileName = [combViewDotName '.pdf'];
+             
             % Convert .gv files to .pdf files
             if isunix    
-                system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);  
+                system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);
+                system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);  
                 system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
-                system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);      
-                          
-                delete(runManager.combinedViewDotFileName);
-                delete(runManager.dataViewDotFileName);
+            
                 delete(runManager.processViewDotFileName);
+                delete(runManager.dataViewDotFileName);
+                delete(runManager.combinedViewDotFileName);
             end
         end
         
@@ -1059,7 +1065,7 @@ classdef RunManager < hgsetget
                 deleted_runs = deleted_runs_2;
             end
       
-            % Delete the selected runs and update the exeucution database
+            % Delete the selected runs from the execution matrix and update the exeucution database
             if noop == 1
                 % Show the selected run list only when quiet is turned on
                 if isempty(quiet) ~= 1 && quiet ~= 1
@@ -1079,7 +1085,7 @@ classdef RunManager < hgsetget
                 % Delete the selected runs
                 for k = 1:length(selectedIdSet)                   
                     selectedRunDir = fullfile(selectedIdSet{k}, filesep);
-                    if exist(selectedRunDir, 'dir') ~= 0
+                    if exist(selectedRunDir, 'dir') == 7 
                         [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
                         if success == 1
                             fprintf('Succeed in deleting the directory %s\n', selectedRunDir);                         
@@ -1164,7 +1170,7 @@ classdef RunManager < hgsetget
                % Read the exeuction metadata summary from the exeuction
                % metadata database
                [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-               pkgIdCondition = strcmp(execMetaMatrix(:,6), packageId);
+               pkgIdCondition = strcmp(execMetaMatrix(:,6), packageId); % Column 6 in the execution matrix for packageId
                selectedRuns = execMetaMatrix(pkgIdCondition, :);
                if isempty(selectedRuns)
                    error('No runs can be found as a match.');
