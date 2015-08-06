@@ -248,21 +248,21 @@ classdef RunManager < hgsetget
                     cd(runManager.runDir); 
                 
                     % Generate YW.Process_View dot file                   
-                    config.applyPropertyFile(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME); 
+                    config.applyPropertyFile(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME); % Read from process_view_yw.properties
                     gconfig = config.getSection('graph');
                     runManager.processViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();           
                    
                     % Generate YW.Data_View dot file                  
-                    config.applyPropertyFile(runManager.DATA_VIEW_PROPERTY_FILE_NAME); 
+                    config.applyPropertyFile(runManager.DATA_VIEW_PROPERTY_FILE_NAME); % Read from data_view_yw.properties 
                     gconfig = config.getSection('graph');
                     runManager.dataViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();
                    
                     % Generate YW.Combined_View dot file                   
-                    config.applyPropertyFile(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME);
+                    config.applyPropertyFile(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME); % Read from comb_view_yw.properties
                     gconfig = config.getSection('graph');
                     runManager.combinedViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
@@ -272,16 +272,20 @@ classdef RunManager < hgsetget
                     import org.yesworkflow.model.ModelFacts;
                     import org.yesworkflow.extract.ExtractFacts;
                     
-                    modelFacts = runManager.modeler.getFacts();               
-                    runManager.mfilename = [runManager.configuration.script_base_name  '_ywModelFacts.pl'];
+                    modelFacts = runManager.modeler.getFacts();  
+                    gconfig = config.getSection('model');
+                    runManager.mfilename = gconfig.get('factsfile');
+                    %runManager.mfilename = [runManager.configuration.script_base_name  '_ywModelFacts.pl'];
                     fw = fopen(runManager.mfilename, 'w'); 
                     if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
                     fprintf(fw, '%s', char(modelFacts));
                     fclose(fw);
                     
                     % Create yewWorkflow extractFacts prolog dump
-                    extractFacts = runManager.extractor.getFacts();              
-                    runManager.efilename = [runManager.configuration.script_base_name  '_ywExtractFacts.pl'];
+                    extractFacts = runManager.extractor.getFacts(); 
+                    gconfig = config.getSection('extract');
+                    runManager.efilename = gconfig.get('factsfile');
+                    %runManager.efilename = [runManager.configuration.script_base_name  '_ywExtractFacts.pl'];
                     fw = fopen(runManager.efilename, 'w');    
                     if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
                     fprintf(fw, '%s', char(extractFacts));
@@ -353,7 +357,7 @@ classdef RunManager < hgsetget
             fileId = File(runManager.execution.software_application);
             data = FileDataSource(fileId);           
             scriptFmt = 'text/plain';        
-            wfId = Identifier;
+            wfId = Identifier();
             scriptNameArray = strsplit(runManager.execution.software_application,filesep);          
             wfId.setValue([runManager.configuration.script_base_name char(scriptNameArray(end))]);        
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
@@ -511,6 +515,49 @@ classdef RunManager < hgsetget
             extractFactsD1Obj = D1Object(extractFactsId, extractFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(extractFactsD1Obj);
             
+            % Create D1Object for process_view yw.properties and add the D1Object to the DataPackage
+            ywPropertiesFmt = 'text/plain'; 
+            processYWPropIdentifier = Identifier();
+            pnameArray = strsplit(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME,filesep);          
+            processYWPropIdentifier.setValue(pnameArray(end));        
+            processYWPropertiesFileId = File(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME);          
+            processYWPropertiesData = FileDataSource(processYWPropertiesFileId);
+            processYWPropertiesD1Obj = D1Object(processYWPropIdentifier, processYWPropertiesData, D1TypeBuilder.buildFormatIdentifier(ywPropertiesFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(processYWPropertiesD1Obj);
+            
+            % Create D1Object for data_view yw.properties and add the D1Object to the DataPackage
+            ywPropertiesFmt = 'text/plain'; 
+            dataYWPropIdentifier = Identifier();
+            dnameArray = strsplit(runManager.DATA_VIEW_PROPERTY_FILE_NAME,filesep);          
+            dataYWPropIdentifier.setValue(dnameArray(end));        
+            dataYWPropertiesFileId = File(runManager.DATA_VIEW_PROPERTY_FILE_NAME);          
+            dataYWPropertiesData = FileDataSource(dataYWPropertiesFileId);
+            dataYWPropertiesD1Obj = D1Object(dataYWPropIdentifier, dataYWPropertiesData, D1TypeBuilder.buildFormatIdentifier(ywPropertiesFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(dataYWPropertiesD1Obj);
+            
+            % Create D1Object for combined_view yw.properties and add the D1Object to the DataPackage
+            ywPropertiesFmt = 'text/plain'; 
+            combYWPropIdentifier = Identifier();
+            cnameArray = strsplit(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME,filesep);          
+            combYWPropIdentifier.setValue(cnameArray(end));        
+            combYWPropertiesFileId = File(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME);          
+            combYWPropertiesData = FileDataSource(combYWPropertiesFileId);
+            combYWPropertiesD1Obj = D1Object(combYWPropIdentifier, combYWPropertiesData, D1TypeBuilder.buildFormatIdentifier(ywPropertiesFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            runManager.dataPackage.addData(combYWPropertiesD1Obj);
+            
+            % prov: used between execution and multiple yw.properties files
+            % Question: Use URI here and need to discuss whether it is ok.
+            % This question is related to the function
+            % getRDFTriple(runManager, filePath, p) subject/object local
+            % names
+            predicate = PROV.predicate('used');
+            processYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(processYWPropIdentifier.getValue())]);
+            dataYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(dataYWPropIdentifier.getValue())]);
+            combYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(combYWPropIdentifier.getValue())]);
+            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, processYWPropURI);  
+            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, dataYWPropURI);  
+            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, combYWPropURI);
+            
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
             if runManager.debug 
@@ -597,7 +644,7 @@ classdef RunManager < hgsetget
         end
         
         
-        function subjectHashSet = getSubjectsRelatedToProperty(runManager, filePath, p)
+        function stmtStruct = getRDFTriple(runManager, filePath, p)
            % GETSUBJECTRELATEDTOPROPERTY get all related subjects related to a given property from all
            % triples contained in a resourcemap.
            %  filePath - the path to the resourcemap
@@ -629,13 +676,17 @@ classdef RunManager < hgsetget
            model.read(in, '');
            queryPredicate= model.createProperty(p.getNamespace(), p.getName());
            stmts = model.listStatements([], queryPredicate, QueryResourceMap.nullRDFNode); % null, (RDFNode)null
-           subjectHashSet = HashSet();
+           
+           i = 1;
            while (stmts.hasNext()) 
 	            s = stmts.nextStatement();
 	       	    t = s.asTriple();
-	       	    subject = t.getSubject();
-	    	    subjectName = subject.getLocalName();
-                subjectHashSet.add(subjectName);
+	                     
+                % Create a table for files to be published in a datapackage
+                stmtStruct(i,1).Subject = char(t.getSubject().getLocalName());	    	
+                stmtStruct(i,1).Predicate = char(t.getPredicate().toString());
+                stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Todo: find the file modified date
+                i = i + 1;
            end 
           
         end
@@ -1196,19 +1247,14 @@ classdef RunManager < hgsetget
            cd(selectedRunDir);
 
            resMapFileName = strtrim(ls('*.rdf')); % list the reosurceMap.rdf and remove the whitespace and return characters  
-           wasGeneratedByPredicate = PROV.predicate('wasGeneratedBy');
-           % Call Java getSubjectsRelatedToProperty() method (Way 1)
-           subjectNameSet = QueryResourceMap.getSubjectsRelatedToProperty(resMapFileName, wasGeneratedByPredicate); 
-           
+           wasGeneratedByPredicate = PROV.predicate('wasGeneratedBy');           
            % Call Matlab getSubjectRelatedToProperty() method (Way 2)
-           % subjectNameSet = runManager.getSubjectsRelatedToProperty(resMapFileName, wasGeneratedByPredicate);
-      
-           % Create a struct for created files during the current run
-           subjectNameArray = subjectNameSet.toArray(); % convert a java set instance to an array instance
-           for i = 1:subjectNameSet.size()
-                createdFileNameStruct(i,1).FileName = char(subjectNameArray(i));
-           end
-
+           wasGeneratedByStruct = runManager.getRDFTriple(resMapFileName, wasGeneratedByPredicate);                  
+           %wasGeneratedByStruct = QueryResourceMap.getSubjectsRelatedToProperty(resMapFileName, wasGeneratedByPredicate); % Call Java getSubjectsRelatedToProperty() method (Way 1)
+          
+           usedPredicate = PROV.predicate('used');
+           usedStruct = runManager.getRDFTriple(resMapFileName, usedPredicate); 
+          
            % Deserialize the datapackage
            import org.dataone.client.v1.itk.DataPackage;
            import java.nio.file.Files;
@@ -1245,11 +1291,12 @@ classdef RunManager < hgsetget
            fprintf('This package was created by run: %s\n\n', selectedRunId);
            
            fprintf('Files created from this run:\n\n');
-           TableForFileCreated = struct2table(createdFileNameStruct); % Convert a struct to a table
-           disp(TableForFileCreated);
-                  
-           fprintf('Local data files used: (N/A)');
-           %Todo: local data files
+           TableForFileWasGeneratedBy = struct2table(wasGeneratedByStruct); % Convert a struct to a table
+           disp(TableForFileWasGeneratedBy);
+           
+           fprintf('Local data files used:\n');
+           TableForFileUSed = struct2table(usedStruct); % Convert a struct to a table
+           disp(TableForFileUSed);
            
            fprintf('\n\nDataPackage to be published to DataONE\n');
            fprintf('======================================\n');
