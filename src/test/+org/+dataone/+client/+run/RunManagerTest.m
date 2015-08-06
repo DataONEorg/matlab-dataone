@@ -119,16 +119,16 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 
         end
         
-      %  function testListRuns(testCase)
-      %      fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
+        function testListRuns(testCase)
+            fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
             
-      %      quiet = false;
-      %      startDate = '20150731T102515';
-      %      endDate = datestr(now, 30);
-      %      tagList = {'1', '3'};
+            quiet = false;
+            startDate = '20150731T102515';
+            endDate = datestr(now, 30);
+            tagList = {'1', '3'};
             
-      %      fprintf('*** startDate and endDate both required: ***\n');
-      %      runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
+            fprintf('*** startDate and endDate both required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
                      
             %fprintf('*** startDate only required: ***\n');
             %runs = testCase.mgr.listRuns(quiet, startDate, '', '');
@@ -136,11 +136,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %fprintf('*** endDate only required: ***\n');
             %runs = testCase.mgr.listRuns(quiet, '', endDate, '');
             
-      %      fprintf('*** No query parameters are required: ***\n');
-      %      runs = testCase.mgr.listRuns(quiet, '', '', '');
+            fprintf('*** No query parameters are required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, '', '', '');
             
-      %      fprintf('*** startDate, endDate and tags all required: ***\n');
-      %      runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
+            fprintf('*** startDate, endDate and tags all required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
                      
             %fprintf('*** startDate and tags are required: ***\n');
             %runs = testCase.mgr.listRuns(quiet, startDate, '', tagList);
@@ -150,24 +150,24 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             %fprintf('*** tags is required only: ***\n');
             %runs = testCase.mgr.listRuns(quiet, '', '', tagList);
-      %  end
+        end
         
         
-       % function testView(testCase)
-       %     fprintf('\n\nTest for view(packageId) function:\n');
-       %     testCase.mgr.view(testCase.mgr.execution.data_package_id);   
-       % end
+        function testView(testCase)
+            fprintf('\n\nTest for view(packageId) function:\n');
+            testCase.mgr.view(testCase.mgr.execution.data_package_id);   
+        end
         
         
-       % function testDeleteRuns(testCase)
-       %     fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
+        function testDeleteRuns(testCase)
+            fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
             
-       %     quiet = false;
-       %     noop = true;
+            quiet = false;
+            noop = true;
             
             % With query parameters for startDate or endDate
-       %     startDate = '20150804T102515';
-       %     endDate = datestr(now, 30);
+            startDate = '20150804T102515';
+            endDate = datestr(now, 30);
             
             % Without query parameters for startDate and endDate
             %startDate = '';
@@ -175,10 +175,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             %tag = '';
             %runIdList = {'8c28b610-4932-47c1-a040-d8e3dfce5ddf', '84abb73f-2f13-49b7-8c45-9c1e0434b31f'};
-       %     tagList = {'2', '1'};
-       %     runIdList = '';
-       %     testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
-       % end
+            tagList = {'2', '1'};
+            runIdList = '';
+            testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
+        end
         
         % function testPublish(testCase)
            % TESTPUBLISH tests calling the RunManager.publish() function
