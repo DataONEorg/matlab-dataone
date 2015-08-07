@@ -685,7 +685,7 @@ classdef RunManager < hgsetget
                 % Create a table for files to be published in a datapackage
                 stmtStruct(i,1).Subject = char(t.getSubject().getLocalName());	    	
                 stmtStruct(i,1).Predicate = char(t.getPredicate().toString());
-                stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Todo: find the file modified date
+                stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Question: whether it is good to use localName here? In which cases are good?
                 i = i + 1;
            end 
           
