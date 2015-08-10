@@ -349,8 +349,7 @@ classdef RunManager < hgsetget
             % Get the base URL of the DataONE coordinating node server
             runManager.CN_URL = runManager.getD1UriPrefix(); 
             runManager.D1_CN_Resolve_Endpoint = [char(runManager.CN_URL) '/v1/resolve/'];
-            
-            % Record a data list for provOne:Data
+           
             runManager.provONEdataURI = URI(ProvONE.Data.getURI());
                       
             % Create a D1Object for the program that we are running  
