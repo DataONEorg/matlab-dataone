@@ -1,43 +1,65 @@
+Test for view(packageId) function:
+Warning: There is no scientific metadata in this data package.
+
 ***********************************************************************************************************************
-Package identifer: urn:uuid:510348b4-d46d-4ff6-b06f-bf7a9eab7f14
-This package was created by run: 83144eb5-94c1-4443-90e8-d67dfde29d5e
+Package identifer: urn:uuid:23a9d1cc-c3c5-40a2-b591-4ac3a8f694a9
+This package was created by run: 56d1578e-d476-49cf-bc97-dbb78c912796
 
 Files created from this run:
 
          Subject                         Predicate                                          Object                     
     _________________    __________________________________________    ________________________________________________
 
-    'modelfacts.P'       'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_83144eb5-94c1-4443-90e8-d67dfde29d5e'
-    'testcomb.pdf'       'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_83144eb5-94c1-4443-90e8-d67dfde29d5e'
-    'testprocess.pdf'    'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_83144eb5-94c1-4443-90e8-d67dfde29d5e'
-    'extractfacts.P'     'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_83144eb5-94c1-4443-90e8-d67dfde29d5e'
-    'testdata.pdf'       'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_83144eb5-94c1-4443-90e8-d67dfde29d5e'
+    'modelfacts.P'       'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'
+    'testprocess.pdf'    'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'
+    'extractfacts.P'     'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'
+    'testcomb.pdf'       'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'
+    'testdata.pdf'       'http://www.w3.org/ns/prov#wasGeneratedBy'    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'
 
 Local data files used:
                         Subject                                    Predicate                           Object           
     ________________________________________________    ________________________________    ____________________________
 
-    'execution_83144eb5-94c1-4443-90e8-d67dfde29d5e'    'http://www.w3.org/ns/prov#used'    'yw_data_view.properties'   
-    'execution_83144eb5-94c1-4443-90e8-d67dfde29d5e'    'http://www.w3.org/ns/prov#used'    'yw_process_view.properties'
-    'execution_83144eb5-94c1-4443-90e8-d67dfde29d5e'    'http://www.w3.org/ns/prov#used'    'yw_comb_view.properties'   
+    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'    'http://www.w3.org/ns/prov#used'    'yw_data_view.properties'   
+    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'    'http://www.w3.org/ns/prov#used'    'yw_process_view.properties'
+    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'    'http://www.w3.org/ns/prov#used'    'yw_comb_view.properties'   
+
+
+
+Provenance
+======================================
+                     Subject                                  Predicate                  Object  
+    _________________________________________    ___________________________________    _________
+
+    'A0_965874c5-607e-445a-ba3c-72c6a9856dbf'    'http://www.w3.org/ns/prov#hadPlan'    'Program'
+
+                        Subject                                            Predicate                           Object    
+    ________________________________________________    ________________________________________________    _____________
+
+    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'    'http://www.w3.org/ns/prov#qualifiedAssociation'    'Association'
+
+                        Subject                                           Predicate                      Object
+    ________________________________________________    _____________________________________________    ______
+
+    'execution_56d1578e-d476-49cf-bc97-dbb78c912796'    'http://www.w3.org/ns/prov#wasAssociatedWith'    'syc' 
 
 
 
 DataPackage to be published to DataONE
 ======================================
-                                FileName                                FileSize       SysMetaModifiedTime   
-    ________________________________________________________________    ________    _________________________
+                                FileName                                FileSize       SysMetaModifiedTime    
+    ________________________________________________________________    ________    __________________________
 
-    'extractfacts.P'                                                     6071       '6 Aug 2015 23:15:33 GMT'
-    'yw_comb_view.properties'                                             598       '6 Aug 2015 23:15:33 GMT'
-    'yw_process_view.properties'                                          600       '6 Aug 2015 23:15:33 GMT'
-    'modelfacts.P'                                                      11366       '6 Aug 2015 23:15:33 GMT'
-    'testprocess.pdf'                                                   29080       '6 Aug 2015 23:15:33 GMT'
-    'testcomb.pdf'                                                      33221       '6 Aug 2015 23:15:33 GMT'
-    'yw_data_view.properties'                                             594       '6 Aug 2015 23:15:33 GMT'
-    'testdata.pdf'                                                      33235       '6 Aug 2015 23:15:33 GMT'
-    'C3_C4_map_present_NA_Markup_v2C3_C4_map_present_NA_Markup_v2.m'    13925       '6 Aug 2015 23:15:33 GMT'
-    'resourceMap_C3_C4_map_present_NA_Markup_v2.rdf'                     5495       '6 Aug 2015 23:15:33 GMT'
+    'extractfacts.P'                                                     6071       '11 Aug 2015 16:02:23 GMT'
+    'yw_comb_view.properties'                                             598       '11 Aug 2015 16:02:23 GMT'
+    'yw_process_view.properties'                                          600       '11 Aug 2015 16:02:23 GMT'
+    'modelfacts.P'                                                      11490       '11 Aug 2015 16:02:23 GMT'
+    'testprocess.pdf'                                                   29080       '11 Aug 2015 16:02:23 GMT'
+    'testcomb.pdf'                                                      33225       '11 Aug 2015 16:02:23 GMT'
+    'yw_data_view.properties'                                             594       '11 Aug 2015 16:02:23 GMT'
+    'testdata.pdf'                                                      33235       '11 Aug 2015 16:02:23 GMT'
+    'C3_C4_map_present_NA_Markup_v2C3_C4_map_present_NA_Markup_v2.m'    13925       '11 Aug 2015 16:02:23 GMT'
+    'resourceMap_C3_C4_map_present_NA_Markup_v2.rdf'                     5495       '11 Aug 2015 16:02:23 GMT'
 
 
 **********************************************************************************************************************
