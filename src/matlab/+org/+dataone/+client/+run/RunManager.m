@@ -679,9 +679,8 @@ classdef RunManager < hgsetget
            i = 1;
            while (stmts.hasNext()) 
 	            s = stmts.nextStatement();
-	       	    t = s.asTriple();
-	                     
-                % Create a table for files to be published in a datapackage
+	       	    t = s.asTriple();                     
+                % Create a table for files to be published in a datapackage 
                 stmtStruct(i,1).Subject = char(t.getSubject().getLocalName());	    	
                 stmtStruct(i,1).Predicate = char(t.getPredicate().toString());
                 stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Question: whether it is good to use localName here? In which cases are good?
@@ -1254,6 +1253,20 @@ classdef RunManager < hgsetget
            usedPredicate = PROV.predicate('used');
            usedStruct = runManager.getRDFTriple(resMapFileName, usedPredicate); 
           
+           hadPlanPredicate = PROV.predicate('hadPlan');
+           hadPlanStruct = runManager.getRDFTriple(resMapFileName, hadPlanPredicate); 
+           
+           qualifiedAssociationPredicate = PROV.predicate('qualifiedAssociation');
+           qualifiedAssociationStruct = runManager.getRDFTriple(resMapFileName, qualifiedAssociationPredicate);
+           
+           wasAssociatedWithPredicate = PROV.predicate('wasAssociatedWith');
+           wasAssociatedWithPredicateStruct = runManager.getRDFTriple(resMapFileName, wasAssociatedWithPredicate);
+           
+           import com.hp.hpl.jena.vocabulary.RDF;
+           
+           %rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
+           %rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);
+           
            % Deserialize the datapackage
            import org.dataone.client.v1.itk.DataPackage;
            import java.nio.file.Files;
@@ -1290,17 +1303,56 @@ classdef RunManager < hgsetget
            fprintf('This package was created by run: %s\n\n', selectedRunId);
            
            fprintf('Files created from this run:\n\n');
-           TableForFileWasGeneratedBy = struct2table(wasGeneratedByStruct); % Convert a struct to a table
-           disp(TableForFileWasGeneratedBy);
+           if ~isempty(wasGeneratedByStruct)
+               TableForFileWasGeneratedBy = struct2table(wasGeneratedByStruct); % Convert a struct to a table
+               disp(TableForFileWasGeneratedBy);
+           else
+               disp('Emtpy result for prov:wasGeneratedByStruct.');
+           end
            
            fprintf('Local data files used:\n');
-           TableForFileUSed = struct2table(usedStruct); % Convert a struct to a table
-           disp(TableForFileUSed);
+           if ~isempty(usedStruct)
+               TableForFileUSed = struct2table(usedStruct); % Convert a struct to a table
+               disp(TableForFileUSed);
+           else
+               disp('Emtpy result for prov:used.');
+           end
+           
+           % Provenance 
+           fprintf('\n\nProvenance\n');
+           fprintf('======================================\n');
+           if ~isempty(hadPlanStruct)
+               TableForHadPlan = struct2table(hadPlanStruct, 'AsArray',true); % Convert a struct to a table
+               disp(TableForHadPlan);
+           else
+               disp('Emtpy result for prov:hadPlan.');
+           end
+           
+           if ~isempty(qualifiedAssociationStruct)
+                TableForQualifiedAssociation = struct2table(qualifiedAssociationStruct, 'AsArray',true); % Convert a struct to a table
+                disp(TableForQualifiedAssociation);
+           else
+               disp('Emtpy result for prov:qualifiedAssociation.');
+           end
+           
+           if ~isempty(wasAssociatedWithPredicateStruct)
+               TableForWasAssociatedWith = struct2table(wasAssociatedWithPredicateStruct, 'AsArray',true); % Convert a struct to a table
+               disp(TableForWasAssociatedWith);
+           else
+               disp('Emtpy result for prov:wasAssociatedWith.');
+           end
+           
+           % Todo: find the rdf:type triplets in a resourceMap
+           %if ~isempty(rdfTypeStruct)
+           %    TableForRdfType = struct2table(rdfTypeStruct); % Convert a struct to a table
+           %    disp(TableForRdfType);
+           %else
+           %    disp('Emtpy result for rdf:type.');
+           %end
            
            fprintf('\n\nDataPackage to be published to DataONE\n');
            fprintf('======================================\n');
-           %Todo: provenance 
-           
+     
            TableForFile2Published = struct2table(publishFileStruct); % Convert a struct to a table
            disp(TableForFile2Published);
            
