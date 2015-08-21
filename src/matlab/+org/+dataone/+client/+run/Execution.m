@@ -25,8 +25,7 @@ classdef Execution < hgsetget
     %       critical metadata needed to understand the execution
     %       environment, uniquely identify the run, categorize it,
     %       and know it's start and end times.
-    
-    
+      
     properties
         % The sequence number assigned to the run for easy reference
         sequence_number;

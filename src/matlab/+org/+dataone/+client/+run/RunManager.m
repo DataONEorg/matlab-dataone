@@ -42,6 +42,9 @@ classdef RunManager < hgsetget
         % runID
         runId;
         
+        % Tag for the current run
+        tag;
+        
         % The name for the execution database
         executionDatabaseName = 'executions.csv';
         
@@ -51,7 +54,7 @@ classdef RunManager < hgsetget
         COMBINED_VIEW_PROPERTY_FILE_NAME;
     end
 
-    properties (Access = private)               
+    properties (Access = private)     
         % Enable or disable the provenance capture state
         prov_capture_enabled = false;
 
@@ -125,18 +128,29 @@ classdef RunManager < hgsetget
         function predicate = asPredicate(runManager, property, prefix)
             % ASPREDICATE  Given a Jena Property and namespace prefix, create an ORE Predicate. 
             % This allows us to use the Jena vocabularies.
-            %   property -- predicate
+            %   property -- ore predicate
             %   prefix -- namespace prefix
             import com.hp.hpl.jena.rdf.model.Property;
             import org.dspace.foresite.Predicate;
             import java.net.URI;
-             
+            import com.hp.hpl.jena.vocabulary.RDF;
+            import java.lang.String;
+            
             predicate = Predicate();
             if runManager.debug
-                fprintf('property.localName = %s\n', char(property.getLocalName()));
+                fprintf('property.localName = %s\n', char(property.getLocalName()));           
+                %fprintf('property.nameSpace = %s\n', char(property.getNamespace()));
             end
+         
             predicate.setName(property.getLocalName());
+            
+            import org.jena.test.JenaPropertyTest;
+    
+            prop = JenaPropertyTest.getType(property);
+            ns = JenaPropertyTest.getNameSpace(property);
+            predicate.setNamespace(ns);         
             %predicate.setNamespace(property.getNamespace()); % There is an error here !
+            
             if isempty(prefix) ~= 1
                 predicate.setPrefix(prefix);               
             end
@@ -358,23 +372,17 @@ classdef RunManager < hgsetget
             scriptFmt = 'text/plain';        
             wfId = Identifier();
             scriptNameArray = strsplit(runManager.execution.software_application,filesep);          
-            wfId.setValue([runManager.configuration.script_base_name char(scriptNameArray(end))]);        
+            wfId.setValue(char(scriptNameArray(end)));        
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(programD1Obj);
             
             % Create a D1 identifier for the workflow script  
             runManager.wfIdentifier = Identifier();
             scriptNameArray  = strsplit(runManager.execution.software_application,filesep);                     
-            runManager.wfIdentifier.setValue([runManager.configuration.script_base_name '_' char(scriptNameArray (end))]);
-            
+            runManager.wfIdentifier.setValue(char(scriptNameArray (end)));
+                   
             % Todo: how to generate the science meta for the workflow scripts ?
-            % wfIdsList = ArrayListMatlabWrapper();
-            % wfIdsList.add(runManager.wfIdentifier);   
-            % runManager.wfMetaFileName = [runManager.configuration.script_base_name '_meta1.1'];
-            % wfMetadataId = Identifier();
-            % wfMetadataId.setValue(runManager.wfMetaFileName);
-            % runManager.dataPackage.insertRelationship(wfMetadataId, wfIdsList);    
-       
+           
             % Record relationship identifying workflow identifier and URI as a provONE:Program
             runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
             provOneProgramURI = URI(ProvONE.Program.getURI());        
@@ -419,28 +427,28 @@ classdef RunManager < hgsetget
             combinedViewId = Identifier();
             combinedViewId.setValue(runManager.combinedViewPdfFileName);
             combinedViewURI = URI([runManager.D1_CN_Resolve_Endpoint  runManager.combinedViewPdfFileName]);
-            metaCombinedView = Identifier(); % metadata
-            metaCombinedView.setValue([runManager.configuration.script_base_name '_combined_view.xml']);
-            combinedViewIds = ArrayListMatlabWrapper;
-            combinedViewIds.add(combinedViewId); 
+            %metaCombinedView = Identifier(); % metadata
+            %metaCombinedView.setValue([runManager.configuration.script_base_name '_combined_view.xml']);
+            %combinedViewIds = ArrayListMatlabWrapper;
+            %combinedViewIds.add(combinedViewId); 
                 
             % YesWorkflow data view image (.pdf)
             dataViewId = Identifier();
             dataViewId.setValue(runManager.dataViewPdfFileName); 
             dataViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.dataViewPdfFileName]);
-            metaDataView = Identifier(); % metadata
-            metaDataView.setValue([runManager.configuration.script_base_name '_data_view.xml']);
-            dataViewIds = ArrayListMatlabWrapper;
-            dataViewIds.add(dataViewId);
+            %metaDataView = Identifier(); % metadata
+            %metaDataView.setValue([runManager.configuration.script_base_name '_data_view.xml']);
+            %dataViewIds = ArrayListMatlabWrapper;
+            %dataViewIds.add(dataViewId);
                  
             % YesWorkflow process view image (.pdf)
             processViewId = Identifier();
             processViewId.setValue(runManager.processViewPdfFileName); 
             processViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.processViewPdfFileName]);
-            metaProcessView = Identifier(); % metadata
-            metaProcessView.setValue([runManager.configuration.script_base_name '_process_view.xml']);
-            processViewIds = ArrayListMatlabWrapper;
-            processViewIds.add(processViewId);
+            %metaProcessView = Identifier(); % metadata
+            %metaProcessView.setValue([runManager.configuration.script_base_name '_process_view.xml']);
+            %processViewIds = ArrayListMatlabWrapper;
+            %processViewIds.add(processViewId);
                  
             % Todo: wasDocumentedBy (because we do not have these science metadata in the package.)
             %runManager.dataPackage.insertRelationship(metaCombinedView, combinedViewIds);
@@ -475,12 +483,12 @@ classdef RunManager < hgsetget
             processViewD1Obj = D1Object(processViewId, processViewData, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(processViewD1Obj);               
                
-            metadataModelFactsId = Identifier;
-            metadataModelFactsId.setValue([runManager.configuration.script_base_name  '_ywModelFacts.xml']);
-            dataModelFactsIds = ArrayListMatlabWrapper;               
+            %metadataModelFactsId = Identifier;
+            %metadataModelFactsId.setValue([runManager.configuration.script_base_name  '_ywModelFacts.xml']);
+            %dataModelFactsIds = ArrayListMatlabWrapper;               
             modelFactsId = Identifier();
             modelFactsId.setValue(runManager.mfilename); % ywModelFacts prolog dump
-            dataModelFactsIds.add(modelFactsId); 
+            %dataModelFactsIds.add(modelFactsId); 
             modelFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.mfilename]);
                 
             % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
@@ -490,12 +498,12 @@ classdef RunManager < hgsetget
             modelFactsD1Obj = D1Object(modelFactsId, modelFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(modelFactsD1Obj);
               
-            metadataExtractFactsId = Identifier;
-            metadataExtractFactsId.setValue([runManager.configuration.script_base_name  '_ywExtractFacts.xml']);
-            dataExtractFactsIds = ArrayListMatlabWrapper;
+            %metadataExtractFactsId = Identifier;
+            %metadataExtractFactsId.setValue([runManager.configuration.script_base_name  '_ywExtractFacts.xml']);
+            %dataExtractFactsIds = ArrayListMatlabWrapper;
             extractFactsId = Identifier;
             extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump
-            dataExtractFactsIds.add(extractFactsId); 
+            %dataExtractFactsIds.add(extractFactsId); 
             extractFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.efilename]);
                 
             % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
@@ -527,8 +535,8 @@ classdef RunManager < hgsetget
             % Create D1Object for data_view yw.properties and add the D1Object to the DataPackage
             ywPropertiesFmt = 'text/plain'; 
             dataYWPropIdentifier = Identifier();
-            dnameArray = strsplit(runManager.DATA_VIEW_PROPERTY_FILE_NAME,filesep);          
-            dataYWPropIdentifier.setValue(dnameArray(end));        
+            dnameArray = strsplit(runManager.DATA_VIEW_PROPERTY_FILE_NAME,filesep); 
+            dataYWPropIdentifier.setValue(dnameArray(end));    
             dataYWPropertiesFileId = File(runManager.DATA_VIEW_PROPERTY_FILE_NAME);          
             dataYWPropertiesData = FileDataSource(dataYWPropertiesFileId);
             dataYWPropertiesD1Obj = D1Object(dataYWPropIdentifier, dataYWPropertiesData, D1TypeBuilder.buildFormatIdentifier(ywPropertiesFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
@@ -564,7 +572,9 @@ classdef RunManager < hgsetget
             end
             
             % Print to a resourceMap 
-            resMapName = ['resourceMap_' runManager.configuration.script_base_name '.rdf'];  
+            scriptFileName = char(scriptNameArray(end));
+            nameComponents = strsplit(scriptFileName, '.'); 
+            resMapName = ['resourceMap_' char(nameComponents(1)) '.rdf'];  
             fw = fopen(resMapName, 'w'); 
             if fw == -1, error('Cannot write "%s%".',resMapName); end
             fprintf(fw, '%s', char(rdfXml));
@@ -596,7 +606,7 @@ classdef RunManager < hgsetget
             endTime = char(runManager.execution.end_time);
             publishedTime = char(runManager.execution.publish_time);
             packageId = char(runManager.execution.data_package_id);
-            tag = num2str(unidrnd(100)); % generate a random integer
+            tag = runManager.tag; % the user should set the tag value
             errorMessage = char(runManager.execution.error_message);
      
             formatSpec = '%s, %s, %s, %s, %s, %s, %s, %s\n';
@@ -679,14 +689,29 @@ classdef RunManager < hgsetget
            i = 1;
            while (stmts.hasNext()) 
 	            s = stmts.nextStatement();
-	       	    t = s.asTriple();                     
+	       	    t = s.asTriple();        
+                
                 % Create a table for files to be published in a datapackage 
-                stmtStruct(i,1).Subject = char(t.getSubject().getLocalName());	    	
+                if t.getSubject().isURI()
+                    stmtStruct(i,1).Subject = char(t.getSubject().getLocalName());
+                elseif t.getSubject().isBlank()
+                    stmtStruct(i,1).Subject = char(t.getSubject().getBlankNodeId());
+                else
+                    stmtStruct(i,1).Subject = char(t.getSubject().getName());
+                end
+                
                 stmtStruct(i,1).Predicate = char(t.getPredicate().toString());
-                stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Question: whether it is good to use localName here? In which cases are good?
+                
+                if t.getObject().isURI()
+                    stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Question: whether it is good to use localName here? In which cases are good?
+                elseif t.getObject().isBlank()
+                    stmtStruct(i,1).Object = char(t.getObject().getBlankNodeId());
+                else
+                    stmtStruct(i,1).Object = char(t.getObject().getName());
+                end
+                
                 i = i + 1;
-           end 
-          
+           end         
         end
         
         
@@ -842,8 +867,7 @@ classdef RunManager < hgsetget
             
             % do we have a tag?
             if ( nargin < 3 )
-                tag = ''; % otherwise use an empty tag
-                    
+                tag = ''; % otherwise use an empty tag                   
             end
                         
             % Begin collecting execution metadata
@@ -914,8 +938,11 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.Identifier;            
           
             packageIdentifier = Identifier();
-            packageIdentifier.setValue(runManager.execution.data_package_id);            
+            packageIdentifier.setValue(runManager.execution.execution_id);      
+            % Question: data_pakcage_id vs exeuction_id
             runManager.execution.data_package_id = packageIdentifier.getValue();
+            %packageIdentifier.setValue(runManager.execution.data_package_id);            
+            %runManager.execution.data_package_id = packageIdentifier.getValue();
             
             % Create a resourceMap identifier
             resourceMapId = Identifier();
@@ -991,6 +1018,10 @@ classdef RunManager < hgsetget
             
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now,30);
+
+            % Publish the package to the D1 MN node (only ONCE)
+            packageId = char(runManager.execution.data_package_id);
+            runManager.publish(packageId);
             
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.executionDatabaseName);                      
@@ -1055,10 +1086,8 @@ classdef RunManager < hgsetget
             else
                 allCondition = dateCondition;
             end
-            
-            %allCondition
-            
-            % Extract multiple rows from a matrix 
+
+            % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
             
             if isempty(quiet) ~= 1 && quiet ~= 1
@@ -1197,10 +1226,8 @@ classdef RunManager < hgsetget
                 T = cell2table(execMetaMatrix,'VariableNames',[header{:}]);
                 writetable(T, runManager.executionDatabaseName);                  
                              
-                cd(curDir);
-          
-            end
-            
+                cd(curDir);         
+            end          
         end
         
         
@@ -1210,6 +1237,7 @@ classdef RunManager < hgsetget
  
            % Display a warning message to the user
            disp('Warning: There is no scientific metadata in this data package.');
+           
            % Select runs based on the packageID. Report ?No runs can be found as a match? 
            % and returns if no runs are matched, 
            if(isempty(packageId) ~= 1)
@@ -1225,10 +1253,9 @@ classdef RunManager < hgsetget
                    error('No runs can be found as a match.');
                end
                    
-               % Get the runId from the selectedRuns
-               % Todo: need to check if the number of rows of selectedRunId is 1 or not?
-               selectedRunId = selectedRuns{1,1}; 
-             
+               % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun
+               % will be return
+               selectedRunId = selectedRuns{1,1};             
            else
                error('Missing the packageId parameter.');
            end
@@ -1246,10 +1273,8 @@ classdef RunManager < hgsetget
 
            resMapFileName = strtrim(ls('*.rdf')); % list the reosurceMap.rdf and remove the whitespace and return characters  
            wasGeneratedByPredicate = PROV.predicate('wasGeneratedBy');           
-           % Call Matlab getSubjectRelatedToProperty() method (Way 2)
            wasGeneratedByStruct = runManager.getRDFTriple(resMapFileName, wasGeneratedByPredicate);                  
-           %wasGeneratedByStruct = QueryResourceMap.getSubjectsRelatedToProperty(resMapFileName, wasGeneratedByPredicate); % Call Java getSubjectsRelatedToProperty() method (Way 1)
-          
+           
            usedPredicate = PROV.predicate('used');
            usedStruct = runManager.getRDFTriple(resMapFileName, usedPredicate); 
           
@@ -1261,11 +1286,12 @@ classdef RunManager < hgsetget
            
            wasAssociatedWithPredicate = PROV.predicate('wasAssociatedWith');
            wasAssociatedWithPredicateStruct = runManager.getRDFTriple(resMapFileName, wasAssociatedWithPredicate);
-           
+           userList = wasAssociatedWithPredicateStruct.Object;
+
            import com.hp.hpl.jena.vocabulary.RDF;
            
-           %rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-           %rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);
+           rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
+           rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);
            
            % Deserialize the datapackage
            import org.dataone.client.v1.itk.DataPackage;
@@ -1273,76 +1299,143 @@ classdef RunManager < hgsetget
            import java.nio.file.Path;
            import java.nio.file.Paths;
            import java.lang.String;
-          
-           % Warning: this call works but the returned identifiers is an
-           % empty set. So I use the runManager.dataPackage instead.
-           % resMapData = String(Files.readAllBytes(Paths.get(selectedRunDir, resMapFileName)));  % Read resourceMap into a string using Java 7 API
-           % dataPkg = DataPackage.deserializePackage(resMapData);
-           % identifierList = dataPkg.identifiers(); % Get all the identifiers in the datapackage
-           % fprintf('pkgID: %s\n', char(dataPkg.getPackageId().getValue()));
+           import org.dataone.service.types.v1.Identifier;
+           import org.dataone.client.v1.itk.D1Object;
            
-           identifierList = runManager.dataPackage.identifiers();   
-           identifierArray = identifierList.toArray(); % convert a java set instance to an array instance
-           for i = 1:identifierList.size()
-               aIdentifier = identifierArray(i);
-               d1Obj = runManager.dataPackage.get(aIdentifier);
-               d1ObjSysMeta = d1Obj.getSystemMetadata();
-               d1ObjName = d1Obj.getIdentifier().getValue();
-               d1ObjFileSize = d1ObjSysMeta.getSize().longValue();
-               d1ObjMetaModifiedTime = d1ObjSysMeta.getDateSysMetadataModified();
-               
+           resMapData = String(Files.readAllBytes(Paths.get(selectedRunDir, resMapFileName)));  % Read resourceMap into a string using Java 7 API
+           dataPkg = DataPackage.deserializePackage(resMapData);
+           
+           %identifierList = dataPkg.identifiers(); % Get members with ?cito:documents? and ?cito:documentedBy? in the datapackage         
+           %identifierList = runManager.dataPackage.identifiers();   
+           %identifierArray = identifierList.toArray(); % convert a java set instance to an array instance
+           %for i = 1:identifierList.size()
+           %    aIdentifier = identifierArray(i);
+           %    d1Obj = runManager.dataPackage.get(aIdentifier);
+           %    d1ObjSysMeta = d1Obj.getSystemMetadata();
+           %    d1ObjName = d1Obj.getIdentifier().getValue();
+           %    d1ObjFileSize = d1ObjSysMeta.getSize().longValue();
+           %    d1ObjMetaModifiedTime = d1ObjSysMeta.getDateSysMetadataModified();              
                % Create a table for files to be published in a datapackage
-               publishFileStruct(i,1).FileName = char(d1ObjName);
-               publishFileStruct(i,1).FileSize = d1ObjFileSize;
-               publishFileStruct(i,1).SysMetaModifiedTime = char(d1ObjMetaModifiedTime.toGMTString()); % Todo: find the file modified date
-              
-           end
+           %    publishFileStruct(i,1).FileName = char(d1ObjName);
+           %    publishFileStruct(i,1).FileSize = d1ObjFileSize;
+           %    modifiedTimeStr = char(d1ObjMetaModifiedTime.toGMTString());
+           %    modifiedTimeNum = datenum(modifiedTimeStr);               
+           %    publishFileStruct(i,1).SysMetaModifiedTime = datestr( modifiedTimeNum, 31); % Todo: find the file modified date             
+           %end
           
-           fprintf('\n***********************************************************************************************************************\n');
-           fprintf('Package identifer: %s\n', char(packageId));
-           fprintf('This package was created by run: %s\n\n', selectedRunId);
+           % Read information from the selectedRuns returned by the execution summary database
+           filePath = selectedRuns{1, 2};
+           [pathstr,scriptName,ext] = fileparts(filePath);
            
-           fprintf('Files created from this run:\n\n');
+           sdn = datenum( selectedRuns{1,5}, 'yyyymmddTHHMMSS' );        
+           publishedTime = datestr( sdn, 'yyyy-mm-dd HH:MM:SS' );
+           
+           import java.text.SimpleDateFormat;
+           import java.util.Date;
+           import java.text.DateFormat;
+
+           dateTimeInstance = SimpleDateFormat.getDateTimeInstance();
+           
+           fprintf('\n**********************************************************************************************************************\n');
+           fprintf('\nInformation for script run of "%s"\n', scriptName);
+           fprintf('=====================================================================\n');
+           fprintf('Run Id: %s\n', selectedRuns{1,6});
+           fprintf('Tag: %s\n', selectedRuns{1,7});
+           fprintf('Run #: ""\n');
+           fprintf('This run was published on %s to "https://knb.ecoinformatics.org/knb/d1/mn/v1" \n', publishedTime);
+           fprintf('User: %s \n\n\n', userList);
+                      
+           fprintf('Datasets used by this run:\n');
+           fprintf('--------------------------\n');
+           if ~isempty(usedStruct)
+               %TableForFileUSed = struct2table(usedStruct); % Convert a struct to a table
+               %disp(TableForFileUSed);               
+               
+               for i = 1:length(usedStruct)                
+                  id = Identifier();
+                  id.setValue(usedStruct(i).Object); 
+           
+                  %d1Obj = D1Object.download(id);
+                  %d1ObjSysMeta = d1Obj.getSystemMetadata();
+                  
+                  usedFileStruct(i,1).Name = usedStruct(i).Object;
+                   
+                  %usedFileStruct(i,1).Size = [char(d1ObjSysMeta.getSize().toString()) '(B)'];
+                   
+                  %modifiedDateStr = dateTimeInstance.format(d1ObjSysMeta.getDateSysMetadataModified());
+                  %usedFileStruct(i,1).ModifiedTime = char(modifiedDateStr);
+                   
+                  %publishedDateStr = dateTimeInstance.format(d1ObjSysMeta.getDateUploaded());
+                  %usedFileStruct(i,1).PublishedTime = char(publishedDateStr);
+                  
+                  % Todo: how to find the published URL?
+                  %generatedFileStruct(i,1).Location = '';
+               end
+               TableForFileUSed = struct2table(usedFileStruct); % Convert a struct to a table
+               disp(TableForFileUSed);  
+           else
+               disp('Emtpy result for prov:used.');
+           end
+                    
+           fprintf('\nDatasets generated by this run:\n');
+           fprintf('-------------------------------\n');
+           
            if ~isempty(wasGeneratedByStruct)
-               TableForFileWasGeneratedBy = struct2table(wasGeneratedByStruct); % Convert a struct to a table
+               %TableForFileWasGeneratedBy = struct2table(wasGeneratedByStruct); % Convert a struct to a table
+               %disp(TableForFileWasGeneratedBy);             
+               for i = 1:length(wasGeneratedByStruct)
+                   generatedFileStruct(i,1).Name = wasGeneratedByStruct(i).Subject; 
+           
+                   id = Identifier();
+                   id.setValue(wasGeneratedByStruct(i).Subject); 
+                   
+                   d1Obj = D1Object.download(id);
+                   d1ObjSysMeta = d1Obj.getSystemMetadata();
+                   
+                   generatedFileStruct(i,1).Size = [char(d1ObjSysMeta.getSize().toString()) '(B)'];
+                   
+                   modifiedDateStr = dateTimeInstance.format(d1ObjSysMeta.getDateSysMetadataModified());
+                   generatedFileStruct(i,1).ModifiedTime = char(modifiedDateStr);
+                   
+                   publishedDateStr = dateTimeInstance.format(d1ObjSysMeta.getDateUploaded());
+                   generatedFileStruct(i,1).PublishedTime = char(publishedDateStr);
+                  
+                   % Todo: how to find the published URL?
+                   generatedFileStruct(i,1).PublishedURL = '';
+               end               
+               TableForFileWasGeneratedBy = struct2table(generatedFileStruct); % Convert a struct to a table
                disp(TableForFileWasGeneratedBy);
+               
            else
                disp('Emtpy result for prov:wasGeneratedByStruct.');
            end
            
-           fprintf('Local data files used:\n');
-           if ~isempty(usedStruct)
-               TableForFileUSed = struct2table(usedStruct); % Convert a struct to a table
-               disp(TableForFileUSed);
-           else
-               disp('Emtpy result for prov:used.');
-           end
+           fprintf('\n----------------------------------------------------------------------\n');
            
            % Provenance 
-           fprintf('\n\nProvenance\n');
-           fprintf('======================================\n');
-           if ~isempty(hadPlanStruct)
-               TableForHadPlan = struct2table(hadPlanStruct, 'AsArray',true); % Convert a struct to a table
-               disp(TableForHadPlan);
-           else
-               disp('Emtpy result for prov:hadPlan.');
-           end
+           %fprintf('\n\nProvenance\n');
+           %fprintf('======================================\n');
+           %if ~isempty(hadPlanStruct)
+           %    TableForHadPlan = struct2table(hadPlanStruct, 'AsArray',true); % Convert a struct to a table
+           %    disp(TableForHadPlan);
+           %else
+           %    disp('Emtpy result for prov:hadPlan.');
+           %end
            
-           if ~isempty(qualifiedAssociationStruct)
-                TableForQualifiedAssociation = struct2table(qualifiedAssociationStruct, 'AsArray',true); % Convert a struct to a table
-                disp(TableForQualifiedAssociation);
-           else
-               disp('Emtpy result for prov:qualifiedAssociation.');
-           end
+           %if ~isempty(qualifiedAssociationStruct)
+           %     TableForQualifiedAssociation = struct2table(qualifiedAssociationStruct, 'AsArray',true); % Convert a struct to a table
+           %     disp(TableForQualifiedAssociation);
+           %else
+           %    disp('Emtpy result for prov:qualifiedAssociation.');
+           %end
            
-           if ~isempty(wasAssociatedWithPredicateStruct)
-               TableForWasAssociatedWith = struct2table(wasAssociatedWithPredicateStruct, 'AsArray',true); % Convert a struct to a table
-               disp(TableForWasAssociatedWith);
-           else
-               disp('Emtpy result for prov:wasAssociatedWith.');
-           end
+           %if ~isempty(wasAssociatedWithPredicateStruct)
+           %    TableForWasAssociatedWith = struct2table(wasAssociatedWithPredicateStruct, 'AsArray',true); % Convert a struct to a table
+           %    disp(TableForWasAssociatedWith);
+           %else
+           %    disp('Emtpy result for prov:wasAssociatedWith.');
+           %end
            
-           % Todo: find the rdf:type triplets in a resourceMap
            %if ~isempty(rdfTypeStruct)
            %    TableForRdfType = struct2table(rdfTypeStruct); % Convert a struct to a table
            %    disp(TableForRdfType);
@@ -1350,11 +1443,10 @@ classdef RunManager < hgsetget
            %    disp('Emtpy result for rdf:type.');
            %end
            
-           fprintf('\n\nDataPackage to be published to DataONE\n');
-           fprintf('======================================\n');
-     
-           TableForFile2Published = struct2table(publishFileStruct); % Convert a struct to a table
-           disp(TableForFile2Published);
+           %fprintf('\n\nDataPackage to be published to DataONE\n');
+           %fprintf('======================================\n');
+           %TableForFile2Published = struct2table(publishFileStruct); % Convert a struct to a table
+           %disp(TableForFile2Published);
            
            fprintf('\n**********************************************************************************************************************\n');
                       
@@ -1387,9 +1479,13 @@ classdef RunManager < hgsetget
            
             curDir = pwd();
             
-            curRunDir = [runManager.runDir filesep packageId filesep];
+            % Convert packageId to runId
+            k = strfind(packageId, 'urn:uuid:'); % get the index of 'urn:uuid:'            
+            runId = packageId(k+9:end);
+            
+            curRunDir = [runManager.configuration.provenance_storage_directory filesep 'runs' filesep runId filesep];
             fprintf('curRunDir: %s\n', curRunDir);
-            if ~exist(curRunDir, 'dir')
+            if exist(curRunDir, 'dir') ~= 7
                 error([' A directory was not found for execution identifier: ' packageId]);       
             end       
             
@@ -1492,7 +1588,7 @@ classdef RunManager < hgsetget
                 end
                 
                 cd(curDir);
-                package_id = packageId; % temporary
+                package_id = packageId; 
          
             catch runtimeError 
                 error(['Could not create member node reference: ' runtimeError.message]);
@@ -1500,7 +1596,7 @@ classdef RunManager < hgsetget
             end
             
             % Record the date and time that the package from this run is uploaded to DataONE
-            runManager.execution.publish_time = save(datestr(now,30));
+            runManager.execution.publish_time = datestr(now,30);
         end  
        
           
