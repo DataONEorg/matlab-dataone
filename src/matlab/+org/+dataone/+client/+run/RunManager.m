@@ -905,11 +905,7 @@ classdef RunManager < hgsetget
 
             % Record the starting time when record() started 
             runManager.execution.start_time = datestr(now,30); % Use datestr to format the time and use now to get the current time          
-            
-            if isempty(runManager.execution.tag) % used when startRecord is called when record() is not called
-                runManager.execution.tag = tag;
-            end
-            
+                        
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
                          'endRecord() if you wish to close this session']);
