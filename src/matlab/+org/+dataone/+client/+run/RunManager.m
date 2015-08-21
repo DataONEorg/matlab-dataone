@@ -904,7 +904,7 @@ classdef RunManager < hgsetget
             % STARTRECORD Starts recording provenance relationships (see record()).
 
             % Record the starting time when record() started 
-            runManager.execution.start_time = datestr(now,30); % Use datestr to format the time and use now to get the current time          
+            runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS'); % Use datestr to format the time and use now to get the current time          
                         
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
@@ -1014,7 +1014,7 @@ classdef RunManager < hgsetget
             munlock('RunManager');
             
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
-            runManager.execution.end_time = datestr(now,30);
+            runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
             % Publish the package to the D1 MN node (only ONCE)
             %packageId = char(runManager.execution.data_package_id);
