@@ -106,9 +106,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
             
-            testCase.mgr.tag = 'C3_C4_map_present_NA';
-            
-            testCase.mgr.record(script_path, '');
+            tag = 'ppp_C3_C4_map_present_NA';
+          
+            testCase.mgr.record(script_path, tag);
 
         end
         
@@ -146,11 +146,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %end
         
         
-        function testView(testCase)
-           fprintf('\n\nTest for view(packageId) function:\n');
-           testCase.mgr.view('urn:uuid:dd3b4b77-47a1-452b-b064-c5946374a70f'); % view the selected run
+        %function testView(testCase)
+        %   fprintf('\n\nTest for view(packageId) function:\n');
+        %   testCase.mgr.view('urn:uuid:dd3b4b77-47a1-452b-b064-c5946374a70f'); % view the selected run
            %testCase.mgr.view(testCase.mgr.execution.data_package_id); % view the current run   
-        end
+        %end
         
         
         %function testDeleteRuns(testCase)

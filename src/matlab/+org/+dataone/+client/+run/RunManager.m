@@ -42,9 +42,6 @@ classdef RunManager < hgsetget
         % runID
         runId;
         
-        % Tag for the current run
-        tag;
-        
         % The name for the execution database
         executionDatabaseName = 'executions.csv';
         
@@ -606,7 +603,7 @@ classdef RunManager < hgsetget
             endTime = char(runManager.execution.end_time);
             publishedTime = char(runManager.execution.publish_time);
             packageId = char(runManager.execution.data_package_id);
-            tag = runManager.tag; % the user should set the tag value
+            tag = runManager.execution.tag; % the user should set the tag value
             errorMessage = char(runManager.execution.error_message);
      
             formatSpec = '%s, %s, %s, %s, %s, %s, %s, %s\n';
@@ -877,7 +874,7 @@ classdef RunManager < hgsetget
             try
                 tagStr = '';
                 if ( ~isempty(tag) )
-                    tagStr = cast(tag);
+                    tagStr = cast(tag, 'char');
                 end
                 
             catch classCastException
@@ -908,6 +905,10 @@ classdef RunManager < hgsetget
 
             % Record the starting time when record() started 
             runManager.execution.start_time = datestr(now,30); % Use datestr to format the time and use now to get the current time          
+            
+            if isempty(runManager.execution.tag) % used when startRecord is called when record() is not called
+                runManager.execution.tag = tag;
+            end
             
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
@@ -1020,8 +1021,8 @@ classdef RunManager < hgsetget
             runManager.execution.end_time = datestr(now,30);
 
             % Publish the package to the D1 MN node (only ONCE)
-            packageId = char(runManager.execution.data_package_id);
-            runManager.publish(packageId);
+            %packageId = char(runManager.execution.data_package_id);
+            %runManager.publish(packageId);
             
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.executionDatabaseName);                      
@@ -1484,7 +1485,7 @@ classdef RunManager < hgsetget
             runId = packageId(k+9:end);
             
             curRunDir = [runManager.configuration.provenance_storage_directory filesep 'runs' filesep runId filesep];
-            fprintf('curRunDir: %s\n', curRunDir);
+            %fprintf('curRunDir: %s\n', curRunDir);
             if exist(curRunDir, 'dir') ~= 7
                 error([' A directory was not found for execution identifier: ' packageId]);       
             end       
