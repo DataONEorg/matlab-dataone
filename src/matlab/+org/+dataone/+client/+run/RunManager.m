@@ -1368,8 +1368,8 @@ classdef RunManager < hgsetget
                   % Todo: how to find the published URL?
                   %generatedFileStruct(i,1).Location = '';
                end
-               TableForFileUSed = struct2table(usedFileStruct); % Convert a struct to a table
-               disp(TableForFileUSed);  
+               TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
+               disp(TableForFileUsed);  
            else
                disp('Emtpy result for prov:used.');
            end
