@@ -96,13 +96,13 @@ classdef RunManagerTest < matlab.unittest.TestCase
             script_path = fullfile(pwd(), filesep, testCase.filename); 
             fprintf('current script path: %s\n', script_path);
             
-            mgr.configuration.provenance_storage_directory = testCase.testDir;
+            testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
             
-            mgr.record(script_path, '');
+            testCase.mgr.record(script_path, '');
         
-            if mgr.configuration.include_workflow_graphic
+            if testCase.mgr.configuration.include_workflow_graphic
                 curDir = pwd();
-                cd(mgr.runDir); % go to the provenance run directory
+                cd(testCase.mgr.runDir); % go to the provenance run directory
                 
                 % Display 3 different views of YesWorkflow output files
                 %system('/usr/bin/open process_view.pdf');
