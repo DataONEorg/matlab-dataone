@@ -1504,7 +1504,7 @@ classdef RunManager < hgsetget
                    error(['Member node' runManager.configuration.target_member_node_id 'encounted an error on the getMN() request.']); 
                 end
                     
-                fprintf('mn ndoe base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
+                fprintf('mn node base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
                 fprintf('dataPackage.size()= %d\n',runManager.dataPackage.size());
                             
                 % Set the CNode ID
