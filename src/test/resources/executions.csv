@@ -1,6 +1,10 @@
-runId, filePath, startTime, endTime, publishedTime, packageId, errorMessage
-96afc334-299f-4e88-82a9-353955319238, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150727T180340, 20150727T180342, , urn:uuid:2262a544-4b22-4628-9817-12c7fd0ce69e, 
-7eb7d0b2-ed13-49aa-98d0-92a256d6cab4, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150727T180428, 20150727T180429, , urn:uuid:763b4732-abf8-4aaa-820e-5cbee0822843, 
-d2ffcc31-d05d-41c6-9fba-61178198c3df, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150727T180737, 20150727T180738, , urn:uuid:9b09f0dd-f358-4f3c-a1bd-4bdc8cb4c38d, 
-e23c6dad-01fa-4df6-aeca-227baed85e24, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150727T180814, 20150727T180816, , urn:uuid:f39c788e-e0e1-47de-9957-f26b4bdea9a8, 
-ba62be48-bbd1-4c58-a258-a1af82c5a87a, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2.m, 20150727T180915, 20150727T180916, , urn:uuid:39c5eda8-0e30-41c2-92de-a80d810b2dd2, 
+runId, filePath, startTime, endTime, publishedTime, packageId, tag, errorMessage
+dd3b4b77-47a1-452b-b064-c5946374a70f, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T111140, 20150821T111142, 20150821T111158, urn:uuid:dd3b4b77-47a1-452b-b064-c5946374a70f, C3_C4_map_present_NA, 
+f2ba2cbc-4bb0-4671-a3d2-05745f5eaa63, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T111606, 20150821T111608, , urn:uuid:f2ba2cbc-4bb0-4671-a3d2-05745f5eaa63, C3_C4_map_present_NA, 
+98fc89d2-7e0c-4431-a35c-e1c4127dc406, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T112402, 20150821T112404, , urn:uuid:98fc89d2-7e0c-4431-a35c-e1c4127dc406, C3_C4_map_present_NA, 
+9dc46cdf-d127-4b18-a060-4f4a454875bb, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T112738, 20150821T112739, , urn:uuid:9dc46cdf-d127-4b18-a060-4f4a454875bb, C3_C4_map_present_NA, 
+baaa10d0-7595-4079-bd20-67a84dbece7e, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T113347, 20150821T113349, , urn:uuid:baaa10d0-7595-4079-bd20-67a84dbece7e, C3_C4_map_present_NA, 
+83d96877-d39f-4d11-83f1-89a21acca90c, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T113820, 20150821T113822, , urn:uuid:83d96877-d39f-4d11-83f1-89a21acca90c, C3_C4_map_present_NA, 
+cbf1374e-8ffa-400f-8b40-94ad1fbd64fb, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T120951, 20150821T120952, , urn:uuid:cbf1374e-8ffa-400f-8b40-94ad1fbd64fb, C3_C4_map_present_NA, 
+484ebfc2-2326-4474-b1f7-8958b1267652, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T121455, 20150821T121457, , urn:uuid:484ebfc2-2326-4474-b1f7-8958b1267652, C3_C4_map_present_NA, 
+036921c8-5982-492a-bc9d-63c237be003c, /Users/syc/Documents/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m, 20150821T133616, 20150821T133617, , urn:uuid:036921c8-5982-492a-bc9d-63c237be003c, C3_C4_map_present_NA, 

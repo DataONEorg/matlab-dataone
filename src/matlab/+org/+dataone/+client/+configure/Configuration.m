@@ -4,7 +4,7 @@
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2009-2014 DataONE
+%   Copyright 2009-2015 DataONE
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -21,10 +21,7 @@
 classdef Configuration < hgsetget & dynamicprops 
     % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
     
-    properties
-        % A boolean property that enables or disables debugging 
-        debug = false;  
-        
+    properties     
         % The Operating System account username
         account_name = '';
       
@@ -110,6 +107,11 @@ classdef Configuration < hgsetget & dynamicprops
         
     end
 
+    properties (Access = private)
+        % A boolean property that enables or disables debugging 
+        debug = false;   
+    end
+    
     methods(Static)
         
     end
