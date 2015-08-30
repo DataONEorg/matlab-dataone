@@ -138,6 +138,23 @@ classdef Configuration < hgsetget & dynamicprops
             % configuration file on disk
             loadConfig(configuration,'');
             
+            if ( isempty(configuration.account_name) )
+                try
+                if ( ispc)
+                    configuration.account_name = getenv('USERNAME');
+                    
+                elseif ( isunix )
+                    configuration.account_name = getenv('USER');
+                    
+                end
+                catch configurationError
+                    if ( configuration.debug )
+                        warn(['Could not set the user account name from ' ...
+                             'the system environment variables: ' ...
+                             configurationError.message]); 
+                    end
+                end
+            end
         end
         
         function configuration = set(configuration, name, value)
