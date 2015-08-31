@@ -116,7 +116,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %DroughtTimeScale_Markup_v2;
             %y = textreadFile('ywModelFacts.pl');
             %fprintf('%s', char(y));
-            %% Test for YesWorkflow              
+            % Test for YesWorkflow              
             script_path = fullfile(pwd(), filesep, testCase.filename); 
                  
             testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
