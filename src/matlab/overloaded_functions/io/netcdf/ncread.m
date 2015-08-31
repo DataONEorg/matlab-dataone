@@ -40,6 +40,13 @@ function vardata = ncread( source, varname, varargin )
 
     disp('Called the ncread wrapper function.');
 
-    vardata = builtin('ncread', source, varname, varargin);
+    % TODO: Identifiy the file being used and add a prov:used statement 
+    %       in the RunManager DataPackage instance
+    % TODO: Remove wrapper ncread from the Matlab path
+    
+    % Call ncread 
+    vardata = ncread(source, varname, varargin);
+    
+    % TODO: Add the wrapper ncread back to the Matlab path
 end
 
