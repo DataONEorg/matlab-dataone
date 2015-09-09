@@ -824,7 +824,6 @@ classdef RunManager < hgsetget
                     matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 6), ...
                     filesep) ...
                     filesep 'matlab' filesep 'overloaded_functions' filesep 'io' filesep];
-           matlab_dataone_src_dir
            
            % Add subdirectories of lib/matlab to the Matlab path,
            addpath(genpath(matlab_dataone_src_dir), '-begin');           

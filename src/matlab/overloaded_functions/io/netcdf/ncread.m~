@@ -47,8 +47,9 @@ function vardata = ncread( source, varname, varargin )
     disp('remove the overloaded function.');  
     
     % Call ncread 
-    vardata = ncread( source, varname, varargin{:} );
     %celldisp(varargin);
+    
+    vardata = ncread( source, varname, varargin{:} );
 
     % Add the wrapper ncread back to the Matlab path
     addpath(overloaded_func_path, '-begin');
