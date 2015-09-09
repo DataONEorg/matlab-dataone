@@ -40,15 +40,20 @@ function vardata = ncread( source, varname, varargin )
 
     disp('Called the ncread wrapper function.');
 
-    % TODO: Identifiy the file being used and add a prov:used statement 
-    %       in the RunManager DataPackage instance
-    % TODO: Remove wrapper ncread from the Matlab path
-    modifiedPath = rmpath('ncread');    
+    % Remove wrapper ncread from the Matlab path
+    overloadedFunctPath = which('ncread');
+    [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
+    rmpath(overloaded_func_path);    
+    disp('remove the overloaded function.');  
     
     % Call ncread 
-    vardata = ncread(source, varname, varargin);
+    vardata = ncread( source, varname, varargin );
     
-    % TODO: Add the wrapper ncread back to the Matlab path
-    addPath(modifiedPath, '-begin');
+    % Add the wrapper ncread back to the Matlab path
+    addpath(overloaded_func_path, '-begin');
+    disp('add the overloaded function back.');
+    
+    % TODO: Identifiy the file being used and add a prov:used statement 
+    %       in the RunManager DataPackage instance
 end
 

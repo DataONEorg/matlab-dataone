@@ -237,7 +237,7 @@ classdef RunManager < hgsetget
                 config = YWConfiguration();
 
                 % Call YW-Extract module
-                runManager.extractor = runManager.extractor.reader(reader); % April-version yesWorkflow
+                runManager.extractor = runManager.extractor.reader(reader); 
                 annotations = runManager.extractor.extract().getAnnotations();
         
                 % Call YW-Model module
@@ -377,8 +377,6 @@ classdef RunManager < hgsetget
             runManager.wfIdentifier = Identifier();
             scriptNameArray  = strsplit(runManager.execution.software_application,filesep);                     
             runManager.wfIdentifier.setValue(char(scriptNameArray (end)));
-                   
-            % Todo: how to generate the science meta for the workflow scripts ?
            
             % Record relationship identifying workflow identifier and URI as a provONE:Program
             runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
@@ -424,33 +422,16 @@ classdef RunManager < hgsetget
             combinedViewId = Identifier();
             combinedViewId.setValue(runManager.combinedViewPdfFileName);
             combinedViewURI = URI([runManager.D1_CN_Resolve_Endpoint  runManager.combinedViewPdfFileName]);
-            %metaCombinedView = Identifier(); % metadata
-            %metaCombinedView.setValue([runManager.configuration.script_base_name '_combined_view.xml']);
-            %combinedViewIds = ArrayListMatlabWrapper;
-            %combinedViewIds.add(combinedViewId); 
-                
+                        
             % YesWorkflow data view image (.pdf)
             dataViewId = Identifier();
             dataViewId.setValue(runManager.dataViewPdfFileName); 
-            dataViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.dataViewPdfFileName]);
-            %metaDataView = Identifier(); % metadata
-            %metaDataView.setValue([runManager.configuration.script_base_name '_data_view.xml']);
-            %dataViewIds = ArrayListMatlabWrapper;
-            %dataViewIds.add(dataViewId);
+            dataViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.dataViewPdfFileName]);           
                  
             % YesWorkflow process view image (.pdf)
             processViewId = Identifier();
             processViewId.setValue(runManager.processViewPdfFileName); 
             processViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.processViewPdfFileName]);
-            %metaProcessView = Identifier(); % metadata
-            %metaProcessView.setValue([runManager.configuration.script_base_name '_process_view.xml']);
-            %processViewIds = ArrayListMatlabWrapper;
-            %processViewIds.add(processViewId);
-                 
-            % Todo: wasDocumentedBy (because we do not have these science metadata in the package.)
-            %runManager.dataPackage.insertRelationship(metaCombinedView, combinedViewIds);
-            %runManager.dataPackage.insertRelationship(metaDataView, dataViewIds);
-            %runManager.dataPackage.insertRelationship(metaProcessView, processViewIds);
                 
             % wasGeneratedBy
             predicate = PROV.predicate('wasGeneratedBy');
@@ -479,13 +460,9 @@ classdef RunManager < hgsetget
             processViewData = FileDataSource(processViewFileId);
             processViewD1Obj = D1Object(processViewId, processViewData, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(processViewD1Obj);               
-               
-            %metadataModelFactsId = Identifier;
-            %metadataModelFactsId.setValue([runManager.configuration.script_base_name  '_ywModelFacts.xml']);
-            %dataModelFactsIds = ArrayListMatlabWrapper;               
+                                
             modelFactsId = Identifier();
-            modelFactsId.setValue(runManager.mfilename); % ywModelFacts prolog dump
-            %dataModelFactsIds.add(modelFactsId); 
+            modelFactsId.setValue(runManager.mfilename); % ywModelFacts prolog dump           
             modelFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.mfilename]);
                 
             % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
@@ -494,13 +471,9 @@ classdef RunManager < hgsetget
             modelFactsData = FileDataSource(modelFactsFileId);
             modelFactsD1Obj = D1Object(modelFactsId, modelFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(modelFactsD1Obj);
-              
-            %metadataExtractFactsId = Identifier;
-            %metadataExtractFactsId.setValue([runManager.configuration.script_base_name  '_ywExtractFacts.xml']);
-            %dataExtractFactsIds = ArrayListMatlabWrapper;
+                         
             extractFactsId = Identifier;
-            extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump
-            %dataExtractFactsIds.add(extractFactsId); 
+            extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump             
             extractFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.efilename]);
                 
             % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
@@ -509,10 +482,7 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(extractFactsURI, predicate, runManager.execURI); 
             runManager.dataPackage.insertRelationship(modelFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
             runManager.dataPackage.insertRelationship(extractFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
-            % Todo: because we do not have thse science metadata right now
-            %runManager.dataPackage.insertRelationship(metadataExtractFactsId, dataExtractFactsIds);
-            %runManager.dataPackage.insertRelationship(metadataModelFactsId, dataModelFactsIds); 
-                                  
+           
             % Create D1Object for ywExtractFacts prolog dump and add the D1Object to the DataPackage      
             extractFactsFileId = File(extractFactsId.getValue());
             extractFactsData = FileDataSource(extractFactsFileId);
@@ -585,6 +555,19 @@ classdef RunManager < hgsetget
             resMapData = FileDataSource(resMapFileId);
             resMapD1Obj = D1Object(resMapId, resMapData, D1TypeBuilder.buildFormatIdentifier(resMapFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));          
             runManager.dataPackage.addData(resMapD1Obj);     
+            
+            % Todo: Serialize the datapackage content on disk
+            %import java.io.FileOutputStream;
+            %import java.io.ObjectOutputStream;
+            
+            %serializedPkgName = 'package.ser';
+            %fileOut = FileOutputStream(serializedPkgName);
+            %out = ObjectOutputStream(fileOut);
+            %out.writeObject(runManager.dataPackage);
+            %out.close();
+            %file.close();
+            %fprintf('Serialized data is saved in package.ser');
+            %save(serializedPkgName, runManager.dataPackage);
                     
         end
         
@@ -651,7 +634,7 @@ classdef RunManager < hgsetget
         
         
         function stmtStruct = getRDFTriple(runManager, filePath, p)
-           % GETSUBJECTRELATEDTOPROPERTY get all related subjects related to a given property from all
+           % GETRDFTRIPLE get all related subjects related to a given property from all
            % triples contained in a resourcemap.
            %  filePath - the path to the resourcemap
            %  p - the given property of a RDF triple
@@ -743,8 +726,7 @@ classdef RunManager < hgsetget
             end;
 
             u = u(1:ku,:); % Trim unused space in u           
-        end
-        
+        end       
     end
  
     
@@ -755,16 +737,19 @@ classdef RunManager < hgsetget
                         
             import org.dataone.client.configure.Configuration;
            
-            %% Set all jars under lib/java/ to the java dynamic class path (Need further consideration !)
+            % Set all jars under lib/java/ to the java dynamic class path
+            % (double check !)
             % RunManager.setJavaClassPath();
                        
             % Set the java class path
             RunManager.setMatlabPath();
+            
+            % Set the overloaded io functions paths
+            RunManager.setIOFunctionPath();
 
             % Create a default configuration object if one isn't passed in
             if ( nargin < 1 )
-                configuration = Configuration();
-               
+                configuration = Configuration();               
             end
             
             persistent singletonRunManager; % private, stays in memory across clears
@@ -772,21 +757,20 @@ classdef RunManager < hgsetget
             if isempty( singletonRunManager )
                 import org.dataone.client.run.RunManager;
                 runManager = RunManager(configuration);
-                singletonRunManager = runManager;
-                
+                singletonRunManager = runManager;               
             else
-                runManager = singletonRunManager;
-                
+                runManager = singletonRunManager;               
             end
         end
+        
         
         function setJavaClassPath()
             % SETJAVACLASSPATH adds all Java libraries found in 
             % $matalab-dataone/lib to the java class path
             
             % Determine the lib directory relative to the RunManager location
-            filePath = mfilename('fullpath');
-            matlab_dataone_dir_array = strsplit(filePath, filesep);
+            filePath = mfilename('fullpath');           
+            matlab_dataone_dir_array = strsplit(filePath, filesep);           
             matlab_dataone_java_lib_dir = ...
                 [strjoin( ...
                     matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
@@ -808,13 +792,14 @@ classdef RunManager < hgsetget
             end
         end
         
+        
         function setMatlabPath()
             % SETMATLABPATH adds all Matlab libraries found in 
             % $matalab-dataone/lib/matlab to the Matlab path
             
             % Determine the lib directory relative to the RunManager location
-            filePath = mfilename('fullpath');
-            matlab_dataone_dir_array = strsplit(filePath, filesep);
+            filePath = mfilename('fullpath');         
+            matlab_dataone_dir_array = strsplit(filePath, filesep);           
             matlab_dataone_lib_dir = ...
                 [strjoin( ...
                     matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
@@ -824,10 +809,30 @@ classdef RunManager < hgsetget
            % Add subdirectories of lib/matlab to the Matlab path,
            addpath(genpath(matlab_dataone_lib_dir));               
         end
+        
+        
+        function setIOFunctionPath()
+            % SETIOFUNCTIONPATH adds all overloaded I/O functions found in 
+            % $matalab-dataone/src/matlab/overloaded_functions/io to the top of Matlab path
+            fprintf('\nIn setIOFunctionPath() ... \n');
+            
+            % Determine the src directory relative to the RunManager location
+            filePath = mfilename('fullpath');         
+            matlab_dataone_dir_array = strsplit(filePath, filesep);           
+            matlab_dataone_src_dir = ...
+                [strjoin( ...
+                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 6), ...
+                    filesep) ...
+                    filesep 'matlab' filesep 'overloaded_functions' filesep 'io' filesep];
+           matlab_dataone_src_dir
+           
+           % Add subdirectories of lib/matlab to the Matlab path,
+           addpath(genpath(matlab_dataone_src_dir), '-begin');           
+        end        
     end
     
-    methods    
-        
+    
+    methods           
         function data_package = record(runManager, filePath, tag)
             % RECORD Records provenance relationships between data and scripts
             % When record() is called, data input files, data output files,
@@ -905,7 +910,7 @@ classdef RunManager < hgsetget
 
             % Record the starting time when record() started 
             runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS'); % Use datestr to format the time and use now to get the current time          
-                        
+               
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
                          'endRecord() if you wish to close this session']);
@@ -1016,10 +1021,6 @@ classdef RunManager < hgsetget
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
-            % Publish the package to the D1 MN node (only ONCE)
-            %packageId = char(runManager.execution.data_package_id);
-            %runManager.publish(packageId);
-            
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.executionDatabaseName);                      
         end

@@ -35,8 +35,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % SETUP Set up the test environment            
             import org.dataone.client.run.RunManager;
             
-            % testCase.filename = 'test/resources/DroughtTimeScale_Markup_v2.m';
-            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+            %testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+            testCase.filename = 'test/resources/myScript1.m';
             testCase.testDir = 'test/resources';
             testCase.mgr = RunManager.getInstance();
             testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_3.properties'; 
@@ -91,31 +91,32 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             % reset to the original
             set(testCase.mgr.configuration, 'format_id', old_format_id);
-
+        end
+        
+        
+        function testYesWorkflow(testCase)
+            fprintf('\nIn testYesWorkflow() ...\n');
+            
+            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+            
             % Test for YesWorkflow              
             script_path = fullfile(pwd(), filesep, testCase.filename); 
             fprintf('current script path: %s\n', script_path);
             
             testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
             
-            testCase.mgr.record(script_path, '');
-        
             if testCase.mgr.configuration.include_workflow_graphic
-                curDir = pwd();
-                cd(testCase.mgr.runDir); % go to the provenance run directory
+                %curDir = pwd();
+                %cd(testCase.mgr.runDir); % go to the provenance run directory
                 
                 % Display 3 different views of YesWorkflow output files
                 %system('/usr/bin/open process_view.pdf');
                 %system('/usr/bin/open data_view.pdf');
                 %system('/usr/bin/open combined_view.pdf');
                 
-                cd(curDir);
+                %cd(curDir);
             end
-            
-            % Access a matlab script and run it
-            %DroughtTimeScale_Markup_v2;
-            %y = textreadFile('ywModelFacts.pl');
-            %fprintf('%s', char(y));
+                        
             % Test for YesWorkflow              
             script_path = fullfile(pwd(), filesep, testCase.filename); 
                  
@@ -129,23 +130,40 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
+           
+        end
+           
+        
+        function testRecord(testCase)
+            fprintf('\nIn testRecord() ...\n');
             
-            tag = 'ppp_C3_C4_map_present_NA';
+            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+            % Script path              
+            script_path = fullfile(pwd(), filesep, testCase.filename);  
+            
+            tag = 'C3_C4_map_present_NA'; % TODO: multiple tags passed in
           
             testCase.mgr.record(script_path, tag);
-
         end
         
+        
+        function testOverloadedNcread(testCase)
+            fprintf('\nIn testOverloadedNcread() ...\n');            
+            testCase.filename = 'test/resources/myScript1.m';
+            results = runtests(testCase.filename);  
+        end
+        
+        
         %function testListRuns(testCase)
-         %   fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
+            %fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
             
-         %   quiet = false;
-         %   startDate = '20150731T102515';
-         %   endDate = datestr(now, 30);
-         %   tagList = {'1', '3'};
+            %quiet = false;
+            %startDate = '20150731T102515';
+            %endDate = datestr(now, 30);
+            %tagList = {'1', '3'};
             
-         %   fprintf('*** startDate and endDate both required: ***\n');
-         %   runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
+            %fprintf('*** startDate and endDate both required: ***\n');
+            %runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
                      
             %fprintf('*** startDate only required: ***\n');
             %runs = testCase.mgr.listRuns(quiet, startDate, '', '');
@@ -173,7 +191,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %function testView(testCase)
         %   fprintf('\n\nTest for view(packageId) function:\n');
         %   testCase.mgr.view('urn:uuid:dd3b4b77-47a1-452b-b064-c5946374a70f'); % view the selected run
-           %testCase.mgr.view(testCase.mgr.execution.data_package_id); % view the current run   
+        %   testCase.mgr.view(testCase.mgr.execution.data_package_id); % view the current run   
         %end
         
         
@@ -198,6 +216,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
            % testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
         %end
         
+        
         %function testPublish(testCase)
            % TESTPUBLISH tests calling the RunManager.publish() function
 
@@ -212,5 +231,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %    runId = testCase.mgr.execution.execution_id(k+9:end);
         %    pkgId = testCase.mgr.publish(runId);
         %end
+        
+        
     end
 end
