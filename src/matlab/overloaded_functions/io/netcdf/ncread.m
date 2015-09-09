@@ -44,7 +44,7 @@ function vardata = ncread( source, varname, varargin )
     overloadedFunctPath = which('ncread');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
-    disp('remove the overloaded function.');  
+    disp('remove the path of the overloaded ncread function.');  
     
     % Call ncread 
     vardata = ncread( source, varname, varargin{:} );
@@ -52,7 +52,7 @@ function vardata = ncread( source, varname, varargin )
 
     % Add the wrapper ncread back to the Matlab path
     addpath(overloaded_func_path, '-begin');
-    disp('add the overloaded function back.');
+    disp('add the path of the overloaded ncread function back.');
     
     % TODO: Identifiy the file being used and add a prov:used statement 
     %       in the RunManager DataPackage instance
