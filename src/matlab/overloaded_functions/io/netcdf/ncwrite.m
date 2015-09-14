@@ -59,12 +59,12 @@ function ncwrite( source, varname, varargin )
     % Call ncwrite
     ncwrite( source, varname, varargin{:} );
    
-    % Add the wrapper ncread back to the Matlab path
+    % Add the wrapper ncwrite back to the Matlab path
     addpath(overloaded_func_path, '-begin');
     disp('add the path of the overloaded ncwrite function back.');
     
-    % TODO: Identifiy the file being used and add a prov:used statement 
+    % TODO: Identifiy the file being used and add a prov:wasGeneratedBy statement 
     %       in the RunManager DataPackage instance
 
-    % http://research.jisao.washington.edu/data_sets/matlab_netcdf.html
+    % 
 end
