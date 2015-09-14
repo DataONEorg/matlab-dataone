@@ -133,6 +133,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
+        function testOverloadedNcwrite(testCase)
+            fprintf('\nIn testOverloadedNcwrite() ...\n');            
+            testCase.filename = 'test/resources/myScript2.m';
+            results = runtests(testCase.filename);  
+        end
+        
         %function testListRuns(testCase)
             %fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
             
