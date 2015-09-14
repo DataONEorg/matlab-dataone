@@ -830,14 +830,14 @@ classdef RunManager < hgsetget
             % Determine the src directory relative to the RunManager location
             filePath = mfilename('fullpath');         
             matlab_dataone_dir_array = strsplit(filePath, filesep);           
-            matlab_dataone_src_dir = ...
+            matlab_dataone_io_dir = ...
                 [strjoin( ...
                     matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 6), ...
                     filesep) ...
                     filesep 'matlab' filesep 'overloaded_functions' filesep 'io' filesep];
            
-           % Add subdirectories of lib/matlab to the Matlab path,
-           addpath(genpath(matlab_dataone_src_dir), '-begin');           
+           % Add subdirectories of $matalab-dataone/src/matlab/overloaded_functions/io to the Matlab path,
+           addpath(genpath(matlab_dataone_io_dir), '-begin');           
         end        
     end
     
