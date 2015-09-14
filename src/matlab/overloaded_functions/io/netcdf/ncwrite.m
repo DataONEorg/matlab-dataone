@@ -1,4 +1,4 @@
-function vardata = ncwrite( source, varname, varargin )
+function ncwrite( source, varname, varargin )
 % NCWRITE A provenance wrapper function to the builtin NetCDF ncwritE
 %    VARDATA = NCWRITE(FILENAME, VARNAME, VARDATA) write numerical or char data in
 %    VARDATA to an existing variable VARNAME in the NetCDF file FILENAME,
