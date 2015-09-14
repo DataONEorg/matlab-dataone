@@ -174,7 +174,21 @@ classdef RunManager < hgsetget
         end
         
         
-        function configYesWorkflow(runManager, path)
+        function certificate = getCertificate(runManager)
+            % GETCERTIFICATE Gets a certificate 
+            import org.dataone.client.auth.CertificateManager;
+            import java.security.cert.X509Certificate;
+            
+            % Get a certificate for the Root CA           
+            certificate = CertificateManager.getInstance().loadCertificate();
+            
+            if runManager.debug
+                fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));  
+            end
+        end
+        
+                
+        function configYesWorkflow(runManager, scriptPath)
             % CONFIGYESWORKFLOW Set YesWorkflow extractor language model to be Matlab type
             % Default configuration is used now.
             import org.yesworkflow.extract.DefaultExtractor;
@@ -196,24 +210,13 @@ classdef RunManager < hgsetget
           
             % Set generate_workflow_graphic to be true
             runManager.configuration.generate_workflow_graphic = true;
+            
+            % Set the path to the script to be parsed
+            runManager.execution.software_application = scriptPath; % Set script path
         end
         
         
-        function certificate = getCertificate(runManager)
-            % GETCERTIFICATE Gets a certificate 
-            import org.dataone.client.auth.CertificateManager;
-            import java.security.cert.X509Certificate;
-            
-            % Get a certificate for the Root CA           
-            certificate = CertificateManager.getInstance().loadCertificate();
-            
-            if runManager.debug
-                fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));  
-            end
-        end
-        
-        
-        function captureProspectiveProvenanceWithYW(runManager)
+        function captureProspectiveProvenanceWithYW(runManager, runDirectory)
             % CAPTUREPROSPECTIVEPROVENANCEWITHYW captures the prospective provenance using YesWorkflow 
             % by scannning the inline yesWorkflow comments.
          
@@ -252,12 +255,12 @@ classdef RunManager < hgsetget
                     import org.yesworkflow.extract.HashmapMatlabWrapper;
                     import org.yesworkflow.graph.LayoutDirection;
                 
-                    runManager.grapher = runManager.grapher.workflow(runManager.workflow);
-                    
                     % Set the working directory to be the run metadata directory for this run
                     curDir = pwd();
-                    cd(runManager.runDir); 
-                
+                    cd(runDirectory); 
+                    
+                    runManager.grapher = runManager.grapher.workflow(runManager.workflow);
+                    
                     % Generate YW.Process_View dot file                   
                     config.applyPropertyFile(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME); % Read from process_view_yw.properties
                     gconfig = config.getSection('graph');
@@ -286,8 +289,7 @@ classdef RunManager < hgsetget
                     modelFacts = runManager.modeler.getFacts();  
                     gconfig = config.getSection('model');
                     runManager.mfilename = gconfig.get('factsfile');
-                    %runManager.mfilename = [runManager.configuration.script_base_name  '_ywModelFacts.pl'];
-                    fw = fopen(runManager.mfilename, 'w'); 
+                    fw = fopen([runDirectory filesep runManager.mfilename], 'w'); 
                     if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
                     fprintf(fw, '%s', char(modelFacts));
                     fclose(fw);
@@ -296,8 +298,7 @@ classdef RunManager < hgsetget
                     extractFacts = runManager.extractor.getFacts(); 
                     gconfig = config.getSection('extract');
                     runManager.efilename = gconfig.get('factsfile');
-                    %runManager.efilename = [runManager.configuration.script_base_name  '_ywExtractFacts.pl'];
-                    fw = fopen(runManager.efilename, 'w');    
+                    fw = fopen([runDirectory filesep runManager.efilename], 'w');    
                     if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
                     fprintf(fw, '%s', char(extractFacts));
                     fclose(fw);
@@ -310,37 +311,44 @@ classdef RunManager < hgsetget
         end
  
        
-        function generateYesWorkflowGraphic(runManager)
+        function generateYesWorkflowGraphic(runManager, runDirectory)
             % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format. 
-            
+                        
             position = strfind(runManager.processViewDotFileName, '.gv'); % get the index of '.gv'            
             processViewDotName = strtrim(runManager.processViewDotFileName(1:(position-1)));
             runManager.processViewPdfFileName = [processViewDotName '.pdf'];
+            fullPathProcessViewPdfFileName = [runDirectory filesep processViewDotName '.pdf'];
+            fullPathProcessViewDotFileName = [runDirectory filesep runManager.processViewDotFileName];
             
             position = strfind(runManager.dataViewDotFileName, '.gv'); % get the index of '.gv'            
             dataViewDotName = strtrim(runManager.dataViewDotFileName(1:(position-1)));
             runManager.dataViewPdfFileName = [dataViewDotName '.pdf'];
+            fullPathDataViewPdfFileName = [runDirectory filesep dataViewDotName '.pdf'];
+            fullPathDataViewDotFileName = [runDirectory filesep runManager.dataViewDotFileName];
             
             position = strfind(runManager.combinedViewDotFileName, '.gv'); % get the index of '.gv'            
             combViewDotName = strtrim(runManager.combinedViewDotFileName(1:(position-1)));
             runManager.combinedViewPdfFileName = [combViewDotName '.pdf'];
+            fullPathCombinedViewPdfFileName = [runDirectory filesep combViewDotName '.pdf'];
+            fullPathCombViewDotName = [runDirectory filesep runManager.combinedViewDotFileName];
              
             % Convert .gv files to .pdf files
             if isunix    
-                system(['/usr/local/bin/dot -Tpdf '  runManager.processViewDotFileName ' -o ' runManager.processViewPdfFileName]);
-                system(['/usr/local/bin/dot -Tpdf '  runManager.dataViewDotFileName ' -o ' runManager.dataViewPdfFileName]);  
-                system(['/usr/local/bin/dot -Tpdf '  runManager.combinedViewDotFileName ' -o ' runManager.combinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
+                system(['/usr/local/bin/dot -Tpdf '  fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
+                system(['/usr/local/bin/dot -Tpdf '  fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);  
+                system(['/usr/local/bin/dot -Tpdf '  fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
             
-                delete(runManager.processViewDotFileName);
-                delete(runManager.dataViewDotFileName);
-                delete(runManager.combinedViewDotFileName);
+                delete(fullPathProcessViewDotFileName);
+                delete(fullPathDataViewDotFileName);
+                delete(fullPathCombViewDotName);
             end
         end
         
         
-        function buildPackage(runManager, submitter, mnNodeId) 
+        function buildPackage(runManager, submitter, mnNodeId, dirPath) 
             % BUILDPACKAGE  packages a datapackage for the current run
             % including the workflow script and yesWorkflow graphics
+            
             import org.dataone.client.v1.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
             import org.dataone.client.run.NamedConstant;
@@ -357,6 +365,9 @@ classdef RunManager < hgsetget
             import java.io.File;
             import javax.activation.FileDataSource;
             
+            curPath = pwd();
+            cd(dirPath);
+            
             % Get the base URL of the DataONE coordinating node server
             runManager.CN_URL = runManager.getD1UriPrefix(); 
             runManager.D1_CN_Resolve_Endpoint = [char(runManager.CN_URL) '/v1/resolve/'];
@@ -368,15 +379,14 @@ classdef RunManager < hgsetget
             data = FileDataSource(fileId);           
             scriptFmt = 'text/plain';        
             wfId = Identifier();
-            scriptNameArray = strsplit(runManager.execution.software_application,filesep);          
+            scriptNameArray = strsplit(runManager.execution.software_application, filesep);          
             wfId.setValue(char(scriptNameArray(end)));        
             programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
             runManager.dataPackage.addData(programD1Obj);
             
             % Create a D1 identifier for the workflow script  
-            runManager.wfIdentifier = Identifier();
-            scriptNameArray  = strsplit(runManager.execution.software_application,filesep);                     
-            runManager.wfIdentifier.setValue(char(scriptNameArray (end)));
+            runManager.wfIdentifier = Identifier();                   
+            runManager.wfIdentifier.setValue(char(scriptNameArray(end)));
            
             % Record relationship identifying workflow identifier and URI as a provONE:Program
             runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
@@ -568,7 +578,8 @@ classdef RunManager < hgsetget
             %file.close();
             %fprintf('Serialized data is saved in package.ser');
             %save(serializedPkgName, runManager.dataPackage);
-                    
+                
+            cd(curPath);
         end
         
         
@@ -832,6 +843,17 @@ classdef RunManager < hgsetget
     
     
     methods           
+        function callYesWorkflow(runManager, scriptPath, dirPath)
+            % CALLYESWORKFLOW Records provenance information at the script
+            % level using the yesWorkflow tool.
+           if runManager.configuration.generate_workflow_graphic && runManager.configuration.include_workflow_graphic
+                runManager.configYesWorkflow(scriptPath);
+                runManager.captureProspectiveProvenanceWithYW(dirPath);
+                runManager.generateYesWorkflowGraphic(dirPath);
+            end
+        end
+        
+        
         function data_package = record(runManager, filePath, tag)
             % RECORD Records provenance relationships between data and scripts
             % When record() is called, data input files, data output files,
@@ -891,10 +913,9 @@ classdef RunManager < hgsetget
             end
             
             runManager.execution = Execution(tagStr);
-            runManager.execution.software_application = filePath; % Set script path
             
             % Set up yesWorkflow and pass the path of a script to yesWorkflow
-            runManager.configYesWorkflow(runManager.execution.software_application);
+            runManager.configYesWorkflow(filePath);
             
             % Begin recording
             runManager.startRecord(runManager.execution.tag);
@@ -917,7 +938,7 @@ classdef RunManager < hgsetget
             end                
            
             % Compute script_base_name if it is not assigned a value
-            if isempty(runManager.configuration.script_base_name)
+            if isempty( runManager.configuration.script_base_name )
                 [pathstr,script_base_name,ext] = fileparts(runManager.execution.software_application);
                 runManager.configuration.script_base_name = strtrim(script_base_name);      
             end
@@ -933,6 +954,8 @@ classdef RunManager < hgsetget
                     ' was: ' runManager.runDir, message]);
                 runManager.execution.error_message = [runManager.execution.error_message ' ' message]; 
             end
+            
+            addpath(runManager.runDir);
             
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
@@ -993,24 +1016,11 @@ classdef RunManager < hgsetget
             mnNodeId = runManager.configuration.target_member_node_id;
                      
             % Generate yesWorkflow image outputs
-            if runManager.configuration.generate_workflow_graphic
-                % Call yesWorkflow to capture prospective provenance for current scirpt
-                curDir = pwd();
-                runManager.captureProspectiveProvenanceWithYW();
-            end
-            
-            % Include yesWorkflow graphics
-            if runManager.configuration.include_workflow_graphic 
-                cd(runManager.runDir);
-                runManager.generateYesWorkflowGraphic();
-                cd(curDir);
-            end    
-        
+            runManager.callYesWorkflow(runManager.execution.software_application, runManager.runDir);
+                   
             % Build a D1 datapackage
-            cd(runManager.runDir);
-            runManager.buildPackage(submitter, mnNodeId);              
-            cd(curDir);
-            
+            runManager.buildPackage( submitter, mnNodeId, runManager.runDir );              
+        
             % Return the Java DataPackage as a Matlab structured array
             data_package = struct(runManager.dataPackage);        
                 

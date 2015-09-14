@@ -195,6 +195,8 @@ classdef Configuration < hgsetget & dynamicprops
                        error('ConfigurationError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance'); 
                     end
                 end
+                
+                provenance_storage_directory = absolute_prov_storage_dir;
             end           
             
             % Validate the value of format_id

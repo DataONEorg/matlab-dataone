@@ -37,7 +37,6 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             %testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
             testCase.filename = 'test/resources/myScript1.m';
-            testCase.testDir = 'test/resources';
             testCase.mgr = RunManager.getInstance();
             testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_3.properties'; 
             testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_3.properties'; 
@@ -68,7 +67,6 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             % reset to the original
             set(testCase.mgr.configuration, 'format_id', old_format_id);
-
         end
  
         
@@ -98,30 +96,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             fprintf('\nIn testYesWorkflow() ...\n');
             
             testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
-            
-            % Test for YesWorkflow              
-            script_path = fullfile(pwd(), filesep, testCase.filename); 
-            fprintf('current script path: %s\n', script_path);
-            
-            testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
-            
-            if testCase.mgr.configuration.include_workflow_graphic
-                %curDir = pwd();
-                %cd(testCase.mgr.runDir); % go to the provenance run directory
-                
-                % Display 3 different views of YesWorkflow output files
-                %system('/usr/bin/open process_view.pdf');
-                %system('/usr/bin/open data_view.pdf');
-                %system('/usr/bin/open combined_view.pdf');
-                
-                %cd(curDir);
-            end
-                        
-            % Test for YesWorkflow              
-            script_path = fullfile(pwd(), filesep, testCase.filename); 
-                 
-            testCase.mgr.configuration.provenance_storage_directory = testCase.testDir;
-          
+              
+            scriptPath = fullfile(pwd(), filesep, testCase.filename); 
+                          
             yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
             testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
            
@@ -131,6 +108,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
            
+            testCase.mgr.runDir = '/tmp';
+            testCase.mgr.callYesWorkflow(scriptPath, testCase.mgr.runDir);
         end
            
         
