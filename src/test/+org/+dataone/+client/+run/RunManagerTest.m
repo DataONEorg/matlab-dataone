@@ -92,13 +92,36 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
-        function testYesWorkflow(testCase)
-            fprintf('\nIn testYesWorkflow() ...\n');
+        %function testYesWorkflow(testCase)
+        %    fprintf('\nIn testYesWorkflow() ...\n');
             
-            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+        %    testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
               
-            scriptPath = fullfile(pwd(), filesep, testCase.filename); 
+        %    scriptPath = fullfile(pwd(), filesep, testCase.filename); 
                           
+        %    yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
+        %    testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
+           
+        %    yw_data_view_properties_path = fullfile(pwd(), filesep, testCase.yw_data_view_property_file_name);
+        %    testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
+            
+        %    yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
+        %    testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
+           
+        %    testCase.mgr.runDir = '/tmp';
+        %    testCase.mgr.callYesWorkflow(scriptPath, testCase.mgr.runDir);
+        %end
+           
+        
+        function testRecord(testCase)
+            fprintf('\nIn testRecord() ...\n');
+     
+            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+                         
+            script_path = fullfile(pwd(), filesep, testCase.filename);  % Script path 
+            
+            tag = 'test_view'; % TODO: multiple tags passed in
+          
             yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
             testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
            
@@ -107,37 +130,23 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
-           
-            testCase.mgr.runDir = '/tmp';
-            testCase.mgr.callYesWorkflow(scriptPath, testCase.mgr.runDir);
-        end
-           
         
-        function testRecord(testCase)
-            fprintf('\nIn testRecord() ...\n');
-            
-            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
-            % Script path              
-            script_path = fullfile(pwd(), filesep, testCase.filename);  
-            
-            tag = 'C3_C4_map_present_NA'; % TODO: multiple tags passed in
-          
             testCase.mgr.record(script_path, tag);
         end
         
         
-        function testOverloadedNcread(testCase)
-            fprintf('\nIn testOverloadedNcread() ...\n');            
-            testCase.filename = 'test/resources/myScript1.m';
-            results = runtests(testCase.filename);  
-        end
+        %function testOverloadedNcread(testCase)
+        %    fprintf('\nIn testOverloadedNcread() ...\n');            
+        %    testCase.filename = 'test/resources/myScript1.m';
+        %    results = runtests(testCase.filename);  
+        %end
         
         
-        function testOverloadedNcwrite(testCase)
-            fprintf('\nIn testOverloadedNcwrite() ...\n');            
-            testCase.filename = 'test/resources/myScript2.m';
-            results = runtests(testCase.filename);  
-        end
+        %function testOverloadedNcwrite(testCase)
+        %    fprintf('\nIn testOverloadedNcwrite() ...\n');            
+        %    testCase.filename = 'test/resources/myScript2.m';
+        %    results = runtests(testCase.filename);  
+        %end
         
         %function testListRuns(testCase)
             %fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
@@ -173,11 +182,18 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %end
         
         
-        %function testView(testCase)
-        %   fprintf('\n\nTest for view(packageId) function:\n');
-        %   testCase.mgr.view('urn:uuid:dd3b4b77-47a1-452b-b064-c5946374a70f'); % view the selected run
-        %   testCase.mgr.view(testCase.mgr.execution.data_package_id); % view the current run   
-        %end
+        function testView(testCase)
+            fprintf('\n\nTest for view(packageId) function:\n');
+            sessions = {'details', 'generated'};
+            testCase.mgr.view('urn:uuid:76cf3225-7e4c-4165-bc2f-c24a3cb3f455', sessions); % view the selected run
+            
+            sessions = {};
+            testCase.mgr.view('urn:uuid:76cf3225-7e4c-4165-bc2f-c24a3cb3f455', sessions); % view the selected run
+            
+            sessions = {'details', 'used', 'generated'};
+            testCase.mgr.view('urn:uuid:76cf3225-7e4c-4165-bc2f-c24a3cb3f455', sessions); % view the selected run
+           
+        end
         
         
         %function testDeleteRuns(testCase)
@@ -203,7 +219,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         
         %function testPublish(testCase)
-           % TESTPUBLISH tests calling the RunManager.publish() function
+        %   TESTPUBLISH tests calling the RunManager.publish() function
 
         %    import org.dataone.client.run.RunManager;
         %    import org.dataone.client.configure.Configuration;

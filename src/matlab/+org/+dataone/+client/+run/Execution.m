@@ -69,6 +69,10 @@ classdef Execution < hgsetget
         % Any error message associated with a run
         error_message;
         
+        subject; % todo:
+        
+        console; % todo:
+        
     end
 
     methods
@@ -160,13 +164,15 @@ classdef Execution < hgsetget
             execution.host_id = execution.getHostName();
             
             % Set the software app name (original script file name)
-            [stacktrace, workspace_idx] = dbstack('-completenames');
-            execution.software_application = stacktrace(length(stacktrace)).file;
-            
+            % Question: should it be programName?
+            % [stacktrace, workspace_idx] = dbstack('-completenames');
+            % execution.software_application = stacktrace(length(stacktrace)).file;
+              
             % Set the potential toolbox dependencies
             % TODO: Decide if matlab.codetools.requiredFilesAndProducts()
             % is more appropriate for this
-            execution.module_dependencies = path;
+            % execution.module_dependencies = path; % Todo:
+            
         end
 
     end
