@@ -1152,6 +1152,7 @@ classdef RunManager < hgsetget
 
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
+            [header{:}]
             
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 

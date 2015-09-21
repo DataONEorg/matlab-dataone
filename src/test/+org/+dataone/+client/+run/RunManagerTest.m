@@ -148,38 +148,38 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %    results = runtests(testCase.filename);  
         %end
         
-        %function testListRuns(testCase)
-            %fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
+        function testListRuns(testCase)
+            fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
             
-            %quiet = false;
-            %startDate = '20150731T102515';
-            %endDate = datestr(now, 30);
-            %tagList = {'1', '3'};
+            quiet = false;
+            startDate = '20150921T102515';
+            endDate = datestr(now, 30);
+            tagList = {'test_view'};
             
-            %fprintf('*** startDate and endDate both required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
+            fprintf('*** startDate and endDate both required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
                      
-            %fprintf('*** startDate only required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, startDate, '', '');
+            fprintf('*** startDate only required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, startDate, '', '');
   
-            %fprintf('*** endDate only required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, '', endDate, '');
+            fprintf('*** endDate only required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, '', endDate, '');
             
-            %fprintf('*** No query parameters are required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, '', '', '');
+            fprintf('*** No query parameters are required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, '', '', '');
             
-            %fprintf('*** startDate, endDate and tags all required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
+            fprintf('*** startDate, endDate and tags all required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
                      
-            %fprintf('*** startDate and tags are required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, startDate, '', tagList);
+            fprintf('*** startDate and tags are required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, startDate, '', tagList);
   
-            %fprintf('*** endDate and tags are required: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, '', endDate, tagList);
+            fprintf('*** endDate and tags are required: ***\n');
+            runs = testCase.mgr.listRuns(quiet, '', endDate, tagList);
             
-            %fprintf('*** tags is required only: ***\n');
-            %runs = testCase.mgr.listRuns(quiet, '', '', tagList);
-        %end
+            fprintf('*** tags is required only: ***\n');
+            runs = testCase.mgr.listRuns(quiet, '', '', tagList);
+        end
         
         
         function testView(testCase)
@@ -196,34 +196,32 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
-        function testPublishPackageFromDisk(testCase)
-            fprintf('\n\nTest for publishPackageFromDisk() function:\n');
-            pkgId = 'urn:uuid:0969149b-4d42-4010-a77a-af80ed358ee9';
-            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
-            testCase.mgr.publishPackageFromDisk(pkgId);
-        end
-        
-        
-        %function testDeleteRuns(testCase)
-           %fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
-            
-           % quiet = false;
-           % noop = true;
-            
-            % With query parameters for startDate or endDate
-           % startDate = '20150804T102515';
-           % endDate = datestr(now, 30);
-            
-            % Without query parameters for startDate and endDate
-            %startDate = '';
-            %endDate = '';
-            
-            %tag = '';
-            %runIdList = {'8c28b610-4932-47c1-a040-d8e3dfce5ddf', '84abb73f-2f13-49b7-8c45-9c1e0434b31f'};
-           % tagList = {'2', '1'};
-           % runIdList = '';
-           % testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
+        %function testPublishPackageFromDisk(testCase)
+        %    fprintf('\n\nTest for publishPackageFromDisk() function:\n');
+        %    pkgId = 'urn:uuid:0969149b-4d42-4010-a77a-af80ed358ee9';
+        %    set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
+        %    testCase.mgr.publishPackageFromDisk(pkgId);
         %end
+        
+        
+        function testDeleteRuns(testCase)
+           fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
+            
+           quiet = false;
+           noop = true;
+            
+           % With query parameters for startDate or endDate
+           %startDate = '20150804T102515';
+           %endDate = datestr(now, 30);
+            
+           % Without query parameters for startDate and endDate
+           startDate = '';
+           endDate = '';
+            
+           tagList = {'test_view_1'};
+           runIdList = '';
+           testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
+        end
         
         
         %function testPublish(testCase)

@@ -1,0 +1,10 @@
+yw_process_view_7.properties text/plain
+testdata_7.pdf application/pdf
+testcomb_7.pdf application/pdf
+testprocess_7.pdf application/pdf
+yw_data_view_7.properties text/plain
+C3_C4_map_present_NA_Markup_v2_7.m text/plain
+yw_comb_view_7.properties text/plain
+modelfacts_7.P text/plain
+extractfacts_7.P text/plain
+resourceMap_C3_C4_map_present_NA_Markup_v2_7.rdf http://www.openarchives.org/ore/terms
