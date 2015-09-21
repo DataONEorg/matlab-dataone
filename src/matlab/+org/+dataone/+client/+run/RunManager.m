@@ -768,7 +768,6 @@ classdef RunManager < hgsetget
            import org.dspace.foresite.Predicate;
            import com.hp.hpl.jena.rdf.model.Property;
            import com.hp.hpl.jena.rdf.model.RDFNode;
-           import java.util.Iterator;
            import com.hp.hpl.jena.vocabulary.RDF;
            
             % Query resource map
@@ -996,11 +995,13 @@ classdef RunManager < hgsetget
                 [pathstr,script_base_name,ext] = fileparts(runManager.execution.software_application);
                 runManager.configuration.script_base_name = strtrim(script_base_name);      
             end
-                        
+                     
+            prov_dir = runManager.configuration.get('provenance_storage_directory');
+                       
             % Create the run metadata directory for this run
             position = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
             runManager.runId = runManager.execution.execution_id(position+9:end);
-            runManager.runDir = strcat(runManager.configuration.provenance_storage_directory, filesep,'runs', filesep, runManager.runId);
+            runManager.runDir = strcat(prov_dir, filesep,'runs', filesep, runManager.runId);
             [status, message, message_id] = mkdir(runManager.runDir);         
             if ( status ~= 1 )
                 error(message_id, [ 'The directory %s' ...
@@ -1097,7 +1098,8 @@ classdef RunManager < hgsetget
             %   tag -- a tag given to an execution 
             
             curDir = pwd();
-            cd(runManager.configuration.provenance_storage_directory);
+            prov_dir = runManager.configuration.get('provenance_storage_directory');
+            cd(prov_dir);
                                  
             % Read the exeuction metadata summary from the exeuction
             % metadata database
@@ -1165,7 +1167,9 @@ classdef RunManager < hgsetget
             % list.    
             
             curDir = pwd();
-            cd(runManager.configuration.provenance_storage_directory);
+            prov_dir = runManager.configuration.get('provenance_storage_directory');
+            cd(prov_dir);
+            
             % Read the exeuction metadata summary from the exeuction metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
            
@@ -1217,7 +1221,7 @@ classdef RunManager < hgsetget
                 selectedIdSet = deleted_runs(:,1);
             
                 % Loop through the selectedIdSet cell
-                runsDir = fullfile(curDir, filesep, runManager.configuration.provenance_storage_directory, filesep, 'runs', filesep);
+                runsDir = fullfile(prov_dir, filesep, 'runs', filesep);
                 cd(runsDir); % go to the runs/ direcotry
                 
                 % Delete the selected runs
@@ -1278,9 +1282,8 @@ classdef RunManager < hgsetget
                 
                 execMetaMatrix(allDeleteCondition, :) = []; % deleted the selected rows
                 size(execMetaMatrix)
-                    
-                cd(curDir);
-                cd(runManager.configuration.provenance_storage_directory);
+    
+                cd(prov_dir);
                     
                 % Write the updated execution metadata with headers to the execution database
                 T = cell2table(execMetaMatrix,'VariableNames',[header{:}]);
@@ -1298,11 +1301,13 @@ classdef RunManager < hgsetget
            % Display a warning message to the user
            disp('Warning: There is no scientific metadata in this data package.');
            
+           prov_dir = runManager.configuration.get('provenance_storage_directory');
+           
            % Select runs based on the packageID. Report 'No runs can be
            % found as a match' and returns if no runs are matched 
            if(isempty(packageId) ~= 1)
                curDir = pwd();
-               cd(runManager.configuration.provenance_storage_directory);
+               cd(prov_dir);
             
                % Read the exeuction metadata summary from the exeuction
                % metadata database
@@ -1312,7 +1317,10 @@ classdef RunManager < hgsetget
                if isempty(selectedRuns)
                    error('No runs can be found as a match.');
                end
-                   
+               
+               % compute the seq no 
+               seqNo = size(execMetaMatrix(), 1);
+               
                % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun
                % will be return
                selectedRunId = selectedRuns{1,1};             
@@ -1321,7 +1329,7 @@ classdef RunManager < hgsetget
            end
            
            % Go to the runs/ directory
-           selectedRunDir = fullfile(runManager.configuration.provenance_storage_directory, filesep, 'runs', selectedRunId, filesep);
+           selectedRunDir = fullfile(prov_dir, filesep, 'runs', selectedRunId, filesep);
            cd(selectedRunDir);
 
            [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = runManager.getRelationships();
@@ -1331,8 +1339,7 @@ classdef RunManager < hgsetget
            [pathstr,scriptName,ext] = fileparts(filePath);
            
            if isempty(selectedRuns{1,5} ) ~= 1              
-               pdn = datenum( selectedRuns{1,5}, 'yyyymmddTHHMMSS' );        
-               publishedTime = datestr( pdn, 'yyyy-mm-dd HH:MM:SS' );
+               publishedTime = datetime( selectedRuns{1,5}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
            else
                publishedTime = 'Not Published';
            end
@@ -1358,7 +1365,7 @@ classdef RunManager < hgsetget
                fprintf('-------------------------\n');
                fprintf('"%s" was executed on %s\n', scriptName, char(startTime));
                fprintf('Tag: %s\n', selectedRuns{1,7});
-               fprintf('Run sequence #: %d\n', 1);
+               fprintf('Run sequence #: %d\n', seqNo);
                fprintf('Published date: %s\n', publishedTime);
                fprintf('Published to: DateONE member node: %s\n', ''); % todo: D1 member node name
                fprintf('Run by user: %s\n', selectedRuns{1,8});
@@ -1443,7 +1450,8 @@ classdef RunManager < hgsetget
             k = strfind(packageId, 'urn:uuid:'); % get the index of 'urn:uuid:'            
             runId = packageId(k+9:end);
             
-            curRunDir = [runManager.configuration.provenance_storage_directory filesep 'runs' filesep runId filesep];
+            prov_dir = runManager.configuration.get('provenance_storage_directory');
+            curRunDir = [prov_dir filesep 'runs' filesep runId filesep];
             %fprintf('curRunDir: %s\n', curRunDir);
             if exist(curRunDir, 'dir') ~= 7
                 error([' A directory was not found for execution identifier: ' packageId]);       
@@ -1467,8 +1475,8 @@ classdef RunManager < hgsetget
                    error(['Member node' runManager.configuration.target_member_node_id 'encounted an error on the getMN() request.']); 
                 end
                     
-                fprintf('mn node base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
-                fprintf('dataPackage.size()= %d\n',runManager.dataPackage.size());
+                fprintf('MN node base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
+                fprintf('DataPackage.size()= %d\n',runManager.dataPackage.size());
                             
                 % Set the CNode ID
                 cnRef = NodeReference();
