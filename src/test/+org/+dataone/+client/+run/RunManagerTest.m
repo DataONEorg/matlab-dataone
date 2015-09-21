@@ -38,9 +38,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
             testCase.filename = 'test/resources/myScript1.m';
             testCase.mgr = RunManager.getInstance();
-            testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_4.properties'; 
-            testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_4.properties'; 
-            testCase.yw_comb_view_property_file_name = 'test/resources/yw_comb_view_4.properties'; 
+            testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_7.properties'; 
+            testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_7.properties'; 
+            testCase.yw_comb_view_property_file_name = 'test/resources/yw_comb_view_7.properties'; 
         end
     end
     
@@ -113,26 +113,26 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %end
            
         
-        function testRecord(testCase)
-            fprintf('\nIn testRecord() ...\n');
+        %function testRecord(testCase)
+        %    fprintf('\nIn testRecord() ...\n');
      
-            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_4.m';
+        %    testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
                          
-            script_path = fullfile(pwd(), filesep, testCase.filename);  % Script path 
+        %    script_path = fullfile(pwd(), filesep, testCase.filename);  % Script path 
             
-            tag = 'test_view'; % TODO: multiple tags passed in
+        %    tag = 'test_view'; % TODO: multiple tags passed in
           
-            yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
-            testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
+        %    yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
+        %    testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
            
-            yw_data_view_properties_path = fullfile(pwd(), filesep, testCase.yw_data_view_property_file_name);
-            testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
+        %    yw_data_view_properties_path = fullfile(pwd(), filesep, testCase.yw_data_view_property_file_name);
+        %    testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
             
-            yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
-            testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
+        %    yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
+        %    testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
         
-            testCase.mgr.record(script_path, tag);
-        end
+        %    testCase.mgr.record(script_path, tag);
+        %end
         
         
         %function testOverloadedNcread(testCase)
@@ -185,7 +185,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testView(testCase)
             fprintf('\n\nTest for view(packageId) function:\n');
             sessions = {'details', 'generated'};
-            pkgId = 'urn:uuid:3e278252-b475-4feb-aa81-d2bfec818abe';
+            pkgId = 'urn:uuid:0969149b-4d42-4010-a77a-af80ed358ee9';
             testCase.mgr.view(pkgId, sessions); % view the selected run
             
             sessions = {};
@@ -198,7 +198,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testPublishPackageFromDisk(testCase)
             fprintf('\n\nTest for publishPackageFromDisk() function:\n');
-            pkgId = 'urn:uuid:3e278252-b475-4feb-aa81-d2bfec818abe';
+            pkgId = 'urn:uuid:0969149b-4d42-4010-a77a-af80ed358ee9';
             set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
             testCase.mgr.publishPackageFromDisk(pkgId);
         end

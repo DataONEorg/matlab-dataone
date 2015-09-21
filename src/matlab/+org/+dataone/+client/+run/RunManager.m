@@ -355,7 +355,7 @@ classdef RunManager < hgsetget
             import org.dataone.client.v1.types.D1TypeBuilder;
             import org.dataone.client.v1.itk.D1Object;
             import javax.activation.FileDataSource;
-             import java.io.File;
+            import java.io.File;
             
             fileId = File(fileName);
             data = FileDataSource(fileId);
@@ -373,7 +373,6 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.Identifier;            
             import org.dataone.client.run.NamedConstant;
             import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
-            %import org.dataone.client.v1.types.D1TypeBuilder;
             import org.dataone.client.v1.itk.D1Object;
             import com.hp.hpl.jena.vocabulary.RDF;
             import org.dataone.vocabulary.PROV;
@@ -382,8 +381,6 @@ classdef RunManager < hgsetget
             import java.net.URI;
             import org.dspace.foresite.ResourceMap;
             import org.dataone.vocabulary.DC_TERMS;
-            %import java.io.File;
-            %import javax.activation.FileDataSource;
             
             curPath = pwd();
             cd(dirPath);
@@ -595,11 +592,6 @@ classdef RunManager < hgsetget
             writer.close();
             
             cd(curPath);
-            
-            %for i = 1:length(idArrray)
-            %    writer.write(idArrray(i).getValue());
-            %    writer.newLine();
-            %end
         end
         
         
@@ -1578,7 +1570,7 @@ classdef RunManager < hgsetget
        
          
         function package_id = publishPackageFromDisk(runManager, packageId)
-            % PUBLISH Uploads a data package from a folder on disk
+            % PUBLISHPACKAGEFROMDISK Uploads a data package from a folder on disk
             % to the configured DataONE Member Node server.
             
             import java.lang.String;
@@ -1629,8 +1621,7 @@ classdef RunManager < hgsetget
                 end
                     
                 fprintf('MN node base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
-                fprintf('DataPackage.size()= %d\n',runManager.dataPackage.size());
-                            
+               
                 % Set the CNode ID
                 cnRef = NodeReference();
                 cnRef.setValue(runManager.CN_URL);
@@ -1638,7 +1629,7 @@ classdef RunManager < hgsetget
                 if isempty(cnNode)
                    error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint 'encounted an error on the getCN() request.']); 
                 end
-                
+                                
                 submitterStr = runManager.configuration.get('submitter');
                 targetmMNodeStr = runManager.configuration.get('target_member_node_id');
                 
@@ -1728,7 +1719,16 @@ classdef RunManager < hgsetget
             end
             
             % Record the date and time that the package from this run is uploaded to DataONE
-            runManager.execution.publish_time = datestr( now,'yyyymmddTHHMMSS' );
+            publishedTime = datestr( now,'yyyymmddTHHMMSS' );
+            
+            % Todo: need to test tomorrow
+            %[execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+            %pkgIdCondition = strcmp(execMetaMatrix{:,6}, packageId) == 1;
+            %execMetaMatrix(pkgIdCondition, 5) = publishedTime;
+            
+            % Write the updated execution metadata with headers to the execution
+            %T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
+            %writetable(T, runManager.executionDatabaseName);
         end  
        
         
