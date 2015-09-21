@@ -344,6 +344,26 @@ classdef RunManager < hgsetget
             end
         end
         
+        function d1Obj = buildD1Object(runManager, fileName, fileFmt, idValue, submitter, mnNodeId)
+            % BUILDD1OBJECT build a d1 object for a file on disk.
+            %   fileName - the absolute path for a file
+            %   fileFmt - the file format defiend in D1
+            %   submitter - information for the submitted
+            %   mnNodeId - the member node ID
+            
+            import org.dataone.service.types.v1.Identifier;  
+            import org.dataone.client.v1.types.D1TypeBuilder;
+            import org.dataone.client.v1.itk.D1Object;
+            import javax.activation.FileDataSource;
+             import java.io.File;
+            
+            fileId = File(fileName);
+            data = FileDataSource(fileId);
+            d1ObjIdentifier = Identifier();
+            d1ObjIdentifier.setValue(idValue);
+            d1Obj = D1Object(d1ObjIdentifier, data, D1TypeBuilder.buildFormatIdentifier(fileFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId)); 
+        end
+        
         
         function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath) 
             % BUILDPACKAGE  packages a datapackage for the current run
@@ -353,7 +373,7 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.Identifier;            
             import org.dataone.client.run.NamedConstant;
             import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
-            import org.dataone.client.v1.types.D1TypeBuilder;
+            %import org.dataone.client.v1.types.D1TypeBuilder;
             import org.dataone.client.v1.itk.D1Object;
             import com.hp.hpl.jena.vocabulary.RDF;
             import org.dataone.vocabulary.PROV;
@@ -362,8 +382,8 @@ classdef RunManager < hgsetget
             import java.net.URI;
             import org.dspace.foresite.ResourceMap;
             import org.dataone.vocabulary.DC_TERMS;
-            import java.io.File;
-            import javax.activation.FileDataSource;
+            %import java.io.File;
+            %import javax.activation.FileDataSource;
             
             curPath = pwd();
             cd(dirPath);
@@ -374,14 +394,11 @@ classdef RunManager < hgsetget
            
             runManager.provONEdataURI = URI(ProvONE.Data.getURI());
                       
-            % Create a D1Object for the program that we are running  
-            fileId = File(runManager.execution.software_application);
-            data = FileDataSource(fileId);           
+            % Create a D1Object for the program that we are running            
             scriptFmt = 'text/plain';        
-            wfId = Identifier();
-            scriptNameArray = strsplit(runManager.execution.software_application, filesep);          
-            wfId.setValue(char(scriptNameArray(end)));        
-            programD1Obj = D1Object(wfId, data, D1TypeBuilder.buildFormatIdentifier(scriptFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            scriptNameArray = strsplit(runManager.execution.software_application, filesep);     
+            scriptIdentifier = scriptNameArray(end);
+            programD1Obj = runManager.buildD1Object(runManager.execution.software_application, scriptFmt, scriptIdentifier, submitter, mnNodeId);
             runManager.dataPackage.addData(programD1Obj);
             copyfile(runManager.execution.software_application, '.'); % copy script to the run directory
             
@@ -457,19 +474,16 @@ classdef RunManager < hgsetget
                 
             % Create D1Object for each figure and add the D1Object to the DataPackage
             imgFmt = 'application/pdf';      
-            combinedViewFileId = File(combinedViewId.getValue());
-            combinedViewData = FileDataSource(combinedViewFileId);
-            combinedViewD1Obj = D1Object(combinedViewId, combinedViewData, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            combinedViewFileName = [pwd() filesep runManager.combinedViewPdfFileName];
+            combinedViewD1Obj = runManager.buildD1Object(combinedViewFileName, imgFmt, combinedViewId.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(combinedViewD1Obj);
              
-            dataViewFileId = File(dataViewId.getValue());
-            dataViewData = FileDataSource(dataViewFileId);
-            dataViewD1Obj = D1Object(dataViewId, dataViewData, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            dataViewFileName = [pwd() filesep runManager.dataViewPdfFileName];
+            dataViewD1Obj = runManager.buildD1Object(dataViewFileName, imgFmt, dataViewId.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(dataViewD1Obj);
                 
-            processViewFileId = File(processViewId.getValue());
-            processViewData = FileDataSource(processViewFileId);
-            processViewD1Obj = D1Object(processViewId, processViewData, D1TypeBuilder.buildFormatIdentifier(imgFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            processViewFileName = [pwd() filesep runManager.processViewPdfFileName];
+            processViewD1Obj = runManager.buildD1Object(processViewFileName, imgFmt, processViewId.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(processViewD1Obj);               
                                 
             modelFactsId = Identifier();
@@ -477,10 +491,9 @@ classdef RunManager < hgsetget
             modelFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.mfilename]);
                 
             % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
-            prologDumpFmt = 'text/plain';      
-            modelFactsFileId = File(modelFactsId.getValue());
-            modelFactsData = FileDataSource(modelFactsFileId);
-            modelFactsD1Obj = D1Object(modelFactsId, modelFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            txtFmt = 'text/plain';      
+            modelFactsFileName = [pwd() filesep runManager.mfilename];
+            modelFactsD1Obj = runManager.buildD1Object(modelFactsFileName, txtFmt, modelFactsId.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(modelFactsD1Obj);
                          
             extractFactsId = Identifier;
@@ -495,49 +508,35 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(extractFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
            
             % Create D1Object for ywExtractFacts prolog dump and add the D1Object to the DataPackage      
-            extractFactsFileId = File(extractFactsId.getValue());
-            extractFactsData = FileDataSource(extractFactsFileId);
-            extractFactsD1Obj = D1Object(extractFactsId, extractFactsData, D1TypeBuilder.buildFormatIdentifier(prologDumpFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            extractFactsFileName = [pwd() filesep runManager.efilename];
+            extractFactsD1Obj = runManager.buildD1Object(extractFactsFileName, txtFmt, extractFactsId.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(extractFactsD1Obj);
             
-            % Create D1Object for process_view yw.properties and add the D1Object to the DataPackage
-            ywPropertiesFmt = 'text/plain'; 
+            % Create D1Object for process_view yw.properties and add the D1Object to the DataPackage 
             processYWPropIdentifier = Identifier();
-            pnameArray = strsplit(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME,filesep);          
+            pnameArray = strsplit(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME,filesep);  
             processYWPropIdentifier.setValue(pnameArray(end));        
-            processYWPropertiesFileId = File(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME);          
-            processYWPropertiesData = FileDataSource(processYWPropertiesFileId);
-            processYWPropertiesD1Obj = D1Object(processYWPropIdentifier, processYWPropertiesData, D1TypeBuilder.buildFormatIdentifier(ywPropertiesFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            processYWPropertiesD1Obj = runManager.buildD1Object(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME, txtFmt, processYWPropIdentifier.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(processYWPropertiesD1Obj);
             copyfile(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME, '.'); % copy process_view yw.properties to the run directory
             
             % Create D1Object for data_view yw.properties and add the D1Object to the DataPackage
-            ywPropertiesFmt = 'text/plain'; 
             dataYWPropIdentifier = Identifier();
             dnameArray = strsplit(runManager.DATA_VIEW_PROPERTY_FILE_NAME,filesep); 
             dataYWPropIdentifier.setValue(dnameArray(end));    
-            dataYWPropertiesFileId = File(runManager.DATA_VIEW_PROPERTY_FILE_NAME);          
-            dataYWPropertiesData = FileDataSource(dataYWPropertiesFileId);
-            dataYWPropertiesD1Obj = D1Object(dataYWPropIdentifier, dataYWPropertiesData, D1TypeBuilder.buildFormatIdentifier(ywPropertiesFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            dataYWPropertiesD1Obj = runManager.buildD1Object(runManager.DATA_VIEW_PROPERTY_FILE_NAME, txtFmt, dataYWPropIdentifier.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(dataYWPropertiesD1Obj);
             copyfile(runManager.DATA_VIEW_PROPERTY_FILE_NAME, '.'); % copy data_view yw.properties to the run directory
             
             % Create D1Object for combined_view yw.properties and add the D1Object to the DataPackage
-            ywPropertiesFmt = 'text/plain'; 
             combYWPropIdentifier = Identifier();
             cnameArray = strsplit(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME,filesep);          
             combYWPropIdentifier.setValue(cnameArray(end));        
-            combYWPropertiesFileId = File(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME);          
-            combYWPropertiesData = FileDataSource(combYWPropertiesFileId);
-            combYWPropertiesD1Obj = D1Object(combYWPropIdentifier, combYWPropertiesData, D1TypeBuilder.buildFormatIdentifier(ywPropertiesFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));
+            combYWPropertiesD1Obj = runManager.buildD1Object(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME, txtFmt, combYWPropIdentifier.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(combYWPropertiesD1Obj);
             copyfile(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME, '.'); % copy combined_view yw.properties to the run directory
             
             % prov: used between execution and multiple yw.properties files
-            % Question: Use URI here and need to discuss whether it is ok.
-            % This question is related to the function
-            % getRDFTriple(runManager, filePath, p) subject/object local
-            % names
             predicate = PROV.predicate('used');
             processYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(processYWPropIdentifier.getValue())]);
             dataYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(dataYWPropIdentifier.getValue())]);
@@ -562,12 +561,9 @@ classdef RunManager < hgsetget
             fclose(fw);
 
             % Add resourceMap D1Object to the DataPackage                      
-            resMapId = Identifier();
-            resMapId.setValue(resMapName);
             resMapFmt = 'http://www.openarchives.org/ore/terms'; 
-            resMapFileId = File(resMapId.getValue());
-            resMapData = FileDataSource(resMapFileId);
-            resMapD1Obj = D1Object(resMapId, resMapData, D1TypeBuilder.buildFormatIdentifier(resMapFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId));          
+            resMapFileName = [pwd() filesep resMapName];
+            resMapD1Obj = runManager.buildD1Object(resMapFileName, resMapFmt, resMapName, submitter, mnNodeId);
             runManager.dataPackage.addData(resMapD1Obj);     
             
             data_package = runManager.dataPackage; % return a java datapackage object
@@ -579,17 +575,31 @@ classdef RunManager < hgsetget
             import java.io.FileWriter;
             import java.io.BufferedWriter;
             
-            idArrray =  runManager.dataPackage.identifiers().toArray();
+            %idArrray =  runManager.dataPackage.identifiers().toArray();
             outFile = File('identifiers.txt');
             writer = BufferedWriter(FileWriter(outFile)); 
-            for i = 1:length(idArrray)
-                writer.write(idArrray(i).getValue());
+            
+            d1ObjIdentifiers = runManager.dataPackage.identifiers();
+            iter = d1ObjIdentifiers.iterator();
+            while iter.hasNext()
+                dataObjId = iter.next();
+                dataObj = runManager.dataPackage.get(dataObjId);
+                d1ObjFmt = dataObj.getFormatId().getValue();
+                
+                writer.write(dataObjId.getValue());
+                writer.write(' ');
+                writer.write(d1ObjFmt);
                 writer.newLine();
             end
             writer.flush();
             writer.close();
             
             cd(curPath);
+            
+            %for i = 1:length(idArrray)
+            %    writer.write(idArrray(i).getValue());
+            %    writer.newLine();
+            %end
         end
         
         
@@ -612,6 +622,7 @@ classdef RunManager < hgsetget
             % added on Sept-17-2015
             user = char(runManager.execution.account_name);
             subjectStr = char(runManager.getCertificate().getSubjectDN().toString());
+            runManager.configuration.submitter = subjectStr;
             subject = strrep(subjectStr, ',', ' ');  
             hostId = char(runManager.execution.host_id);
             operatingSystem = char(runManager.execution.operating_system);
@@ -1020,9 +1031,7 @@ classdef RunManager < hgsetget
             packageIdentifier.setValue(runManager.execution.execution_id);      
             % Question: data_pakcage_id vs exeuction_id
             runManager.execution.data_package_id = packageIdentifier.getValue();
-            %packageIdentifier.setValue(runManager.execution.data_package_id);            
-            %runManager.execution.data_package_id = packageIdentifier.getValue();
-            
+           
             % Create a resourceMap identifier
             resourceMapId = Identifier();
             resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
@@ -1067,8 +1076,8 @@ classdef RunManager < hgsetget
             runManager.prov_capture_enabled = false;
                
             % Get submitter and MN node reference
-            submitter = runManager.execution.account_name;
-            mnNodeId = runManager.configuration.target_member_node_id;
+            submitter = runManager.execution.get('account_name');
+            mnNodeId = runManager.configuration.get('target_member_node_id');
                      
             % Generate yesWorkflow image outputs
             runManager.callYesWorkflow(runManager.execution.software_application, runManager.runDir);
@@ -1318,7 +1327,7 @@ classdef RunManager < hgsetget
                    error('No runs can be found as a match.');
                end
                
-               % compute the seq no 
+               % Compute the seq no 
                seqNo = size(execMetaMatrix(), 1);
                
                % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun
@@ -1347,7 +1356,7 @@ classdef RunManager < hgsetget
            startTime = datetime( selectedRuns{1,3}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
            endTime = datetime( selectedRuns{1,4}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ' );
                  
-           more on; % enable more for page control
+           more on; % Enable more for page control
            
            if ~isempty(sessions)
                sessionArray = char(sessions);
@@ -1564,10 +1573,165 @@ classdef RunManager < hgsetget
             end
             
             % Record the date and time that the package from this run is uploaded to DataONE
-            runManager.execution.publish_time = datestr(now,30);
+            runManager.execution.publish_time = datestr( now,'yyyymmddTHHMMSS' );
         end  
        
-          
+         
+        function package_id = publishPackageFromDisk(runManager, packageId)
+            % PUBLISH Uploads a data package from a folder on disk
+            % to the configured DataONE Member Node server.
+            
+            import java.lang.String;
+            import java.lang.Boolean;
+            import java.lang.Integer;
+            import org.dataone.client.v1.MNode;
+            import org.dataone.client.v1.itk.D1Client;
+            import org.dataone.service.types.v1.NodeReference;
+            import org.dataone.client.v1.itk.DataPackage;           
+            import org.dataone.service.types.v1.SystemMetadata;
+            import org.dataone.service.types.v1.Session;
+            import org.dataone.service.util.TypeMarshaller;
+            import org.dataone.service.types.v1.AccessPolicy;
+            import org.dataone.service.types.v1.util.AccessUtil;
+            import org.dataone.service.types.v1.Permission;            
+            import org.dataone.service.types.v1.ReplicationPolicy;
+            import org.dataone.service.types.v1.Subject;
+           
+            curDir = pwd();
+            
+            % Convert packageId to runId
+            k = strfind(packageId, 'urn:uuid:'); % get the index of 'urn:uuid:'            
+            runId = packageId(k+9:end);
+            
+            prov_dir = runManager.configuration.get('provenance_storage_directory');
+            curRunDir = [prov_dir filesep 'runs' filesep runId filesep];
+         
+            if exist(curRunDir, 'dir') ~= 7
+                error([' A directory was not found for execution identifier: ' packageId]);       
+            end       
+            
+            cd(curRunDir); % go the the selected run directory
+            
+            % Get a MNode instance to the Member Node
+            try 
+                % Get D1 cilogon certificate stored at /tmp/x509up_u501
+                certificate = runManager.getCertificate();
+                % Pull the subject DN out of the certificate for use in system metadata
+                runManager.configuration.submitter = certificate.getSubjectDN().toString();
+               
+                % Set the MNode ID
+                mnRef = NodeReference();
+                mnRef.setValue(runManager.configuration.target_member_node_id);            
+                % Get a MNode instance to the Member Node using the Node ID
+                mnNode = D1Client.getMN(mnRef);
+                if isempty(mnNode)
+                   error(['Member node' runManager.configuration.target_member_node_id 'encounted an error on the getMN() request.']); 
+                end
+                    
+                fprintf('MN node base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
+                fprintf('DataPackage.size()= %d\n',runManager.dataPackage.size());
+                            
+                % Set the CNode ID
+                cnRef = NodeReference();
+                cnRef.setValue(runManager.CN_URL);
+                cnNode = D1Client.getCN(cnRef.getValue());
+                if isempty(cnNode)
+                   error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint 'encounted an error on the getCN() request.']); 
+                end
+                
+                submitterStr = runManager.configuration.get('submitter');
+                targetmMNodeStr = runManager.configuration.get('target_member_node_id');
+                
+                submitter = Subject();
+                submitter.setValue(submitterStr);
+                
+                session = Session();
+            
+                % Upload each data object in the identifiers.txt in current directory
+                [identifierFileId, message] = fopen('identifiers.txt', 'r');
+                if identifierFileId == -1
+                    error(message);
+                else
+                    idList = textscan(identifierFileId, '%s %s\n', 'Delimiter', ' ');
+                    idMatrix = [idList{[1 2]}];
+                    fclose(identifierFileId);
+                end
+                
+                for i = 1:length(idMatrix)
+                    dataObjId = idMatrix{i,1};
+                    dataObjFmt = idMatrix{i,2};
+                    fprintf('Uploading file: %s and file format: %s\n', dataObjId, dataObjFmt);
+                    
+                    % build d1 object
+                    dataObj = runManager.buildD1Object(dataObjId, dataObjFmt, dataObjId, submitterStr, targetmMNodeStr);
+                    dataSource = dataObj.getDataSource();
+                    
+                    % get system metadata for dataObj and convert v1 systemetadata to v2 systemmetadata
+                    v1SysMeta = dataObj.getSystemMetadata(); % version 1 system metadata
+                     
+                    if runManager.debug
+                        fprintf('***********************************************************\n');
+                        fprintf('d1Obj.size=%d (bytes)\n', v1SysMeta.getSize().longValue());                   
+                        fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v1SysMeta.getChecksum().getAlgorithm()), char(v1SysMeta.getChecksum().getValue()));
+                        fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
+                        fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
+                        fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
+                        fprintf('d1Obj.originalMNode=%s\n', char(v1SysMeta.getOriginMemberNode().getValue()));
+                        fprintf('***********************************************************\n');
+                    end
+                    
+                    % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
+                    v1SysMeta.setSubmitter(submitter);
+                    v1SysMeta.setRightsHolder(submitter);
+                    
+                    if runManager.configuration.public_read_allowed == 1
+                        strArray = javaArray('java.lang.String', 1);
+                        permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
+                        strArray(1,1) = String('public');
+                        permsArray(1,1) = Permission.READ;
+                        ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                        v1SysMeta.setAccessPolicy(ap);
+                        fprintf('d1Obj.accessPolicySize=%d\n', v1SysMeta.getAccessPolicy().sizeAllowList());
+                    end                   
+                                    
+                    if runManager.configuration.replication_allowed == 1
+                        rp = ReplicationPolicy();
+                        numReplicasStr = String.valueOf(int32(runManager.configuration.number_of_replicas));
+                        rp.setNumberReplicas(Integer(numReplicasStr));                       
+                        rp.setReplicationAllowed(java.lang.Boolean.TRUE);                      
+                        v1SysMeta.setReplicationPolicy(rp);                                               
+                        fprintf('d1Obj.numReplicas=%d\n', v1SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
+                    end
+                    
+                    % Upload the data to the MN using create(), checking for success and a returned identifier       
+                    pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier()); 
+                    if isempty(pid) ~= 1
+                        returnPid = mnNode.create(session, pid, dataSource.getInputStream(), v1SysMeta);  
+                        if isempty(returnPid) ~= 1
+                            fprintf('Success uploaded %s\n.', char(returnPid.getValue()));
+                        else
+                            % TODO: Process the error correctly.
+                            error('Error on returned identifier %s', char(v1SysMeta.getIdentifier()));
+                        end
+                    else
+                        % TODO: Process the error correctly.
+                        error('Error on duplicate identifier %s', v1SysMeta.getIdentifier());
+                    end
+                end
+                
+                cd(curDir);
+                package_id = packageId; 
+         
+            catch runtimeError 
+                error(['Could not create member node reference: ' runtimeError.message]);
+                runManager.execution.error_message = [runManager.execution.error_message ' ' runtimeError.message];
+            end
+            
+            % Record the date and time that the package from this run is uploaded to DataONE
+            runManager.execution.publish_time = datestr( now,'yyyymmddTHHMMSS' );
+        end  
+       
+        
         function init(runManager)
             % INIT initializes the RunManager instance
                         

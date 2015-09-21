@@ -38,9 +38,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             %testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
             testCase.filename = 'test/resources/myScript1.m';
             testCase.mgr = RunManager.getInstance();
-            testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_3.properties'; 
-            testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_3.properties'; 
-            testCase.yw_comb_view_property_file_name = 'test/resources/yw_comb_view_3.properties'; 
+            testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_4.properties'; 
+            testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_4.properties'; 
+            testCase.yw_comb_view_property_file_name = 'test/resources/yw_comb_view_4.properties'; 
         end
     end
     
@@ -116,7 +116,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testRecord(testCase)
             fprintf('\nIn testRecord() ...\n');
      
-            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_4.m';
                          
             script_path = fullfile(pwd(), filesep, testCase.filename);  % Script path 
             
@@ -185,14 +185,22 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testView(testCase)
             fprintf('\n\nTest for view(packageId) function:\n');
             sessions = {'details', 'generated'};
-            testCase.mgr.view('urn:uuid:76cf3225-7e4c-4165-bc2f-c24a3cb3f455', sessions); % view the selected run
+            pkgId = 'urn:uuid:3e278252-b475-4feb-aa81-d2bfec818abe';
+            testCase.mgr.view(pkgId, sessions); % view the selected run
             
             sessions = {};
-            testCase.mgr.view('urn:uuid:76cf3225-7e4c-4165-bc2f-c24a3cb3f455', sessions); % view the selected run
+            testCase.mgr.view(pkgId, sessions); % view the selected run
             
             sessions = {'details', 'used', 'generated'};
-            testCase.mgr.view('urn:uuid:76cf3225-7e4c-4165-bc2f-c24a3cb3f455', sessions); % view the selected run
-           
+            testCase.mgr.view(pkgId, sessions); % view the selected run
+        end
+        
+        
+        function testPublishPackageFromDisk(testCase)
+            fprintf('\n\nTest for publishPackageFromDisk() function:\n');
+            pkgId = 'urn:uuid:3e278252-b475-4feb-aa81-d2bfec818abe';
+            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
+            testCase.mgr.publishPackageFromDisk(pkgId);
         end
         
         
@@ -232,7 +240,6 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %    runId = testCase.mgr.execution.execution_id(k+9:end);
         %    pkgId = testCase.mgr.publish(runId);
         %end
-        
-        
+         
     end
 end
