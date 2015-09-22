@@ -113,26 +113,28 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %end
            
         
-        %function testRecord(testCase)
-        %    fprintf('\nIn testRecord() ...\n');
+        function testRecord(testCase)
+            fprintf('\nIn testRecord() ...\n');
      
-        %    testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-                         
-        %    script_path = fullfile(pwd(), filesep, testCase.filename);  % Script path 
+            %testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            testCase.filename = 'test/resources/myScript1.m';
             
-        %    tag = 'test_view'; % TODO: multiple tags passed in
+            script_path = fullfile(pwd(), filesep, testCase.filename);  % Script path 
+            
+            tag = 'test_view'; % TODO: multiple tags passed in
           
-        %    yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
-        %    testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
+            yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
+            testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
            
-        %    yw_data_view_properties_path = fullfile(pwd(), filesep, testCase.yw_data_view_property_file_name);
-        %    testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
+            yw_data_view_properties_path = fullfile(pwd(), filesep, testCase.yw_data_view_property_file_name);
+            testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
             
-        %    yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
-        %    testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
+            yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
+            testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
         
-        %    testCase.mgr.record(script_path, tag);
-        %end
+            testCase.mgr.record(script_path, tag);
+            
+        end
         
         
         %function testOverloadedNcread(testCase)
@@ -148,52 +150,52 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %    results = runtests(testCase.filename);  
         %end
         
-        function testListRuns(testCase)
-            fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
+       % function testListRuns(testCase)
+       %     fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
             
-            quiet = false;
-            startDate = '20150921T102515';
-            endDate = datestr(now, 30);
-            tagList = {'test_view'};
+       %     quiet = false;
+       %     startDate = '20150921T102515';
+       %     endDate = datestr(now, 30);
+       %     tagList = {'test_view'};
             
-            fprintf('*** startDate and endDate both required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
+       %     fprintf('*** startDate and endDate both required: ***\n');
+       %     runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
                      
-            fprintf('*** startDate only required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, startDate, '', '');
+       %     fprintf('*** startDate only required: ***\n');
+       %     runs = testCase.mgr.listRuns(quiet, startDate, '', '');
   
-            fprintf('*** endDate only required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', endDate, '');
+        %    fprintf('*** endDate only required: ***\n');
+        %    runs = testCase.mgr.listRuns(quiet, '', endDate, '');
             
-            fprintf('*** No query parameters are required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', '', '');
+        %    fprintf('*** No query parameters are required: ***\n');
+        %    runs = testCase.mgr.listRuns(quiet, '', '', '');
             
-            fprintf('*** startDate, endDate and tags all required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
+        %    fprintf('*** startDate, endDate and tags all required: ***\n');
+        %    runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
                      
-            fprintf('*** startDate and tags are required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, startDate, '', tagList);
+        %    fprintf('*** startDate and tags are required: ***\n');
+        %    runs = testCase.mgr.listRuns(quiet, startDate, '', tagList);
   
-            fprintf('*** endDate and tags are required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', endDate, tagList);
+        %   fprintf('*** endDate and tags are required: ***\n');
+        %    runs = testCase.mgr.listRuns(quiet, '', endDate, tagList);
             
-            fprintf('*** tags is required only: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', '', tagList);
-        end
+        %    fprintf('*** tags is required only: ***\n');
+        %    runs = testCase.mgr.listRuns(quiet, '', '', tagList);
+        %end
         
         
-        function testView(testCase)
-            fprintf('\n\nTest for view(packageId) function:\n');
-            sessions = {'details', 'generated'};
-            pkgId = 'urn:uuid:0969149b-4d42-4010-a77a-af80ed358ee9';
-            testCase.mgr.view(pkgId, sessions); % view the selected run
+        %function testView(testCase)
+        %    fprintf('\n\nTest for view(packageId) function:\n');
+        %    sessions = {'details', 'generated'};
+        %    pkgId = 'urn:uuid:0969149b-4d42-4010-a77a-af80ed358ee9';
+        %    testCase.mgr.view(pkgId, sessions); % view the selected run
             
-            sessions = {};
-            testCase.mgr.view(pkgId, sessions); % view the selected run
+        %    sessions = {};
+        %    testCase.mgr.view(pkgId, sessions); % view the selected run
             
-            sessions = {'details', 'used', 'generated'};
-            testCase.mgr.view(pkgId, sessions); % view the selected run
-        end
+        %    sessions = {'details', 'used', 'generated'};
+        %    testCase.mgr.view(pkgId, sessions); % view the selected run
+        %end
         
         
         %function testPublishPackageFromDisk(testCase)
@@ -204,24 +206,24 @@ classdef RunManagerTest < matlab.unittest.TestCase
         %end
         
         
-        function testDeleteRuns(testCase)
-           fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
+        %function testDeleteRuns(testCase)
+        %   fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
             
-           quiet = false;
-           noop = true;
+        %   quiet = false;
+        %   noop = true;
             
            % With query parameters for startDate or endDate
            %startDate = '20150804T102515';
            %endDate = datestr(now, 30);
             
            % Without query parameters for startDate and endDate
-           startDate = '';
-           endDate = '';
+        %   startDate = '';
+        %   endDate = '';
             
-           tagList = {'test_view_1'};
-           runIdList = '';
-           testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
-        end
+        %   tagList = {'test_view_1'};
+        %   runIdList = '';
+        %   testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
+        %end
         
         
         %function testPublish(testCase)

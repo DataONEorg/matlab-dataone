@@ -898,7 +898,36 @@ classdef RunManager < hgsetget
     end
     
     
-    methods           
+    methods         
+        
+        function init(runManager)
+            % INIT initializes the RunManager instance
+                        
+            % Ensure the provenance storage directory is configured
+            if ( ~ isempty(runManager.configuration) )
+                prov_dir = runManager.configuration.get('provenance_storage_directory');
+                
+                % Only proceed if the runs directory is available
+                if ( ~ exist(prov_dir, 'dir') )
+                    runs_dir = fullfile(prov_dir, 'runs', filesep);
+                    [status, message, message_id] = mkdir(runs_dir);
+                    
+                    if ( status ~= 1 )
+                        error(message_id, [ 'The directory ' runs_dir ...
+                              ' could not be created. The error message' ...
+                              ' was: ' message]);
+                    
+                    elseif ( strcmp(message, 'already exists') )
+                        if ( runManager.configuration.debug )
+                            disp(['The directory ' runs_dir ...
+                                ' already exists and will not be created.']);
+                        end
+                    end                    
+                end
+            end
+        end
+        
+        
         function callYesWorkflow(runManager, scriptPath, dirPath)
             % CALLYESWORKFLOW Records provenance information at the script
             % level using the yesWorkflow tool.
@@ -978,6 +1007,8 @@ classdef RunManager < hgsetget
 
             % End the recording session 
             data_package = runManager.endRecord();
+            
+            %whos
         end
         
         
@@ -1013,6 +1044,8 @@ classdef RunManager < hgsetget
                 runManager.execution.error_message = [runManager.execution.error_message ' ' message]; 
             end
             
+            runManager.runDir
+            
             addpath(runManager.runDir);
             
             % Initialize a dataPackage to manage the run
@@ -1031,19 +1064,19 @@ classdef RunManager < hgsetget
             runManager.dataPackage = DataPackage(resourceMapId);
                                       
             % Run the script and collect provenance information
-          % runManager.prov_capture_enabled = true;
-          % [pathstr, script_name, ext] = ...
-          %     fileparts(runManager.execution.software_application);
-          % addpath(pathstr);
+            runManager.prov_capture_enabled = true;
+            [pathstr, script_name, ext] = ...
+               fileparts(runManager.execution.software_application);
+            addpath(pathstr);
 
-          % try
-          %     eval(script_name);             
-          % catch runtimeError
-          %     error(['The script: ' ...
-          %            runManager.execution.software_application ...
-          %            ' could not be run. The error message was: ' ...
-          %             runtimeError.message]);                
-          % end
+            try
+                eval(script_name);             
+            catch runtimeError
+                error(['The script: ' ...
+                      runManager.execution.software_application ...
+                      ' could not be run. The error message was: ' ...
+                       runtimeError.message]);                
+            end
           
         end
         
@@ -1152,7 +1185,6 @@ classdef RunManager < hgsetget
 
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
-            [header{:}]
             
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
@@ -1731,34 +1763,6 @@ classdef RunManager < hgsetget
             %T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
             %writetable(T, runManager.executionDatabaseName);
         end  
-       
-        
-        function init(runManager)
-            % INIT initializes the RunManager instance
-                        
-            % Ensure the provenance storage directory is configured
-            if ( ~ isempty(runManager.configuration) )
-                prov_dir = runManager.configuration.get('provenance_storage_directory');
-                
-                % Only proceed if the runs directory is available
-                if ( ~ exist(prov_dir, 'dir') )
-                    runs_dir = fullfile(prov_dir, 'runs', filesep);
-                    [status, message, message_id] = mkdir(runs_dir);
-                    
-                    if ( status ~= 1 )
-                        error(message_id, [ 'The directory ' runs_dir ...
-                              ' could not be created. The error message' ...
-                              ' was: ' message]);
-                    
-                    elseif ( strcmp(message, 'already exists') )
-                        if ( runManager.configuration.debug )
-                            disp(['The directory ' runs_dir ...
-                                ' already exists and will not be created.']);
-                        end
-                    end                    
-                end
-            end
-        end
         
     end
 
