@@ -1,0 +1,126 @@
+
+% FACT: program(program_id, program_name, qualified_program_name, begin_annotation_id, end_annotation_id).
+program(1, 'main', 'main', 1, 31).
+program(2, 'fetch_NLOM_variable', 'main.fetch_NLOM_variable', 5, 13).
+program(3, 'compute_date', 'main.compute_date', 14, 16).
+program(4, 'fetch_NLOM_sea_surface_height', 'main.fetch_NLOM_sea_surface_height', 17, 24).
+program(5, 'generate_nlom_1/16_sea_surface_height_map_October_2004', 'main.generate_nlom_1/16_sea_surface_height_map_October_2004', 25, 30).
+
+% FACT: workflow(program_id).
+workflow(1).
+
+% FACT: function(program_id).
+
+% FACT: has_subprogram(program_id, subprogram_id).
+has_subprogram(1, 2).
+has_subprogram(1, 3).
+has_subprogram(1, 4).
+has_subprogram(1, 5).
+
+% FACT: port(port_id, port_type, port_name, qualified_port_name, port_annotation_id, data_id).
+port(200, 'in', 'public_data/NLOM/nlom_ssh', 'main<-public_data/NLOM/nlom_ssh', 2, 121).
+port(201, 'out', 'NLOM_1/16_degree_Sea_Surface_Height_map', 'main->NLOM_1/16_degree_Sea_Surface_Height_map', 4, 122).
+port(202, 'in', 'public_data/NLOM/nlom_ssh', 'main.fetch_NLOM_variable<-public_data/NLOM/nlom_ssh', 6, 123).
+port(203, 'out', 'lon', 'main.fetch_NLOM_variable->lon', 8, 124).
+port(204, 'out', 'lat', 'main.fetch_NLOM_variable->lat', 9, 125).
+port(205, 'out', 'time', 'main.fetch_NLOM_variable->time', 10, 126).
+port(206, 'out', 'I', 'main.fetch_NLOM_variable->I', 11, 127).
+port(207, 'out', 'J', 'main.fetch_NLOM_variable->J', 12, 128).
+port(208, 'out', 'K', 'main.compute_date->K', 15, 129).
+port(209, 'in', 'public_data/NLOM/nlom_ssh', 'main.fetch_NLOM_sea_surface_height<-public_data/NLOM/nlom_ssh', 18, 123).
+port(210, 'in', 'I', 'main.fetch_NLOM_sea_surface_height<-I', 20, 127).
+port(211, 'in', 'J', 'main.fetch_NLOM_sea_surface_height<-J', 21, 128).
+port(212, 'in', 'K', 'main.fetch_NLOM_sea_surface_height<-K', 22, 129).
+port(213, 'out', 'ssh', 'main.fetch_NLOM_sea_surface_height->ssh', 23, 130).
+port(214, 'in', 'I', 'main.generate_nlom_1/16_sea_surface_height_map_October_2004<-I', 26, 127).
+port(215, 'in', 'J', 'main.generate_nlom_1/16_sea_surface_height_map_October_2004<-J', 27, 128).
+port(216, 'in', 'ssh', 'main.generate_nlom_1/16_sea_surface_height_map_October_2004<-ssh', 28, 130).
+port(217, 'out', 'NLOM_1/16_degree_Sea_Surface_Height_map', 'main.generate_nlom_1/16_sea_surface_height_map_October_2004->NLOM_1/16_degree_Sea_Surface_Height_map', 29, 131).
+
+% FACT: port_alias(port_id, alias).
+port_alias(200, 'nlom_ssh_data').
+port_alias(202, 'nlom_ssh_data').
+port_alias(209, 'nlom_ssh_data').
+
+% FACT: port_uri_template(port_id, uri).
+
+% FACT: has_in_port(block_id, port_id).
+has_in_port(1, 200).
+has_in_port(2, 202).
+has_in_port(4, 209).
+has_in_port(4, 210).
+has_in_port(4, 211).
+has_in_port(4, 212).
+has_in_port(5, 214).
+has_in_port(5, 215).
+has_in_port(5, 216).
+
+% FACT: has_out_port(block_id, port_id).
+has_out_port(1, 201).
+has_out_port(2, 203).
+has_out_port(2, 204).
+has_out_port(2, 205).
+has_out_port(2, 206).
+has_out_port(2, 207).
+has_out_port(3, 208).
+has_out_port(4, 213).
+has_out_port(5, 217).
+
+% FACT: data(data_id, data_name, qualified_data_name).
+data(121, 'nlom_ssh_data', '[nlom_ssh_data]').
+data(122, 'NLOM_1/16_degree_Sea_Surface_Height_map', '[NLOM_1/16_degree_Sea_Surface_Height_map]').
+data(123, 'nlom_ssh_data', 'main[nlom_ssh_data]').
+data(124, 'lon', 'main[lon]').
+data(125, 'lat', 'main[lat]').
+data(126, 'time', 'main[time]').
+data(127, 'I', 'main[I]').
+data(128, 'J', 'main[J]').
+data(129, 'K', 'main[K]').
+data(130, 'ssh', 'main[ssh]').
+data(131, 'NLOM_1/16_degree_Sea_Surface_Height_map', 'main[NLOM_1/16_degree_Sea_Surface_Height_map]').
+
+% FACT: channel(channel_id, data_id).
+channel(138, 122).
+channel(139, 123).
+channel(140, 123).
+channel(141, 127).
+channel(142, 127).
+channel(143, 128).
+channel(144, 128).
+channel(145, 129).
+channel(146, 130).
+channel(147, 121).
+channel(148, 121).
+channel(149, 131).
+
+% FACT: port_connects_to_channel(port_id, channel_id).
+port_connects_to_channel(217, 138).
+port_connects_to_channel(202, 139).
+port_connects_to_channel(209, 140).
+port_connects_to_channel(206, 141).
+port_connects_to_channel(210, 141).
+port_connects_to_channel(206, 142).
+port_connects_to_channel(214, 142).
+port_connects_to_channel(207, 143).
+port_connects_to_channel(211, 143).
+port_connects_to_channel(207, 144).
+port_connects_to_channel(215, 144).
+port_connects_to_channel(208, 145).
+port_connects_to_channel(212, 145).
+port_connects_to_channel(213, 146).
+port_connects_to_channel(216, 146).
+port_connects_to_channel(202, 147).
+port_connects_to_channel(209, 148).
+port_connects_to_channel(217, 149).
+
+% FACT: inflow_connects_to_channel(port_id, channel_id).
+inflow_connects_to_channel(200, 139).
+inflow_connects_to_channel(200, 140).
+inflow_connects_to_channel(200, 147).
+inflow_connects_to_channel(200, 148).
+
+% FACT: outflow_connects_to_channel(port_id, channel_id).
+outflow_connects_to_channel(201, 138).
+outflow_connects_to_channel(201, 149).
+
+% FACT: uri_variable(uri_variable_id, variable_name, port_id).
