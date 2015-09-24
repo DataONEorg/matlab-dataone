@@ -117,8 +117,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             fprintf('\nIn testRecord() ...\n');
      
             % testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-             testCase.filename = 'test/resources/myScript1.m';
-            % testCase.filename = 'test/resources/myScript2.m';
+            % testCase.filename = 'test/resources/myScript1.m';
+             testCase.filename = 'test/resources/myScript2.m';
             
             script_path = fullfile(pwd(), filesep, testCase.filename); % Script path 
             

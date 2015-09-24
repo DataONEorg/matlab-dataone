@@ -552,33 +552,48 @@ classdef RunManager < hgsetget
             
             % prov:used between execution and execInputIds
             execInSources = runManager.getExecInputIds();
-            inRows = size( execInSources,2 );         
-            for i = 1:inRows
-                startIndex = regexp( execInSources(1,i),'http' ); % return a cell array             
-                if isempty(startIndex{:}) 
+            
+            import java.util.Iterator;
+            import java.util.Hashtable;
+            import java.util.Set;
+            import java.util.Enumeration;
+            
+            inKeySet = execInSources.keys();
+            while inKeySet.hasMoreElements()
+                inSource = char(inKeySet.nextElement());
+                inSourceFmt = execInSources.get(inSource);
+           
+                startIndex = regexp( inSource,'http' ); 
+                if isempty(startIndex) 
                     disp('non-url');
-                    inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint char(execInSources(1,i))]);
+                    inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inSource]);
                     runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI ); 
-                    % runManager.dataPackage.addData();
-                    % copy file to archived folder
+                    
+                    inSourceD1Obj = runManager.buildD1Object(inSource, inSourceFmt, inSource, submitter, mnNodeId);
+                    runManager.dataPackage.addData(inSourceD1Obj);
                 else
                     disp('url')
-                    inSourceURI = URI( execInSources(1,i) );
-                    runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI ); 
+                    inSourceURI = URI( inSource );
+                    runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI );
+                    % how to handle a source file with url
                 end
             end
             
             % prov:wasGeneratedBy between execOutputIds and execution            
             predicate = PROV.predicate('wasGeneratedBy');
             execOutSources = runManager.getExecOutputIds();
-            outRows = size( execOutSources,2 );
-            for i = 1:outRows               
-                outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint char(execOutSources(1,i))]);
+            outKeySet = execOutSources.keys();
+            while outKeySet.hasMoreElements()
+                outSource = char(outKeySet.nextElement());
+                outSourceFmt = execOutSources.get(outSource);
+        
+                outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outSource]);
                 runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.execURI );
-                %runManager.dataPackage.addData();
-                % copy file to archived folder
+                    
+                outSourceD1Obj = runManager.buildD1Object(outSource, outSourceFmt, outSource, submitter, mnNodeId);
+                runManager.dataPackage.addData(outSourceD1Obj);
             end
-            
+
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
             if runManager.debug 
@@ -1133,8 +1148,11 @@ classdef RunManager < hgsetget
             % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
                      
-            runManager.execInputIds = {};
-            runManager.execOutputIds = {};
+            % Create an empty cell array for runtime input/output sources
+            %runManager.execInputIds = {}; 
+            %runManager.execOutputIds = {};
+            runManager.execInputIds = java.util.Hashtable();
+            runManager.execOutputIds = java.util.Hashtable();
             
             % Run the script and collect provenance information
             runManager.prov_capture_enabled = true;

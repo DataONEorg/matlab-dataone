@@ -74,20 +74,20 @@ function ncwrite( source, varname, varargin )
     d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
 
     exec_output_id_list = runManager.getExecOutputIds();
+    exec_output_id_list.put(source, 'application/netcdf');
+    copyfile(source, runManager.runDir); % copy local source file to the run directory
     
-    if isempty(exec_output_id_list) == 1   
-        %disp('1');
-        exec_output_id_list = {source};       
-    else
-        %disp('2');
-        exec_output_id_list = unique(union(exec_output_id_list, source));
-    end
+    %if isempty(exec_output_id_list) == 1   
+    %    exec_output_id_list = {source};       
+    %else
+    %    exec_output_id_list = unique(union(exec_output_id_list, source));
+    %end
    
     % Update the execOutputIds in the runManager
-    runManager.setExecOutputIds(exec_output_id_list);
+    %runManager.setExecOutputIds(exec_output_id_list);
     
     % Debug
     exec_output_id_list = runManager.getExecOutputIds();
-    size(exec_output_id_list)
-    celldisp(exec_output_id_list); 
+    %size(exec_output_id_list)
+    %celldisp(exec_output_id_list); 
 end

@@ -4,6 +4,8 @@ testcomb_7.pdf application/pdf
 resourceMap_myScript2.rdf http://www.openarchives.org/ore/terms
 testprocess_7.pdf application/pdf
 yw_data_view_7.properties text/plain
+myfile4.nc application/octet-stream
+myncfile4.nc application/octet-stream
 yw_comb_view_7.properties text/plain
 modelfacts_7.P text/plain
 extractfacts_7.P text/plain
