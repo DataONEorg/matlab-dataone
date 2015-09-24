@@ -550,7 +550,7 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(runManager.execURI, predicate, dataYWPropURI);  
             runManager.dataPackage.insertRelationship(runManager.execURI, predicate, combYWPropURI);
             
-            % prov:used between execution and execInputIds
+            % prov:used between execution and runtime execInputIds
             execInSources = runManager.getExecInputIds();
             
             import java.util.Iterator;
@@ -579,7 +579,7 @@ classdef RunManager < hgsetget
                 end
             end
             
-            % prov:wasGeneratedBy between execOutputIds and execution            
+            % prov:wasGeneratedBy between runtime execOutputIds and execution            
             predicate = PROV.predicate('wasGeneratedBy');
             execOutSources = runManager.getExecOutputIds();
             outKeySet = execOutSources.keys();
