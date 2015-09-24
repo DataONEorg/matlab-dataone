@@ -63,8 +63,31 @@ function ncwrite( source, varname, varargin )
     addpath(overloaded_func_path, '-begin');
     disp('add the path of the overloaded ncwrite function back.');
     
-    % TODO: Identifiy the file being used and add a prov:wasGeneratedBy statement 
-    %       in the RunManager DataPackage instance
+    % Identifiy the file being used and add a prov:wasGeneratedBy statement 
+    % in the RunManager DataPackage instance
 
-    % 
+    import org.dataone.client.run.RunManager;
+    import java.net.URI;
+    
+    runManager = RunManager.getInstance();   
+    dataPackage = runManager.getDataPackage();    
+    d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
+
+    exec_output_id_list = runManager.getExecOutputIds();
+    
+    if isempty(exec_output_id_list) == 1   
+        %disp('1');
+        exec_output_id_list = {source};       
+    else
+        %disp('2');
+        exec_output_id_list = unique(union(exec_output_id_list, source));
+    end
+   
+    % Update the execOutputIds in the runManager
+    runManager.setExecOutputIds(exec_output_id_list);
+    
+    % Debug
+    exec_output_id_list = runManager.getExecOutputIds();
+    size(exec_output_id_list)
+    celldisp(exec_output_id_list); 
 end

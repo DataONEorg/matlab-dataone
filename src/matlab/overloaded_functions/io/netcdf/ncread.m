@@ -48,14 +48,45 @@ function vardata = ncread( source, varname, varargin )
     
     % Call ncread 
     vardata = ncread( source, varname, varargin{:} );
-    %celldisp(varargin);
+    % celldisp(varargin);
 
     % Add the wrapper ncread back to the Matlab path
     addpath(overloaded_func_path, '-begin');
     disp('add the path of the overloaded ncread function back.');
     
-    % TODO: Identifiy the file being used and add a prov:used statement 
-    %       in the RunManager DataPackage instance
+    % Identifiy the file being used and add a prov:used statement 
+    % in the RunManager DataPackage instance
   
+    import org.dataone.client.run.RunManager;
+    % import org.dataone.vocabulary.PROV;
+    import java.net.URI;
+    
+    runManager = RunManager.getInstance();   
+    dataPackage = runManager.getDataPackage();    
+    d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
+    
+    % sourceURISet = {URI(source)};
+    % predicate = PROV.predicate('used');
+    % execURI = URI([d1_cn_resolve_endpoint  'execution_' runManager.runId]);
+   
+    exec_input_id_list = runManager.getExecInputIds();
+    
+    if isempty(exec_input_id_list) == 1   
+        exec_input_id_list = {source};       
+    else
+        exec_input_id_list = unique(union(exec_input_id_list, source));
+    end
+    
+    % Update the execInputIds in the runManager
+    runManager.setExecInputIds(exec_input_id_list); 
+    
+    % Todo: pass the file format to the runManager
+    
+    
+    % Debug
+    %exec_input_id_list = runManager.getExecInputIds();
+    %whos exec_input_id_list
+    %size(exec_input_id_list)
+    %celldisp(exec_input_id_list);
 end
 

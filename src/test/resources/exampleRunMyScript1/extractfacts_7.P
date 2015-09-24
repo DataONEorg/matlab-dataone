@@ -3,7 +3,7 @@
 extract_source(1, '_reader__').
 
 % FACT: annotation(annotation_id, source_id, line_number, tag, keyword, value).
-annotation(1, 1, 1, 'begin', '@begin', 'main').
+annotation(1, 1, 1, 'begin', '@begin', 'myScript1').
 annotation(2, 1, 3, 'in', '@in', 'public_data/NLOM/nlom_ssh').
 annotation(3, 1, 3, 'as', '@as', 'nlom_ssh_data').
 annotation(4, 1, 4, 'out', '@out', 'NLOM_1/16_degree_Sea_Surface_Height_map').
@@ -33,7 +33,7 @@ annotation(27, 1, 56, 'in', '@in', 'J').
 annotation(28, 1, 57, 'in', '@in', 'ssh').
 annotation(29, 1, 58, 'out', '@out', 'NLOM_1/16_degree_Sea_Surface_Height_map').
 annotation(30, 1, 72, 'end', '@end', 'generate_nlom_1/16_sea_surface_height_map_October_2004').
-annotation(31, 1, 75, 'end', '@end', 'main').
+annotation(31, 1, 75, 'end', '@end', 'myScript1').
 
 % FACT: annotation_description(annotation_id, description).
 

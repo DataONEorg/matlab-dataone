@@ -105,7 +105,12 @@ classdef RunManager < hgsetget
         
         % The YesWorkflow Grapher object
         grapher;
-       
+          
+        % The input id list for an execution
+        execInputIds;
+        
+        % The output id list for an execution
+        execOutputIds;
     end
    
     methods (Access = private)
@@ -344,6 +349,7 @@ classdef RunManager < hgsetget
             end
         end
         
+        
         function d1Obj = buildD1Object(runManager, fileName, fileFmt, idValue, submitter, mnNodeId)
             % BUILDD1OBJECT build a d1 object for a file on disk.
             %   fileName - the absolute path for a file
@@ -381,6 +387,8 @@ classdef RunManager < hgsetget
             import java.net.URI;
             import org.dspace.foresite.ResourceMap;
             import org.dataone.vocabulary.DC_TERMS;
+            
+            disp('====== buildPackage ======');
             
             curPath = pwd();
             cd(dirPath);
@@ -533,7 +541,7 @@ classdef RunManager < hgsetget
             runManager.dataPackage.addData(combYWPropertiesD1Obj);
             copyfile(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME, '.'); % copy combined_view yw.properties to the run directory
             
-            % prov: used between execution and multiple yw.properties files
+            % prov:used between execution and multiple yw.properties files
             predicate = PROV.predicate('used');
             processYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(processYWPropIdentifier.getValue())]);
             dataYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(dataYWPropIdentifier.getValue())]);
@@ -541,6 +549,35 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(runManager.execURI, predicate, processYWPropURI);  
             runManager.dataPackage.insertRelationship(runManager.execURI, predicate, dataYWPropURI);  
             runManager.dataPackage.insertRelationship(runManager.execURI, predicate, combYWPropURI);
+            
+            % prov:used between execution and execInputIds
+            execInSources = runManager.getExecInputIds();
+            inRows = size( execInSources,2 );         
+            for i = 1:inRows
+                startIndex = regexp( execInSources(1,i),'http' ); % return a cell array             
+                if isempty(startIndex{:}) 
+                    disp('non-url');
+                    inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint char(execInSources(1,i))]);
+                    runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI ); 
+                    % runManager.dataPackage.addData();
+                    % copy file to archived folder
+                else
+                    disp('url')
+                    inSourceURI = URI( execInSources(1,i) );
+                    runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI ); 
+                end
+            end
+            
+            % prov:wasGeneratedBy between execOutputIds and execution            
+            predicate = PROV.predicate('wasGeneratedBy');
+            execOutSources = runManager.getExecOutputIds();
+            outRows = size( execOutSources,2 );
+            for i = 1:outRows               
+                outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint char(execOutSources(1,i))]);
+                runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.execURI );
+                %runManager.dataPackage.addData();
+                % copy file to archived folder
+            end
             
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
@@ -765,7 +802,10 @@ classdef RunManager < hgsetget
         
         
         function [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = getRelationships(runManager)
-           
+           % GETRELATIONSHIPS get the relationships from the resourceMap
+           % including prov:used, prov:hadPlan, prov:qualifiedAssociation,
+           % prov:wasAssociatedWith, and rdf:type
+            
            import org.dataone.ore.QueryResourceMap; % ! Need to add a new class in d1_libclient_java
            import org.dataone.vocabulary.PROV;
            import org.dspace.foresite.Predicate;
@@ -900,6 +940,39 @@ classdef RunManager < hgsetget
     
     methods         
         
+        function pkg = getDataPackage(runManager)
+            % GETDATAPACKAGE get the data package from the runManager
+            pkg = runManager.dataPackage;
+        end
+        
+        
+        function d1_cn_resolve_endpoint = getD1_CN_Resolve_Endpoint(runManager)
+            % GETD1CNRESOLVEENDPOINT get the dataone CN resolve endpoint
+            % from the runManager
+            d1_cn_resolve_endpoint = runManager.D1_CN_Resolve_Endpoint;
+        end
+        
+        
+        function exec_input_id_list = getExecInputIds(runManager)
+            exec_input_id_list = runManager.execInputIds;
+        end
+        
+        
+        function exec_output_id_list = getExecOutputIds(runManager)
+            exec_output_id_list = runManager.execOutputIds;
+        end
+        
+        
+        function setExecInputIds(runManager, inputIdSet)
+            runManager.execInputIds = inputIdSet;
+        end
+        
+        
+        function setExecOutputIds(runManager, outputIdSet)
+            runManager.execOutputIds = outputIdSet;
+        end
+        
+                
         function init(runManager)
             % INIT initializes the RunManager instance
                         
@@ -1007,8 +1080,7 @@ classdef RunManager < hgsetget
 
             % End the recording session 
             data_package = runManager.endRecord();
-            
-            %whos
+     
         end
         
         
@@ -1043,9 +1115,7 @@ classdef RunManager < hgsetget
                     ' was: ' runManager.runDir, message]);
                 runManager.execution.error_message = [runManager.execution.error_message ' ' message]; 
             end
-            
-            runManager.runDir
-            
+          
             addpath(runManager.runDir);
             
             % Initialize a dataPackage to manage the run
@@ -1062,7 +1132,10 @@ classdef RunManager < hgsetget
             resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
             % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
-                                      
+                     
+            runManager.execInputIds = {};
+            runManager.execOutputIds = {};
+            
             % Run the script and collect provenance information
             runManager.prov_capture_enabled = true;
             [pathstr, script_name, ext] = ...

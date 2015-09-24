@@ -1,4 +1,4 @@
-%% @begin main
+%% @begin myScript1
 
 %  @in public_data/NLOM/nlom_ssh @as nlom_ssh_data
 %  @out NLOM_1/16_degree_Sea_Surface_Height_map 
@@ -72,4 +72,4 @@ tightmap
 %% @end generate_nlom_1/16_sea_surface_height_map_October_2004
 
 
-%% @end main
+%% @end myScript1

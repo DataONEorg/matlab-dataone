@@ -27,7 +27,13 @@
 addpath(genpath(pwd));
 
 import matlab.unittest.TestSuite;
-suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
+% suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
+
+testCls = ?org.dataone.client.run.RunManagerTest;
+
+suite = TestSuite.fromMethod(testCls, 'testRecord');
+% suite = TestSuite.fromMethod(testCls, 'testView');
+
 run(suite);
 
 rmpath(genpath(pwd));
