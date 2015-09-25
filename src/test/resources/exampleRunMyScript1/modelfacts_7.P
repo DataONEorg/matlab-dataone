@@ -18,109 +18,109 @@ has_subprogram(1, 4).
 has_subprogram(1, 5).
 
 % FACT: port(port_id, port_type, port_name, qualified_port_name, port_annotation_id, data_id).
-port(23, 'in', 'public_data/NLOM/nlom_ssh', 'myScript1<-public_data/NLOM/nlom_ssh', 2, 16).
-port(24, 'out', 'NLOM_1/16_degree_Sea_Surface_Height_map', 'myScript1->NLOM_1/16_degree_Sea_Surface_Height_map', 4, 17).
-port(25, 'in', 'public_data/NLOM/nlom_ssh', 'myScript1.fetch_NLOM_variable<-public_data/NLOM/nlom_ssh', 6, 18).
-port(26, 'out', 'lon', 'myScript1.fetch_NLOM_variable->lon', 8, 19).
-port(27, 'out', 'lat', 'myScript1.fetch_NLOM_variable->lat', 9, 20).
-port(28, 'out', 'time', 'myScript1.fetch_NLOM_variable->time', 10, 21).
-port(29, 'out', 'I', 'myScript1.fetch_NLOM_variable->I', 11, 22).
-port(30, 'out', 'J', 'myScript1.fetch_NLOM_variable->J', 12, 23).
-port(31, 'out', 'K', 'myScript1.compute_date->K', 15, 24).
-port(32, 'in', 'public_data/NLOM/nlom_ssh', 'myScript1.fetch_NLOM_sea_surface_height<-public_data/NLOM/nlom_ssh', 18, 18).
-port(33, 'in', 'I', 'myScript1.fetch_NLOM_sea_surface_height<-I', 20, 22).
-port(34, 'in', 'J', 'myScript1.fetch_NLOM_sea_surface_height<-J', 21, 23).
-port(35, 'in', 'K', 'myScript1.fetch_NLOM_sea_surface_height<-K', 22, 24).
-port(36, 'out', 'ssh', 'myScript1.fetch_NLOM_sea_surface_height->ssh', 23, 25).
-port(37, 'in', 'I', 'myScript1.generate_nlom_1/16_sea_surface_height_map_October_2004<-I', 26, 22).
-port(38, 'in', 'J', 'myScript1.generate_nlom_1/16_sea_surface_height_map_October_2004<-J', 27, 23).
-port(39, 'in', 'ssh', 'myScript1.generate_nlom_1/16_sea_surface_height_map_October_2004<-ssh', 28, 25).
-port(40, 'out', 'NLOM_1/16_degree_Sea_Surface_Height_map', 'myScript1.generate_nlom_1/16_sea_surface_height_map_October_2004->NLOM_1/16_degree_Sea_Surface_Height_map', 29, 26).
+port(5, 'in', 'public_data/NLOM/nlom_ssh', 'myScript1<-public_data/NLOM/nlom_ssh', 2, 5).
+port(6, 'out', 'NLOM_1/16_degree_Sea_Surface_Height_map', 'myScript1->NLOM_1/16_degree_Sea_Surface_Height_map', 4, 6).
+port(7, 'in', 'public_data/NLOM/nlom_ssh', 'myScript1.fetch_NLOM_variable<-public_data/NLOM/nlom_ssh', 6, 7).
+port(8, 'out', 'lon', 'myScript1.fetch_NLOM_variable->lon', 8, 8).
+port(9, 'out', 'lat', 'myScript1.fetch_NLOM_variable->lat', 9, 9).
+port(10, 'out', 'time', 'myScript1.fetch_NLOM_variable->time', 10, 10).
+port(11, 'out', 'I', 'myScript1.fetch_NLOM_variable->I', 11, 11).
+port(12, 'out', 'J', 'myScript1.fetch_NLOM_variable->J', 12, 12).
+port(13, 'out', 'K', 'myScript1.compute_date->K', 15, 13).
+port(14, 'in', 'public_data/NLOM/nlom_ssh', 'myScript1.fetch_NLOM_sea_surface_height<-public_data/NLOM/nlom_ssh', 18, 7).
+port(15, 'in', 'I', 'myScript1.fetch_NLOM_sea_surface_height<-I', 20, 11).
+port(16, 'in', 'J', 'myScript1.fetch_NLOM_sea_surface_height<-J', 21, 12).
+port(17, 'in', 'K', 'myScript1.fetch_NLOM_sea_surface_height<-K', 22, 13).
+port(18, 'out', 'ssh', 'myScript1.fetch_NLOM_sea_surface_height->ssh', 23, 14).
+port(19, 'in', 'I', 'myScript1.generate_nlom_1/16_sea_surface_height_map_October_2004<-I', 26, 11).
+port(20, 'in', 'J', 'myScript1.generate_nlom_1/16_sea_surface_height_map_October_2004<-J', 27, 12).
+port(21, 'in', 'ssh', 'myScript1.generate_nlom_1/16_sea_surface_height_map_October_2004<-ssh', 28, 14).
+port(22, 'out', 'NLOM_1/16_degree_Sea_Surface_Height_map', 'myScript1.generate_nlom_1/16_sea_surface_height_map_October_2004->NLOM_1/16_degree_Sea_Surface_Height_map', 29, 15).
 
 % FACT: port_alias(port_id, alias).
-port_alias(23, 'nlom_ssh_data').
-port_alias(25, 'nlom_ssh_data').
-port_alias(32, 'nlom_ssh_data').
+port_alias(5, 'nlom_ssh_data').
+port_alias(7, 'nlom_ssh_data').
+port_alias(14, 'nlom_ssh_data').
 
 % FACT: port_uri_template(port_id, uri).
 
 % FACT: has_in_port(block_id, port_id).
-has_in_port(1, 23).
-has_in_port(2, 25).
-has_in_port(4, 32).
-has_in_port(4, 33).
-has_in_port(4, 34).
-has_in_port(4, 35).
-has_in_port(5, 37).
-has_in_port(5, 38).
-has_in_port(5, 39).
+has_in_port(1, 5).
+has_in_port(2, 7).
+has_in_port(4, 14).
+has_in_port(4, 15).
+has_in_port(4, 16).
+has_in_port(4, 17).
+has_in_port(5, 19).
+has_in_port(5, 20).
+has_in_port(5, 21).
 
 % FACT: has_out_port(block_id, port_id).
-has_out_port(1, 24).
-has_out_port(2, 26).
-has_out_port(2, 27).
-has_out_port(2, 28).
-has_out_port(2, 29).
-has_out_port(2, 30).
-has_out_port(3, 31).
-has_out_port(4, 36).
-has_out_port(5, 40).
+has_out_port(1, 6).
+has_out_port(2, 8).
+has_out_port(2, 9).
+has_out_port(2, 10).
+has_out_port(2, 11).
+has_out_port(2, 12).
+has_out_port(3, 13).
+has_out_port(4, 18).
+has_out_port(5, 22).
 
 % FACT: data(data_id, data_name, qualified_data_name).
-data(16, 'nlom_ssh_data', '[nlom_ssh_data]').
-data(17, 'NLOM_1/16_degree_Sea_Surface_Height_map', '[NLOM_1/16_degree_Sea_Surface_Height_map]').
-data(18, 'nlom_ssh_data', 'myScript1[nlom_ssh_data]').
-data(19, 'lon', 'myScript1[lon]').
-data(20, 'lat', 'myScript1[lat]').
-data(21, 'time', 'myScript1[time]').
-data(22, 'I', 'myScript1[I]').
-data(23, 'J', 'myScript1[J]').
-data(24, 'K', 'myScript1[K]').
-data(25, 'ssh', 'myScript1[ssh]').
-data(26, 'NLOM_1/16_degree_Sea_Surface_Height_map', 'myScript1[NLOM_1/16_degree_Sea_Surface_Height_map]').
+data(5, 'nlom_ssh_data', '[nlom_ssh_data]').
+data(6, 'NLOM_1/16_degree_Sea_Surface_Height_map', '[NLOM_1/16_degree_Sea_Surface_Height_map]').
+data(7, 'nlom_ssh_data', 'myScript1[nlom_ssh_data]').
+data(8, 'lon', 'myScript1[lon]').
+data(9, 'lat', 'myScript1[lat]').
+data(10, 'time', 'myScript1[time]').
+data(11, 'I', 'myScript1[I]').
+data(12, 'J', 'myScript1[J]').
+data(13, 'K', 'myScript1[K]').
+data(14, 'ssh', 'myScript1[ssh]').
+data(15, 'NLOM_1/16_degree_Sea_Surface_Height_map', 'myScript1[NLOM_1/16_degree_Sea_Surface_Height_map]').
 
 % FACT: channel(channel_id, data_id).
-channel(17, 17).
-channel(18, 18).
-channel(19, 18).
-channel(20, 22).
-channel(21, 22).
-channel(22, 23).
-channel(23, 23).
-channel(24, 24).
-channel(25, 25).
-channel(26, 16).
-channel(27, 16).
-channel(28, 26).
+channel(5, 6).
+channel(6, 7).
+channel(7, 7).
+channel(8, 11).
+channel(9, 11).
+channel(10, 12).
+channel(11, 12).
+channel(12, 13).
+channel(13, 14).
+channel(14, 5).
+channel(15, 5).
+channel(16, 15).
 
 % FACT: port_connects_to_channel(port_id, channel_id).
-port_connects_to_channel(40, 17).
-port_connects_to_channel(25, 18).
-port_connects_to_channel(32, 19).
-port_connects_to_channel(29, 20).
-port_connects_to_channel(33, 20).
-port_connects_to_channel(29, 21).
-port_connects_to_channel(37, 21).
-port_connects_to_channel(30, 22).
-port_connects_to_channel(34, 22).
-port_connects_to_channel(30, 23).
-port_connects_to_channel(38, 23).
-port_connects_to_channel(31, 24).
-port_connects_to_channel(35, 24).
-port_connects_to_channel(36, 25).
-port_connects_to_channel(39, 25).
-port_connects_to_channel(25, 26).
-port_connects_to_channel(32, 27).
-port_connects_to_channel(40, 28).
+port_connects_to_channel(22, 5).
+port_connects_to_channel(7, 6).
+port_connects_to_channel(14, 7).
+port_connects_to_channel(11, 8).
+port_connects_to_channel(15, 8).
+port_connects_to_channel(11, 9).
+port_connects_to_channel(19, 9).
+port_connects_to_channel(12, 10).
+port_connects_to_channel(16, 10).
+port_connects_to_channel(12, 11).
+port_connects_to_channel(20, 11).
+port_connects_to_channel(13, 12).
+port_connects_to_channel(17, 12).
+port_connects_to_channel(18, 13).
+port_connects_to_channel(21, 13).
+port_connects_to_channel(7, 14).
+port_connects_to_channel(14, 15).
+port_connects_to_channel(22, 16).
 
 % FACT: inflow_connects_to_channel(port_id, channel_id).
-inflow_connects_to_channel(23, 18).
-inflow_connects_to_channel(23, 19).
-inflow_connects_to_channel(23, 26).
-inflow_connects_to_channel(23, 27).
+inflow_connects_to_channel(5, 6).
+inflow_connects_to_channel(5, 7).
+inflow_connects_to_channel(5, 14).
+inflow_connects_to_channel(5, 15).
 
 % FACT: outflow_connects_to_channel(port_id, channel_id).
-outflow_connects_to_channel(24, 17).
-outflow_connects_to_channel(24, 28).
+outflow_connects_to_channel(6, 5).
+outflow_connects_to_channel(6, 16).
 
 % FACT: uri_variable(uri_variable_id, variable_name, port_id).

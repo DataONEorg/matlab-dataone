@@ -229,25 +229,24 @@ classdef RunManager < hgsetget
             import org.yesworkflow.annotations.Annotation;
             import org.yesworkflow.model.Program;
             import org.yesworkflow.model.Workflow;
-            import java.io.File;
-            import java.io.FileReader;
+            import java.io.FileInputStream;
+            import java.io.InputStreamReader;
             import java.util.List;
             import java.util.HashMap;
             import org.yesworkflow.config.YWConfiguration;
-            
+       
             try
                 % Read script content from disk
-                script = File(runManager.execution.software_application);
-                freader = FileReader(script);
-                reader = BufferedReader(freader);
-            
+                in = FileInputStream(runManager.execution.software_application);
+                reader = BufferedReader(InputStreamReader(in));
+                
                 % Use yw.properties for configuration                                     
                 config = YWConfiguration();
 
                 % Call YW-Extract module
                 runManager.extractor = runManager.extractor.reader(reader); 
                 annotations = runManager.extractor.extract().getAnnotations();
-        
+               
                 % Call YW-Model module
                 runManager.modeler = runManager.modeler.annotations(annotations);
                 runManager.modeler = runManager.modeler.model();
@@ -272,7 +271,7 @@ classdef RunManager < hgsetget
                     runManager.processViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();           
-                   
+                                                            
                     % Generate YW.Data_View dot file                  
                     config.applyPropertyFile(runManager.DATA_VIEW_PROPERTY_FILE_NAME); % Read from data_view_yw.properties 
                     gconfig = config.getSection('graph');
@@ -307,20 +306,21 @@ classdef RunManager < hgsetget
                     if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
                     fprintf(fw, '%s', char(extractFacts));
                     fclose(fw);
-                   
+                    
                     cd(curDir); % go back to current working directory          
                 end  
                 
-            catch ME      
+            catch ME 
+                error(ME.message);
             end      
         end
  
        
         function generateYesWorkflowGraphic(runManager, runDirectory)
-            % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format. 
-                        
+            % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format            
             position = strfind(runManager.processViewDotFileName, '.gv'); % get the index of '.gv'            
             processViewDotName = strtrim(runManager.processViewDotFileName(1:(position-1)));
+            
             runManager.processViewPdfFileName = [processViewDotName '.pdf'];
             fullPathProcessViewPdfFileName = [runDirectory filesep processViewDotName '.pdf'];
             fullPathProcessViewDotFileName = [runDirectory filesep runManager.processViewDotFileName];
@@ -549,51 +549,60 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(runManager.execURI, predicate, processYWPropURI);  
             runManager.dataPackage.insertRelationship(runManager.execURI, predicate, dataYWPropURI);  
             runManager.dataPackage.insertRelationship(runManager.execURI, predicate, combYWPropURI);
-            
-            % prov:used between execution and runtime execInputIds
-            execInSources = runManager.getExecInputIds();
-            
+                        
             import java.util.Iterator;
             import java.util.Hashtable;
             import java.util.Set;
             import java.util.Enumeration;
             
+            % prov:wasGeneratedBy between runtime execOutputIds and execution            
+            predicate = PROV.predicate('wasGeneratedBy');
+            execOutSources = runManager.getExecOutputIds();
+            outKeySet = execOutSources.keys();
+            while outKeySet.hasMoreElements()           
+                fullSourcePath = outKeySet.nextElement();
+                copyfile(fullSourcePath, runManager.runDir); % copy local source file to the run directory
+                
+                outSourceFmt = execOutSources.get(fullSourcePath);
+                [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);
+                outSource = sourceName;
+                            
+                outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outSource]);
+                runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.execURI );
+                            
+                outSourceD1Obj = runManager.buildD1Object(fullSourcePath, outSourceFmt, outSource, submitter, mnNodeId);
+                runManager.dataPackage.addData(outSourceD1Obj);
+            end
+            
+            % prov:used between execution and runtime execInputIds
+            predicate = PROV.predicate('used');
+            execInSources = runManager.getExecInputIds();
             inKeySet = execInSources.keys();
             while inKeySet.hasMoreElements()
-                inSource = char(inKeySet.nextElement());
-                inSourceFmt = execInSources.get(inSource);
-           
-                startIndex = regexp( inSource,'http' ); 
+                fullSourcePath = inKeySet.nextElement();
+                inSourceFmt = execInSources.get(fullSourcePath);
+   
+                startIndex = regexp( fullSourcePath,'http' ); 
                 if isempty(startIndex) 
                     disp('non-url');
+                    [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);               
+                    inSource = sourceName;
                     inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inSource]);
                     runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI ); 
                     
-                    inSourceD1Obj = runManager.buildD1Object(inSource, inSourceFmt, inSource, submitter, mnNodeId);
+                    copyfile(fullSourcePath, runManager.runDir); % copy local source file to the run directory
+                    
+                    inSourceD1Obj = runManager.buildD1Object(fullSourcePath, inSourceFmt, inSource, submitter, mnNodeId);
                     runManager.dataPackage.addData(inSourceD1Obj);
                 else
                     disp('url')
+                    inSource = fullSourcePath;
                     inSourceURI = URI( inSource );
                     runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI );
                     % how to handle a source file with url
                 end
             end
             
-            % prov:wasGeneratedBy between runtime execOutputIds and execution            
-            predicate = PROV.predicate('wasGeneratedBy');
-            execOutSources = runManager.getExecOutputIds();
-            outKeySet = execOutSources.keys();
-            while outKeySet.hasMoreElements()
-                outSource = char(outKeySet.nextElement());
-                outSourceFmt = execOutSources.get(outSource);
-        
-                outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outSource]);
-                runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.execURI );
-                    
-                outSourceD1Obj = runManager.buildD1Object(outSource, outSourceFmt, outSource, submitter, mnNodeId);
-                runManager.dataPackage.addData(outSourceD1Obj);
-            end
-
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
             if runManager.debug 
@@ -1211,7 +1220,11 @@ classdef RunManager < hgsetget
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
             % Save the metadata for the current execution
-            runManager.saveExecution(runManager.executionDatabaseName);                      
+            runManager.saveExecution(runManager.executionDatabaseName);   
+            
+            % Clear runtime input/output sources (?)
+            runManager.getExecInputIds().clear();
+            runManager.getExecOutputIds().clear();
         end
         
         
@@ -1855,6 +1868,10 @@ classdef RunManager < hgsetget
             %writetable(T, runManager.executionDatabaseName);
         end  
         
+        
+        function combFileName = getYWCombViewFileName(runManager)
+            combFileName = runManager.combinedViewPdfFileName;
+        end
     end
 
 end

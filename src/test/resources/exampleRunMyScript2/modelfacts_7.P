@@ -14,10 +14,10 @@ has_subprogram(1, 2).
 has_subprogram(1, 3).
 
 % FACT: port(port_id, port_type, port_name, qualified_port_name, port_annotation_id, data_id).
-port(19, 'out', 'myfile4.nc', 'myScript2->myfile4.nc', 2, 12).
-port(20, 'out', 'myncfile4.nc', 'myScript2->myncfile4.nc', 3, 13).
-port(21, 'out', 'myfile4.nc', 'myScript2.generate_pi_file->myfile4.nc', 5, 14).
-port(22, 'out', 'myncfile4.nc', 'myScript2.generate_second_file->myncfile4.nc', 8, 15).
+port(1, 'out', 'myfile5.nc', 'myScript2->myfile5.nc', 2, 1).
+port(2, 'out', 'myncfile5.nc', 'myScript2->myncfile5.nc', 3, 2).
+port(3, 'out', 'myfile5.nc', 'myScript2.generate_pi_file->myfile5.nc', 5, 3).
+port(4, 'out', 'myncfile5.nc', 'myScript2.generate_second_file->myncfile5.nc', 8, 4).
 
 % FACT: port_alias(port_id, alias).
 
@@ -26,35 +26,35 @@ port(22, 'out', 'myncfile4.nc', 'myScript2.generate_second_file->myncfile4.nc', 
 % FACT: has_in_port(block_id, port_id).
 
 % FACT: has_out_port(block_id, port_id).
-has_out_port(1, 19).
-has_out_port(1, 20).
-has_out_port(2, 21).
-has_out_port(3, 22).
+has_out_port(1, 1).
+has_out_port(1, 2).
+has_out_port(2, 3).
+has_out_port(3, 4).
 
 % FACT: data(data_id, data_name, qualified_data_name).
-data(12, 'myfile4.nc', '[myfile4.nc]').
-data(13, 'myncfile4.nc', '[myncfile4.nc]').
-data(14, 'myfile4.nc', 'myScript2[myfile4.nc]').
-data(15, 'myncfile4.nc', 'myScript2[myncfile4.nc]').
+data(1, 'myfile5.nc', '[myfile5.nc]').
+data(2, 'myncfile5.nc', '[myncfile5.nc]').
+data(3, 'myfile5.nc', 'myScript2[myfile5.nc]').
+data(4, 'myncfile5.nc', 'myScript2[myncfile5.nc]').
 
 % FACT: channel(channel_id, data_id).
-channel(13, 12).
-channel(14, 13).
-channel(15, 14).
-channel(16, 15).
+channel(1, 1).
+channel(2, 2).
+channel(3, 3).
+channel(4, 4).
 
 % FACT: port_connects_to_channel(port_id, channel_id).
-port_connects_to_channel(21, 13).
-port_connects_to_channel(22, 14).
-port_connects_to_channel(21, 15).
-port_connects_to_channel(22, 16).
+port_connects_to_channel(3, 1).
+port_connects_to_channel(4, 2).
+port_connects_to_channel(3, 3).
+port_connects_to_channel(4, 4).
 
 % FACT: inflow_connects_to_channel(port_id, channel_id).
 
 % FACT: outflow_connects_to_channel(port_id, channel_id).
-outflow_connects_to_channel(19, 13).
-outflow_connects_to_channel(20, 14).
-outflow_connects_to_channel(19, 15).
-outflow_connects_to_channel(20, 16).
+outflow_connects_to_channel(1, 1).
+outflow_connects_to_channel(2, 2).
+outflow_connects_to_channel(1, 3).
+outflow_connects_to_channel(2, 4).
 
 % FACT: uri_variable(uri_variable_id, variable_name, port_id).

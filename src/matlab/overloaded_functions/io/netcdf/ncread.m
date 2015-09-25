@@ -71,27 +71,13 @@ function vardata = ncread( source, varname, varargin )
    
     exec_input_id_list = runManager.getExecInputIds();
     
-    %if isempty(exec_input_id_list) == 1   
-    %    exec_input_id_list = {source};       
-    %else
-    %    exec_input_id_list = unique(union(exec_input_id_list, source));
-    %end
-    
-    
-    exec_input_id_list.put(source, 'application/netcdf');
-    
     startIndex = regexp( char(source),'http' ); 
     if isempty(startIndex)
-        copyfile(source, runManager.runDir); % copy local source file to the run directory
+        fullSourcePath = [pwd(), filesep,source];
+        exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+    else
+        exec_input_id_list.put(source, 'application/netcdf');
     end
-    
-    % Update the execInputIds in the runManager
-    %runManager.setExecInputIds(exec_input_id_list); 
-   
-    % Debug
-    %exec_input_id_list = runManager.getExecInputIds();
-    %whos exec_input_id_list
-    %size(exec_input_id_list)
-    %celldisp(exec_input_id_list);
+
 end
 

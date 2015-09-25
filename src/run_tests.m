@@ -33,6 +33,7 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 
 suite = TestSuite.fromMethod(testCls, 'testRecord');
 % suite = TestSuite.fromMethod(testCls, 'testView');
+% suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
 
 run(suite);
 
