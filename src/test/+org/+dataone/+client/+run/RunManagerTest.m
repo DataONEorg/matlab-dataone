@@ -153,17 +153,17 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assert(isequal(existed,1));
             
             % Test if there are three views outputs exist 
-            matches = regexp(b(1,:), 'pdf');
+            matches = regexp(b(1,:), '.pdf');
             total = sum(~cellfun('isempty', matches));
             assertEqual(testCase, total, 3);
             
             % Test if there are three yw.properties 
-            matches = regexp(b(1,:), 'properties');
+            matches = regexp(b(1,:), '.properties');
             total = sum(~cellfun('isempty', matches));
             assertEqual(testCase, total, 3);
             
             % Test if there are two prolog dump files
-            matches = regexp(b(1,:), 'P');
+            matches = regexp(b(1,:), '.P');
             total = sum(~cellfun('isempty', matches));
             assertEqual(testCase, total, 2);
         end
