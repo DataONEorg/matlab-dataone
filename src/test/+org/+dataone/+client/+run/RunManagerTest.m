@@ -115,7 +115,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             combFileName = testCase.mgr.getYWCombViewFileName();
             a = dir(testCase.mgr.runDir);
             b = struct2cell(a);
-            existed = any(ismember(b(1,:), combFileName))
+            existed = any(ismember(b(1,:), combFileName));
           
             assert(isequal(existed,1));           
         end
@@ -125,7 +125,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             fprintf('\nIn testRecord() ...\n');
      
             % testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-             testCase.filename = 'test/resources/myScript1.m';
+            testCase.filename = 'test/resources/myScript1.m';
             % testCase.filename = 'test/resources/myScript2.m';
             
             script_path = fullfile(pwd(), filesep, testCase.filename); % Script path 
@@ -141,7 +141,31 @@ classdef RunManagerTest < matlab.unittest.TestCase
             yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
         
-            testCase.mgr.record(script_path, tag);            
+            testCase.mgr.record(script_path, tag);  
+            
+            % Test if one resource map exists 
+            a = dir(testCase.mgr.runDir);
+            b = struct2cell(a);
+          
+            [path, name, ext] = fileparts(testCase.filename);
+            testResMapFileName = ['resourceMap_' name '.rdf'];
+            existed = any(ismember(b(1,:), testResMapFileName));
+            assert(isequal(existed,1));
+            
+            % Test if there are three views outputs exist 
+            matches = regexp(b(1,:), 'pdf');
+            total = sum(~cellfun('isempty', matches));
+            assertEqual(testCase, total, 3);
+            
+            % Test if there are three yw.properties 
+            matches = regexp(b(1,:), 'properties');
+            total = sum(~cellfun('isempty', matches));
+            assertEqual(testCase, total, 3);
+            
+            % Test if there are two prolog dump files
+            matches = regexp(b(1,:), 'P');
+            total = sum(~cellfun('isempty', matches));
+            assertEqual(testCase, total, 2);
         end
         
         
@@ -222,8 +246,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             noop = true;
             
             % With query parameters for startDate or endDate
-            %startDate = '20150804T102515';
-            %endDate = datestr(now, 30);
+            % startDate = '20150804T102515';
+            % endDate = datestr(now, 30);
             
             % Without query parameters for startDate and endDate
             startDate = '';
