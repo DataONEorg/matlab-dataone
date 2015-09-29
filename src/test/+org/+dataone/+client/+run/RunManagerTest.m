@@ -172,7 +172,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testOverloadedNcread(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
             testCase.filename = 'test/resources/myScript1.m';
-            results = runtests(testCase.filename);  
+            results = runtests(testCase.filename);             
         end
         
         
