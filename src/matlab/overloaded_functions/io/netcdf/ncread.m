@@ -58,12 +58,11 @@ function vardata = ncread( source, varname, varargin )
     % in the RunManager DataPackage instance
   
     import org.dataone.client.run.RunManager;
-    % import org.dataone.vocabulary.PROV;
     import java.net.URI;
     
     runManager = RunManager.getInstance();   
-    dataPackage = runManager.getDataPackage();    
-    d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
+    % dataPackage = runManager.getDataPackage();    
+    % d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
     
     % sourceURISet = {URI(source)};
     % predicate = PROV.predicate('used');

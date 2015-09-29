@@ -1,5 +1,5 @@
 function varargout = open(source, varargin)
-%netcdf.open Open NetCDF source.
+% netcdf.open Open NetCDF source.
 %   ncid = netcdf.open(filename) opens an existing file in read-only mode.
 %   ncid = netcdf.open(opendapURL) opens an OPeNDAP NetCDF data source in
 %   read-only mode.
@@ -48,9 +48,8 @@ function varargout = open(source, varargin)
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-
     disp('Called the netcdf.open wrapper function.');
-
+    
     % Remove wrapper netcdf.open from the Matlab path
     overloadedFunctPath = which('netcdf.open');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
@@ -72,6 +71,34 @@ function varargout = open(source, varargin)
     disp('add the parent path of the overloaded netcdf.open function back.');
     
     % Identifiy the file being created/used and add a prov:used/prov:wasGeneratedBy statements 
-    % in the RunManager DataPackage instance
+    % in the RunManager DataPackage instance    
+    import org.dataone.client.run.RunManager;
+    import java.net.URI;
+    
+    runManager = RunManager.getInstance();   
+    
+    exec_input_id_list = runManager.getExecInputIds();
+    
+    switch nargin
+        case 1
+            disp('!1');
+            startIndex = regexp( char(source),'http' ); 
+           
+            if isempty(startIndex)
+                % local file
+                fullSourcePath = [pwd(), filesep, source];
+                exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+            else
+                % url
+                exec_input_id_list.put(source, 'application/netcdf');
+            end
+            %[varargout{:}] = netcdflib ( 'open', filename, 'NOWRITE' );        
+        case 2
+            disp('!2');
+            %[varargout{:}] = netcdflib ( 'open', filename, varargin{1} );
+        case 3
+            disp('!3');
+            %[varargout{:}] = netcdflib ( 'pOpen', filename, varargin{1}, varargin{2} );
+    end
 
 end

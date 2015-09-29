@@ -70,8 +70,8 @@ function ncwrite( source, varname, varargin )
     import java.net.URI;
     
     runManager = RunManager.getInstance();   
-    dataPackage = runManager.getDataPackage();    
-    d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
+    % dataPackage = runManager.getDataPackage();    
+    % d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
 
     exec_output_id_list = runManager.getExecOutputIds();
     
@@ -80,5 +80,5 @@ function ncwrite( source, varname, varargin )
     exec_output_id_list.put(fullSourcePath, 'application/netcdf');
        
     % Debug
-    exec_output_id_list = runManager.getExecOutputIds();
+    % exec_output_id_list = runManager.getExecOutputIds();
 end
