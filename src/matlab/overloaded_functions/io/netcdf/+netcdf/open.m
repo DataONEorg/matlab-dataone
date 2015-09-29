@@ -55,9 +55,10 @@ function varargout = open(source, varargin)
     overloadedFunctPath = which('netcdf.open');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     
-    % Get the parent path of the package of +netcdf
-    pos = strfind(overloaded_func_path,'+');
-    pkgParentPath = overloaded_func_path(1:pos-1);
+    % Get the parent path of the package of +netcdf and the first ?+? is useful, 
+    % because the parent directory to it is really the toolbox directory that we want to add to the path
+    pos = strfind(overloaded_func_path,'+'); % returns an index array
+    pkgParentPath = overloaded_func_path(1:pos(1)-1);
        
     rmpath(pkgParentPath); 
     disp('remove the parent path of the overloaded netcdf.open function.');  
