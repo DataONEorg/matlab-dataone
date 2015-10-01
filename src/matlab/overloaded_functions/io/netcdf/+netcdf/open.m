@@ -78,10 +78,10 @@ function varargout = open(source, varargin)
     runManager = RunManager.getInstance();   
     
     exec_input_id_list = runManager.getExecInputIds();
+    exec_output_id_list = runManager.getExecOutputIds();
     
     switch nargin
         case 1
-            disp('!1');
             startIndex = regexp( char(source),'http' ); 
            
             if isempty(startIndex)
@@ -92,13 +92,27 @@ function varargout = open(source, varargin)
                 % url
                 exec_input_id_list.put(source, 'application/netcdf');
             end
-            %[varargout{:}] = netcdflib ( 'open', filename, 'NOWRITE' );        
-        case 2
-            disp('!2');
-            %[varargout{:}] = netcdflib ( 'open', filename, varargin{1} );
-        case 3
-            disp('!3');
-            %[varargout{:}] = netcdflib ( 'pOpen', filename, varargin{1}, varargin{2} );
+     
+        otherwise           
+            if strcmp(varargin{1}, 'WRITE') ~= 0
+                % Read-write access
+                
+                disp('> > > mode: WRITE !');
+                
+                fullSourcePath = [pwd(), filesep, source];
+                exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                exec_output_id_list.put(fullSourcePath, 'application/netcdf');
+            
+            elseif any(strcmp(varargin{1}, {'NOWRITE', 'NC_NOWRITE'})) ~= 0
+                % Read-only access (Default)
+                
+                disp('> > > mode: NOWRITE/NC_NOWRITE !');
+                
+                fullSourcePath = [pwd(), filesep, source];
+                exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+            else
+                % 'SHARE' Synchronous file updates
+            end        
     end
 
 end

@@ -70,9 +70,7 @@ function ncwrite( source, varname, varargin )
     import java.net.URI;
     
     runManager = RunManager.getInstance();   
-    % dataPackage = runManager.getDataPackage();    
-    % d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
-
+   
     exec_output_id_list = runManager.getExecOutputIds();
     
     fullSourcePath = [pwd() filesep source];

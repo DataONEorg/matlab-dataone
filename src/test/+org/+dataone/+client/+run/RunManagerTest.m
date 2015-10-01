@@ -210,6 +210,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
+        function testSaveExecution(testCase)
+            fprintf('\nIn testSaveExecution() ...\n');
+            
+            execDBName = testCase.mgr.executionDatabaseName; 
+            
+        end
+        
+        
         function testListRuns(testCase)
             fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
             
