@@ -86,7 +86,7 @@ function varargout = open(source, varargin)
            
             if isempty(startIndex)
                 % local file
-                fullSourcePath = [pwd(), filesep, source];
+                fullSourcePath = which(source);
                 exec_input_id_list.put(fullSourcePath, 'application/netcdf');
             else
                 % url
@@ -99,7 +99,8 @@ function varargout = open(source, varargin)
                 
                 disp('> > > mode: WRITE !');
                 
-                fullSourcePath = [pwd(), filesep, source];
+                %fullSourcePath = [pwd(), filesep, source];
+                fullSourcePath = which(source);
                 exec_input_id_list.put(fullSourcePath, 'application/netcdf');
                 exec_output_id_list.put(fullSourcePath, 'application/netcdf');
             
@@ -108,7 +109,8 @@ function varargout = open(source, varargin)
                 
                 disp('> > > mode: NOWRITE/NC_NOWRITE !');
                 
-                fullSourcePath = [pwd(), filesep, source];
+                %fullSourcePath = [pwd(), filesep, source];
+                fullSourcePath = which(source);
                 exec_input_id_list.put(fullSourcePath, 'application/netcdf');
             else
                 % 'SHARE' Synchronous file updates

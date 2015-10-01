@@ -125,10 +125,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             fprintf('\nIn testRecord() ...\n');
      
             % testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-            testCase.filename = 'test/resources/myScript1.m';
-            % testCase.filename = 'test/resources/myScript2.m';
+            % testCase.filename = 'test/resources/myScript1.m';
+            testCase.filename = 'test/resources/myScript2.m';
             
-            script_path = fullfile(pwd(), filesep, testCase.filename); % Script path 
+            %script_path = fullfile(pwd(), filesep, testCase.filename); % Script path 
+            script_path = which(testCase.filename);
             
             tag = 'test_view'; % TODO: multiple tags passed in
           
@@ -255,7 +256,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testView(testCase)
             fprintf('\n\nTest for view(packageId) function:\n');
             sessions = {'details', 'generated'};
-            pkgId = 'urn:uuid:d1f43e4a-73b2-43ea-a93d-a81db6e961e7';
+            pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
             testCase.mgr.view(pkgId, sessions); % view the selected run
             
             sessions = {};

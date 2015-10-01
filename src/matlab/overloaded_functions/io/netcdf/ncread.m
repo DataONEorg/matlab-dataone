@@ -72,7 +72,8 @@ function vardata = ncread( source, varname, varargin )
     
     startIndex = regexp( char(source),'http' ); 
     if isempty(startIndex)
-        fullSourcePath = [pwd(), filesep,source];
+        %fullSourcePath = [pwd(), filesep,source];
+        fullSourcePath = which(source);
         exec_input_id_list.put(fullSourcePath, 'application/netcdf');
     else
         exec_input_id_list.put(source, 'application/netcdf');

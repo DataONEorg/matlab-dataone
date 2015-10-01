@@ -565,7 +565,7 @@ classdef RunManager < hgsetget
                 
                 outSourceFmt = execOutSources.get(fullSourcePath);
                 [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);
-                outSource = sourceName;
+                outSource = [sourceName sourceExt];
                             
                 outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outSource]);
                 runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.execURI );
@@ -586,7 +586,7 @@ classdef RunManager < hgsetget
                 if isempty(startIndex) 
                     disp('non-url');
                     [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);               
-                    inSource = sourceName;
+                    inSource = [sourceName sourceExt];
                     inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inSource]);
                     runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI ); 
                     
@@ -1471,7 +1471,7 @@ classdef RunManager < hgsetget
            cd(selectedRunDir);
 
            [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = runManager.getRelationships();
-                   
+           
            % Read information from the selectedRuns returned by the execution summary database
            filePath = selectedRuns{1, 2};
            [pathstr,scriptName,ext] = fileparts(filePath);
@@ -1542,7 +1542,9 @@ classdef RunManager < hgsetget
                    fprintf('\n\n[GENERATED]: %d Items used by this run\n', length(wasGeneratedByStruct));
                    fprintf('------------------------------------------\n');
                    for i = 1:length(wasGeneratedByStruct)
+                      
                        f = dir(wasGeneratedByStruct(i).Subject);
+                      
                        generatedFileStruct(i,1).LocalName = f.name; 
                        generatedFileStruct(i,1).Size = f.bytes; %todo: kb
                        generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
