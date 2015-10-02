@@ -75,7 +75,6 @@ function ncwrite( source, varname, varargin )
     
     %fullSourcePath = [pwd() filesep source];
     fullSourcePath = which(source);
-    fullSourcePath
     
     exec_output_id_list.put(fullSourcePath, 'application/netcdf');
        

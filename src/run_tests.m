@@ -33,8 +33,10 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 
 % suite = TestSuite.fromMethod(testCls, 'testRecord');
  suite = TestSuite.fromMethod(testCls, 'testView');
+% suite = TestSuite.fromMethod(testCls, 'testPublishPackageFromDisk');
 % suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen');
+
 %%% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); 
 %%% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite');
 

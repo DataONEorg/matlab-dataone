@@ -86,10 +86,12 @@ function varargout = open(source, varargin)
            
             if isempty(startIndex)
                 % local file
+                disp('local file');
                 fullSourcePath = which(source);
                 exec_input_id_list.put(fullSourcePath, 'application/netcdf');
             else
                 % url
+                disp('url');
                 exec_input_id_list.put(source, 'application/netcdf');
             end
      

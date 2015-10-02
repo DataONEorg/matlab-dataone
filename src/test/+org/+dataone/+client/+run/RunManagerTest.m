@@ -126,10 +126,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
      
             % testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
             % testCase.filename = 'test/resources/myScript1.m';
-            testCase.filename = 'test/resources/myScript2.m';
-            
-            %script_path = fullfile(pwd(), filesep, testCase.filename); % Script path 
-            script_path = which(testCase.filename);
+             testCase.filename = 'test/resources/myScript2.m';
+            % testCase.filename = '/Users/syc/Documents/matlab-dataone/src/test/resources/myScript2.m';
+ 
+            script_path = which(testCase.filename); % get the absolute path of the script
             
             tag = 'test_view'; % TODO: multiple tags passed in
           
@@ -214,8 +214,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testSaveExecution(testCase)
             fprintf('\nIn testSaveExecution() ...\n');
             
-            execDBName = testCase.mgr.executionDatabaseName; 
+            execDBName = testCase.mgr.executionDatabaseName;  
             
+            % Todo:
         end
         
         
@@ -255,6 +256,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testView(testCase)
             fprintf('\n\nTest for view(packageId) function:\n');
+            
             sessions = {'details', 'generated'};
             pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
             testCase.mgr.view(pkgId, sessions); % view the selected run
@@ -269,7 +271,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testPublishPackageFromDisk(testCase)
             fprintf('\n\nTest for publishPackageFromDisk() function:\n');
-            pkgId = 'urn:uuid:0969149b-4d42-4010-a77a-af80ed358ee9';
+            
+            pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
             set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
             testCase.mgr.publishPackageFromDisk(pkgId);
         end
