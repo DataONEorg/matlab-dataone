@@ -179,10 +179,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             testCase.mgr.setExecInputIds(execInputIds);
             testCase.mgr.setExecOutputIds(execOutputIds);
-            
-            results = runtests(testCase.filename);             
+    
+            run(testCase.filename);
         end
         
+              
         function testOverloadedNCread(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
             testCase.filename = 'test/resources/myScript1.m';
@@ -192,8 +193,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             testCase.mgr.setExecInputIds(execInputIds);
             testCase.mgr.setExecOutputIds(execOutputIds);
-            
-            results = runtests(testCase.filename);             
+         
+            run(testCase.filename);
         end
         
         
@@ -207,10 +208,25 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.setExecInputIds(execInputIds);
             testCase.mgr.setExecOutputIds(execOutputIds);
             
-            results = runtests(testCase.filename);  
+            % results = runtests(testCase.filename);  
+            run(testCase.filename);
         end
         
         
+        function testOverloadedCSVread(testCase)
+            fprintf('\nIn testOverloadedCSVread() ...\n');            
+            testCase.filename = 'test/resources/myScript4.m';
+            
+            execInputIds = java.util.Hashtable();
+            execOutputIds = java.util.Hashtable();
+            
+            testCase.mgr.setExecInputIds(execInputIds);
+            testCase.mgr.setExecOutputIds(execOutputIds);
+  
+            run(testCase.filename);
+        end
+        
+                
         function testSaveExecution(testCase)
             fprintf('\nIn testSaveExecution() ...\n');
             
