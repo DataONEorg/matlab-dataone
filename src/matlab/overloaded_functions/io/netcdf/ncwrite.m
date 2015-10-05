@@ -74,8 +74,10 @@ function ncwrite( source, varname, varargin )
     exec_output_id_list = runManager.getExecOutputIds();
     
     %fullSourcePath = [pwd() filesep source];
-    fullSourcePath = which(source);
-    
+    %fullSourcePath = which(source);
+    [status, struc] = fileattrib(source);
+    fullSourcePath = struc.Name;
+                
     exec_output_id_list.put(fullSourcePath, 'application/netcdf');
        
     % Debug
