@@ -1,4 +1,4 @@
-%% @begin main
+%% @begin C3_C4_map_present_NA
 %  @in mstmip_SYNMAP_NA_QD.nc @as SYNMAP_land_cover_map_data
 %  @in mean_airtemp @uri file:c3c4input/monthly/2000-2010/air.2m_monthly_2000_2010.mean.{month}.nc
 %  @in mean_precip @uri file:c3c4input/monthly/2000-2010/apcp_monthly_2000_2010_mean.{month}.nc
@@ -355,4 +355,4 @@ netcdf.close(moncid)
 %% @end generate_netcdf_file_for_Grass_fraction
 
 
-%% @end main
+%% @end C3_C4_map_present_NA

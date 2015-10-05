@@ -124,14 +124,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testRecord(testCase)
             fprintf('\nIn testRecord() ...\n');
      
-            % testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+             testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
             % testCase.filename = 'test/resources/myScript1.m';
-             testCase.filename = 'test/resources/myScript2.m';
+            % testCase.filename = 'test/resources/myScript2.m';
             % testCase.filename = '/Users/syc/Documents/matlab-dataone/src/test/resources/myScript2.m';
  
             script_path = which(testCase.filename); % get the absolute path of the script
             
-            tag = 'test_view'; % TODO: multiple tags passed in
+            tag = 'c3_c4_na'; % TODO: multiple tags passed in
           
             yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
             testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
@@ -147,7 +147,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % Test if one resource map exists 
             a = dir(testCase.mgr.runDir);
             b = struct2cell(a);
-          
+            
             [path, name, ext] = fileparts(testCase.filename);
             testResMapFileName = ['resourceMap_' name '.rdf'];
             existed = any(ismember(b(1,:), testResMapFileName));
@@ -164,8 +164,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assertEqual(testCase, total, 3);
             
             % Test if there are two prolog dump files
-            matches = regexp(b(1,:), '.P');
-            total = sum(~cellfun('isempty', matches));
+            matches = regexp(b(1,:), 'extractfacts');
+            total1 = sum(~cellfun('isempty', matches));
+            matches = regexp(b(1,:), 'modelfacts');
+            total2 = sum(~cellfun('isempty', matches));
+            total = total1 + total2;
             assertEqual(testCase, total, 2);
         end
         
@@ -207,8 +210,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             testCase.mgr.setExecInputIds(execInputIds);
             testCase.mgr.setExecOutputIds(execOutputIds);
-            
-            % results = runtests(testCase.filename);  
+  
             run(testCase.filename);
         end
         
