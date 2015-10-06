@@ -228,7 +228,22 @@ classdef RunManagerTest < matlab.unittest.TestCase
             run(testCase.filename);
         end
         
+        
                 
+        function testOverloadedLoad(testCase)
+            fprintf('\nIn testOverloadedLoad() ...\n');            
+            testCase.filename = 'test/resources/myScript5.m';
+            
+            execInputIds = java.util.Hashtable();
+            execOutputIds = java.util.Hashtable();
+            
+            testCase.mgr.setExecInputIds(execInputIds);
+            testCase.mgr.setExecOutputIds(execOutputIds);
+  
+            run(testCase.filename);
+        end
+        
+        
         function testSaveExecution(testCase)
             fprintf('\nIn testSaveExecution() ...\n');
             

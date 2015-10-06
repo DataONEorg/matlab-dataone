@@ -24,7 +24,9 @@
 
 % Create a suite of all client tests 
 
+warning off MATLAB:dispatcher:nameConflict;
 addpath(genpath(pwd));
+warning on MATLAB:dispatcher:nameConflict;
 
 import matlab.unittest.TestSuite;
 % suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
@@ -38,8 +40,9 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite');
- suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread');
-
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread');
+ suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad');
+ 
 run(suite);
 
 rmpath(genpath(pwd));
