@@ -60,9 +60,11 @@ function m = csvread(source, varargin)
     runManager = RunManager.getInstance();   
  
     exec_input_id_list = runManager.getExecInputIds();
-    exec_input_id_list
     
-    fullSourcePath = which(source);
+    %fullSourcePath = which(source);
+    [status, struc] = fileattrib(source);
+    fullSourcePath = struc.Name;
+    
     exec_input_id_list.put(fullSourcePath, 'text/csv');
 
 end

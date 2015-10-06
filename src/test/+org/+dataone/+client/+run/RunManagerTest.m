@@ -276,7 +276,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             fprintf('\n\nTest for view(packageId) function:\n');
             
             sessions = {'details', 'generated'};
-            pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
+            pkgId = 'urn:uuid:34e94476-bdcf-45d7-83b4-ea977248dd35';
             testCase.mgr.view(pkgId, sessions); % view the selected run
             
             sessions = {};
