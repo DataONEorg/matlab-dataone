@@ -26,10 +26,10 @@ classdef Configuration < hgsetget & dynamicprops
         account_name = '';
       
         % The source member node identifier
-        source_member_node_id  = 'urn:node:';
+        source_member_node_id  = 'urn:node:XXXX';
         
         % The target member node identifier
-        target_member_node_id = 'urn:node:';
+        target_member_node_id = 'urn:node:XXXX';
         
         % The default object format identifier when creating system metadata and uploading files to a member node. 
         format_id = 'application/octet-stream';
@@ -56,7 +56,7 @@ classdef Configuration < hgsetget & dynamicprops
         blocked_replica_node_list = '';
         
         % The base URL of the DataONE coordinating node server
-        coordinating_node_base_url = 'https://cn-dev.test.dataone.org/cn/v1/resolve/';
+        coordinating_node_base_url = 'https://cn-dev.test.dataone.org/cn';
         
         % The researcher's ORCID
         orcid_identifier = '';
@@ -91,7 +91,7 @@ classdef Configuration < hgsetget & dynamicprops
         % The directory used to store persistent configuration file Eg: $HOME/.d1/configuration.json
         persistent_configuration_file_name = '';
         
-        %% YesWorkflow configuration
+        % YesWorkflow configuration
         
         % A flag indicating whether to generate the graphic
         generate_workflow_graphic = true;
@@ -122,8 +122,20 @@ classdef Configuration < hgsetget & dynamicprops
             % CONFIGURATION A class used to set configuration options for the DataONE Toolbox  
             
             import org.dataone.configuration.Settings;
-            
-            Settings.getConfiguration().setProperty('D1Client.CN_URL', 'https://cn-dev.test.dataone.org/cn');
+            if ( ~isempty(configuration.coordinating_node_base_url) )
+            Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                configuration.coordinating_node_base_url);
+            else
+                warning(['The DataONE Coordinating Node configuration ' ...
+                    'parameter is not set and is needed by the publish() ' ...
+                    'function. Defaulting it to ' ...
+                    'https://cn-dev.test.dataone.org/cn']);
+                configuration.coordinating_node_base_url = ...
+                    'https://cn-dev.test.dataone.org/cn';
+                Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                configuration.coordinating_node_base_url);
+
+            end
             
             % Find path for persistent_configuration_file_name
             if ispc
