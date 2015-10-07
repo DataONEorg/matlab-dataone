@@ -1727,7 +1727,7 @@ classdef RunManager < hgsetget
             runManager.execution.publish_time = datestr( now,'yyyymmddTHHMMSS' );
         end  
        
-         
+
         function package_id = publishPackageFromDisk(runManager, packageId)
             % PUBLISHPACKAGEFROMDISK Uploads a data package from a folder on disk
             % to the configured DataONE Member Node server.
@@ -1894,6 +1894,21 @@ classdef RunManager < hgsetget
         function combFileName = getYWCombViewFileName(runManager)
             combFileName = runManager.combinedViewPdfFileName;
         end
+
+        
+        function science_memtadata = getMetadata(runManager, runId)
+            % GETMETADATA retrieves the metadata describing data objects of an execution
+            
+            % TODO: implement this
+        end
+
+        
+        function science_memtadata = putMetadata(runManager, runId, file)
+            % PUTMETADATA stores (or replaces) the metadata describing data objects of an execution
+            
+            % TODO: implement this
+        end
+
     end
 
 end
