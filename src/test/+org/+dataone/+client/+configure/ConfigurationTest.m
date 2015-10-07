@@ -45,7 +45,7 @@ classdef ConfigurationTest < matlab.unittest.TestCase
             import org.dataone.client.configure.Configuration;
    
             c = Configuration();
-            set(c, 'debug', 'true');
+            set(c, 'debug', true);
             
             if ispc
                 home_dir = getenv('USERPROFILE');
