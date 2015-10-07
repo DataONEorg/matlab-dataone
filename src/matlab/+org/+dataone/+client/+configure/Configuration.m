@@ -105,9 +105,12 @@ classdef Configuration < hgsetget & dynamicprops
         % A token string used to store authentication information (to be verified with Chris May-31-2015)
         authentication_token = '';
         
-        % Science metadata template file location
+        % The science metadata template file location
         science_metadata_template_file = '';
-        
+     
+        % The science metadata configuration instance for the run
+        science_metadata_config;
+
         % The directory of the installed Matlab DataONE Toolbox
         matlab_dataone_toolbox_directory = '';
                 
@@ -193,10 +196,14 @@ classdef Configuration < hgsetget & dynamicprops
             end
             
             if strcmp(paraName, 'authentication_token')
-                disp(['Your authentication token has been set in your configuration file. Please be careful to safeguard this token.' ...
-                      'Anyone with access to it can call operations as you. Be careful to not add this token to any published scripts,' ...
-                      'but rather set it only using a command prompt. This token will expire at {add the expiration time from the token here}.' ...
-                      'Please log in again and set the token again after it expires.']);
+                warning('Configuration:SecurityReminder', ...
+                    ['Your authentication token has been set in your configuration file. \n' ...
+                    'Please be careful to safeguard this token.\n' ...
+                    'Anyone with access to it can call operations as you. \n' ...
+                    'Be careful to not add this token to any published scripts, \n' ...
+                    'but rather set it only using a command prompt. This \n' ...
+                    'token will expire at {add the expiration time from the token here}.' ...
+                    'Please log in again and set the token again after it expires.']);
             end
             
             % Set value of a field

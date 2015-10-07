@@ -4,3 +4,4 @@
 %
 % Classes
 %   Configuration - A class used to configure, save, and load run properties.
+%   ScienceMetadataConfig - A class used to configure, save, and load science metadata properties.
