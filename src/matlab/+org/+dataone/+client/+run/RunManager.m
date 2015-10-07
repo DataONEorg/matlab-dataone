@@ -872,11 +872,15 @@ classdef RunManager < hgsetget
             % (double check !)
             % RunManager.setJavaClassPath();
                        
+            warning off MATLAB:dispatcher:nameConflict;
+            
             % Set the java class path
             RunManager.setMatlabPath();
             
             % Set the overloaded io functions paths
             RunManager.setIOFunctionPath();
+            
+            warning on MATLAB:dispatcher:nameConflict;
 
             % Create a default configuration object if one isn't passed in
             if ( nargin < 1 )
@@ -946,7 +950,7 @@ classdef RunManager < hgsetget
             % SETIOFUNCTIONPATH adds all overloaded I/O functions found in 
             % $matalab-dataone/src/matlab/overloaded_functions/io to the top of Matlab path
             fprintf('\nIn setIOFunctionPath() ... \n');
-            
+                        
             % Determine the src directory relative to the RunManager location
             filePath = mfilename('fullpath');         
             matlab_dataone_dir_array = strsplit(filePath, filesep);           
@@ -956,8 +960,19 @@ classdef RunManager < hgsetget
                     filesep) ...
                     filesep 'matlab' filesep 'overloaded_functions' filesep 'io' filesep];
            
-           % Add subdirectories of $matalab-dataone/src/matlab/overloaded_functions/io to the Matlab path,
-           addpath(genpath(matlab_dataone_io_dir), '-begin');           
+           % Add subdirectories of $matalab-dataone/src/matlab/overloaded_functions/io to the Matlab path,          
+           addpath(genpath(matlab_dataone_io_dir), '-begin');  
+          
+           % Add subdirectories of the overloaded builtin functions to the
+           % Matlab path $matalab-dataone/src/matlab/overloaded_functions/builtinFunctions                
+           matlab_dataone_builtin_dir = ...
+                [strjoin( ...
+                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 6), ...
+                    filesep) ...
+                    filesep 'matlab' filesep 'overloaded_functions' filesep 'builtinFunctions' filesep];
+           
+           addpath(genpath(matlab_dataone_builtin_dir), '-begin');  
+           
         end        
     end
     
@@ -1139,8 +1154,10 @@ classdef RunManager < hgsetget
                     ' was: ' runManager.runDir, message]);
                 runManager.execution.error_message = [runManager.execution.error_message ' ' message]; 
             end
-          
+            
+            warning on MATLAB:dispatcher:nameConflict;
             addpath(runManager.runDir);
+            warning on MATLAB:dispatcher:nameConflict;
             
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v1.itk.DataPackage;
@@ -1167,7 +1184,10 @@ classdef RunManager < hgsetget
             runManager.prov_capture_enabled = true;
             [pathstr, script_name, ext] = ...
                fileparts(runManager.execution.software_application);
+            
+            warning off MATLAB:dispatcher:nameConflict;
             addpath(pathstr);
+            warning on MATLAB:dispatcher:nameConflict;
 
             try
                 eval(script_name);             
