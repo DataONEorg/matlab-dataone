@@ -38,11 +38,12 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testPublishPackageFromDisk');
 % suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen');
-% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); % Problem: load coast
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite');
-% suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread');
- suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad');
- 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad');
+suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); 
+
 run(suite);
 
 rmpath(genpath(pwd));

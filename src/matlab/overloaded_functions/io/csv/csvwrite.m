@@ -64,9 +64,11 @@ function csvwrite(source, varargin)
    
     exec_output_id_list = runManager.getExecOutputIds();
 
-    %fullSourcePath = which(source);
-    [status, struc] = fileattrib(source);
-    fullSourcePath = struc.Name;
+    fullSourcePath = which(source);
+    if isempty(fullSourcePath)
+        [status, struc] = fileattrib(source);
+        fullSourcePath = struc.Name;
+    end
     
     exec_output_id_list.put(fullSourcePath, 'text/csv');
 

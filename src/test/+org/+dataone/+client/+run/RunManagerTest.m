@@ -231,8 +231,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
                 
         function testOverloadedLoad(testCase)
+            % Todo: load coast (not working)
             fprintf('\nIn testOverloadedLoad() ...\n');            
             testCase.filename = 'test/resources/myScript5.m';
+            % testCase.filename = 'test/resources/myScript1.m'; % load coast
             
             execInputIds = java.util.Hashtable();
             execOutputIds = java.util.Hashtable();
@@ -244,6 +246,21 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
+        function testOverloadedDlmread(testCase)
+            % Todo: load coast (not working)
+            fprintf('\nIn testOverloadedDlmread ...\n');            
+            testCase.filename = 'test/resources/myScript6.m';
+            
+            execInputIds = java.util.Hashtable();
+            execOutputIds = java.util.Hashtable();
+            
+            testCase.mgr.setExecInputIds(execInputIds);
+            testCase.mgr.setExecOutputIds(execOutputIds);
+  
+            run(testCase.filename);
+        end
+        
+                
         function testSaveExecution(testCase)
             fprintf('\nIn testSaveExecution() ...\n');
             

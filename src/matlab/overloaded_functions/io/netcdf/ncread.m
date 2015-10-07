@@ -61,24 +61,21 @@ function vardata = ncread( source, varname, varargin )
     import java.net.URI;
     
     runManager = RunManager.getInstance();   
-    % dataPackage = runManager.getDataPackage();    
-    % d1_cn_resolve_endpoint = runManager.getD1_CN_Resolve_Endpoint();
-    
-    % sourceURISet = {URI(source)};
-    % predicate = PROV.predicate('used');
-    % execURI = URI([d1_cn_resolve_endpoint  'execution_' runManager.runId]);
    
     exec_input_id_list = runManager.getExecInputIds();
     
     startIndex = regexp( char(source),'http' ); 
     if isempty(startIndex)
-        %fullSourcePath = [pwd(), filesep,source];
-        %fullSourcePath = which(source);
-        [status, struc] = fileattrib(source);
-        fullSourcePath = struc.Name;
+        % local file
+        fullSourcePath = which(source);
+        if isempty(fullSourcePath)
+            [status, struc] = fileattrib(source);
+            fullSourcePath = struc.Name;
+        end
                 
         exec_input_id_list.put(fullSourcePath, 'application/netcdf');
     else
+        % url
         exec_input_id_list.put(source, 'application/netcdf');
     end
 

@@ -87,9 +87,11 @@ function varargout = open(source, varargin)
             if isempty(startIndex)
                 % local file
                 disp('local file');
-                %fullSourcePath = which(source);
-                [status, struc] = fileattrib(source);
-                fullSourcePath = struc.Name;
+                fullSourcePath = which(source);
+                if isempty(fullSourcePath)
+                    [status, struc] = fileattrib(source);
+                    fullSourcePath = struc.Name;
+                end
                 
                 exec_input_id_list.put(fullSourcePath, 'application/netcdf');
             else
@@ -100,28 +102,27 @@ function varargout = open(source, varargin)
      
         otherwise           
             if strcmp(varargin{1}, 'WRITE') ~= 0
-                % Read-write access
-                
+                % Read-write access                
                 disp('> > > mode: WRITE !');
                 
-                %fullSourcePath = [pwd(), filesep, source];
-                %fullSourcePath = which(source);
-                [status, struc] = fileattrib(source);
-                fullSourcePath = struc.Name;
+                fullSourcePath = which(source);
+                if isempty(fullSourcePath)
+                    [status, struc] = fileattrib(source);
+                    fullSourcePath = struc.Name;
+                end
                 
                 exec_input_id_list.put(fullSourcePath, 'application/netcdf');
                 exec_output_id_list.put(fullSourcePath, 'application/netcdf');
             
             elseif any(strcmp(varargin{1}, {'NOWRITE', 'NC_NOWRITE'})) ~= 0
-                % Read-only access (Default)
-                
+                % Read-only access (Default)                
                 disp('> > > mode: NOWRITE/NC_NOWRITE !');
                 
-                %fullSourcePath = [pwd(), filesep, source];
-                %fullSourcePath = which(source);
-                
-                [status, struc] = fileattrib(source);
-                fullSourcePath = struc.Name;
+                fullSourcePath = which(source);
+                if isempty(fullSourcePath)
+                    [status, struc] = fileattrib(source);
+                    fullSourcePath = struc.Name;
+                end
                 
                 exec_input_id_list.put(fullSourcePath, 'application/netcdf');
             else

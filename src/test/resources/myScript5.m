@@ -1,4 +1,4 @@
-filename = '/Applications/MATLAB_R2015a.app/toolbox/matlab/demos/durer.mat';
+filename = 'durer.mat';
 myVars = {'X','caption'};
 S = load(filename,myVars{:})
 
