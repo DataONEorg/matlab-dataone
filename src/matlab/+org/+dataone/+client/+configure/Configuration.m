@@ -105,15 +105,14 @@ classdef Configuration < hgsetget & dynamicprops
         % A token string used to store authentication information (to be verified with Chris May-31-2015)
         authentication_token = '';
         
-    end
-
-    properties (Access = private)
-        % A boolean property that enables or disables debugging 
-        debug = false;   
-    end
-    
-    methods(Static)
+        % Science metadata template file location
+        science_metadata_template_file = '';
         
+        % The directory of the installed Matlab DataONE Toolbox
+        matlab_dataone_toolbox_directory = '';
+                
+        % A boolean property that enables or disables debugging 
+        debug = false; 
     end
     
     methods
@@ -121,52 +120,12 @@ classdef Configuration < hgsetget & dynamicprops
         function configuration = Configuration()
             % CONFIGURATION A class used to set configuration options for the DataONE Toolbox  
             
-            import org.dataone.configuration.Settings;
-            if ( ~isempty(configuration.coordinating_node_base_url) )
-            Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
-                configuration.coordinating_node_base_url);
-            else
-                warning(['The DataONE Coordinating Node configuration ' ...
-                    'parameter is not set and is needed by the publish() ' ...
-                    'function. Defaulting it to ' ...
-                    'https://cn-dev.test.dataone.org/cn']);
-                configuration.coordinating_node_base_url = ...
-                    'https://cn-dev.test.dataone.org/cn';
-                Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
-                configuration.coordinating_node_base_url);
-
-            end
+            setMatlabDataONEToolboxDirectory(configuration);
+            setCoordinatingNodeURL(configuration);
+            setPersistentConfigFile(configuration);
+            setAccountName(configuration);
+            setMetadataTemplateFile(configuration);
             
-            % Find path for persistent_configuration_file_name
-            if ispc
-                configuration.persistent_configuration_file_name = fullfile(getenv('userprofile'), filesep, '.d1', filesep, 'configuration.json');  
-            elseif isunix
-                configuration.persistent_configuration_file_name = fullfile(getenv('HOME'), filesep, '.d1', filesep, 'configuration.json');
-            else
-                error('Current platform not supported.');
-            end
-            
-            % Call loadConfig() with the default path location to the
-            % configuration file on disk
-            loadConfig(configuration,'');
-            
-            if ( isempty(configuration.account_name) )
-                try
-                if ( ispc)
-                    configuration.account_name = getenv('USERNAME');
-                    
-                elseif ( isunix )
-                    configuration.account_name = getenv('USER');
-                    
-                end
-                catch configurationError
-                    if ( configuration.debug )
-                        warn(['Could not set the user account name from ' ...
-                             'the system environment variables: ' ...
-                             configurationError.message]); 
-                    end
-                end
-            end
         end
         
         function configuration = set(configuration, name, value)
@@ -392,5 +351,125 @@ classdef Configuration < hgsetget & dynamicprops
                 propName = ''; propValue = '';
             end            
         end      
-    end    
+    end  
+    
+    methods (Access='private')
+        
+        function setPersistentConfigFile(configuration)
+        % SETPERSISTENTCONFIGFILE set the path to the persistent configuration file.
+                        % Find path for persistent_configuration_file_name
+            if ispc
+                configuration.persistent_configuration_file_name = ...
+                    fullfile(getenv('userprofile'), filesep, ...
+                    '.d1', filesep, 'configuration.json');  
+            elseif isunix
+                configuration.persistent_configuration_file_name = ...
+                    fullfile(getenv('HOME'), filesep, '.d1', ...
+                    filesep, 'configuration.json');
+            else
+                error('Current platform not supported.');
+            end
+            
+            % Call loadConfig() with the default path location to the
+            % configuration file on disk
+            loadConfig(configuration,'');
+            
+        end
+        
+        function setMetadataTemplateFile(configuration)
+        % SETMETADATATEMPLATEFILE sets the path to the science metadata template file.
+
+            shipped_template_file_path = ...
+                fullfile(configuration.matlab_dataone_toolbox_directory, ...
+                    'lib', 'xml', 'templates', 'eml211', 'eml211-template.xml');
+            default_template_file_path = ...
+                fullfile(configuration.provenance_storage_directory, ...
+                    'science_metadata_template.xml');
+        
+            % If the field is not set, set it and copy the default file
+            if ( isempty(configuration.science_metadata_template_file) )                
+                configuration.science_metadata_template_file = ...
+                    default_template_file_path;
+                
+            end  
+            
+            % Now copy the template to the default location, backing up the original
+            if ( exist(configuration.science_metadata_template_file, 'file') )
+                copyfile(default_template_file_path, ...
+                    [default_template_file_path '.bak']);
+            end
+            
+            try
+                copyfile(shipped_template_file_path, ...
+                    configuration.science_metadata_template_file);
+                if ( configuration.debug )
+                    disp(['Copied ' shipped_template_file_path ' to ' ...
+                        configuration.science_metadata_template_file]);
+                end
+                
+            catch IOError
+                error('Configuration:setMetadataTemplateFile', ...
+                    ['Could not copy the science metadata template ' ...
+                    'file from \n' shipped_template_file_path ' to \n' ...
+                    configuration.science_metadata_template_file ...
+                    '\nPlease check that the file exists and is readable.']);
+            end
+
+        end
+        
+        function setAccountName(configuration)
+        % SETACCOUNTNAME sets the system account name in the configuration
+            
+            if ( isempty(configuration.account_name) )
+                try
+                    if ( ispc)
+                        configuration.account_name = getenv('USERNAME');
+                        
+                    elseif ( isunix )
+                        configuration.account_name = getenv('USER');
+                        
+                    end
+                catch configurationError
+                    if ( configuration.debug )
+                        warn(['Could not set the user account name from ' ...
+                             'the system environment variables: ' ...
+                             configurationError.message]); 
+                    end
+                end
+            end
+        end
+        
+        function setCoordinatingNodeURL(configuration)
+        % SETCOORDINATINGNODEURL sets the URL of the DataONE Coordinating Node
+            
+            import org.dataone.configuration.Settings;
+            if ( ~isempty(configuration.coordinating_node_base_url) )
+            Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                configuration.coordinating_node_base_url);
+            else
+                if ( configuration.debug )
+                    warn(['The DataONE Coordinating Node configuration ' ...
+                          'parameter is not set and is needed by the ' ...
+                          'publish() function. Defaulting it to ' ...
+                          'https://cn-dev.test.dataone.org/cn']);
+                end
+
+                configuration.coordinating_node_base_url = ...
+                    'https://cn-dev.test.dataone.org/cn';
+                Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                configuration.coordinating_node_base_url);
+
+            end
+        end
+        
+        function setMatlabDataONEToolboxDirectory(configuration)
+        % SETMATLABDATAONETOOLBOXDIRECTORY sets the Matlab DataONE Toolbox directory path
+            
+            mpath = path;
+            mpaths = strsplit(mpath, ':');
+            indxs = strfind(mpaths, 'matlab-dataone');
+            configuration.matlab_dataone_toolbox_directory = ...
+                mpath(1:indxs{1} + 13); % Add the rest of the 'matlab-dataone' string
+        end
+    end
 end
