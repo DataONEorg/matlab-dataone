@@ -37,36 +37,44 @@ function m = csvread(source, varargin)
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-    disp('Called the csvread wrapper function.');
-
+    import org.dataone.client.run.RunManager;
+    
+    runManager = RunManager.getInstance();   
+ 
+    if ( runManager.configuration.debug)
+        disp('Called the csvread wrapper function.');
+    end
+    
     % Remove wrapper csvread from the Matlab path
     overloadedFunctPath = which('csvread');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
-    disp('remove the path of the overloaded csvread function.');  
     
+    if ( runManager.configuration.debug)
+        disp('remove the path of the overloaded csvread function.');  
+    end
+     
     % Call csvread 
     m = csvread( source, varargin{:} );
     
     % Add the wrapper csvread back to the Matlab path
     addpath(overloaded_func_path, '-begin');
-    disp('add the path of the overloaded csvread function back.');
+    
+    if ( runManager.configuration.debug)
+        disp('add the path of the overloaded csvread function back.');
+    end
     
     % Identifiy the file being used and add a prov:used statement 
     % in the RunManager DataPackage instance  
-    import org.dataone.client.run.RunManager;
-    import java.net.URI;
+    if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+        exec_input_id_list = runManager.getExecInputIds();
     
-    runManager = RunManager.getInstance();   
- 
-    exec_input_id_list = runManager.getExecInputIds();
+        fullSourcePath = which(source);
+        if isempty(fullSourcePath)
+            [status, struc] = fileattrib(source);
+            fullSourcePath = struc.Name;
+        end
     
-    fullSourcePath = which(source);
-    if isempty(fullSourcePath)
-        [status, struc] = fileattrib(source);
-        fullSourcePath = struc.Name;
+        exec_input_id_list.put(fullSourcePath, 'text/csv');
     end
-    
-    exec_input_id_list.put(fullSourcePath, 'text/csv');
-
 end

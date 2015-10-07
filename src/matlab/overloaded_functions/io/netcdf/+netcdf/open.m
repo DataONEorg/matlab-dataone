@@ -48,7 +48,13 @@ function varargout = open(source, varargin)
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-    disp('Called the netcdf.open wrapper function.');
+    import org.dataone.client.run.RunManager;
+   
+    runManager = RunManager.getInstance(); 
+    
+    if ( runManager.configuration.debug)
+        disp('Called the netcdf.open wrapper function.');
+    end
     
     % Remove wrapper netcdf.open from the Matlab path
     overloadedFunctPath = which('netcdf.open');
@@ -60,23 +66,24 @@ function varargout = open(source, varargin)
     pkgParentPath = overloaded_func_path(1:pos(1)-1);
        
     rmpath(pkgParentPath); 
-    disp('remove the parent path of the overloaded netcdf.open function.');  
-
+    
+    if ( runManager.configuration.debug)
+        disp('remove the parent path of the overloaded netcdf.open function.');  
+    end
+    
     % Call netcdf.open
     varargout = cell(1,nargout);
     [varargout{:}] = netcdf.open(source, varargin{:});
   
     % Add the parent directory of netcdf.open back to the Matlab path
     addpath(pkgParentPath, '-begin');
-    disp('add the parent path of the overloaded netcdf.open function back.');
+    
+    if ( runManager.configuration.debug)
+        disp('add the parent path of the overloaded netcdf.open function back.');
+    end
     
     % Identifiy the file being created/used and add a prov:used/prov:wasGeneratedBy statements 
-    % in the RunManager DataPackage instance    
-    import org.dataone.client.run.RunManager;
-    import java.net.URI;
-    
-    runManager = RunManager.getInstance();   
-    
+    % in the RunManager DataPackage instance        
     exec_input_id_list = runManager.getExecInputIds();
     exec_output_id_list = runManager.getExecOutputIds();
     
@@ -86,24 +93,36 @@ function varargout = open(source, varargin)
            
             if isempty(startIndex)
                 % local file
-                disp('local file');
+                if ( runManager.configuration.debug)
+                    disp('local file');
+                end
+                
                 fullSourcePath = which(source);
                 if isempty(fullSourcePath)
                     [status, struc] = fileattrib(source);
                     fullSourcePath = struc.Name;
                 end
                 
-                exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+                    exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                end
             else
                 % url
-                disp('url');
-                exec_input_id_list.put(source, 'application/netcdf');
+                if ( runManager.configuration.debug)
+                    disp('url');
+                end
+                
+                if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+                    exec_input_id_list.put(source, 'application/netcdf');
+                end
             end
      
         otherwise           
             if strcmp(varargin{1}, 'WRITE') ~= 0
                 % Read-write access                
-                disp('> > > mode: WRITE !');
+                if ( runManager.configuration.debug)
+                    disp('> > > mode: WRITE !');
+                end
                 
                 fullSourcePath = which(source);
                 if isempty(fullSourcePath)
@@ -111,12 +130,19 @@ function varargout = open(source, varargin)
                     fullSourcePath = struc.Name;
                 end
                 
-                exec_input_id_list.put(fullSourcePath, 'application/netcdf');
-                exec_output_id_list.put(fullSourcePath, 'application/netcdf');
-            
+                if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+                    exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                end
+                
+                if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+                    exec_output_id_list.put(fullSourcePath, 'application/netcdf');
+                end
+                
             elseif any(strcmp(varargin{1}, {'NOWRITE', 'NC_NOWRITE'})) ~= 0
                 % Read-only access (Default)                
-                disp('> > > mode: NOWRITE/NC_NOWRITE !');
+                if ( runManager.configuration.debug)
+                    disp('> > > mode: NOWRITE/NC_NOWRITE !');
+                end
                 
                 fullSourcePath = which(source);
                 if isempty(fullSourcePath)
@@ -124,7 +150,9 @@ function varargout = open(source, varargin)
                     fullSourcePath = struc.Name;
                 end
                 
-                exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+                    exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                end
             else
                 % 'SHARE' Synchronous file updates
             end        

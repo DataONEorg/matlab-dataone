@@ -584,8 +584,8 @@ classdef RunManager < hgsetget
    
                 startIndex = regexp( fullSourcePath,'http' ); 
                 if isempty(startIndex) 
-                    disp('non-url');
-                    [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);               
+                   
+                    [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);
                     inSource = [sourceName sourceExt];
                     inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inSource]);
                     runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI ); 
@@ -595,7 +595,7 @@ classdef RunManager < hgsetget
                     inSourceD1Obj = runManager.buildD1Object(fullSourcePath, inSourceFmt, inSource, submitter, mnNodeId);
                     runManager.dataPackage.addData(inSourceD1Obj);
                 else
-                    disp('url')
+                    
                     inSource = fullSourcePath;
                     inSourceURI = URI( inSource );
                     runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI );
@@ -949,8 +949,7 @@ classdef RunManager < hgsetget
         function setIOFunctionPath()
             % SETIOFUNCTIONPATH adds all overloaded I/O functions found in 
             % $matalab-dataone/src/matlab/overloaded_functions/io to the top of Matlab path
-            fprintf('\nIn setIOFunctionPath() ... \n');
-                        
+            
             % Determine the src directory relative to the RunManager location
             filePath = mfilename('fullpath');         
             matlab_dataone_dir_array = strsplit(filePath, filesep);           

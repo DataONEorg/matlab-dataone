@@ -95,37 +95,45 @@ function dlmwrite(source, m, varargin)
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-    disp('Called the dlmwrite wrapper function.');
-
+    import org.dataone.client.run.RunManager;
+   
+    runManager = RunManager.getInstance();  
+    
+    if ( runManager.configuration.debug)
+        disp('Called the dlmwrite wrapper function.');
+    end
+    
     % Remove wrapper dlmwrite from the Matlab path
     overloadedFunctPath = which('dlmwrite');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
-    disp('remove the path of the overloaded dlmwrite function.');  
+    
+    if ( runManager.configuration.debug)
+        disp('remove the path of the overloaded dlmwrite function.');  
+    end
     
     % Call dlmwrite
     dlmwrite( source, m, varargin{:} );
    
     % Add the wrapper dlmwrite back to the Matlab path
     addpath(overloaded_func_path, '-begin');
-    disp('add the path of the overloaded dlmwrite function back.');
     
-    % Identifiy the file being used and add a prov:wasGeneratedBy statement 
-    % in the RunManager DataPackage instance
-
-    import org.dataone.client.run.RunManager;
-    import java.net.URI;
-    
-    runManager = RunManager.getInstance();   
-   
-    exec_output_id_list = runManager.getExecOutputIds();
-    
-    fullSourcePath = which(source);
-    if isempty(fullSourcePath)
-        [status, struc] = fileattrib(source);
-        fullSourcePath = struc.Name;
+    if ( runManager.configuration.debug)
+        disp('add the path of the overloaded dlmwrite function back.');
     end
     
-    % Todo: determine the object format for dlmwrite type
-    exec_output_id_list.put(fullSourcePath, 'text/plain');
+    % Identifiy the file being used and add a prov:wasGeneratedBy statement 
+    % in the RunManager DataPackage instance   
+    if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+        exec_output_id_list = runManager.getExecOutputIds();
+    
+        fullSourcePath = which(source);
+        if isempty(fullSourcePath)
+            [status, struc] = fileattrib(source);
+            fullSourcePath = struc.Name;
+        end
+    
+        % Todo: determine the object format for dlmwrite type
+        exec_output_id_list.put(fullSourcePath, 'text/plain');
+    end
 end

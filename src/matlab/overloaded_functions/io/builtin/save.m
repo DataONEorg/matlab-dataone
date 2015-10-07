@@ -152,14 +152,23 @@ function save( source, varargin)
 % See the License for the specific language governing permissions and
 % limitations under the License.
     
-    disp('Called the save wrapper function.');
-
+    import org.dataone.client.run.RunManager;
+    
+    runManager = RunManager.getInstance();  
+    
+    if ( runManager.configuration.debug)
+        disp('Called the save wrapper function.');
+    end
+    
     % Remove wrapper save from the Matlab path
     overloadedFunctPath = which('save');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
-    disp('remove the path of the overloaded save function.');  
- 
+    
+    if ( runManager.configuration.debug)
+        disp('remove the path of the overloaded save function.');  
+    end
+    
     % Call builtin save function
     s = struct(varargin{:});
     save( source, '-struct', 's' );
@@ -168,22 +177,21 @@ function save( source, varargin)
     warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
     warning on MATLAB:dispatcher:nameConflict;
-    disp('add the path of the overloaded save function back.');
+    
+    if ( runManager.configuration.debug)
+        disp('add the path of the overloaded save function back.');
+    end
     
     % Identifiy the file being used and add a prov:wasGeneratedBy statement 
     % in the RunManager DataPackage instance
-  
-    import org.dataone.client.run.RunManager;
-    import java.net.URI;
-    
-    runManager = RunManager.getInstance();   
-
-    fullSourcePath = which(source);
-    if isempty(fullSourcePath)
-        [status, struc] = fileattrib(source);
-        fullSourcePath = struc.Name;
-    end
+    if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+        fullSourcePath = which(source);
+        if isempty(fullSourcePath)
+            [status, struc] = fileattrib(source);
+            fullSourcePath = struc.Name;
+        end
      
-    exec_output_id_list = runManager.getExecOutputIds();
-    exec_output_id_list.put(fullSourcePath, 'text/plain');
+        exec_output_id_list = runManager.getExecOutputIds();        
+        exec_output_id_list.put(fullSourcePath, 'text/plain');
+    end
 end

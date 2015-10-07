@@ -47,40 +47,44 @@ function ncwrite( source, varname, varargin )
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-
-    disp('Called the ncwrite wrapper function.');
-
+    import org.dataone.client.run.RunManager;
+    
+    runManager = RunManager.getInstance(); 
+    
+    if ( runManager.configuration.debug)
+        disp('Called the ncwrite wrapper function.');
+    end
+    
     % Remove wrapper ncwrite from the Matlab path
     overloadedFunctPath = which('ncwrite');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
-    disp('remove the path of the overloaded ncwrite function.');  
+    
+    if ( runManager.configuration.debug)
+        disp('remove the path of the overloaded ncwrite function.');  
+    end
     
     % Call ncwrite
     ncwrite( source, varname, varargin{:} );
    
     % Add the wrapper ncwrite back to the Matlab path
     addpath(overloaded_func_path, '-begin');
-    disp('add the path of the overloaded ncwrite function back.');
+    
+    if ( runManager.configuration.debug)
+        disp('add the path of the overloaded ncwrite function back.');
+    end
     
     % Identifiy the file being used and add a prov:wasGeneratedBy statement 
-    % in the RunManager DataPackage instance
-
-    import org.dataone.client.run.RunManager;
-    import java.net.URI;
+    % in the RunManager DataPackage instance   
+    if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+        exec_output_id_list = runManager.getExecOutputIds();
     
-    runManager = RunManager.getInstance();   
-   
-    exec_output_id_list = runManager.getExecOutputIds();
-    
-    fullSourcePath = which(source);
-    if isempty(fullSourcePath)
-        [status, struc] = fileattrib(source);
-        fullSourcePath = struc.Name;
-    end
+        fullSourcePath = which(source);
+        if isempty(fullSourcePath)
+            [status, struc] = fileattrib(source);
+            fullSourcePath = struc.Name;
+        end
                 
-    exec_output_id_list.put(fullSourcePath, 'application/netcdf');
-       
-    % Debug
-    % exec_output_id_list = runManager.getExecOutputIds();
+        exec_output_id_list.put(fullSourcePath, 'application/netcdf');   
+    end
 end

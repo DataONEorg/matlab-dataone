@@ -38,13 +38,22 @@ function vardata = ncread( source, varname, varargin )
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-    disp('Called the ncread wrapper function.');
+    import org.dataone.client.run.RunManager;
 
+    runManager = RunManager.getInstance();
+    
+    if ( runManager.configuration.debug)
+        disp('Called the ncread wrapper function.');
+    end
+    
     % Remove wrapper ncread from the Matlab path
     overloadedFunctPath = which('ncread');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
-    disp('remove the path of the overloaded ncread function.');  
+    
+    if ( runManager.configuration.debug)
+        disp('remove the path of the overloaded ncread function.');  
+    end
     
     % Call ncread 
     vardata = ncread( source, varname, varargin{:} );
@@ -52,32 +61,30 @@ function vardata = ncread( source, varname, varargin )
 
     % Add the wrapper ncread back to the Matlab path
     addpath(overloaded_func_path, '-begin');
-    disp('add the path of the overloaded ncread function back.');
+    
+    if ( runManager.configuration.debug)
+        disp('add the path of the overloaded ncread function back.');
+    end
     
     % Identifiy the file being used and add a prov:used statement 
-    % in the RunManager DataPackage instance
-  
-    import org.dataone.client.run.RunManager;
-    import java.net.URI;
+    % in the RunManager DataPackage instance   
+    if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+        exec_input_id_list = runManager.getExecInputIds();
     
-    runManager = RunManager.getInstance();   
-   
-    exec_input_id_list = runManager.getExecInputIds();
-    
-    startIndex = regexp( char(source),'http' ); 
-    if isempty(startIndex)
-        % local file
-        fullSourcePath = which(source);
-        if isempty(fullSourcePath)
-            [status, struc] = fileattrib(source);
-            fullSourcePath = struc.Name;
-        end
+        startIndex = regexp( char(source),'http' ); 
+        if isempty(startIndex)
+            % local file
+            fullSourcePath = which(source);
+            if isempty(fullSourcePath)
+                [status, struc] = fileattrib(source);
+                fullSourcePath = struc.Name;
+            end
                 
-        exec_input_id_list.put(fullSourcePath, 'application/netcdf');
-    else
-        % url
-        exec_input_id_list.put(source, 'application/netcdf');
+            exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+        else
+            % url
+            exec_input_id_list.put(source, 'application/netcdf');
+        end
     end
-
 end
 

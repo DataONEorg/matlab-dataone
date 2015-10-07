@@ -57,8 +57,14 @@ function varargout = create(source, mode, varargin)
 % WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 % See the License for the specific language governing permissions and
 % limitations under the License.
-
-    disp('Called the netcdf.create wrapper function.');
+    
+    import org.dataone.client.run.RunManager;
+    
+    runManager = RunManager.getInstance(); 
+    
+    if ( runManager.configuration.debug)
+        disp('Called the netcdf.create wrapper function.');
+    end
     
     % Remove wrapper netcdf.create from the Matlab path
     overloadedFunctPath = which('netcdf.create');
@@ -70,30 +76,33 @@ function varargout = create(source, mode, varargin)
     pkgParentPath = overloaded_func_path(1:pos(1)-1);
        
     rmpath(pkgParentPath); 
-    disp('remove the parent path of the overloaded netcdf.open function.');  
-
+    
+    if ( runManager.configuration.debug)
+        disp('remove the parent path of the overloaded netcdf.open function.');  
+    end
+    
     % Call netcdf.create
     varargout = cell(1,nargout);
     [varargout{:}] = netcdf.create(source, mode, varargin{:});
   
     % Add the parent directory of netcdf.create back to the Matlab path
     addpath(pkgParentPath, '-begin');
-    disp('add the parent path of the overloaded netcdf.open function back.');
+    
+    if ( runManager.configuration.debug)
+        disp('add the parent path of the overloaded netcdf.open function back.');
+    end
     
     % Identifiy the file being created/used and add a prov:wasGeneratedBy statements 
-    % in the RunManager DataPackage instance    
-    import org.dataone.client.run.RunManager;
-    import java.net.URI;
-    
-    runManager = RunManager.getInstance();   
-    
-    exec_output_id_list = runManager.getExecOutputIds();
+    % in the RunManager DataPackage instance   
+    if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+        exec_output_id_list = runManager.getExecOutputIds();
 
-    fullSourcePath = which(source);
-    if isempty(fullSourcePath)
-        [status, struc] = fileattrib(source);
-        fullSourcePath = struc.Name;
-    end
+        fullSourcePath = which(source);
+        if isempty(fullSourcePath)
+            [status, struc] = fileattrib(source);
+            fullSourcePath = struc.Name;
+        end
                 
-    exec_output_id_list.put(fullSourcePath, 'application/netcdf');
+        exec_output_id_list.put(fullSourcePath, 'application/netcdf');
+    end
 end

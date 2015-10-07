@@ -59,14 +59,22 @@ function result = dlmread( source, varargin )
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-    disp('Called the dlmread wrapper function.');
-
+    import org.dataone.client.run.RunManager;
+    
+    runManager = RunManager.getInstance();  
+    
+    if ( runManager.configuration.debug)
+        disp('Called the dlmread wrapper function.');
+    end
+    
     % Remove wrapper dlmread from the Matlab path
     overloadedFunctPath = which('dlmread');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
     
-    disp('remove the path of the overloaded dlmread function.');  
+    if ( runManager.configuration.debug)
+        disp('remove the path of the overloaded dlmread function.');  
+    end
     
     % Call dlmread 
     result = dlmread( source, varargin{:} );
@@ -74,23 +82,21 @@ function result = dlmread( source, varargin )
     % Add the wrapper dlmread back to the Matlab path
     addpath(overloaded_func_path, '-begin');
     
-    disp('add the path of the overloaded dlmread function back.');
-    
-    % Identifiy the file being used and add a prov:used statement 
-    % in the RunManager DataPackage instance
-  
-    import org.dataone.client.run.RunManager;
-    import java.net.URI;
-    
-    runManager = RunManager.getInstance();   
-   
-    exec_input_id_list = runManager.getExecInputIds();
-    fullSourcePath = which(source);
-    if isempty(fullSourcePath)
-        [status, struc] = fileattrib(source);
-        fullSourcePath = struc.Name;
+    if ( runManager.configuration.debug)
+        disp('add the path of the overloaded dlmread function back.');
     end
     
-    % Todo: determine the object format for dlmread type
-    exec_input_id_list.put(fullSourcePath, 'text/plain');
+    % Identifiy the file being used and add a prov:used statement 
+    % in the RunManager DataPackage instance   
+    if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+        exec_input_id_list = runManager.getExecInputIds();
+        fullSourcePath = which(source);
+        if isempty(fullSourcePath)
+            [status, struc] = fileattrib(source);
+            fullSourcePath = struc.Name;
+        end
+    
+        % Todo: determine the object format for dlmread type
+        exec_input_id_list.put(fullSourcePath, 'text/plain');
+    end
 end
