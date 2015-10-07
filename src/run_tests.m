@@ -33,7 +33,7 @@ import matlab.unittest.TestSuite;
 
 testCls = ?org.dataone.client.run.RunManagerTest;
 
-% suite = TestSuite.fromMethod(testCls, 'testRecord');
+ suite = TestSuite.fromMethod(testCls, 'testRecord');
 % suite = TestSuite.fromMethod(testCls, 'testView');
 % suite = TestSuite.fromMethod(testCls, 'testPublishPackageFromDisk');
 % suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
@@ -42,7 +42,7 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad');
-suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); 
 
 run(suite);
 
