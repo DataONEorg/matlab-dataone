@@ -70,9 +70,6 @@ classdef RunManager < hgsetget
         mfilename = '';
         efilename = '';
         
-        % DataONE CN URL
-        CN_URL; 
-        
         % DataONE CN URI resolve endpoint 
         D1_CN_Resolve_Endpoint;
         
@@ -158,20 +155,6 @@ classdef RunManager < hgsetget
                 fprintf('predicate.URI = %s\n', char(predicate.getURI()));
                 fprintf('predicate.nameSpace = %s\n', char(predicate.getNamespace()));
             end
-        end
-        
-        
-        function cn_url = getD1UriPrefix(runManager)
-            % GETD1URIPREFIX Get the URL for dataone coordinator node 
-            import org.dataone.configuration.Settings;
-            import org.dataone.client.v2.itk.D1Client;
-            
-            cn_url = Settings.getConfiguration().getString('D1Client.CN_URL');
-            
-            if runManager.configuration.debug
-                fprintf('char(cn_url)=%s\n', char(cn_url));
-            end
-
         end
         
         
@@ -390,8 +373,8 @@ classdef RunManager < hgsetget
             cd(dirPath);
             
             % Get the base URL of the DataONE coordinating node server
-            runManager.CN_URL = runManager.getD1UriPrefix(); 
-            runManager.D1_CN_Resolve_Endpoint = [char(runManager.CN_URL) '/v1/resolve/'];
+            runManager.D1_CN_Resolve_Endpoint = ...
+            [char(runManager.configuration.coordinating_node_base_url) '/v1/resolve/'];
            
             runManager.provONEdataURI = URI(ProvONE.Data.getURI());
                       
@@ -1623,7 +1606,7 @@ classdef RunManager < hgsetget
                
                 % Set the CNode ID
                 cnRef = NodeReference();
-                cnRef.setValue(runManager.CN_URL);
+                cnRef.setValue(runManager.configuration.coordinating_node_base_url);
                 cnNode = D1Client.getCN(cnRef.getValue());
                 if isempty(cnNode)
                    error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint 'encounted an error on the getCN() request.']); 
