@@ -36,6 +36,9 @@ classdef Execution < hgsetget
         % The unique identifier of the execution
         execution_id = '';
 
+        % The unique coordinating Node URI of the execution
+        execution_uri = '';
+
         % the time this execution was published to a permanent repository
         publish_time = '';
         

@@ -79,9 +79,6 @@ classdef RunManager < hgsetget
         % Predicate for the rdf:type
         aTypePredicate;
         
-        % Current execution instance URI
-        execURI;
-        
         % Current association instance URI
         associationSubjectURI;
         
@@ -399,7 +396,7 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(wfSubjectURI, runManager.aTypePredicate, provOneProgramURI);
            
             % Record relationship identifying execution id as a provone:Execution                              
-            runManager.execURI = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' runManager.runId]);
+            runManager.runManager.execution.execution_uri = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' runManager.runId]);
  
             runManager.associationSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint 'A0_' char(java.util.UUID.randomUUID())]);
             provOneProgramURI = URI(ProvONE.Program.getURI());
@@ -413,16 +410,16 @@ classdef RunManager < hgsetget
             % Store the prov relationship: execution->prov:qualifiedAssociation->association
             provAssociationObjURI = URI(PROV.Association.getURI());
             predicate = PROV.predicate('qualifiedAssociation');
-            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, provAssociationObjURI);
+            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, provAssociationObjURI);
             
             provOneExecURI = URI(ProvONE.Execution.getURI());           
-            runManager.dataPackage.insertRelationship(runManager.execURI, runManager.aTypePredicate, provOneExecURI);  
+            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, runManager.aTypePredicate, provOneExecURI);  
                       
             % Store the ProvONE relationships for user
             runManager.userURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.execution.account_name]);                 
             % Record the relationship between the Execution and the user
             predicate = PROV.predicate('wasAssociatedWith');
-            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, runManager.userURI);    
+            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, runManager.userURI);    
             % Record the relationship for association->prov:agent->"user"
             predicate = PROV.predicate('agent');
             runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, predicate, runManager.userURI);
@@ -447,9 +444,9 @@ classdef RunManager < hgsetget
                 
             % wasGeneratedBy
             predicate = PROV.predicate('wasGeneratedBy');
-            runManager.dataPackage.insertRelationship(combinedViewURI, predicate, runManager.execURI);  
-            runManager.dataPackage.insertRelationship(dataViewURI, predicate, runManager.execURI);  
-            runManager.dataPackage.insertRelationship(processViewURI, predicate, runManager.execURI);  
+            runManager.dataPackage.insertRelationship(combinedViewURI, predicate, runManager.runManager.execution.execution_uri);  
+            runManager.dataPackage.insertRelationship(dataViewURI, predicate, runManager.runManager.execution.execution_uri);  
+            runManager.dataPackage.insertRelationship(processViewURI, predicate, runManager.runManager.execution.execution_uri);  
                 
             % Record relationship identifying as provONE:Data              
             runManager.dataPackage.insertRelationship(combinedViewURI, runManager.aTypePredicate, runManager.provONEdataURI);
@@ -486,8 +483,8 @@ classdef RunManager < hgsetget
                 
             % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
             predicate = PROV.predicate('wasGeneratedBy');
-            runManager.dataPackage.insertRelationship(modelFactsURI, predicate, runManager.execURI);  
-            runManager.dataPackage.insertRelationship(extractFactsURI, predicate, runManager.execURI); 
+            runManager.dataPackage.insertRelationship(modelFactsURI, predicate, runManager.runManager.execution.execution_uri);  
+            runManager.dataPackage.insertRelationship(extractFactsURI, predicate, runManager.runManager.execution.execution_uri); 
             runManager.dataPackage.insertRelationship(modelFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
             runManager.dataPackage.insertRelationship(extractFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
            
@@ -525,9 +522,9 @@ classdef RunManager < hgsetget
             processYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(processYWPropIdentifier.getValue())]);
             dataYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(dataYWPropIdentifier.getValue())]);
             combYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(combYWPropIdentifier.getValue())]);
-            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, processYWPropURI);  
-            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, dataYWPropURI);  
-            runManager.dataPackage.insertRelationship(runManager.execURI, predicate, combYWPropURI);
+            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, processYWPropURI);  
+            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, dataYWPropURI);  
+            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, combYWPropURI);
                         
             import java.util.Iterator;
             import java.util.Hashtable;
@@ -547,7 +544,7 @@ classdef RunManager < hgsetget
                 outSource = [sourceName sourceExt];
                             
                 outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outSource]);
-                runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.execURI );
+                runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.runManager.execution.execution_uri );
                             
                 outSourceD1Obj = runManager.buildD1Object(fullSourcePath, outSourceFmt, outSource, submitter, mnNodeId);
                 runManager.dataPackage.addData(outSourceD1Obj);
@@ -567,7 +564,7 @@ classdef RunManager < hgsetget
                     [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);
                     inSource = [sourceName sourceExt];
                     inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inSource]);
-                    runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI ); 
+                    runManager.dataPackage.insertRelationship( runManager.runManager.execution.execution_uri, predicate, inSourceURI ); 
                     
                     copyfile(fullSourcePath, runManager.runDir); % copy local source file to the run directory
                     
@@ -577,7 +574,7 @@ classdef RunManager < hgsetget
                     
                     inSource = fullSourcePath;
                     inSourceURI = URI( inSource );
-                    runManager.dataPackage.insertRelationship( runManager.execURI, predicate, inSourceURI );
+                    runManager.dataPackage.insertRelationship( runManager.runManager.execution.execution_uri, predicate, inSourceURI );
                     % how to handle a source file with url
                 end
             end
