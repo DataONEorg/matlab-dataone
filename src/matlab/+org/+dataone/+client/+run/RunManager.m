@@ -36,9 +36,6 @@ classdef RunManager < hgsetget
         % The provenance directory for an execution
         runDir;
         
-        % Control switch for printing debug messaging 
-        debug = false;
-                       
         % runID
         runId;
         
@@ -139,9 +136,8 @@ classdef RunManager < hgsetget
             import java.lang.String;
             
             predicate = Predicate();
-            if runManager.debug
+            if runManager.configuration.debug
                 fprintf('property.localName = %s\n', char(property.getLocalName()));           
-                %fprintf('property.nameSpace = %s\n', char(property.getNamespace()));
             end
          
             predicate.setName(property.getLocalName());
@@ -158,7 +154,7 @@ classdef RunManager < hgsetget
             end
             predicate.setURI(URI(property.getURI()));
             
-            if runManager.debug
+            if runManager.configuration.debug
                 fprintf('predicate.URI = %s\n', char(predicate.getURI()));
                 fprintf('predicate.nameSpace = %s\n', char(predicate.getNamespace()));
             end
@@ -172,7 +168,7 @@ classdef RunManager < hgsetget
             
             cn_url = Settings.getConfiguration().getString('D1Client.CN_URL');
             
-            if runManager.debug
+            if runManager.configuration.debug
                 fprintf('char(cn_url)=%s\n', char(cn_url));
             end
 
@@ -187,7 +183,7 @@ classdef RunManager < hgsetget
             % Get a certificate for the Root CA           
             certificate = CertificateManager.getInstance().loadCertificate();
             
-            if runManager.debug
+            if runManager.configuration.debug
                 fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));  
             end
         end
@@ -605,7 +601,7 @@ classdef RunManager < hgsetget
             
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
-            if runManager.debug 
+            if runManager.configuration.debug 
                 fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % print it to stdout
             end
             
