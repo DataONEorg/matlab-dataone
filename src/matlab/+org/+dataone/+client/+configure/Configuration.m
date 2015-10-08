@@ -403,10 +403,6 @@ classdef Configuration < hgsetget & dynamicprops
             try
                 copyfile(shipped_template_file_path, ...
                     configuration.science_metadata_template_file);
-                if ( configuration.debug )
-                    disp(['Copied ' shipped_template_file_path ' to ' ...
-                        configuration.science_metadata_template_file]);
-                end
                 
             catch IOError
                 error('Configuration:setMetadataTemplateFile', ...
