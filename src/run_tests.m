@@ -29,7 +29,7 @@ addpath(genpath(pwd));
 warning on MATLAB:dispatcher:nameConflict;
 
 import matlab.unittest.TestSuite;
-% suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
+suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 
 testCls = ?org.dataone.client.run.RunManagerTest;
 
@@ -42,7 +42,7 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad');
- suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); 
 
 run(suite);
 
