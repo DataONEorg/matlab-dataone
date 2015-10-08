@@ -94,7 +94,7 @@ function varargout = create(source, mode, varargin)
     
     % Identifiy the file being created/used and add a prov:wasGeneratedBy statements 
     % in the RunManager DataPackage instance   
-    if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+    if ( runManager.configuration.capture_file_writes )
         exec_output_id_list = runManager.getExecOutputIds();
 
         fullSourcePath = which(source);

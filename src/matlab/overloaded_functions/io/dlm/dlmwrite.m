@@ -124,7 +124,7 @@ function dlmwrite(source, m, varargin)
     
     % Identifiy the file being used and add a prov:wasGeneratedBy statement 
     % in the RunManager DataPackage instance   
-    if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+    if ( runManager.configuration.capture_file_writes )
         exec_output_id_list = runManager.getExecOutputIds();
     
         fullSourcePath = which(source);

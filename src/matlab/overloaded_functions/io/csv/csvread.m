@@ -66,7 +66,7 @@ function m = csvread(source, varargin)
     
     % Identifiy the file being used and add a prov:used statement 
     % in the RunManager DataPackage instance  
-    if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+    if ( runManager.configuration.capture_file_reads )
         exec_input_id_list = runManager.getExecInputIds();
     
         fullSourcePath = which(source);

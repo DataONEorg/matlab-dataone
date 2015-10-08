@@ -103,7 +103,7 @@ function varargout = open(source, varargin)
                     fullSourcePath = struc.Name;
                 end
                 
-                if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+                if ( runManager.configuration.capture_file_reads )
                     exec_input_id_list.put(fullSourcePath, 'application/netcdf');
                 end
             else
@@ -112,7 +112,7 @@ function varargout = open(source, varargin)
                     disp('url');
                 end
                 
-                if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+                if ( runManager.configuration.capture_file_reads )
                     exec_input_id_list.put(source, 'application/netcdf');
                 end
             end
@@ -130,11 +130,11 @@ function varargout = open(source, varargin)
                     fullSourcePath = struc.Name;
                 end
                 
-                if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+                if ( runManager.configuration.capture_file_reads )
                     exec_input_id_list.put(fullSourcePath, 'application/netcdf');
                 end
                 
-                if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+                if ( runManager.configuration.capture_file_writes )
                     exec_output_id_list.put(fullSourcePath, 'application/netcdf');
                 end
                 
@@ -150,7 +150,7 @@ function varargout = open(source, varargin)
                     fullSourcePath = struc.Name;
                 end
                 
-                if ( (runManager.configuration.capture_file_reads || runManager.configuration.capture_dataone_reads)  )
+                if ( runManager.configuration.capture_file_reads )
                     exec_input_id_list.put(fullSourcePath, 'application/netcdf');
                 end
             else

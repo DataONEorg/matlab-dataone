@@ -78,13 +78,7 @@ classdef Configuration < hgsetget & dynamicprops
         
         % A flag indicating whether to trigger provenance capture for file write
         capture_file_writes = true;
-        
-        % A flag indicating whether to trigger provenance capture for reading from DataONe MNRead.get()
-        capture_dataone_reads = true;
-        
-        % A flag indicating whether to trigger provenance capture for writing with DataONE MNStorage.create() or MNStorage.update()
-        capture_dataone_writes = true;
-        
+                
         % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
         capture_yesworkflow_comments = true;
         

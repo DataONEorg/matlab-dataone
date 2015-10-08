@@ -184,7 +184,7 @@ function save( source, varargin)
     
     % Identifiy the file being used and add a prov:wasGeneratedBy statement 
     % in the RunManager DataPackage instance
-    if ( (runManager.configuration.capture_file_writes || runManager.configuration.capture_dataone_writes)  )
+    if ( runManager.configuration.capture_file_writes )
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
             [status, struc] = fileattrib(source);
