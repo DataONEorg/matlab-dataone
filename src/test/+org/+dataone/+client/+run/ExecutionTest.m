@@ -60,7 +60,7 @@ classdef ExecutionTest < matlab.unittest.TestCase
             import org.dataone.client.run.ExecutionTest;
             execution = Execution();
             
-            matchPattern = 'urn:uuid:[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}';
+            matchPattern = '[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}';
             execution_id = get(execution, 'execution_id');
             assertMatches(testCase, execution_id, matchPattern);
             
