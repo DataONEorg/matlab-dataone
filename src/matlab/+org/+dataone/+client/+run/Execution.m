@@ -39,6 +39,9 @@ classdef Execution < hgsetget
         % The unique coordinating Node URI of the execution
         execution_uri = '';
 
+        % The directory storing the execution artifacts
+        execution_directory = '';
+        
         % the time this execution was published to a permanent repository
         publish_time = '';
         
@@ -140,7 +143,7 @@ classdef Execution < hgsetget
             % Execution class
             
             % Set a default id
-            execution.execution_id = ['urn:uuid:' char(java.util.UUID.randomUUID())];
+            execution.execution_id = char(java.util.UUID.randomUUID());
             
             % Set the start timestamp. Use Java-based date formatting to 
             % encode the timezone offset correctly
