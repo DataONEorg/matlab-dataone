@@ -136,17 +136,17 @@ classdef RunManagerTest < matlab.unittest.TestCase
  
             script_path = which(testCase.filename); % get the absolute path of the script
             
-            tag = 'c3_c4_na'; % TODO: multiple tags passed in
+            tag = 'c3_c4_1'; % TODO: multiple tags passed in
           
-            yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
+            yw_process_view_properties_path = which(testCase.yw_process_view_property_file_name);
             testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
-           
-            yw_data_view_properties_path = fullfile(pwd(), filesep, testCase.yw_data_view_property_file_name);
+            
+            yw_data_view_properties_path = which(testCase.yw_data_view_property_file_name);
             testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
             
-            yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
+            yw_comb_view_properties_path = which(testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
-        
+           
             testCase.mgr.record(script_path, tag);  
             
             % Test if one resource map exists 
@@ -176,6 +176,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             total = total1 + total2;
             assertEqual(testCase, total, 2);
         end
+
         
         
         function testOverloadedNCopen(testCase)
