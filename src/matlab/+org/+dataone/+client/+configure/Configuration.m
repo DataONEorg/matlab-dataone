@@ -69,9 +69,12 @@ classdef Configuration < hgsetget & dynamicprops
         
         % The friend of a friend 'name' vocabulary term
         foaf_name = '';
-               
+
+        % The directory used to store DataONE configuration information
+        configuration_directory = '';
+
         % The directory used to store per execution provenance information
-        provenance_storage_directory = '~/.d1/provenance';
+        provenance_storage_directory = '';
         
         % A flag indicating whether to trigger provenance capture for file read
         capture_file_reads = true;
@@ -117,6 +120,7 @@ classdef Configuration < hgsetget & dynamicprops
         function configuration = Configuration()
             % CONFIGURATION A class used to set configuration options for the DataONE Toolbox  
             
+            createConfigurationDirectory(configuration);
             setMatlabDataONEToolboxDirectory(configuration);
             setCoordinatingNodeURL(configuration);
             setPersistentConfigFile(configuration);
@@ -235,40 +239,19 @@ classdef Configuration < hgsetget & dynamicprops
             
             % Get persistent configuration file path
             if strcmp(filename, '')
-                % Create a default persistent configuration directory if one isn't
-                % passed in
-                if ispc
-                    default_configuration_storage_directory = getenv('userprofile');
-                elseif isunix
-                    default_configuration_storage_directory = getenv('HOME');                  
-                else
-                    error('Current platform not supported.');
-                end
-                
-                % Check if .d1 directory exists; create it if not 
-                if exist(fullfile(default_configuration_storage_directory, strcat(filesep, '.d1')), 'dir') == 0
-                    cd(default_configuration_storage_directory);
-                    [status, message, message_id] = mkdir('.d1');
-                    
-                    if ( status ~= 1 )
-                        error(message_id, [ 'The directory .d1' ...
-                              ' could not be created. The error message' ...
-                              ' was: ' message]);
-                    end                        
-                end
                 
                 % Check if configuration.json file exists under $HOME/.d1 directory 
                 % (for linux) or $userprofile/.d1 directory (for windows); create it if not
-                configuration_file_absolute_path = ...
-                    fullfile(default_configuration_storage_directory, ...
-                             filesep, '.d1', filesep, 'configuration.json');
                
-                if exist(configuration_file_absolute_path, 'file') == 0
-                    % The configuration.json does not exist under the default directory
+                if ( ~exist(fullfile( ...
+                        configuration.configuration_directory, ...
+                        'configuration.json'), 'file') )
+                    % The configuration.json does not exist
                     % Create an empty configuration.json here.             
-                    if configuration.debug == 1
+                    if ( configuration.debug )
                         fprintf('\nCreate a new and empty configuration.json at %s.', ...
-                            configuration_file_absolute_path);
+                            fullfile(configuration.configuration_directory, ...
+                                     'configuration.json'));
                     end
                     
                     % Save default configuration object in configuration.json 
@@ -358,18 +341,9 @@ classdef Configuration < hgsetget & dynamicprops
         
         function setPersistentConfigFile(configuration)
         % SETPERSISTENTCONFIGFILE set the path to the persistent configuration file.
-                        % Find path for persistent_configuration_file_name
-            if ispc
-                configuration.persistent_configuration_file_name = ...
-                    fullfile(getenv('userprofile'), filesep, ...
-                    '.d1', filesep, 'configuration.json');  
-            elseif isunix
-                configuration.persistent_configuration_file_name = ...
-                    fullfile(getenv('HOME'), filesep, '.d1', ...
-                    filesep, 'configuration.json');
-            else
-                error('Current platform not supported.');
-            end
+            configuration.persistent_configuration_file_name = ...
+                fullfile(configuration.configuration_directory, ...
+                         'configuration.json');
             
             % Call loadConfig() with the default path location to the
             % configuration file on disk
@@ -467,6 +441,36 @@ classdef Configuration < hgsetget & dynamicprops
             indxs = strfind(mpaths, 'matlab-dataone');
             configuration.matlab_dataone_toolbox_directory = ...
                 mpath(1:indxs{1} + 13); % Add the rest of the 'matlab-dataone' string
+        end
+        
+        function createConfigurationDirectory(configuration)
+        % CREATECONFIGURATIONDIRECTORY creates the DataONE configuration directory
+        
+            if isempty( configuration.configuration_directory )
+                if ispc
+                    configuration.configuration_directory = ...
+                        fullfile(getenv('userprofile'), '.d1');
+                elseif isunix
+                    configuration.configuration_directory = ...
+                        fullfile(getenv('HOME'), '.d1');                  
+                else
+                    error('Current platform not supported.');
+                end
+                             
+                % Check if the .d1 directory exists; create it if not 
+                if ( ~exist(configuration.configuration_directory) )
+                    [status, message, message_id] = ...
+                        mkdir(configuration.configuration_directory);
+                    
+                    if ( status ~= 1 )
+                        error(message_id, [ 'The directory ' ...
+                            configuration.configuration_directory ...
+                            ' could not be created. The error message' ...
+                            ' was: ' message]);
+                    end                        
+                end
+
+            end
         end
     end
 end
