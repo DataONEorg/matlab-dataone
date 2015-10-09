@@ -97,8 +97,13 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
               
-            scriptPath = fullfile(pwd(), filesep, testCase.filename); 
-                          
+            %scriptPath = fullfile(pwd(), filesep, testCase.filename); 
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
             yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
             testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
             
