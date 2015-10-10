@@ -3,4 +3,4 @@
 % Copyright (c) DataONE and participating institutions
 %
 % Classes
-%   TripleStore - An abstract class used as an interface to define storage functions for triple statements
+%   Store - An interface defining storage functions for persistence classes
