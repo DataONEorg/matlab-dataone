@@ -33,15 +33,6 @@ classdef RunManager < hgsetget
         % The generated workflow object built by YesWorkflow 
         workflow;
                
-        % The provenance directory for an execution
-        runDir;
-        
-        % runID
-        runId;
-        
-        % The name for the execution database
-        executionDatabaseName = 'executions.csv';
-        
         % The name for the yesWorkflow configuration file
         PROCESS_VIEW_PROPERTY_FILE_NAME;
         DATA_VIEW_PROPERTY_FILE_NAME;
@@ -109,12 +100,12 @@ classdef RunManager < hgsetget
         function manager = RunManager(configuration)
             % RUNMANAGER Constructor: creates an instance of the RunManager class
             % The RunManager class manages outputs of a script based on the
-            % settings in the given configuration passed in.            
+            % settings in the given configuration passed in.
             import org.dataone.client.configure.Configuration;
             manager.configuration = configuration;
             configuration.saveConfig();
             manager.init();
-            mlock; % Lock the RunManager instance to prevent clears          
+            % mlock; % Lock the RunManager instance to prevent clears          
         end
         
         
@@ -396,7 +387,7 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship(wfSubjectURI, runManager.aTypePredicate, provOneProgramURI);
            
             % Record relationship identifying execution id as a provone:Execution                              
-            runManager.runManager.execution.execution_uri = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' runManager.runId]);
+            runManager.execution.execution_uri = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' runManager.execution.execution_id]);
  
             runManager.associationSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint 'A0_' char(java.util.UUID.randomUUID())]);
             provOneProgramURI = URI(ProvONE.Program.getURI());
@@ -410,16 +401,16 @@ classdef RunManager < hgsetget
             % Store the prov relationship: execution->prov:qualifiedAssociation->association
             provAssociationObjURI = URI(PROV.Association.getURI());
             predicate = PROV.predicate('qualifiedAssociation');
-            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, provAssociationObjURI);
+            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, provAssociationObjURI);
             
             provOneExecURI = URI(ProvONE.Execution.getURI());           
-            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, runManager.aTypePredicate, provOneExecURI);  
+            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, runManager.aTypePredicate, provOneExecURI);  
                       
             % Store the ProvONE relationships for user
             runManager.userURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.execution.account_name]);                 
             % Record the relationship between the Execution and the user
             predicate = PROV.predicate('wasAssociatedWith');
-            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, runManager.userURI);    
+            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, runManager.userURI);    
             % Record the relationship for association->prov:agent->"user"
             predicate = PROV.predicate('agent');
             runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, predicate, runManager.userURI);
@@ -444,9 +435,9 @@ classdef RunManager < hgsetget
                 
             % wasGeneratedBy
             predicate = PROV.predicate('wasGeneratedBy');
-            runManager.dataPackage.insertRelationship(combinedViewURI, predicate, runManager.runManager.execution.execution_uri);  
-            runManager.dataPackage.insertRelationship(dataViewURI, predicate, runManager.runManager.execution.execution_uri);  
-            runManager.dataPackage.insertRelationship(processViewURI, predicate, runManager.runManager.execution.execution_uri);  
+            runManager.dataPackage.insertRelationship(combinedViewURI, predicate, runManager.execution.execution_uri);  
+            runManager.dataPackage.insertRelationship(dataViewURI, predicate, runManager.execution.execution_uri);  
+            runManager.dataPackage.insertRelationship(processViewURI, predicate, runManager.execution.execution_uri);  
                 
             % Record relationship identifying as provONE:Data              
             runManager.dataPackage.insertRelationship(combinedViewURI, runManager.aTypePredicate, runManager.provONEdataURI);
@@ -483,8 +474,8 @@ classdef RunManager < hgsetget
                 
             % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
             predicate = PROV.predicate('wasGeneratedBy');
-            runManager.dataPackage.insertRelationship(modelFactsURI, predicate, runManager.runManager.execution.execution_uri);  
-            runManager.dataPackage.insertRelationship(extractFactsURI, predicate, runManager.runManager.execution.execution_uri); 
+            runManager.dataPackage.insertRelationship(modelFactsURI, predicate, runManager.execution.execution_uri);  
+            runManager.dataPackage.insertRelationship(extractFactsURI, predicate, runManager.execution.execution_uri); 
             runManager.dataPackage.insertRelationship(modelFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
             runManager.dataPackage.insertRelationship(extractFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
            
@@ -522,9 +513,9 @@ classdef RunManager < hgsetget
             processYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(processYWPropIdentifier.getValue())]);
             dataYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(dataYWPropIdentifier.getValue())]);
             combYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(combYWPropIdentifier.getValue())]);
-            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, processYWPropURI);  
-            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, dataYWPropURI);  
-            runManager.dataPackage.insertRelationship(runManager.runManager.execution.execution_uri, predicate, combYWPropURI);
+            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, processYWPropURI);  
+            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, dataYWPropURI);  
+            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, combYWPropURI);
                         
             import java.util.Iterator;
             import java.util.Hashtable;
@@ -537,14 +528,14 @@ classdef RunManager < hgsetget
             outKeySet = execOutSources.keys();
             while outKeySet.hasMoreElements()           
                 fullSourcePath = outKeySet.nextElement();
-                copyfile(fullSourcePath, runManager.runDir); % copy local source file to the run directory
+                copyfile(fullSourcePath, runManager.execution.execution_directory); % copy local source file to the run directory
                 
                 outSourceFmt = execOutSources.get(fullSourcePath);
                 [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);
                 outSource = [sourceName sourceExt];
                             
                 outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outSource]);
-                runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.runManager.execution.execution_uri );
+                runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.execution.execution_uri );
                             
                 outSourceD1Obj = runManager.buildD1Object(fullSourcePath, outSourceFmt, outSource, submitter, mnNodeId);
                 runManager.dataPackage.addData(outSourceD1Obj);
@@ -564,9 +555,9 @@ classdef RunManager < hgsetget
                     [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);
                     inSource = [sourceName sourceExt];
                     inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inSource]);
-                    runManager.dataPackage.insertRelationship( runManager.runManager.execution.execution_uri, predicate, inSourceURI ); 
+                    runManager.dataPackage.insertRelationship( runManager.execution.execution_uri, predicate, inSourceURI ); 
                     
-                    copyfile(fullSourcePath, runManager.runDir); % copy local source file to the run directory
+                    copyfile(fullSourcePath, runManager.execution.execution_directory); % copy local source file to the run directory
                     
                     inSourceD1Obj = runManager.buildD1Object(fullSourcePath, inSourceFmt, inSource, submitter, mnNodeId);
                     runManager.dataPackage.addData(inSourceD1Obj);
@@ -574,7 +565,7 @@ classdef RunManager < hgsetget
                     
                     inSource = fullSourcePath;
                     inSourceURI = URI( inSource );
-                    runManager.dataPackage.insertRelationship( runManager.runManager.execution.execution_uri, predicate, inSourceURI );
+                    runManager.dataPackage.insertRelationship( runManager.execution.execution_uri, predicate, inSourceURI );
                     % how to handle a source file with url
                 end
             end
@@ -641,7 +632,7 @@ classdef RunManager < hgsetget
             % console, errorMessage.
             %   fileName - the name of the execution database
             
-            runID = char(runManager.runId);
+            runID = char(runManager.execution.execution_id);
             filePath = char(runManager.execution.software_application);
             startTime = char(runManager.execution.start_time);
             endTime = char(runManager.execution.end_time);
@@ -690,8 +681,7 @@ classdef RunManager < hgsetget
             % database.
             %   runManager - 
             formatSpec = '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n';
-            executionDB = [runManager.configuration.provenance_storage_directory, filesep, runManager.executionDatabaseName];
-            [fileId, message] = fopen(executionDB,'r');
+            [fileId, message] = fopen(runManager.configuration.execution_db_name, 'r');
             if fileId == -1
                 disp(message); 
             else
@@ -843,6 +833,7 @@ classdef RunManager < hgsetget
             % creating a new instance or returning an existing one.
                         
             import org.dataone.client.configure.Configuration;
+            import org.dataone.client.run.RunManager;
            
             % Set all jars under lib/java/ to the java dynamic class path
             % (double check !)
@@ -863,15 +854,8 @@ classdef RunManager < hgsetget
                 configuration = Configuration();               
             end
             
-            persistent singletonRunManager; % private, stays in memory across clears
+            runManager = RunManager(configuration);
             
-            if isempty( singletonRunManager )
-                import org.dataone.client.run.RunManager;
-                runManager = RunManager(configuration);
-                singletonRunManager = runManager;               
-            else
-                runManager = singletonRunManager;               
-            end
         end
         
         
@@ -1107,20 +1091,18 @@ classdef RunManager < hgsetget
                      
             prov_dir = runManager.configuration.get('provenance_storage_directory');
                        
-            % Create the run metadata directory for this run
-            position = strfind(runManager.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
-            runManager.runId = runManager.execution.execution_id(position+9:end);
-            runManager.runDir = strcat(prov_dir, filesep,'runs', filesep, runManager.runId);
-            [status, message, message_id] = mkdir(runManager.runDir);         
+            runManager.execution.execution_directory = ...
+                fullfile(prov_dir, 'runs', runManager.execution.execution_id);
+            [status, message, message_id] = mkdir(runManager.execution.execution_directory);         
             if ( status ~= 1 )
                 error(message_id, [ 'The directory %s' ...
                     ' could not be created. The error message' ...
-                    ' was: ' runManager.runDir, message]);
+                    ' was: ' runManager.execution.execution_directory, message]);
                 runManager.execution.error_message = [runManager.execution.error_message ' ' message]; 
             end
             
             warning on MATLAB:dispatcher:nameConflict;
-            addpath(runManager.runDir);
+            addpath(runManager.execution.execution_directory);
             warning on MATLAB:dispatcher:nameConflict;
             
             % Initialize a dataPackage to manage the run
@@ -1189,10 +1171,10 @@ classdef RunManager < hgsetget
             mnNodeId = runManager.configuration.get('target_member_node_id');
                      
             % Generate yesWorkflow image outputs
-            runManager.callYesWorkflow(runManager.execution.software_application, runManager.runDir);
+            runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
                    
             % Build a D1 datapackage
-            pkg = runManager.buildPackage( submitter, mnNodeId, runManager.runDir );              
+            pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );              
 
             % Return the Java DataPackage as a Matlab structured array
             data_package = struct(pkg);  
@@ -1204,7 +1186,7 @@ classdef RunManager < hgsetget
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
             % Save the metadata for the current execution
-            runManager.saveExecution(runManager.executionDatabaseName);   
+            runManager.saveExecution(runManager.configuration.execution_db_name);   
             
             % Clear runtime input/output sources (?)
             runManager.getExecInputIds().clear();
@@ -1409,7 +1391,7 @@ classdef RunManager < hgsetget
                     
                 % Write the updated execution metadata with headers to the execution database
                 T = cell2table(execMetaMatrix,'VariableNames',[header{:}]);
-                writetable(T, runManager.executionDatabaseName);                  
+                writetable(T, runManager.configuration.execution_db_name);                  
                              
                 cd(curDir);         
             end          
@@ -1570,12 +1552,8 @@ classdef RunManager < hgsetget
            
             curDir = pwd();
             
-            % Convert packageId to runId
-            k = strfind(packageId, 'urn:uuid:'); % get the index of 'urn:uuid:'            
-            runId = packageId(k+9:end);
-            
             prov_dir = runManager.configuration.get('provenance_storage_directory');
-            curRunDir = [prov_dir filesep 'runs' filesep runId filesep];
+            curRunDir = [prov_dir filesep 'runs' filesep packageId filesep];
          
             if exist(curRunDir, 'dir') ~= 7
                 error([' A directory was not found for execution identifier: ' packageId]);       
@@ -1707,7 +1685,7 @@ classdef RunManager < hgsetget
             
             % Write the updated execution metadata with headers to the execution
             %T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
-            %writetable(T, runManager.executionDatabaseName);
+            %writetable(T, runManager.configuration.execution_db_name);
         end  
         
         
