@@ -59,7 +59,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % function without passing a Configuration object
 
             fprintf('\nIn testGetInstanceNoConfiguration() ...\n');
-            old_format_id = get(testCase.mgr.configuration, 'format_id');
+            if ( isprop(testCase.mgr.configuration, 'format_id') )                
+                old_format_id = get(testCase.mgr.configuration, 'format_id');            
+            else
+               old_format_id = ''; 
+            end
             set(testCase.mgr.configuration, 'format_id', 'application/octet-stream');
             assertInstanceOf(testCase, testCase.mgr, 'org.dataone.client.run.RunManager');
             % Test a single default property to ensure the configuration was set
