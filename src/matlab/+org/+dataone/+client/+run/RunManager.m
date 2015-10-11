@@ -1201,10 +1201,6 @@ classdef RunManager < hgsetget
             %   endDate -- the ending timestamp for an execution
             %   tag -- a tag given to an execution 
             
-            curDir = pwd();
-            prov_dir = runManager.configuration.get('provenance_storage_directory');
-            cd(prov_dir);
-                                 
             % Read the exeuction metadata summary from the exeuction
             % metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
@@ -1233,15 +1229,19 @@ classdef RunManager < hgsetget
                 startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
                 endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
                 dateCondition = startCondition & endColCondition;
+                
             elseif startDateFlag == 1
                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
                 % Extract multiple rows from a matrix 
                 dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum; % Column 3 for startDate
+            
             elseif endDateFlag == 1
                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
                 dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum; % Column 4 for endDate
+            
             else % No query parameters are required 
                 dateCondition = false(size(execMetaMatrix, 1), 1);
+            
             end
                         
             % Process the query parameter "tags" 
@@ -1262,7 +1262,6 @@ classdef RunManager < hgsetget
                 disp(tableForSelectedRuns);                      
             end
            
-            cd(curDir);           
         end
         
         
