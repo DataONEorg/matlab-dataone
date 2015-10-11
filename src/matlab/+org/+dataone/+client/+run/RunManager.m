@@ -1205,6 +1205,15 @@ classdef RunManager < hgsetget
             % metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
            
+            % When the database is empty, show no rows and return
+            if ( isempty(execMetaMatrix) )
+                runs = [];
+                if ( ~ quiet )
+                    fprintf('\n%s\n', 'There are no runs to display yet.');
+                end
+                return;
+                
+            end
             % Initialize the logical cell arrays for the next call for listRuns()
             dateCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
