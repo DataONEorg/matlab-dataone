@@ -114,6 +114,14 @@ classdef Configuration < hgsetget & dynamicprops
         % The name of the executions database file
         execution_db_name = '';
         
+        % The format specification used to read an execution database entry
+        execution_db_read_format = ...
+            '%q %q %q %q %q %q %q %q %q %q %q %q %q %q %q\n';
+
+        % The format specification for an execution database entry
+        execution_db_write_format = ...
+            '"%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s"\n';
+
         % A boolean property that enables or disables debugging 
         debug = false; 
     end
@@ -523,7 +531,7 @@ classdef Configuration < hgsetget & dynamicprops
                           message]);
                 end
                 
-                formatSpec = '%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n';
+                formatSpec = configuration.execution_db_write_format;
 
                 fprintf(fileId, formatSpec, ...
                     'runId', ...
