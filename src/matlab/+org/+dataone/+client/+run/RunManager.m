@@ -209,7 +209,7 @@ classdef RunManager < hgsetget
                 
                 % Use yw.properties for configuration                                     
                 config = YWConfiguration();
-
+                
                 % Call YW-Extract module
                 runManager.extractor = runManager.extractor.reader(reader); 
                 annotations = runManager.extractor.extract().getAnnotations();
@@ -218,14 +218,14 @@ classdef RunManager < hgsetget
                 runManager.modeler = runManager.modeler.annotations(annotations);
                 runManager.modeler = runManager.modeler.model();
                 runManager.workflow = runManager.modeler.getModel().program;
-               
+                
                 % Call YW-Graph module
                 if runManager.configuration.generate_workflow_graphic
                     import org.yesworkflow.graph.GraphView;
                     import org.yesworkflow.graph.CommentVisibility;
                     import org.yesworkflow.extract.HashmapMatlabWrapper;
                     import org.yesworkflow.graph.LayoutDirection;
-                
+                    
                     % Set the working directory to be the run metadata directory for this run
                     curDir = pwd();
                     cd(runDirectory); 
@@ -238,7 +238,7 @@ classdef RunManager < hgsetget
                     runManager.processViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();           
-                                                            
+                                                         
                     % Generate YW.Data_View dot file                  
                     config.applyPropertyFile(runManager.DATA_VIEW_PROPERTY_FILE_NAME); % Read from data_view_yw.properties 
                     gconfig = config.getSection('graph');
@@ -273,7 +273,7 @@ classdef RunManager < hgsetget
                     if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
                     fprintf(fw, '%s', char(extractFacts));
                     fclose(fw);
-                    
+                   
                     cd(curDir); % go back to current working directory          
                 end  
                 
@@ -388,7 +388,7 @@ classdef RunManager < hgsetget
            
             % Record relationship identifying execution id as a provone:Execution                              
             runManager.execution.execution_uri = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' runManager.execution.execution_id]);
- 
+
             runManager.associationSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint 'A0_' char(java.util.UUID.randomUUID())]);
             provOneProgramURI = URI(ProvONE.Program.getURI());
             % Store the prov relationship: association->prov:hadPlan->program
@@ -993,7 +993,12 @@ classdef RunManager < hgsetget
             % level using the yesWorkflow tool.
            if runManager.configuration.generate_workflow_graphic && runManager.configuration.include_workflow_graphic
                 runManager.configYesWorkflow(scriptPath);
-                runManager.captureProspectiveProvenanceWithYW(dirPath);
+               
+                [status, struc] = fileattrib(dirPath);
+                dirFullPath = struc.Name;
+                runManager.captureProspectiveProvenanceWithYW(dirFullPath);
+                
+                %runManager.captureProspectiveProvenanceWithYW(dirPath);
                 runManager.generateYesWorkflowGraphic(dirPath);
             end
         end
@@ -1249,8 +1254,8 @@ classdef RunManager < hgsetget
                 dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum; % Column 4 for endDate
             
             else % No query parameters are required 
-                dateCondition = false(size(execMetaMatrix, 1), 1);
-            
+                %dateCondition = false(size(execMetaMatrix, 1), 1);
+                dateCondition = true(size(execMetaMatrix, 1), 1);
             end
                         
             % Process the query parameter "tags" 
@@ -1413,6 +1418,8 @@ classdef RunManager < hgsetget
            % Display a warning message to the user
            disp('Warning: There is no scientific metadata in this data package.');
            
+           import org.apache.commons.io.FileUtils;
+           
            prov_dir = runManager.configuration.get('provenance_storage_directory');
            
            % Select runs based on the packageID. Report 'No runs can be
@@ -1479,7 +1486,7 @@ classdef RunManager < hgsetget
                fprintf('Tag: %s\n', selectedRuns{1,7});
                fprintf('Run sequence #: %d\n', seqNo);
                fprintf('Published date: %s\n', publishedTime);
-               fprintf('Published to: DateONE member node: %s\n', ''); % todo: D1 member node name
+               fprintf('Published to: DateONE member node ( %s )\n', runManager.configuration.target_member_node_id); % todo: D1 member node name
                fprintf('Run by user: %s\n', selectedRuns{1,8});
                fprintf('Account subject: %s\n', selectedRuns{1,9});
                fprintf('Run Id: %s\n', selectedRuns{1,1});
@@ -1492,15 +1499,16 @@ classdef RunManager < hgsetget
                fprintf('Run ending time: %s\n', char(endTime));
                fprintf('Error message from this run: %s\n', selectedRuns{1,15});
            end
-           
+                    
            if showUsed == 1
                if ~isempty(usedStruct)     
                    fprintf('\n\n[USED]: %d Items used by this run\n', length(usedStruct));
                    fprintf('------------------------------------\n');
                    for i = 1:length(usedStruct)  
                       f = dir(usedStruct(i).Object);
-                      usedFileStruct(i,1).LocalName = f.name;                                  
-                      usedFileStruct(i,1).Size =  f.bytes; % todo: kb
+                      usedFileStruct(i,1).LocalName = f.name;     
+                      fsize = FileUtils.byteCountToDisplaySize(f.bytes);                     
+                      usedFileStruct(i,1).Size = char(fsize); 
                       usedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
                    end
                    TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
@@ -1520,7 +1528,8 @@ classdef RunManager < hgsetget
                        f = dir(wasGeneratedByStruct(i).Subject);
                       
                        generatedFileStruct(i,1).LocalName = f.name; 
-                       generatedFileStruct(i,1).Size = f.bytes; %todo: kb
+                       fsize = FileUtils.byteCountToDisplaySize(f.bytes); 
+                       generatedFileStruct(i,1).Size = char(fsize); 
                        generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
                    end               
                    TableForFileWasGeneratedBy = struct2table(generatedFileStruct); % Convert a struct to a table
