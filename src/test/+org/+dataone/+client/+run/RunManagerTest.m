@@ -306,7 +306,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             startDate = '20151005T102515';
             runs = testCase.mgr.listRuns('', startDate, '', '');
             [rows, columns] = size(runs);
-            assertEqual(testCase, rows, 1); % Only one row should match
+            assertEqual(testCase, rows, 2); % Two rows should match
             % TODO: Compare the execution ids
   
         end
@@ -332,9 +332,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             generateTestRuns(testCase);
 
             startDate = '20151005T102515';
-            endDate = '20151005T102515';
-            [rows, columns] = size(runs);
+            endDate = '20151007T102515';
             runs = testCase.mgr.listRuns('', startDate, endDate, '');
+            [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
 
