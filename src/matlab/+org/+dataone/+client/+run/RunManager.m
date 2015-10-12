@@ -651,7 +651,7 @@ classdef RunManager < hgsetget
             console = ''; % Todo:
             errorMessage = char(runManager.execution.error_message);
             
-            formatSpec = '%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n';
+            formatSpec = runManager.configuration.execution_db_write_format;
            
             curDir = pwd();
             cd(runManager.configuration.provenance_storage_directory);
@@ -680,13 +680,13 @@ classdef RunManager < hgsetget
             % metadata summary for all executions from the exeucton
             % database.
             %   runManager - 
-            formatSpec = '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n';
+            formatSpec = runManager.configuration.execution_db_read_format;
             [fileId, message] = fopen(runManager.configuration.execution_db_name, 'r');
             if fileId == -1
                 disp(message); 
             else
                 header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
-                execMetaData = textscan(fileId,formatSpec,'Delimiter',',');
+                execMetaData = textscan(fileId, formatSpec, 'Delimiter',',');
                 fclose(fileId);
  
                 % Convert a cell array to a matrix
@@ -1207,7 +1207,7 @@ classdef RunManager < hgsetget
            
             % When the database is empty, show no rows and return
             if ( isempty(execMetaMatrix) )
-                runs = [];
+                runs = {};
                 if ( ~ quiet )
                     fprintf('\n%s\n', 'There are no runs to display yet.');
                 end
