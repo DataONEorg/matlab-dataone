@@ -34,25 +34,25 @@ import matlab.unittest.TestSuite;
 suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 
 % Use fromClass
-%testCls = ?org.dataone.client.configure.ConfigurationTest;
-%testCls = ?org.dataone.client.run.ExecutionTest;
+% testCls = ?org.dataone.client.configure.ConfigurationTest;
+% testCls = ?org.dataone.client.run.ExecutionTest;
 % testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromClass(testCls);
 
 % Use fromMethod
 testCls = ?org.dataone.client.run.RunManagerTest;
-% suite = TestSuite.fromMethod(testCls, 'testDeleteRuns'); % Succeeds
 % suite = TestSuite.fromMethod(testCls, 'testGetInstanceNoConfiguration'); % Succeeds
 % suite = TestSuite.fromMethod(testCls, 'testGetInstanceWithConfiguration'); % Succeeds
-% suite = TestSuite.fromMethod(testCls, 'testListRunsNoParams'); %
-% suite = TestSuite.fromMethod(testCls, 'testListRunsAllParams'); %
-% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateOnly'); %
-% suite = TestSuite.fromMethod(testCls, 'testListRunsEndDateOnly'); %
-% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateEndDateOnly'); %
-% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateEndDateTagsOnly'); %
-% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateTagsOnly'); %
-% suite = TestSuite.fromMethod(testCls, 'testListRunsEndDateTagsOnly'); %
-% suite = TestSuite.fromMethod(testCls, 'testListRunsTagsOnly'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsNoParams'); % Succeeds
+% suite = TestSuite.fromMethod(testCls, 'testListRunsAllParams'); % Succeeds
+% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateOnly'); % Succeeds
+% suite = TestSuite.fromMethod(testCls, 'testListRunsEndDateOnly'); % Succeeds
+% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateEndDateOnly'); % Succeeds
+% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateEndDateTagsOnly'); % Fails due to logical OR in listRuns()
+% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateTagsOnly'); % Fails due to logical OR in listRuns()
+% suite = TestSuite.fromMethod(testCls, 'testListRunsEndDateTagsOnly'); % Fails due to logical OR in listRuns()
+% suite = TestSuite.fromMethod(testCls, 'testListRunsTagsOnly'); % Fails due to dateCondition set to true line 1258
+% suite = TestSuite.fromMethod(testCls, 'testDeleteRuns'); % Succeeds
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); % Fails: Error using cd Cannot CD to test/resources (Name is nonexistent or not a directory). Error in run (line 41) cd(fileDir);
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad'); % Fails, same as above

@@ -345,8 +345,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             generateTestRuns(testCase);
 
-            startDate = '20151005T102515';
-            endDate = '20151005T102515';
+            startDate = '20150930T082515';
+            endDate = '20151007T102515';
             tagList = {'test_tag_2'};
             
             runs = testCase.mgr.listRuns('', startDate, endDate, tagList);
@@ -361,7 +361,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             generateTestRuns(testCase);
 
-            startDate = '20151005T102515';
+            startDate = '20150929T102515';
             tagList = {'test_tag_2'};
             
             runs = testCase.mgr.listRuns('', startDate, '', tagList);
@@ -391,7 +391,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             generateTestRuns(testCase);
             
-            tagList = {'test_tag_2'};
+            tagList = {'test_tag_3'};
 
             runs = testCase.mgr.listRuns('', '', '', tagList);
             [rows, columns] = size(runs);
