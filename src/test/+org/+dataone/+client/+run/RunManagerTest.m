@@ -73,8 +73,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             % reset to the original
             set(testCase.mgr.configuration, 'format_id', old_format_id);
-        end
- 
+        end 
         
         function testGetInstanceWithConfiguration(testCase)
             % TESTGETINSTANCENOCONFIGURATION tests calling the getInstance()
@@ -95,8 +94,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             % reset to the original
             set(testCase.mgr.configuration, 'format_id', old_format_id);
-        end
-        
+        end        
         
         function testYesWorkflow(testCase)
             fprintf('\nIn testYesWorkflow() ...\n');
@@ -129,8 +127,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             existed = any(ismember(b(1,:), combFileName));
           
             assert(isequal(existed,1));           
-        end
-           
+        end           
         
         function testRecord(testCase)
             fprintf('\nIn testRecord() ...\n');
@@ -182,7 +179,6 @@ classdef RunManagerTest < matlab.unittest.TestCase
             total = total1 + total2;
             assertEqual(testCase, total, 2);
         end
-
                 
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
@@ -195,8 +191,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.setExecOutputIds(execOutputIds);
     
             run(testCase.filename);
-        end
-        
+        end        
               
         function testOverloadedNCread(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
@@ -209,8 +204,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.setExecOutputIds(execOutputIds);
          
             run(testCase.filename);
-        end
-        
+        end        
         
         function testOverloadedNCwrite(testCase)
             fprintf('\nIn testOverloadedNcwrite() ...\n');            
@@ -223,8 +217,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.setExecOutputIds(execOutputIds);
   
             run(testCase.filename);
-        end
-        
+        end        
         
         function testOverloadedCSVread(testCase)
             fprintf('\nIn testOverloadedCSVread() ...\n');            
@@ -237,8 +230,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.setExecOutputIds(execOutputIds);
   
             run(testCase.filename);
-        end
-        
+        end        
                        
         function testOverloadedLoad(testCase)
             % Todo: load coast (not working)
@@ -253,8 +245,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.setExecOutputIds(execOutputIds);
   
             run(testCase.filename);
-        end
-        
+        end        
         
         function testOverloadedDlmread(testCase)
             % Todo: load coast (not working)
@@ -268,8 +259,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.setExecOutputIds(execOutputIds);
   
             run(testCase.filename);
-        end
-        
+        end        
                 
         function testSaveExecution(testCase)
             fprintf('\nIn testSaveExecution() ...\n');
@@ -277,70 +267,138 @@ classdef RunManagerTest < matlab.unittest.TestCase
             execDBName = testCase.mgr.executionDatabaseName;  
             
             % Todo:
+        end        
+        
+        function testListRunsNoParams(testCase)
+            fprintf('\n*** testListRuns with no parameters: ***\n');
+            
+            generateTestRuns(testCase);
+            
+            runs = testCase.mgr.listRuns('', '', '', '');
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 3); % Three rows should match
+            % TODO: Compare the execution ids
+            
         end
         
-        
-        function testListRuns(testCase)
-            fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
+        function testListRunsAllParams(testCase)
+            fprintf('\n*** testListRuns with all parameters: ***\n');
             
-            % Create run entry 1
-            import org.dataone.client.run.Execution;
-            run1 = Execution();
-            set(run1, 'tag', 'test_tag_miss');
-            set(run1, 'execution_uri', [testCase.mgr.configuration.coordinating_node_base_url '/v1/resolve' run1.execution_id]);
-            set(run1, 'start_time', '20150930T101049');
-            set(run1, 'end_time', '20150930T101149');
-            testCase.mgr.execution = run1;
-            createFakeExecution(testCase);
+            generateTestRuns(testCase);
             
-            % Create run entry 2
-            run2 = Execution();
-            set(run2, 'tag', 'test_tag_miss');
-            set(run2, 'execution_uri', [testCase.mgr.configuration.coordinating_node_base_url '/v1/resolve' run1.execution_id]);
-            set(run2, 'start_time', '20151006T101049');
-            set(run2, 'end_time', '20151006T101149');
-            testCase.mgr.execution = run2;
-            createFakeExecution(testCase);
-
-            % Create run entry 3
-            run3 = Execution();
-            set(run3, 'tag', 'test_tag_miss');
-            set(run3, 'execution_uri', [testCase.mgr.configuration.coordinating_node_base_url '/v1/resolve' run1.execution_id]);
-            set(run3, 'start_time', '20301030T101049');
-            set(run3, 'end_time', '20301030T101249');
-            testCase.mgr.execution = run3;
-            createFakeExecution(testCase);
-
             quiet = false;
             startDate = '20151005T102515';
             endDate = '20151005T102515';
-            tagList = {'test_view'};
+            tagList = {'test_tag_2'};
             
-            fprintf('\n*** testListRuns with startDate and endDate both required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
-                     
-            fprintf('\n*** testListRuns with startDate only required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, startDate, '', '');
-  
-            fprintf('\n*** testListRuns with endDate only required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', endDate, '');
-            
-            fprintf('\n*** testListRuns with no query parameters required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', '', '');
-            
-            fprintf('\n*** testListRuns with startDate, endDate and tags all required: ***\n');
             runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
-                     
-            fprintf('\n*** testListRuns with startDate and tags  required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, startDate, '', tagList);
-  
-            fprintf('\n*** testListRuns with endDate and tags required: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', endDate, tagList);
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids
             
-            fprintf('\n*** testListRuns with tags required only: ***\n');
-            runs = testCase.mgr.listRuns(quiet, '', '', tagList);
         end
         
+        function testListRunsStartDateOnly(testCase)
+            fprintf('\n*** testListRuns with startDate only: ***\n');
+
+            generateTestRuns(testCase);
+
+            startDate = '20151005T102515';
+            runs = testCase.mgr.listRuns('', startDate, '', '');
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids
+  
+        end
+        
+        function testListRunsEndDateOnly(testCase)
+            
+            fprintf('\n*** testListRuns with endDate only: ***\n');
+
+            generateTestRuns(testCase);
+
+            endDate = '20151005T102515';
+            runs = testCase.mgr.listRuns('', '', endDate, '');
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids
+            
+        end
+        
+        function testListRunsStartDateEndDateOnly(testCase)
+            
+            fprintf('\n*** testListRuns with startDate and endDate only: ***\n');
+
+            generateTestRuns(testCase);
+
+            startDate = '20151005T102515';
+            endDate = '20151005T102515';
+            [rows, columns] = size(runs);
+            runs = testCase.mgr.listRuns('', startDate, endDate, '');
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids
+
+        end
+        
+        function testListRunsStartDateEndDateTagsOnly(testCase)
+            fprintf('\n*** testListRuns with startDate, endDate and tags only: ***\n');
+
+            generateTestRuns(testCase);
+
+            startDate = '20151005T102515';
+            endDate = '20151005T102515';
+            tagList = {'test_tag_2'};
+            
+            runs = testCase.mgr.listRuns('', startDate, endDate, tagList);
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids
+            
+        end
+        
+        function testListRunsStartDateTagsOnly(testCase)
+            fprintf('\n*** testListRuns with startDate and tags only: ***\n');
+
+            generateTestRuns(testCase);
+
+            startDate = '20151005T102515';
+            tagList = {'test_tag_2'};
+            
+            runs = testCase.mgr.listRuns('', startDate, '', tagList);
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids
+        end
+
+        function testListRunsEndDateTagsOnly(testCase)
+
+            fprintf('\n*** testListRuns with endDate and tags required: ***\n');
+
+            generateTestRuns(testCase);
+
+            endDate = '20151005T102515';
+            tagList = {'test_tag_2'};
+
+            runs = testCase.mgr.listRuns('', '', endDate, tagList);
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids
+            
+        end
+        
+        function testListRunsTagsOnly(testCase)
+            fprintf('\n*** testListRuns with tags required only: ***\n');
+
+            generateTestRuns(testCase);
+            
+            tagList = {'test_tag_2'};
+
+            runs = testCase.mgr.listRuns('', '', '', tagList);
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids
+            
+        end        
         
         function testView(testCase)
             fprintf('\n\nTest for view(packageId) function:\n');
@@ -354,8 +412,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             sessions = {'details', 'used', 'generated'};
             testCase.mgr.view(pkgId, sessions); % view the selected run
-        end
-        
+        end        
         
         function testPublishPackageFromDisk(testCase)
             fprintf('\n\nTest for publishPackageFromDisk() function:\n');
@@ -363,8 +420,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
             set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
             testCase.mgr.publishPackageFromDisk(pkgId);
-        end
-        
+        end        
         
         function testDeleteRuns(testCase)
             fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
@@ -383,8 +439,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             tagList = {'test_view_1'};
             runIdList = '';
             testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
-        end
-        
+        end        
         
         function testPublish(testCase)
             % TESTPUBLISH tests calling the RunManager.publish() function
@@ -404,6 +459,45 @@ classdef RunManagerTest < matlab.unittest.TestCase
     end
     
     methods (Access = 'private')
+        
+        function generateTestRuns(testCase)
+        % GENERATETESTRUNS generates test runs and adds them to the database    
+            
+            % Create run entry 1
+            import org.dataone.client.run.Execution;
+            run1 = Execution();
+            set(run1, 'tag', 'test_tag_1');
+            set(run1, 'execution_uri', ...
+                [testCase.mgr.configuration.coordinating_node_base_url ...
+                '/v1/resolve' run1.execution_id]);
+            set(run1, 'start_time', '20150930T101049');
+            set(run1, 'end_time', '20150930T101149');
+            testCase.mgr.execution = run1;
+            createFakeExecution(testCase);
+            
+            % Create run entry 2
+            run2 = Execution();
+            set(run2, 'tag', 'test_tag_2');
+            set(run2, 'execution_uri', ...
+                [testCase.mgr.configuration.coordinating_node_base_url ...
+                '/v1/resolve' run2.execution_id]);
+            set(run2, 'start_time', '20151006T101049');
+            set(run2, 'end_time', '20151006T101149');
+            testCase.mgr.execution = run2;
+            createFakeExecution(testCase);
+
+            % Create run entry 3
+            run3 = Execution();
+            set(run3, 'tag', 'test_tag_3');
+            set(run3, 'execution_uri', ...
+                [testCase.mgr.configuration.coordinating_node_base_url ...
+                '/v1/resolve' run3.execution_id]);
+            set(run3, 'start_time', '20301030T101049');
+            set(run3, 'end_time', '20301030T101249');
+            testCase.mgr.execution = run3;
+            createFakeExecution(testCase);
+
+        end
         
         function createFakeExecution(testCase)
         % CREATEFAKEEXECUTION creates a create execution in the configuration directory
