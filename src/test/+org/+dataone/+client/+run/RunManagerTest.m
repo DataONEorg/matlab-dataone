@@ -422,23 +422,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.publishPackageFromDisk(pkgId);
         end        
         
-        function testDeleteRuns(testCase)
-            fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
+        function testDeleteRunsByTags(testCase)
+            % fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
+            fprintf('\n*** testDeleteRunsByTags: ***\n');
             
-            quiet = false;
-            noop = true;
-            
-            % With query parameters for startDate or endDate
-            % startDate = '20150804T102515';
-            % endDate = datestr(now, 30);
-            
-            % Without query parameters for startDate and endDate
-            startDate = '';
-            endDate = '';
-            
-            tagList = {'test_view_1'};
-            runIdList = '';
-            testCase.mgr.deleteRuns(runIdList, startDate, endDate, tagList, noop, quiet);
+            generateTestRuns(testCase);
+                        
+            tagList = {'test_tag_1'};
+            testCase.mgr.deleteRuns('', '', '', tagList, '', '');
         end        
         
         function testPublish(testCase)
