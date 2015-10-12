@@ -32,6 +32,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
     methods (TestMethodSetup)
         
         function setUp(testCase)
+                        
             % SETUP Set up the test environment            
             import org.dataone.client.run.RunManager;
             
@@ -47,8 +48,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
     methods (TestMethodTeardown)
         
         function tearDown(testCase)
-            % TEARDOWN Tear down the test environment
             
+            % Reset the Matlab DataONE Toolbox environment
+            resetEnvironment(testCase);
         end
     end
     
@@ -181,8 +183,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assertEqual(testCase, total, 2);
         end
 
-        
-        
+                
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
             testCase.filename = 'test/resources/myScript3.m';
@@ -238,8 +239,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             run(testCase.filename);
         end
         
-        
-                
+                       
         function testOverloadedLoad(testCase)
             % Todo: load coast (not working)
             fprintf('\nIn testOverloadedLoad() ...\n');            
@@ -283,33 +283,61 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testListRuns(testCase)
             fprintf('\n\nTest for ListRuns(runManager, quiet, startDate, endDate, tags) function:\n');
             
+            % Create run entry 1
+            import org.dataone.client.run.Execution;
+            run1 = Execution();
+            set(run1, 'tag', 'test_tag_miss');
+            set(run1, 'execution_uri', [testCase.mgr.configuration.coordinating_node_base_url '/v1/resolve' run1.execution_id]);
+            set(run1, 'start_time', '20150930T101049');
+            set(run1, 'end_time', '20150930T101149');
+            testCase.mgr.execution = run1;
+            createFakeExecution(testCase);
+            
+            % Create run entry 2
+            run2 = Execution();
+            set(run2, 'tag', 'test_tag_miss');
+            set(run2, 'execution_uri', [testCase.mgr.configuration.coordinating_node_base_url '/v1/resolve' run1.execution_id]);
+            set(run2, 'start_time', '20151006T101049');
+            set(run2, 'end_time', '20151006T101149');
+            testCase.mgr.execution = run2;
+            createFakeExecution(testCase);
+
+            % Create run entry 3
+            run3 = Execution();
+            set(run3, 'tag', 'test_tag_miss');
+            set(run3, 'execution_uri', [testCase.mgr.configuration.coordinating_node_base_url '/v1/resolve' run1.execution_id]);
+            set(run3, 'start_time', '20301030T101049');
+            set(run3, 'end_time', '20301030T101249');
+            testCase.mgr.execution = run3;
+            createFakeExecution(testCase);
+
             quiet = false;
-            startDate = '20150921T102515';
-            endDate = datestr(now, 30);
+            startDate = '20151005T102515';
+            endDate = '20151005T102515';
             tagList = {'test_view'};
             
-            fprintf('*** startDate and endDate both required: ***\n');
+            fprintf('\n*** testListRuns with startDate and endDate both required: ***\n');
             runs = testCase.mgr.listRuns(quiet, startDate, endDate, '');
                      
-            fprintf('*** startDate only required: ***\n');
+            fprintf('\n*** testListRuns with startDate only required: ***\n');
             runs = testCase.mgr.listRuns(quiet, startDate, '', '');
   
-            fprintf('*** endDate only required: ***\n');
+            fprintf('\n*** testListRuns with endDate only required: ***\n');
             runs = testCase.mgr.listRuns(quiet, '', endDate, '');
             
-            fprintf('*** No query parameters are required: ***\n');
+            fprintf('\n*** testListRuns with no query parameters required: ***\n');
             runs = testCase.mgr.listRuns(quiet, '', '', '');
             
-            fprintf('*** startDate, endDate and tags all required: ***\n');
+            fprintf('\n*** testListRuns with startDate, endDate and tags all required: ***\n');
             runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
                      
-            fprintf('*** startDate and tags are required: ***\n');
+            fprintf('\n*** testListRuns with startDate and tags  required: ***\n');
             runs = testCase.mgr.listRuns(quiet, startDate, '', tagList);
   
-            fprintf('*** endDate and tags are required: ***\n');
+            fprintf('\n*** testListRuns with endDate and tags required: ***\n');
             runs = testCase.mgr.listRuns(quiet, '', endDate, tagList);
             
-            fprintf('*** tags is required only: ***\n');
+            fprintf('\n*** testListRuns with tags required only: ***\n');
             runs = testCase.mgr.listRuns(quiet, '', '', tagList);
         end
         
@@ -373,5 +401,72 @@ classdef RunManagerTest < matlab.unittest.TestCase
             pkgId = testCase.mgr.publish(runId);
         end
          
+    end
+    
+    methods (Access = 'private')
+        
+        function createFakeExecution(testCase)
+        % CREATEFAKEEXECUTION creates a create execution in the configuration directory
+                
+            % Write the execution entry to the file
+            runID = char(testCase.mgr.execution.execution_id);
+            filePath = char(testCase.mgr.execution.software_application);
+            startTime = char(testCase.mgr.execution.start_time);
+            endTime = char(testCase.mgr.execution.end_time);
+            publishedTime = char(testCase.mgr.execution.publish_time);
+            packageId = char(testCase.mgr.execution.data_package_id);
+            tag = testCase.mgr.execution.tag;  
+            user = char(testCase.mgr.execution.account_name);
+            subject = 'CN=Test User, dc=dataone, dc=org'; 
+            hostId = char(testCase.mgr.execution.host_id);
+            operatingSystem = char(testCase.mgr.execution.operating_system);
+            runtime = char(testCase.mgr.execution.runtime);
+            moduleDependencies = char(testCase.mgr.execution.module_dependencies);
+            console = '';
+            errorMessage = char(testCase.mgr.execution.error_message);
+            
+            formatSpec = testCase.mgr.configuration.execution_db_write_format;
+            
+            if ( exist(testCase.mgr.configuration.execution_db_name, 'file') ~= 2 )
+                [fileId, message] = ...
+                    fopen(testCase.mgr.configuration.execution_db_name, 'w');
+                fprintf(fileId, formatSpec, 'runId', 'filePath', ...
+                    'startTime', 'endTime', 'publishedTime', ...
+                    'packageId', 'tag', 'user', 'subject', 'hostId', ...
+                    'operatingSystem', 'runtime', 'moduleDependencies', ...
+                    'console', 'errorMessage');
+                fprintf(fileId, formatSpec, runID, filePath, startTime, ...
+                    endTime, publishedTime, packageId, tag, user, subject, ...
+                    hostId, operatingSystem, runtime, moduleDependencies, ...
+                    console, errorMessage);   
+                
+            else    
+                [fileId, message] = ...
+                    fopen(testCase.mgr.configuration.execution_db_name, 'a');
+                fprintf(fileId, formatSpec, runID, filePath, startTime, ...
+                    endTime, publishedTime, packageId, tag, user, subject, ...
+                    hostId, operatingSystem, runtime, moduleDependencies, ...
+                    console, errorMessage);
+                
+            end
+            
+            fclose(fileId);
+                
+        end
+        
+        function resetEnvironment(testCase)
+        % RESETENVIRONMENT resets the Matlab DataONE Toolbox environment
+            
+            try
+                if ( isprop(testCase.mgr.configuration, 'configuration_directory') )
+                    rmdir(testCase.mgr.configuration.configuration_directory, 's');
+                end
+                
+            catch IOError
+                disp(IOError);
+                
+            end
+
+        end
     end
 end
