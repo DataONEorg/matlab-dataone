@@ -95,9 +95,13 @@ function S = load( source, varargin )
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
             [status, struc] = fileattrib(source);
-            fullSourcePath = struc.Name;
+            if status ~= 0
+                fullSourcePath = struc.Name;
+            end
         end
     
-        exec_input_id_list.put(fullSourcePath, 'text/plain');
+        if ~isempty(fullSourcePath)
+            exec_input_id_list.put(fullSourcePath, 'text/plain');
+        end
     end
 end

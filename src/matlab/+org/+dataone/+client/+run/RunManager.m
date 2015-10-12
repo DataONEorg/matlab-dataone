@@ -856,6 +856,8 @@ classdef RunManager < hgsetget
             
             runManager = RunManager(configuration);
             
+            runManager.execInputIds = java.util.Hashtable();
+            runManager.execOutputIds = java.util.Hashtable();
         end
         
         
@@ -1126,10 +1128,10 @@ classdef RunManager < hgsetget
             runManager.dataPackage = DataPackage(resourceMapId);
                      
             % Create an empty cell array for runtime input/output sources
-            %runManager.execInputIds = {}; 
-            %runManager.execOutputIds = {};
-            runManager.execInputIds = java.util.Hashtable();
-            runManager.execOutputIds = java.util.Hashtable();
+            % runManager.execInputIds = {}; 
+            % runManager.execOutputIds = {};
+            % runManager.execInputIds = java.util.Hashtable();
+            % runManager.execOutputIds = java.util.Hashtable();
             
             % Run the script and collect provenance information
             runManager.prov_capture_enabled = true;
@@ -1199,7 +1201,8 @@ classdef RunManager < hgsetget
         end
         
         
-        function runs = listRuns(runManager, quiet, startDate, endDate, tags)
+       % function runs = listRuns(runManager, quiet, startDate, endDate, tags)
+       function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
             %   startDate -- the starting timestamp for an execution
@@ -1213,7 +1216,7 @@ classdef RunManager < hgsetget
             % When the database is empty, show no rows and return
             if ( isempty(execMetaMatrix) )
                 runs = {};
-                if ( ~ quiet )
+                if ( ~ varargin{1} )
                     fprintf('\n%s\n', 'There are no runs to display yet.');
                 end
                 return;
@@ -1228,11 +1231,13 @@ classdef RunManager < hgsetget
             startDateFlag = false;
             endDateFlag = false;
                 
-            if isempty(startDate) ~= 1
+            if isempty(varargin{2}) ~= 1
+                startDate = varargin{2};
                 startDateFlag = true;
             end
                 
-            if isempty(endDate) ~= 1
+            if isempty(varargin{3}) ~= 1
+                endDate = varargin{3};
                 endDateFlag = true;
             end
                 
@@ -1240,18 +1245,18 @@ classdef RunManager < hgsetget
                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
                 % Extract multiple rows from a matrix 
-                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
-                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
+                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
+                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
                 dateCondition = startCondition & endColCondition;
                 
             elseif startDateFlag == 1
                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
                 % Extract multiple rows from a matrix 
-                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum; % Column 3 for startDate
+                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % Column 3 for startDate
             
             elseif endDateFlag == 1
                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum; % Column 4 for endDate
+                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum; % Column 4 for endDate
             
             else % No query parameters are required 
                 %dateCondition = false(size(execMetaMatrix, 1), 1);
@@ -1259,23 +1264,25 @@ classdef RunManager < hgsetget
             end
                         
             % Process the query parameter "tags" 
-            if ~isempty(tags)
+            if ~isempty(varargin{4})
+                tags = varargin{4};
                 tagsArray = char(tags);
                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-                allCondition = dateCondition | tagsCondition; % Logical OR operator
+                allCondition = dateCondition & tagsCondition; % Logical and operator
             else
                 allCondition = dateCondition;
             end
 
             % Extract multiple rows from a matrix satisfying the allCondition
-            runs = execMetaMatrix(allCondition, :);
+            %runs = execMetaMatrix(allCondition, :);
+            runs = execMetaMatrix(allCondition, [2,7,3,4,5]);
             
-            if isempty(quiet) ~= 1 && quiet ~= 1
+            if isempty(varargin{1}) ~= 1 && varargin{1} ~= 1
                 % Convert a cell array to a table with headers                 
-                tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
+               % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
+                tableForSelectedRuns = cell2table(runs,'VariableNames', {'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
                 disp(tableForSelectedRuns);                      
-            end
-           
+            end          
         end
         
         
