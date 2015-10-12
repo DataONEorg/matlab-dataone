@@ -29,21 +29,44 @@ addpath(genpath(pwd));
 warning on MATLAB:dispatcher:nameConflict;
 
 import matlab.unittest.TestSuite;
+
+% Use fromPackage
 suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 
-testCls = ?org.dataone.client.run.RunManagerTest;
+% Use fromClass
+%testCls = ?org.dataone.client.configure.ConfigurationTest;
+%testCls = ?org.dataone.client.run.ExecutionTest;
+% testCls = ?org.dataone.client.run.RunManagerTest;
+% suite = TestSuite.fromClass(testCls);
 
-% suite = TestSuite.fromMethod(testCls, 'testRecord');
-% suite = TestSuite.fromMethod(testCls, 'testView');
-% suite = TestSuite.fromMethod(testCls, 'testPublishPackageFromDisk');
-% suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
-% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen');
-% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); % Problem: load coast
-% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite');
-% suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); 
-% suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad');
-% suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); 
+% Use fromMethod
+testCls = ?org.dataone.client.run.RunManagerTest;
+% suite = TestSuite.fromMethod(testCls, 'testDeleteRuns'); % Succeeds
+% suite = TestSuite.fromMethod(testCls, 'testGetInstanceNoConfiguration'); % Succeeds
+% suite = TestSuite.fromMethod(testCls, 'testGetInstanceWithConfiguration'); % Succeeds
+% suite = TestSuite.fromMethod(testCls, 'testListRunsNoParams'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsAllParams'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateOnly'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsEndDateOnly'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateEndDateOnly'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateEndDateTagsOnly'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsStartDateTagsOnly'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsEndDateTagsOnly'); %
+% suite = TestSuite.fromMethod(testCls, 'testListRunsTagsOnly'); %
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); % Fails: Error using cd Cannot CD to test/resources (Name is nonexistent or not a directory). Error in run (line 41) cd(fileDir);
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); % Fails, same as above
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad'); % Fails, same as above
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen'); % Fails, same as above
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); % Fails, same as above
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite'); % Fails, same as above
+% suite = TestSuite.fromMethod(testCls, 'testPublish'); % No public field runDir exists for class org.dataone.client.run.RunManager. Error in org.dataone.client.run.RunManagerTest/testPublish (line 370): testCase.mgr.runDir = 'test/resources/runs';   
+% suite = TestSuite.fromMethod(testCls, 'testPublishPackageFromDisk'); % Need to rename this to testPubish(). function no longer exists.
+% suite = TestSuite.fromMethod(testCls, 'testRecord'); % Error using org.dataone.client.run.RunManager/startRecord (line 1141). The script: /Users/cjones/Documents/Development/d1org/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m could not be run. The error message was: Attempt to reference field of non-structure array.
+% suite = TestSuite.fromMethod(testCls, 'testSaveExecution'); % Error in org.dataone.client.run.RunManagerTest/testSaveExecution (line 277). execDBName = testCase.mgr.executionDatabaseName;  
+% suite = TestSuite.fromMethod(testCls, 'testView'); % Error using org.dataone.client.run.RunManager/view (line 1422). No runs can be found as a match.
+% suite = TestSuite.fromMethod(testCls, 'testYesWorkflow'); % No public field runDir exists for class org.dataone.client.run.RunManager. Error in org.dataone.client.run.RunManagerTest/testYesWorkflow (line 120): testCase.mgr.runDir = '/tmp';
+% suite = TestSuite.fromMethod(testCls, 'testView'); % Error using org.dataone.client.run.RunManager/view (line 1422): No runs can be found as a match.
 
 run(suite);
 
-rmpath(genpath(pwd));
+% rmpath(genpath(pwd));
