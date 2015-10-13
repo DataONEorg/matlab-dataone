@@ -469,7 +469,13 @@ classdef RunManagerTest < matlab.unittest.TestCase
             generateTestRuns(testCase);
                         
             tagList = {'test_tag_1'};
+            % Delete the runs
             testCase.mgr.deleteRuns('', '', '', tagList, '', '');
+            
+            % List the runs
+            runs = testCase.mgr.listRuns('', '', '', '');
+            [rows, cols] = size(runs);
+            assertEqual(testCase, rows, 2); % Only 2 rows should be left
         end          
         
         function testPublish(testCase)
@@ -503,6 +509,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 '/v1/resolve' run1.execution_id]);
             set(run1, 'start_time', '20150930T101049');
             set(run1, 'end_time', '20150930T101149');
+            set(run1, 'software_application', 'test_data_input1.m');
             testCase.mgr.execution = run1;
             createFakeExecution(testCase);
             
@@ -515,6 +522,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(run2, 'start_time', '20151006T101049');
             set(run2, 'end_time', '20151006T101149');
             testCase.mgr.execution = run2;
+            set(run2, 'software_application', 'test_data_input2.m');
+
             createFakeExecution(testCase);
 
             % Create run entry 3
@@ -525,6 +534,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 '/v1/resolve' run3.execution_id]);
             set(run3, 'start_time', '20301030T101049');
             set(run3, 'end_time', '20301030T101249');
+            set(run3, 'software_application', 'test_data_input3.m');
             testCase.mgr.execution = run3;
             createFakeExecution(testCase);
 
@@ -576,7 +586,18 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             fclose(fileId);
-                
+            
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end                
+            end
         end
         
         function resetEnvironment(testCase)
