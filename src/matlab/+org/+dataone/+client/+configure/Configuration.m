@@ -128,9 +128,27 @@ classdef Configuration < hgsetget & dynamicprops
     
     methods
         
-        function configuration = Configuration()
+        function configuration = Configuration(varargin)
             % CONFIGURATION A class used to set configuration options for the DataONE Toolbox  
             
+            if ( nargin > 0 )
+                if ( mod(nargin, 2) ~= 0)
+                    error('Configuration:oddNumberOfArguments', ...
+                        ['To construct a Configuration object, use ', ...
+                        'an even number of arguments that are \n', ...
+                        'Configuration property name/value pairs, ' ...
+                        'or no arguments at all.\n\n', ...
+                        'For instance: \n\n', ...
+                        'c = Configuration(',  ...
+                        '''configuration_directory'',', ...
+                        '''<your-custom-folder>, '',', ...
+                        '''account_name'',', ...
+                        '''<your-username>) '')', ...
+                        ]);
+                end
+                
+                
+            end
             createConfigurationDirectory(configuration);
             createProvStorageDirectory(configuration);
             createExecutionsDatabase(configuration);
@@ -140,8 +158,8 @@ classdef Configuration < hgsetget & dynamicprops
             setAccountName(configuration);
             setMetadataTemplateFile(configuration);
             
-        end
-        
+        end        
+
         function configuration = set(configuration, name, value)
             % SET A method used to set one property at a time
             paraName = strtrim((name));
