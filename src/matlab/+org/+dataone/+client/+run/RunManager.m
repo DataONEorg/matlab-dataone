@@ -87,12 +87,8 @@ classdef RunManager < hgsetget
         
         % The YesWorkflow Grapher object
         grapher;
-          
-        % The input id list for an execution
-        execInputIds;
-        
-        % The output id list for an execution
-        execOutputIds;
+                    
+        last_sequence_number;
     end
    
     methods (Access = private)
@@ -103,9 +99,8 @@ classdef RunManager < hgsetget
             % settings in the given configuration passed in.
             import org.dataone.client.configure.Configuration;
             manager.configuration = configuration;
-            configuration.saveConfig();
-            manager.init();
-            % mlock; % Lock the RunManager instance to prevent clears          
+            configuration.saveConfig();            
+            manager.init();          
         end
         
         
@@ -522,7 +517,7 @@ classdef RunManager < hgsetget
             import java.util.Set;
             import java.util.Enumeration;
             
-            % prov:wasGeneratedBy between runtime execOutputIds and execution            
+            % prov:wasGeneratedBy between runtime execution_output_ids and execution            
             predicate = PROV.predicate('wasGeneratedBy');
             execOutSources = runManager.getExecOutputIds();
             outKeySet = execOutSources.keys();
@@ -541,7 +536,7 @@ classdef RunManager < hgsetget
                 runManager.dataPackage.addData(outSourceD1Obj);
             end
             
-            % prov:used between execution and runtime execInputIds
+            % prov:used between execution and runtime execution_input_ids
             predicate = PROV.predicate('used');
             execInSources = runManager.getExecInputIds();
             inKeySet = execInSources.keys();
@@ -650,6 +645,9 @@ classdef RunManager < hgsetget
             moduleDependencies = char(runManager.execution.module_dependencies); % Todo:
             console = ''; % Todo:
             errorMessage = char(runManager.execution.error_message);
+            % added on Oct-13-2015
+            runManager.last_sequence_number = runManager.last_sequence_number+1;
+            seqNo = num2str(runManager.last_sequence_number);
             
             formatSpec = runManager.configuration.execution_db_write_format;
            
@@ -660,15 +658,15 @@ classdef RunManager < hgsetget
                 if fileId == -1
                     disp(message);
                 end
-                fprintf(fileId, formatSpec, 'runId', 'filePath', 'startTime', 'endTime', 'publishedTime', 'packageId', 'tag', 'user', 'subject', 'hostId', 'operatingSystem', 'runtime', 'moduleDependencies', 'console', 'errorMessage'); % write header
-                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tag, user, subject, hostId, operatingSystem, runtime, moduleDependencies, console, errorMessage); % write the metadata for the current execution
+                fprintf(fileId, formatSpec, 'runId', 'filePath', 'startTime', 'endTime', 'publishedTime', 'packageId', 'tag', 'user', 'subject', 'hostId', 'operatingSystem', 'runtime', 'moduleDependencies', 'console', 'errorMessage', 'sequenceNumber'); % write header
+                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tag, user, subject, hostId, operatingSystem, runtime, moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution
                 fclose(fileId); 
             else
                 [fileId, message] = fopen(fileName,'a');
                 if fileId == -1
                     disp(message);
                 end
-                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tag, user, subject, hostId, operatingSystem, runtime, moduleDependencies, console, errorMessage); % write the metadata for the current execution     
+                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tag, user, subject, hostId, operatingSystem, runtime, moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
                 fclose(fileId); 
             end
             cd(curDir);
@@ -690,7 +688,7 @@ classdef RunManager < hgsetget
                 fclose(fileId);
  
                 % Convert a cell array to a matrix
-                execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]}];
+                execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]}];
             end
         end
         
@@ -854,10 +852,7 @@ classdef RunManager < hgsetget
                 configuration = Configuration();               
             end
             
-            runManager = RunManager(configuration);
-            
-            runManager.execInputIds = java.util.Hashtable();
-            runManager.execOutputIds = java.util.Hashtable();
+            runManager = RunManager(configuration);            
         end
         
         
@@ -943,23 +938,23 @@ classdef RunManager < hgsetget
         
         
         function exec_input_id_list = getExecInputIds(runManager)
-            exec_input_id_list = runManager.execInputIds;
+            exec_input_id_list = runManager.execution.execution_input_ids;
         end
         
         
         function exec_output_id_list = getExecOutputIds(runManager)
-            exec_output_id_list = runManager.execOutputIds;
+            exec_output_id_list = runManager.execution.execution_output_ids;
         end
         
         
-        function setExecInputIds(runManager, inputIdSet)
-            runManager.execInputIds = inputIdSet;
-        end
+       % function setExecInputIds(runManager, inputIdSet)
+       %     runManager.execution_input_ids = inputIdSet;
+       % end
         
         
-        function setExecOutputIds(runManager, outputIdSet)
-            runManager.execOutputIds = outputIdSet;
-        end
+       % function setExecOutputIds(runManager, outputIdSet)
+       %     runManager.execution_output_ids = outputIdSet;
+       % end
         
                 
         function init(runManager)
@@ -985,6 +980,31 @@ classdef RunManager < hgsetget
                                 ' already exists and will not be created.']);
                         end
                     end                    
+                end
+                
+                % Changed on Oct-13-2015
+                % Set data structures for runtime inputs/outputs information
+                disp('call init()');
+                
+                import org.dataone.client.run.Execution;
+                
+                runManager.execution = Execution();
+                runManager.execution.execution_input_ids = java.util.Hashtable();
+                runManager.execution.execution_output_ids = java.util.Hashtable();
+            
+                % Set the manager.last_sequence_number based on execution_db_name last
+                % sequence number
+                if ( exist(runManager.configuration.execution_db_name, 'file') ~= 2 )
+                    runManager.last_sequence_number = 0; 
+                else
+                    [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+                    if ~isempty(execMetaMatrix)
+                        lastRow = execMetaMatrix(end,:);
+                        lastSeqNum = lastRow{1,end};
+                        runManager.last_sequence_number = str2num(lastSeqNum);
+                    else
+                        runManager.last_sequence_number = 0; 
+                    end
                 end
             end
         end
@@ -1064,7 +1084,8 @@ classdef RunManager < hgsetget
                 runManager.execution.error_message = [runManager.execution.error_message ' ' classCastException.message];
             end
             
-            runManager.execution = Execution(tagStr);
+            % runManager.execution = Execution(tagStr);
+            runManager.execution.tag = tagStr;
             
             % Set up yesWorkflow and pass the path of a script to yesWorkflow
             runManager.configYesWorkflow(filePath);
@@ -1126,13 +1147,7 @@ classdef RunManager < hgsetget
             resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
             % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
-                     
-            % Create an empty cell array for runtime input/output sources
-            % runManager.execInputIds = {}; 
-            % runManager.execOutputIds = {};
-            % runManager.execInputIds = java.util.Hashtable();
-            % runManager.execOutputIds = java.util.Hashtable();
-            
+       
             % Run the script and collect provenance information
             runManager.prov_capture_enabled = true;
             [pathstr, script_name, ext] = ...
@@ -1275,12 +1290,12 @@ classdef RunManager < hgsetget
 
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
-            runsToDisplay = execMetaMatrix(allCondition, [2,7,3,4,5]);
+            runsToDisplay = execMetaMatrix(allCondition, [16,2,7,3,4,5]);
             
             if isempty(varargin{1}) ~= 1 && varargin{1} ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
+                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'SequenceNumber', 'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
                 disp(tableForSelectedRuns);                      
             end          
         end
@@ -1361,11 +1376,9 @@ classdef RunManager < hgsetget
                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
                 allDeleteCondition = allDeleteCondition & tagsCondition;
             end
-            allDeleteCondition
-            
+           
             % Extract multiple rows from a matrix satisfying the allCondition
             deleted_runs = execMetaMatrix(allDeleteCondition, :);
-            deleted_runs
             
             % Delete the selected runs from the execution matrix and update the exeucution database
             if noop == 1
@@ -1424,7 +1437,8 @@ classdef RunManager < hgsetget
                         'runtime', ...
                         'moduleDependencies', ...
                         'console', ...
-                        'errorMessage');
+                        'errorMessage', ...
+                        'sequenceNumber');
                     [rows, cols] = size(execMetaMatrix);
                     for (row = 1:rows)
                         fprintf(fileId, formatSpec, ...
@@ -1442,7 +1456,8 @@ classdef RunManager < hgsetget
                             char(execMetaMatrix(row, 12)), ...
                             char(execMetaMatrix(row, 13)), ...
                             char(execMetaMatrix(row, 14)), ...
-                            char(execMetaMatrix(row, 15)));
+                            char(execMetaMatrix(row, 15)), ...
+                            char(execMetaMatrix(row, 16)));
                     end
                     fclose(fileId);
                 end
@@ -1478,7 +1493,8 @@ classdef RunManager < hgsetget
                end
                
                % Compute the seq no 
-               seqNo = size(execMetaMatrix(), 1);
+               % seqNo = size(execMetaMatrix(), 1);
+               seqNo = selectedRuns{1, 16};
                
                % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun
                % will be return

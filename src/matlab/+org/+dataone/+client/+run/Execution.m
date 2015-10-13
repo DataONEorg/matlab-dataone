@@ -79,6 +79,11 @@ classdef Execution < hgsetget
         
         console; % todo:
         
+        % The input id list for an execution
+        execution_input_ids;
+        
+        % The output id list for an execution
+        execution_output_ids;
     end
 
     methods
@@ -178,7 +183,7 @@ classdef Execution < hgsetget
             % TODO: Decide if matlab.codetools.requiredFilesAndProducts()
             % is more appropriate for this
             % execution.module_dependencies = path; 
-            
+          
         end
 
     end

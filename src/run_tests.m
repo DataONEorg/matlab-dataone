@@ -31,7 +31,7 @@ warning on MATLAB:dispatcher:nameConflict;
 import matlab.unittest.TestSuite;
 
 % Use fromPackage
-% suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+ suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 
 % Use fromClass
 % testCls = ?org.dataone.client.configure.ConfigurationTest;
@@ -53,7 +53,7 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testListRunsEndDateTagsOnly'); % Fails due to logical OR in listRuns()
 % suite = TestSuite.fromMethod(testCls, 'testListRunsTagsOnly'); % Fails due to dateCondition set to true line 1258
 % suite = TestSuite.fromMethod(testCls, 'testDeleteRunsByTags');
- suite = TestSuite.fromMethod(testCls, 'testDeleteRunsByTagsRunIdsOnly');
+% suite = TestSuite.fromMethod(testCls, 'testDeleteRunsByTagsRunIdsOnly');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); % Fails: Error using cd Cannot CD to test/resources (Name is nonexistent or not a directory). Error in run (line 41) cd(fileDir);
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad'); % Fails, same as above

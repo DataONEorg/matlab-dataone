@@ -38,7 +38,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             %testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
             testCase.filename = 'test/resources/myScript1.m';
-            testCase.mgr = RunManager.getInstance();
+            testCase.mgr = RunManager.getInstance();           
             testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_7.properties'; 
             testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_7.properties'; 
             testCase.yw_comb_view_property_file_name = 'test/resources/yw_comb_view_7.properties'; 
@@ -193,12 +193,6 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 scriptPath = struc.Name;
             end
-            
-            execInputIds = java.util.Hashtable();
-            execOutputIds = java.util.Hashtable();
-            
-            testCase.mgr.setExecInputIds(execInputIds);
-            testCase.mgr.setExecOutputIds(execOutputIds);
     
             run(scriptPath);
         end        
@@ -212,13 +206,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 scriptPath = struc.Name;
             end
-            
-            execInputIds = java.util.Hashtable();
-            execOutputIds = java.util.Hashtable();
-            
-            testCase.mgr.setExecInputIds(execInputIds);
-            testCase.mgr.setExecOutputIds(execOutputIds);
-         
+          
             run(scriptPath);
         end        
         
@@ -231,13 +219,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 scriptPath = struc.Name;
             end
-            
-            execInputIds = java.util.Hashtable();
-            execOutputIds = java.util.Hashtable();
-            
-            testCase.mgr.setExecInputIds(execInputIds);
-            testCase.mgr.setExecOutputIds(execOutputIds);
-  
+          
             run(scriptPath);
         end        
         
@@ -250,13 +232,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 scriptPath = struc.Name;
             end
-            
-            execInputIds = java.util.Hashtable();
-            execOutputIds = java.util.Hashtable();
-            
-            testCase.mgr.setExecInputIds(execInputIds);
-            testCase.mgr.setExecOutputIds(execOutputIds);
-  
+           
             run(scriptPath);
         end        
                        
@@ -271,13 +247,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 scriptPath = struc.Name;
             end
-            
-            execInputIds = java.util.Hashtable();
-            execOutputIds = java.util.Hashtable();
-            
-            testCase.mgr.setExecInputIds(execInputIds);
-            testCase.mgr.setExecOutputIds(execOutputIds);
-  
+           
             run(scriptPath);
         end        
         
@@ -291,13 +261,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 scriptPath = struc.Name;
             end
-            
-            execInputIds = java.util.Hashtable();
-            execOutputIds = java.util.Hashtable();
-            
-            testCase.mgr.setExecInputIds(execInputIds);
-            testCase.mgr.setExecOutputIds(execOutputIds);
-  
+         
             run(scriptPath);
         end        
                 
@@ -454,8 +418,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.mgr.view(pkgId, sessions); % view the selected run
         end        
         
-        function testPublishPackageFromDisk(testCase)
-            fprintf('\n\nTest for publishPackageFromDisk() function:\n');
+        function testPublish(testCase)
+            fprintf('\n\nTest for publish() function:\n');
             
             pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
             set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
@@ -488,24 +452,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             runIds = {'1'};
             deleted_runs = testCase.mgr.deleteRuns(runIds, '', '', tagList, '', false);
             [rows, columns] = size(deleted_runs);
-            assertEqual(testCase, rows, 0); % Only one row should match           
-        end 
-        
-        function testPublish(testCase)
-            % TESTPUBLISH tests calling the RunManager.publish() function
-
-            import org.dataone.client.run.RunManager;
-            import org.dataone.client.configure.Configuration;
-            
-            disp('In testPublish() ...');
-            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
-           
-            testCase.mgr.runDir = 'test/resources/runs';
-            k = strfind(testCase.mgr.execution.execution_id, 'urn:uuid:'); % get the index of 'urn:uuid:'            
-            runId = testCase.mgr.execution.execution_id(k+9:end);
-            pkgId = testCase.mgr.publish(runId);
-        end
-         
+            assertEqual(testCase, rows, 0); % Zero row should match           
+        end          
     end
     
     methods (Access = 'private')
@@ -523,6 +471,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(run1, 'start_time', '20150930T101049');
             set(run1, 'end_time', '20150930T101149');
             set(run1, 'software_application', 'test_data_input1.m');
+            set(run1, 'sequence_number', '1');
             testCase.mgr.execution = run1;
             createFakeExecution(testCase);
             
@@ -536,7 +485,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(run2, 'end_time', '20151006T101149');
             testCase.mgr.execution = run2;
             set(run2, 'software_application', 'test_data_input2.m');
-
+            set(run2, 'sequence_number', '2');
             createFakeExecution(testCase);
 
             % Create run entry 3
@@ -548,6 +497,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(run3, 'start_time', '20301030T101049');
             set(run3, 'end_time', '20301030T101249');
             set(run3, 'software_application', 'test_data_input3.m');
+            set(run3, 'sequence_number', '3');
             testCase.mgr.execution = run3;
             createFakeExecution(testCase);
 
@@ -572,6 +522,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             moduleDependencies = char(testCase.mgr.execution.module_dependencies);
             console = '';
             errorMessage = char(testCase.mgr.execution.error_message);
+            seqNo = char(testCase.mgr.execution.sequence_number);
             
             formatSpec = testCase.mgr.configuration.execution_db_write_format;
             
@@ -582,11 +533,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     'startTime', 'endTime', 'publishedTime', ...
                     'packageId', 'tag', 'user', 'subject', 'hostId', ...
                     'operatingSystem', 'runtime', 'moduleDependencies', ...
-                    'console', 'errorMessage');
+                    'console', 'errorMessage', 'sequence_number');
                 fprintf(fileId, formatSpec, runID, filePath, startTime, ...
                     endTime, publishedTime, packageId, tag, user, subject, ...
                     hostId, operatingSystem, runtime, moduleDependencies, ...
-                    console, errorMessage);   
+                    console, errorMessage, seqNo);   
                 
             else    
                 [fileId, message] = ...
@@ -594,7 +545,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 fprintf(fileId, formatSpec, runID, filePath, startTime, ...
                     endTime, publishedTime, packageId, tag, user, subject, ...
                     hostId, operatingSystem, runtime, moduleDependencies, ...
-                    console, errorMessage);
+                    console, errorMessage, seqNo);
                 
             end
             
