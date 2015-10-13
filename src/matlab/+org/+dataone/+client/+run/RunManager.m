@@ -100,7 +100,8 @@ classdef RunManager < hgsetget
             import org.dataone.client.configure.Configuration;
             manager.configuration = configuration;
             configuration.saveConfig();            
-            manager.init();          
+            manager.init();  
+            mlock; % Lock the RunManager instance to prevent clears          
         end
         
         
@@ -852,7 +853,16 @@ classdef RunManager < hgsetget
                 configuration = Configuration();               
             end
             
-            runManager = RunManager(configuration);            
+            persistent singletonRunManager; % private, stays in memory across clears
+            
+            if isempty( singletonRunManager )
+                import org.dataone.client.run.RunManager;
+                runManager = RunManager(configuration);
+                singletonRunManager = runManager;               
+            else
+                runManager = singletonRunManager;
+                
+            end
         end
         
         
