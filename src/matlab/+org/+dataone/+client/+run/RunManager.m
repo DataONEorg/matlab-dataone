@@ -1274,13 +1274,13 @@ classdef RunManager < hgsetget
             end
 
             % Extract multiple rows from a matrix satisfying the allCondition
-            %runs = execMetaMatrix(allCondition, :);
-            runs = execMetaMatrix(allCondition, [2,7,3,4,5]);
+            runs = execMetaMatrix(allCondition, :);
+            runsToDisplay = execMetaMatrix(allCondition, [2,7,3,4,5]);
             
             if isempty(varargin{1}) ~= 1 && varargin{1} ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runs,'VariableNames', {'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
+                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
                 disp(tableForSelectedRuns);                      
             end          
         end
