@@ -757,38 +757,38 @@ classdef RunManager < hgsetget
         end
         
         
-        function u = union2Cells(runManager, m, n)
+       % function u = union2Cells(runManager, m, n)
             % UNION2CELLS Merge two cell arrays by rows and remove
             % duplicate rows
             %   m -- cell array to be merged
             %   n -- cell array to be merged
             
             % Process data
-            a = [n;m];          % All
-            u = cell(size(a));  % Unique
+       %     a = [n;m];          % All
+       %     u = cell(size(a));  % Unique
      
-            ku = 1;      % Unique counter
-            u(ku,:) = a(1,:);   % Add first row
+       %     ku = 1;      % Unique counter
+       %     u(ku,:) = a(1,:);   % Add first row
 
             % Add only rows that do not exist in u
-            for ia = 2:size(a,1)
-                found = false;   % search flag
-                for iu = 1:ku
-                    if all(strcmp(a(ia,:), u(iu,:)))
+       %     for ia = 2:size(a,1)
+       %         found = false;   % search flag
+       %         for iu = 1:ku
+       %             if all(strcmp(a(ia,:), u(iu,:)))
                             % row is already registered
-                            found = true;
-                            break;
-                    end;
-                end;
-                if ~found
+       %                     found = true;
+       %                     break;
+       %             end;
+       %         end;
+       %         if ~found
                     % add row
-                    ku = ku+1;
-                    u(ku,:) = a(ia,:);
-                end;
-            end;
+       %             ku = ku+1;
+       %             u(ku,:) = a(ia,:);
+       %         end;
+       %     end;
 
-            u = u(1:ku,:); % Trim unused space in u           
-        end      
+       %     u = u(1:ku,:); % Trim unused space in u           
+       % end      
         
         
         function [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = getRelationships(runManager)
@@ -1300,28 +1300,73 @@ classdef RunManager < hgsetget
             allDeleteCondition = false(size(execMetaMatrix, 1), 1);
             
             % Step 1: find all runs to be deleted using the query parameter: runIdList
-            deleted_runs_1 = [];
-            runIdCondition = [];
-            if ~isempty(runIdList) 
-                runIdArray = char(runIdList);
-                runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existence between two arrays 
-                deleted_runs_1 = execMetaMatrix(runIdCondition, :);
-            end
+            %deleted_runs_1 = [];
+            %runIdCondition = [];
+            %if ~isempty(runIdList) 
+            %    runIdArray = char(runIdList);
+            %    runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existence between two arrays 
+            %    deleted_runs_1 = execMetaMatrix(runIdCondition, :);
+            %end
             
             % Step 2: find all runs to be deleted using the query parameters: startDate, endDate and tags
-            deleted_runs_2 = runManager.listRuns(quiet, startDate, endDate, tags);
+            %deleted_runs_2 = runManager.listRuns(quiet, startDate, endDate, tags);
             
             % Step 3: merge the two selected runs cell array into a larger cell
             % array and duplicate rows are removed.
-            if ~isempty(deleted_runs_1) && ~isempty(deleted_runs_2)
-                deleted_runs = runManager.union2Cells(deleted_runs_1, deleted_runs_2);
+            %if ~isempty(deleted_runs_1) && ~isempty(deleted_runs_2)
+            %    deleted_runs = runManager.union2Cells(deleted_runs_1, deleted_runs_2);
                 %size(deleted_runs)
-            elseif ~isempty(deleted_runs_1)
-                deleted_runs = deleted_runs_1;
-            else
-                deleted_runs = deleted_runs_2;
-            end
+            %elseif ~isempty(deleted_runs_1)
+            %    deleted_runs = deleted_runs_1;
+            %else
+            %    deleted_runs = deleted_runs_2;
+            %end
       
+            startDateFlag = false;
+            endDateFlag = false;
+                
+            if isempty(startDate) ~= 1
+                startDateFlag = true;
+            end
+                
+            if isempty(endDate) ~= 1
+                endDateFlag = true;
+            end
+            
+            if startDateFlag && endDateFlag
+                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
+                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
+                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
+                dateCondition = startCondition & endColCondition;
+            elseif startDateFlag == 1
+                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % logical vector for rows to delete                
+            elseif endDateFlag == 1
+                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
+                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;                   
+            else 
+                % dateCondition = false(size(execMetaMatrix, 1), 1);
+                dateCondition = true(size(execMetaMatrix, 1), 1); % No query parameters are required, then dateCondition is set to be true
+            end
+                        
+            if ~isempty(runIdList)
+                allDeleteCondition = dateCondition & runIdCondition;
+            else
+                allDeleteCondition = dateCondition;
+            end
+                
+            if ~isempty(tags)
+                tagsArray = char(tags);
+                tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
+                allDeleteCondition = allDeleteCondition & tagsCondition;
+            end
+            allDeleteCondition
+            
+            % Extract multiple rows from a matrix satisfying the allCondition
+            deleted_runs = execMetaMatrix(allDeleteCondition, :);
+            deleted_runs
+            
             % Delete the selected runs from the execution matrix and update the exeucution database
             if noop == 1
                 % Show the selected run list only when quiet is turned on
@@ -1353,46 +1398,7 @@ classdef RunManager < hgsetget
                     end
                 end
 
-                % Update the execuction metadata matrix by removing the deleted rows and write the update metadata back to the execution database               
-                startDateFlag = false;
-                endDateFlag = false;
-                
-                if isempty(startDate) ~= 1
-                    startDateFlag = true;
-                end
-                
-                if isempty(endDate) ~= 1
-                    endDateFlag = true;
-                end
-            
-                if startDateFlag && endDateFlag
-                    startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                    endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
-                    startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum;
-                    endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;
-                    dateCondition = startCondition & endColCondition;
-                elseif startDateFlag == 1
-                    startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                    dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') > startDateNum; % logical vector for rows to delete                
-                elseif endDateFlag == 1
-                    endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                    dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') < endDateNum;                   
-                else % No query parameters are required, then dateCondition is set to be false
-                    dateCondition = false(size(execMetaMatrix, 1), 1);
-                end
-                        
-                if ~isempty(runIdList)
-                    allDeleteCondition = dateCondition | runIdCondition;
-                else
-                    allDeleteCondition = dateCondition;
-                end
-                
-                if ~isempty(tags)
-                    tagsArray = char(tags);
-                    tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-                    allDeleteCondition = allDeleteCondition | tagsCondition;
-                end
-                
+                % Update the execuction metadata matrix by removing the deleted rows and write the update metadata back to the execution database                               
                 execMetaMatrix(allDeleteCondition, :) = []; % deleted the selected rows
                     
                 % Write the updated execution metadata with headers to the execution database            
