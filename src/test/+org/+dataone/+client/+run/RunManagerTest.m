@@ -418,7 +418,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             endDate = '20150930T101149';
             tagList = {'test_tag_1'};
-
+            
             runs = testCase.mgr.listRuns('', '', endDate, tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
@@ -469,8 +469,21 @@ classdef RunManagerTest < matlab.unittest.TestCase
             generateTestRuns(testCase);
                         
             tagList = {'test_tag_1'};
-            testCase.mgr.deleteRuns('', '', '', tagList, '', '');
+            testCase.mgr.deleteRuns('', '', '', tagList, '', false);
         end          
+        
+        function testDeleteRunsByTagsRunIdsOnly(testCase)
+            % fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
+            fprintf('\n*** testDeleteRunsByTagsRunIdsOnly: ***\n');
+            
+            generateTestRuns(testCase);
+                        
+            tagList = {'test_tag_1'};
+            runIds = {'1'};
+            deleted_runs = testCase.mgr.deleteRuns(runIds, '', '', tagList, '', false);
+            [rows, columns] = size(deleted_runs);
+            assertEqual(testCase, rows, 0); % Only one row should match           
+        end 
         
         function testPublish(testCase)
             % TESTPUBLISH tests calling the RunManager.publish() function
