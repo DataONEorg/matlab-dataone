@@ -116,11 +116,11 @@ classdef Configuration < hgsetget & dynamicprops
         
         % The format specification used to read an execution database entry
         execution_db_read_format = ...
-            '%q %q %q %q %q %q %q %q %q %q %q %q %q %q %q\n';
+            '%q %q %q %q %q %q %q %q %q %q %q %q %q %q %q %q\n';
 
         % The format specification for an execution database entry
         execution_db_write_format = ...
-            '"%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s"\n';
+            '"%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s"\n';
 
         % A boolean property that enables or disables debugging 
         debug = false; 
@@ -548,7 +548,8 @@ classdef Configuration < hgsetget & dynamicprops
                     'runtime', ...
                     'moduleDependencies', ...
                     'console', ...
-                    'errorMessage');
+                    'errorMessage', ...
+                    'sequenceNumber');
                 fclose(fileId);
 
             end

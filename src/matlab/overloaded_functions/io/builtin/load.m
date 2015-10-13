@@ -62,7 +62,7 @@ function S = load( source, varargin )
     
     runManager = RunManager.getInstance();
  
-    if ( runManager.configuration.debug)
+    if ( runManager.configuration.debug )
         disp('Called the load wrapper function.');
     end
     
