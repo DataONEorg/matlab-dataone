@@ -161,7 +161,7 @@ classdef Configuration < hgsetget & dynamicprops
             % Validate the value of provenance_storage_directory
             if strcmp(paraName, 'provenance_storage_directory')
                 if ispc
-                    home_dir = getenv('userfrofile');
+                    home_dir = getenv('USERPROFILE');
                 elseif isunix
                     home_dir = getenv('HOME');
                 else
