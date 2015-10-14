@@ -35,9 +35,24 @@ classdef RunManagerTest < matlab.unittest.TestCase
                         
             % SETUP Set up the test environment            
             import org.dataone.client.run.RunManager;
-            
+            import org.dataone.client.configure.Configuration;
+                        
             %testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
             testCase.filename = 'test/resources/myScript1.m';
+            
+            if ispc
+                home_dir = getenv('USERPROFILE');
+            elseif isunix
+                home_dir = getenv('HOME');
+            else
+                error('Current platform not supported.');
+            end
+            test_config_directory = fullfile(home_dir, '.d1test');
+            
+            % for unit testing, set the D1 directory to a test location
+            config = Configuration( ...
+                'configuration_directory', test_config_directory);
+            
             testCase.mgr = RunManager.getInstance();           
             testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_7.properties'; 
             testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_7.properties'; 
