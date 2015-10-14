@@ -195,33 +195,7 @@ classdef Configuration < hgsetget & dynamicprops
                     error('ConfigurationError:mnIdentifier', 'identifier for member node must start with urn:node:');
                 end
             end
-            
-            % Validate the value of provenance_storage_directory
-            if strcmp(paraName, 'provenance_storage_directory')
-                if ispc
-                    home_dir = getenv('USERPROFILE');
-                elseif isunix
-                    home_dir = getenv('HOME');
-                else
-                    error('Current platform not supported.');
-                end
-                
-                absolute_prov_storage_dir = strcat(home_dir, filesep, '.d1', filesep, 'provenance');
-                
-                if isunix && strncmpi(value, '~/', 2)
-                    translate_absolute_path = strcat(home_dir ,value(2:end));
-                    if ~strcmp(absolute_prov_storage_dir, translate_absolute_path)
-                        error('ConfigurationError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance');
-                    end 
-                else
-                    if ~strcmp(absolute_prov_storage_dir, value)
-                       error('ConfigurationError:provenance_storage_directory', 'provenance storage directory must be $home/.d1/provenance'); 
-                    end
-                end
-                
-                provenance_storage_directory = absolute_prov_storage_dir;
-            end           
-            
+                        
             % Validate the value of format_id
             if strcmp(paraName, 'format_id')
                
