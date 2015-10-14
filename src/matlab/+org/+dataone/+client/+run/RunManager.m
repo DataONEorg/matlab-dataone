@@ -1224,7 +1224,7 @@ classdef RunManager < hgsetget
             runManager.getExecInputIds().clear();
             runManager.getExecOutputIds().clear();
         end
-        
+    
         
        function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
@@ -1338,29 +1338,6 @@ classdef RunManager < hgsetget
             tagsCondition = false(size(execMetaMatrix, 1), 1);
             allDeleteCondition = false(size(execMetaMatrix, 1), 1);
             
-            % Step 1: find all runs to be deleted using the query parameter: runIdList
-            %deleted_runs_1 = [];
-            %runIdCondition = [];
-            %if ~isempty(runIdList) 
-            %    runIdArray = char(runIdList);
-            %    runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existence between two arrays 
-            %    deleted_runs_1 = execMetaMatrix(runIdCondition, :);
-            %end
-            
-            % Step 2: find all runs to be deleted using the query parameters: startDate, endDate and tags
-            %deleted_runs_2 = runManager.listRuns(quiet, startDate, endDate, tags);
-            
-            % Step 3: merge the two selected runs cell array into a larger cell
-            % array and duplicate rows are removed.
-            %if ~isempty(deleted_runs_1) && ~isempty(deleted_runs_2)
-            %    deleted_runs = runManager.union2Cells(deleted_runs_1, deleted_runs_2);
-                %size(deleted_runs)
-            %elseif ~isempty(deleted_runs_1)
-            %    deleted_runs = deleted_runs_1;
-            %else
-            %    deleted_runs = deleted_runs_2;
-            %end
-      
             startDateFlag = false;
             endDateFlag = false;
                 
