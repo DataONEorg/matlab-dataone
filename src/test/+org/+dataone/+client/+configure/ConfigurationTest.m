@@ -59,16 +59,9 @@ classdef ConfigurationTest < matlab.unittest.TestCase
             end
             
             c.set('provenance_storage_directory', ...
-                strcat(home_dir, filesep,'.d1', filesep, 'provenance'));
-            if ( ispc )
-                testCase.verifyEqual(c.get('provenance_storage_directory'), ...
-                    [home_dir filesep '.d1' filesep 'provenance']);
-                
-            elseif ( isunix )
-                testCase.verifyEqual(c.get('provenance_storage_directory'), ...
-                    [home_dir filesep '.d1' filesep 'provenance']);
-  
-            end
+                fullfile(home_dir, '.d1test', 'provenance'));
+                testCase.assertEqual(c.get('provenance_storage_directory'), ...
+                    fullfile(home_dir, '.d1test', 'provenance'));                
             
             c.set('format_id', 'FGDC-STD-001-1998');
             testCase.verifyEqual(c.get('format_id'), 'FGDC-STD-001-1998');
