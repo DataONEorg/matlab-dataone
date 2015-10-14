@@ -459,13 +459,24 @@ classdef RunManagerTest < matlab.unittest.TestCase
             generateTestRuns(testCase);
                         
             tagList = {'test_tag_1'};
+            noop = true;
+            
             % Delete the runs
-            testCase.mgr.deleteRuns('', '', '', tagList, '', false);
+            % testCase.mgr.deleteRuns('', '', '', tagList, '', false);
+            testCase.mgr.deleteRuns('tag', tagList, 'noop', noop);
             
             % List the runs
-            runs = testCase.mgr.listRuns('', '', '', '');
-            [rows, cols] = size(runs);
-            assertEqual(testCase, rows, 2); % Only 2 rows should be left
+            % runs = testCase.mgr.listRuns('', '', '', '');
+            
+            if ~noop
+                runs = testCase.mgr.listRuns();
+                [rows, cols] = size(runs);
+                assertEqual(testCase, rows, 2); % Only 2 rows should be left
+            else
+                runs = testCase.mgr.listRuns();
+                [rows, cols] = size(runs);
+                assertEqual(testCase, rows, 3); % 3 rows should be there because no delete is applied
+            end
         end          
         
         function testDeleteRunsByTagsRunIdsOnly(testCase)
@@ -476,7 +487,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
                         
             tagList = {'test_tag_1'};
             runIds = {'1'};
-            deleted_runs = testCase.mgr.deleteRuns(runIds, '', '', tagList, '', false);
+            % deleted_runs = testCase.mgr.deleteRuns(runIds, '', '', tagList, '', false);
+            deleted_runs = testCase.mgr.deleteRuns('runIdList', runIds, 'tag', tagList);
             [rows, columns] = size(deleted_runs);
             assertEqual(testCase, rows, 0); % Zero row should match           
         end          

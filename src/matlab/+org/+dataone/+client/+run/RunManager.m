@@ -1236,9 +1236,9 @@ classdef RunManager < hgsetget
             persistent listRunsParser
             if isempty(listRunsParser)
                 listRunsParser = inputParser;
-                defaultQuiet = false;
-                addOptional(listRunsParser,'quiet',defaultQuiet, @islogical);
-                addOptional(listRunsParser,'startDate', '', @ischar);
+               
+                addParameter(listRunsParser,'quiet', false, @islogical);
+                addParameter(listRunsParser,'startDate', '', @ischar);
                 addParameter(listRunsParser,'endDate', '', @ischar);
                 addParameter(listRunsParser,'tag', '', @iscell);
             end
@@ -1325,9 +1325,32 @@ classdef RunManager < hgsetget
         end
         
         
-        function deleted_runs = deleteRuns(runManager, runIdList, startDate, endDate, tags, noop, quiet)
+        % function deleted_runs = deleteRuns(runManager, runIdList, startDate, endDate, tags, noop, quiet)
+        function deleted_runs = deleteRuns(runManager, varargin)
             % DELETERUNS Deletes prior executions (runs) from the stored
             % list.    
+            
+            persistent deletedRunsParser
+            if isempty(deletedRunsParser)
+                deletedRunsParser = inputParser;
+                
+                addParameter(deletedRunsParser,'runIdList', '', @iscell);
+                addParameter(deletedRunsParser,'startDate', '', @ischar);
+                addParameter(deletedRunsParser,'endDate', '', @ischar);
+                addParameter(deletedRunsParser,'tag', '', @iscell);
+                addParameter(deletedRunsParser,'noop', false, @islogical);
+                addParameter(deletedRunsParser,'quiet',false, @islogical);
+            end
+            parse(deletedRunsParser,varargin{:})
+            
+            runIdList = deletedRunsParser.Results.runIdList;
+            startDate = deletedRunsParser.Results.startDate;
+            endDate = deletedRunsParser.Results.endDate;
+            tags = deletedRunsParser.Results.tag;
+            noop = deletedRunsParser.Results.noop;
+            quiet = deletedRunsParser.Results.quiet;
+            
+            deletedRunsParser.Results
             
             % Read the exeuction metadata summary from the exeuction metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
@@ -1382,7 +1405,7 @@ classdef RunManager < hgsetget
             deleted_runs = execMetaMatrix(allDeleteCondition, :);
             
             % Delete the selected runs from the execution matrix and update the exeucution database
-            if noop == 1
+            if  noop == 1
                 % Show the selected run list only when quiet is turned on
                 if isempty(quiet) ~= 1 && quiet ~= 1
                     % Convert a cell array to a table with headers    
