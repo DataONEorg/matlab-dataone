@@ -948,12 +948,12 @@ classdef RunManager < hgsetget
         
         
         function exec_input_id_list = getExecInputIds(runManager)
-            exec_input_id_list = runManager.execution.execution_input_ids;
+            exec_input_id_list = get(runManager.execution, 'execution_input_ids');
         end
         
         
         function exec_output_id_list = getExecOutputIds(runManager)
-            exec_output_id_list = runManager.execution.execution_output_ids;
+            exec_output_id_list = get(runManager.execution, 'execution_output_ids');
         end
         
         
