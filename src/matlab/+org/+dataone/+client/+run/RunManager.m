@@ -1226,13 +1226,30 @@ classdef RunManager < hgsetget
         end
         
         
-       % function runs = listRuns(runManager, quiet, startDate, endDate, tags)
        function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
             %   startDate -- the starting timestamp for an execution
             %   endDate -- the ending timestamp for an execution
             %   tag -- a tag given to an execution 
+       
+            persistent listRunsParser
+            if isempty(listRunsParser)
+                listRunsParser = inputParser;
+                defaultQuiet = false;
+                addOptional(listRunsParser,'quiet',defaultQuiet, @islogical);
+                addOptional(listRunsParser,'startDate', '', @ischar);
+                addParameter(listRunsParser,'endDate', '', @ischar);
+                addParameter(listRunsParser,'tag', '', @iscell);
+            end
+            parse(listRunsParser,varargin{:})
+            
+            quiet = listRunsParser.Results.quiet;
+            startDate = listRunsParser.Results.startDate;
+            endDate = listRunsParser.Results.endDate;
+            tags = listRunsParser.Results.tag;
+            
+            listRunsParser.Results
             
             % Read the exeuction metadata summary from the exeuction
             % metadata database
@@ -1241,11 +1258,11 @@ classdef RunManager < hgsetget
             % When the database is empty, show no rows and return
             if ( isempty(execMetaMatrix) )
                 runs = {};
-                if ( ~ varargin{1} )
+                
+                if ~quiet
                     fprintf('\n%s\n', 'There are no runs to display yet.');
                 end
-                return;
-                
+                return;                
             end
             % Initialize the logical cell arrays for the next call for listRuns()
             dateCondition = false(size(execMetaMatrix, 1), 1);
@@ -1256,13 +1273,11 @@ classdef RunManager < hgsetget
             startDateFlag = false;
             endDateFlag = false;
                 
-            if isempty(varargin{2}) ~= 1
-                startDate = varargin{2};
+            if isempty(startDate) ~= 1                
                 startDateFlag = true;
             end
-                
-            if isempty(varargin{3}) ~= 1
-                endDate = varargin{3};
+                            
+            if isempty(endDate) ~= 1                
                 endDateFlag = true;
             end
                 
@@ -1288,9 +1303,8 @@ classdef RunManager < hgsetget
                 dateCondition = true(size(execMetaMatrix, 1), 1);
             end
                         
-            % Process the query parameter "tags" 
-            if ~isempty(varargin{4})
-                tags = varargin{4};
+            % Process the query parameter "tags"            
+            if ~isempty(tags)               
                 tagsArray = char(tags);
                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
                 allCondition = dateCondition & tagsCondition; % Logical and operator
@@ -1301,8 +1315,8 @@ classdef RunManager < hgsetget
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
             runsToDisplay = execMetaMatrix(allCondition, [16,2,7,3,4,5]);
-            
-            if isempty(varargin{1}) ~= 1 && varargin{1} ~= 1
+                       
+            if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
                 tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'SequenceNumber', 'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
