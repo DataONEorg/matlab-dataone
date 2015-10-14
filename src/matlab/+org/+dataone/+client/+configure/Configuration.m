@@ -129,10 +129,17 @@ classdef Configuration < hgsetget & dynamicprops
     methods
         
         function configuration = Configuration(varargin)
-            % CONFIGURATION A class used to set configuration options for the DataONE Toolbox  
+            % CONFIGURATION A class used to set configuration options for the DataONE Toolbox 
+            %   c = Configuration() will create a configuration object
+            %       with default values
+            %   c = Configuration('name', 'value', ...) will create a
+            %       Configuration object with the optional name and value
+            %       pairs set as properties of the object.  Ensure that the
+            %       name argument is a valid property name of the 
+            %       Configuration object.
             
             if ( nargin > 0 )
-                if ( mod(nargin, 2) ~= 0)
+                if ( mod(nargin, 2) ~= 0) % Only accept even numbers of args
                     error('Configuration:oddNumberOfArguments', ...
                         ['To construct a Configuration object, use ', ...
                         'an even number of arguments that are \n', ...
@@ -147,7 +154,20 @@ classdef Configuration < hgsetget & dynamicprops
                         ]);
                 end
                 
-                
+                % Set properties provided in the constructor call
+                for ( i = 1:2:length(varargin) )
+                    propertyName = varargin{i};
+                    propertyValue = varargin{i+1};
+                    if ( isprop(configuration, propertyName) )
+                        set(configuration, propertyName, propertyValue);
+                        
+                    else
+                        warning('Configuration:propertyNotFound', ...
+                            ['The ' propertyName ' property is not ' ...
+                            'a property defined in the Configuration \n' ...
+                            'class. Skipping it.']);
+                    end                    
+                end
             end
             createConfigurationDirectory(configuration);
             createProvStorageDirectory(configuration);
