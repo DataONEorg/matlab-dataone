@@ -48,6 +48,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 error('Current platform not supported.');
             end
             test_config_directory = fullfile(home_dir, '.d1test');
+            % test_config_directory = fullfile(home_dir, '.d1');
             
             % for unit testing, set the D1 directory to a test location
             config = Configuration( ...
@@ -267,7 +268,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end        
         
         function testOverloadedDlmread(testCase)
-            % Todo: load coast (not working)
+          
             fprintf('\nIn testOverloadedDlmread ...\n');            
             testCase.filename = 'test/resources/myScript6.m';
             
@@ -293,7 +294,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             generateTestRuns(testCase);
             
-            runs = testCase.mgr.listRuns(false, '', '', '');
+            %runs = testCase.mgr.listRuns(false, '', '', '');
+            runs = testCase.mgr.listRuns();
+            
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 3); % Three rows should match
             % TODO: Compare the execution ids
@@ -310,7 +313,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             endDate = '20151006T101149';
             tagList = {'test_tag_2'};
             
-            runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
+            % runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
+            runs = testCase.mgr.listRuns('startDate', startDate, 'endDate', endDate, 'tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
@@ -323,7 +327,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             generateTestRuns(testCase);
 
             startDate = '20151006T101049';
-            runs = testCase.mgr.listRuns('', startDate, '', '');
+            % runs = testCase.mgr.listRuns('', startDate, '', '');
+            runs = testCase.mgr.listRuns('startDate', startDate);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 2); % Two rows should match
             % TODO: Compare the execution ids
@@ -337,7 +342,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             generateTestRuns(testCase);
 
             endDate = '20150930T101149';
-            runs = testCase.mgr.listRuns('', '', endDate, '');
+            % runs = testCase.mgr.listRuns('', '', endDate, '');
+            runs = testCase.mgr.listRuns('endDate', endDate);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
@@ -352,7 +358,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             startDate = '20151006T101049';
             endDate = '20151006T101149';
-            runs = testCase.mgr.listRuns('', startDate, endDate, '');
+            % runs = testCase.mgr.listRuns('', startDate, endDate, '');
+            runs = testCase.mgr.listRuns('startDate', startDate, 'endDate', endDate);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
@@ -368,7 +375,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             endDate = '20151006T101149';
             tagList = {'test_tag_2'};
             
-            runs = testCase.mgr.listRuns('', startDate, endDate, tagList);
+            % runs = testCase.mgr.listRuns('', startDate, endDate, tagList);
+            runs = testCase.mgr.listRuns('startDate', startDate, 'endDate', endDate, 'tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
@@ -383,7 +391,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             startDate = '20150929T102515';
             tagList = {'test_tag_2'};
             
-            runs = testCase.mgr.listRuns('', startDate, '', tagList);
+            % runs = testCase.mgr.listRuns('', startDate, '', tagList);
+            runs = testCase.mgr.listRuns('startDate', startDate, 'tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
@@ -398,7 +407,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             endDate = '20150930T101149';
             tagList = {'test_tag_1'};
             
-            runs = testCase.mgr.listRuns('', '', endDate, tagList);
+            % runs = testCase.mgr.listRuns('', '', endDate, tagList);
+            runs = testCase.mgr.listRuns('endDate', endDate, 'tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
@@ -412,7 +422,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             tagList = {'test_tag_3'};
 
-            runs = testCase.mgr.listRuns('', '', '', tagList);
+            % runs = testCase.mgr.listRuns('', '', '', tagList);
+            runs = testCase.mgr.listRuns('tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
@@ -438,7 +449,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
             set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
-            testCase.mgr.publishPackageFromDisk(pkgId);
+            testCase.mgr.publish(pkgId);
         end        
         
         function testDeleteRunsByTags(testCase)
