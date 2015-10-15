@@ -48,13 +48,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 error('Current platform not supported.');
             end
             test_config_directory = fullfile(home_dir, '.d1test');
-            % test_config_directory = fullfile(home_dir, '.d1');
             
             % for unit testing, set the D1 directory to a test location
             config = Configuration( ...
                 'configuration_directory', test_config_directory);
             
-            testCase.mgr = RunManager.getInstance();           
+            testCase.mgr = RunManager.getInstance(config);           
             testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_7.properties'; 
             testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_7.properties'; 
             testCase.yw_comb_view_property_file_name = 'test/resources/yw_comb_view_7.properties'; 
@@ -635,6 +634,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             try
                 if ( isprop(testCase.mgr.configuration, 'configuration_directory') )
+                    
+                    dynamicPath = genpath(testCase.mgr.configuration.configuration_directory);
+                    rmpath(dynamicPath);
                     rmdir(testCase.mgr.configuration.configuration_directory, 's');
                 end
                 
