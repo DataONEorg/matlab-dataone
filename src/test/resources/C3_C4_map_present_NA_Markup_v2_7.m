@@ -7,7 +7,7 @@
 %  @out C4_fraction_data @uri file:mstmip_SYNMAP_PRESENTVEG_C4Grass_RelaFrac_NA_v2.0.nc
 %  @out Grass_fraction_data @uri file:mstmip_SYNMAP_PRESENTVEG_Grass_Fraction_NA_v2.0.nc
 
-clear all
+% clear all
 ncols=480;
 nrows=296;
 nodatavalue = -999.0;
