@@ -635,8 +635,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             try
                 if ( isprop(testCase.mgr.configuration, 'configuration_directory') )
                     
-                    dynamicPath = genpath(testCase.mgr.configuration.configuration_directory);
-                    rmpath(dynamicPath);
+                    rmpath(fullfiletestCase.mgr.execution.execution_directory);
                     rmdir(testCase.mgr.configuration.configuration_directory, 's');
                 end
                 
