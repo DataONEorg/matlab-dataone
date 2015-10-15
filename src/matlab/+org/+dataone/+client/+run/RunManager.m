@@ -1324,8 +1324,6 @@ classdef RunManager < hgsetget
             end          
         end
         
-        
-        % function deleted_runs = deleteRuns(runManager, runIdList, startDate, endDate, tags, noop, quiet)
         function deleted_runs = deleteRuns(runManager, varargin)
             % DELETERUNS Deletes prior executions (runs) from the stored
             % list.    
