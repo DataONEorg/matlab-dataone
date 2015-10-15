@@ -158,6 +158,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 scriptPath = struc.Name;
             end
             
+            [scriptParentPath, name, ext] = fileparts(scriptPath);
             tag = 'c3_c4_1'; % TODO: multiple tags passed in
           
             yw_process_view_properties_path = which(testCase.yw_process_view_property_file_name);
@@ -168,8 +169,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             yw_comb_view_properties_path = which(testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
-           
+            
+            currentDir = pwd();
+            cd(scriptParentPath);
             testCase.mgr.record(scriptPath, tag);  
+            cd(currentDir);
             
             % Test if one resource map exists 
             a = dir(testCase.mgr.execution.execution_directory);
