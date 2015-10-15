@@ -29,4 +29,6 @@ varData = ncread('myncfile4.nc','vmark');
 disp(varData);
 %% @end generate_second_file
 
+delete('myfile4.nc');
+delete('myncfile4.nc');
 %% @end myScript2

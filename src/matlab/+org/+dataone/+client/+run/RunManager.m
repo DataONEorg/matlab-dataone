@@ -1235,15 +1235,35 @@ classdef RunManager < hgsetget
             runManager.getExecInputIds().clear();
             runManager.getExecOutputIds().clear();
         end
+    
         
-        
-       % function runs = listRuns(runManager, quiet, startDate, endDate, tags)
        function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
             %   startDate -- the starting timestamp for an execution
             %   endDate -- the ending timestamp for an execution
             %   tag -- a tag given to an execution 
+            %   sequenceNumber -- a sequence number given to an execution
+       
+            persistent listRunsParser
+            if isempty(listRunsParser)
+                listRunsParser = inputParser;
+               
+                addParameter(listRunsParser,'quiet', false, @islogical);
+                addParameter(listRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+                addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+                addParameter(listRunsParser,'tag', '', @iscell);
+                addParameter(listRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+            end
+            parse(listRunsParser,varargin{:})
+            
+            quiet = listRunsParser.Results.quiet;
+            startDate = listRunsParser.Results.startDate;
+            endDate = listRunsParser.Results.endDate;
+            tags = listRunsParser.Results.tag;
+            sequenceNumber = listRunsParser.Results.sequenceNumber;
+            
+            listRunsParser.Results
             
             % Read the exeuction metadata summary from the exeuction
             % metadata database
@@ -1252,28 +1272,27 @@ classdef RunManager < hgsetget
             % When the database is empty, show no rows and return
             if ( isempty(execMetaMatrix) )
                 runs = {};
-                if ( ~ varargin{1} )
+                
+                if ~quiet
                     fprintf('\n%s\n', 'There are no runs to display yet.');
                 end
-                return;
-                
+                return;                
             end
             % Initialize the logical cell arrays for the next call for listRuns()
             dateCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
+            sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
             allCondition = false(size(execMetaMatrix, 1), 1);
             
             % Process the query constraints
             startDateFlag = false;
             endDateFlag = false;
                 
-            if isempty(varargin{2}) ~= 1
-                startDate = varargin{2};
+            if isempty(startDate) ~= 1                
                 startDateFlag = true;
             end
-                
-            if isempty(varargin{3}) ~= 1
-                endDate = varargin{3};
+                            
+            if isempty(endDate) ~= 1                
                 endDateFlag = true;
             end
                 
@@ -1299,9 +1318,8 @@ classdef RunManager < hgsetget
                 dateCondition = true(size(execMetaMatrix, 1), 1);
             end
                         
-            % Process the query parameter "tags" 
-            if ~isempty(varargin{4})
-                tags = varargin{4};
+            % Process the query parameter "tags"            
+            if ~isempty(tags)               
                 tagsArray = char(tags);
                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
                 allCondition = dateCondition & tagsCondition; % Logical and operator
@@ -1309,11 +1327,17 @@ classdef RunManager < hgsetget
                 allCondition = dateCondition;
             end
 
+            if ~isempty(sequenceNumber)
+                snValue = num2str(sequenceNumber);
+                sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+                allCondition = allCondition & sequenceNumberCondition;
+            end
+            
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
             runsToDisplay = execMetaMatrix(allCondition, [16,2,7,3,4,5]);
-            
-            if isempty(varargin{1}) ~= 1 && varargin{1} ~= 1
+                       
+            if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
                 tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'SequenceNumber', 'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
@@ -1321,10 +1345,40 @@ classdef RunManager < hgsetget
             end          
         end
         
-        
-        function deleted_runs = deleteRuns(runManager, runIdList, startDate, endDate, tags, noop, quiet)
+        function deleted_runs = deleteRuns(runManager, varargin)
             % DELETERUNS Deletes prior executions (runs) from the stored
             % list.    
+            %   runIdList -- the list of runIds for executions to be deleted
+            %   startDate -- the starting timestamp for an execution to be deleted
+            %   endDate -- the ending timestamp for an execution to be deleted
+            %   tag -- a tag given to an execution to be deleted
+            %   sequenceNumber -- a sequence number given to an execution to be deleted
+            %   noop -- control delete the exuecution from disk or not
+            %   quiet -- control the output or not
+            
+            persistent deletedRunsParser
+            if isempty(deletedRunsParser)
+                deletedRunsParser = inputParser;
+                
+                addParameter(deletedRunsParser,'runIdList', '', @iscell);
+                addParameter(deletedRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+                addParameter(deletedRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+                addParameter(deletedRunsParser,'tag', '', @iscell);
+                addParameter(deletedRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+                addParameter(deletedRunsParser,'noop', false, @islogical);
+                addParameter(deletedRunsParser,'quiet',false, @islogical);
+            end
+            parse(deletedRunsParser,varargin{:})
+            
+            runIdList = deletedRunsParser.Results.runIdList;
+            startDate = deletedRunsParser.Results.startDate;
+            endDate = deletedRunsParser.Results.endDate;
+            tags = deletedRunsParser.Results.tag;
+            sequenceNumber = deletedRunsParser.Results.sequenceNumber;
+            noop = deletedRunsParser.Results.noop;
+            quiet = deletedRunsParser.Results.quiet;
+            
+            deletedRunsParser.Results
             
             % Read the exeuction metadata summary from the exeuction metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
@@ -1333,31 +1387,9 @@ classdef RunManager < hgsetget
             dateCondition = false(size(execMetaMatrix, 1), 1);
             runIdCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
+            sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
             allDeleteCondition = false(size(execMetaMatrix, 1), 1);
             
-            % Step 1: find all runs to be deleted using the query parameter: runIdList
-            %deleted_runs_1 = [];
-            %runIdCondition = [];
-            %if ~isempty(runIdList) 
-            %    runIdArray = char(runIdList);
-            %    runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existence between two arrays 
-            %    deleted_runs_1 = execMetaMatrix(runIdCondition, :);
-            %end
-            
-            % Step 2: find all runs to be deleted using the query parameters: startDate, endDate and tags
-            %deleted_runs_2 = runManager.listRuns(quiet, startDate, endDate, tags);
-            
-            % Step 3: merge the two selected runs cell array into a larger cell
-            % array and duplicate rows are removed.
-            %if ~isempty(deleted_runs_1) && ~isempty(deleted_runs_2)
-            %    deleted_runs = runManager.union2Cells(deleted_runs_1, deleted_runs_2);
-                %size(deleted_runs)
-            %elseif ~isempty(deleted_runs_1)
-            %    deleted_runs = deleted_runs_1;
-            %else
-            %    deleted_runs = deleted_runs_2;
-            %end
-      
             startDateFlag = false;
             endDateFlag = false;
                 
@@ -1387,6 +1419,8 @@ classdef RunManager < hgsetget
             end
                         
             if ~isempty(runIdList)
+                runIdArray = char(runIdList);
+                runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existance between two arrays
                 allDeleteCondition = dateCondition & runIdCondition;
             else
                 allDeleteCondition = dateCondition;
@@ -1398,11 +1432,17 @@ classdef RunManager < hgsetget
                 allDeleteCondition = allDeleteCondition & tagsCondition;
             end
            
+            if ~isempty(sequenceNumber)
+                snValue = num2str(sequenceNumber);
+                sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+                allDeleteCondition = allDeleteCondition & sequenceNumberCondition;
+            end
+            
             % Extract multiple rows from a matrix satisfying the allCondition
             deleted_runs = execMetaMatrix(allDeleteCondition, :);
             
             % Delete the selected runs from the execution matrix and update the exeucution database
-            if noop == 1
+            if  noop == 1
                 % Show the selected run list only when quiet is turned on
                 if isempty(quiet) ~= 1 && quiet ~= 1
                     % Convert a cell array to a table with headers    
