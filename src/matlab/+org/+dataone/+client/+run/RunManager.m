@@ -1232,15 +1232,17 @@ classdef RunManager < hgsetget
             %   startDate -- the starting timestamp for an execution
             %   endDate -- the ending timestamp for an execution
             %   tag -- a tag given to an execution 
+            %   sequenceNumber -- a sequence number given to an execution
        
             persistent listRunsParser
             if isempty(listRunsParser)
                 listRunsParser = inputParser;
                
                 addParameter(listRunsParser,'quiet', false, @islogical);
-                addParameter(listRunsParser,'startDate', '', @ischar);
-                addParameter(listRunsParser,'endDate', '', @ischar);
+                addParameter(listRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+                addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(listRunsParser,'tag', '', @iscell);
+                addParameter(listRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
             end
             parse(listRunsParser,varargin{:})
             
@@ -1248,6 +1250,7 @@ classdef RunManager < hgsetget
             startDate = listRunsParser.Results.startDate;
             endDate = listRunsParser.Results.endDate;
             tags = listRunsParser.Results.tag;
+            sequenceNumber = listRunsParser.Results.sequenceNumber;
             
             listRunsParser.Results
             
@@ -1267,6 +1270,7 @@ classdef RunManager < hgsetget
             % Initialize the logical cell arrays for the next call for listRuns()
             dateCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
+            sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
             allCondition = false(size(execMetaMatrix, 1), 1);
             
             % Process the query constraints
@@ -1312,6 +1316,12 @@ classdef RunManager < hgsetget
                 allCondition = dateCondition;
             end
 
+            if ~isempty(sequenceNumber)
+                snValue = num2str(sequenceNumber);
+                sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+                allCondition = allCondition & sequenceNumberCondition;
+            end
+            
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
             runsToDisplay = execMetaMatrix(allCondition, [16,2,7,3,4,5]);
@@ -1327,15 +1337,23 @@ classdef RunManager < hgsetget
         function deleted_runs = deleteRuns(runManager, varargin)
             % DELETERUNS Deletes prior executions (runs) from the stored
             % list.    
+            %   runIdList -- the list of runIds for executions to be deleted
+            %   startDate -- the starting timestamp for an execution to be deleted
+            %   endDate -- the ending timestamp for an execution to be deleted
+            %   tag -- a tag given to an execution to be deleted
+            %   sequenceNumber -- a sequence number given to an execution to be deleted
+            %   noop -- control delete the exuecution from disk or not
+            %   quiet -- control the output or not
             
             persistent deletedRunsParser
             if isempty(deletedRunsParser)
                 deletedRunsParser = inputParser;
                 
                 addParameter(deletedRunsParser,'runIdList', '', @iscell);
-                addParameter(deletedRunsParser,'startDate', '', @ischar);
-                addParameter(deletedRunsParser,'endDate', '', @ischar);
+                addParameter(deletedRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+                addParameter(deletedRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'tag', '', @iscell);
+                addParameter(deletedRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
                 addParameter(deletedRunsParser,'noop', false, @islogical);
                 addParameter(deletedRunsParser,'quiet',false, @islogical);
             end
@@ -1345,6 +1363,7 @@ classdef RunManager < hgsetget
             startDate = deletedRunsParser.Results.startDate;
             endDate = deletedRunsParser.Results.endDate;
             tags = deletedRunsParser.Results.tag;
+            sequenceNumber = deletedRunsParser.Results.sequenceNumber;
             noop = deletedRunsParser.Results.noop;
             quiet = deletedRunsParser.Results.quiet;
             
@@ -1357,6 +1376,7 @@ classdef RunManager < hgsetget
             dateCondition = false(size(execMetaMatrix, 1), 1);
             runIdCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
+            sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
             allDeleteCondition = false(size(execMetaMatrix, 1), 1);
             
             startDateFlag = false;
@@ -1388,6 +1408,8 @@ classdef RunManager < hgsetget
             end
                         
             if ~isempty(runIdList)
+                runIdArray = char(runIdList);
+                runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existance between two arrays
                 allDeleteCondition = dateCondition & runIdCondition;
             else
                 allDeleteCondition = dateCondition;
@@ -1399,6 +1421,12 @@ classdef RunManager < hgsetget
                 allDeleteCondition = allDeleteCondition & tagsCondition;
             end
            
+            if ~isempty(sequenceNumber)
+                snValue = num2str(sequenceNumber);
+                sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+                allDeleteCondition = allDeleteCondition & sequenceNumberCondition;
+            end
+            
             % Extract multiple rows from a matrix satisfying the allCondition
             deleted_runs = execMetaMatrix(allDeleteCondition, :);
             

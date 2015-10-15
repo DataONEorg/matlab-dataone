@@ -293,8 +293,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             fprintf('\n*** testListRuns with no parameters: ***\n');
             
             generateTestRuns(testCase);
-            
-            %runs = testCase.mgr.listRuns(false, '', '', '');
+                        
             runs = testCase.mgr.listRuns();
             
             [rows, columns] = size(runs);
@@ -312,8 +311,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             startDate = '20151006T101049';
             endDate = '20151006T101149';
             tagList = {'test_tag_2'};
-            
-            % runs = testCase.mgr.listRuns(quiet, startDate, endDate, tagList);
+                       
             runs = testCase.mgr.listRuns('startDate', startDate, 'endDate', endDate, 'tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
@@ -327,7 +325,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             generateTestRuns(testCase);
 
             startDate = '20151006T101049';
-            % runs = testCase.mgr.listRuns('', startDate, '', '');
+           
             runs = testCase.mgr.listRuns('startDate', startDate);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 2); % Two rows should match
@@ -342,7 +340,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             generateTestRuns(testCase);
 
             endDate = '20150930T101149';
-            % runs = testCase.mgr.listRuns('', '', endDate, '');
+           
             runs = testCase.mgr.listRuns('endDate', endDate);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
@@ -358,7 +356,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             startDate = '20151006T101049';
             endDate = '20151006T101149';
-            % runs = testCase.mgr.listRuns('', startDate, endDate, '');
+          
             runs = testCase.mgr.listRuns('startDate', startDate, 'endDate', endDate);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
@@ -374,8 +372,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             startDate = '20151006T101049';
             endDate = '20151006T101149';
             tagList = {'test_tag_2'};
-            
-            % runs = testCase.mgr.listRuns('', startDate, endDate, tagList);
+
             runs = testCase.mgr.listRuns('startDate', startDate, 'endDate', endDate, 'tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
@@ -390,8 +387,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             startDate = '20150929T102515';
             tagList = {'test_tag_2'};
-            
-            % runs = testCase.mgr.listRuns('', startDate, '', tagList);
+
             runs = testCase.mgr.listRuns('startDate', startDate, 'tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
@@ -422,13 +418,82 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             tagList = {'test_tag_3'};
 
-            % runs = testCase.mgr.listRuns('', '', '', tagList);
             runs = testCase.mgr.listRuns('tag', tagList);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids
             
         end        
+          
+        function testListRunsSequenceNumberOnly(testCase)
+            fprintf('\n*** testListRuns with sequence number required only: ***\n');
+
+            generateTestRuns(testCase);
+            
+            sequenceNumber = 1;
+
+            runs = testCase.mgr.listRuns('sequenceNumber', sequenceNumber);
+            [rows, columns] = size(runs);
+            assertEqual(testCase, rows, 1); % Only one row should match
+            % TODO: Compare the execution ids            
+        end 
+        
+        function testDeleteRunsByTags(testCase)
+            fprintf('\n*** testDeleteRunsByTags: ***\n');
+            
+            generateTestRuns(testCase);
+                        
+            tagList = {'test_tag_1'};
+            noop = true;
+            
+            % Delete the runs
+            testCase.mgr.deleteRuns('tag', tagList, 'noop', noop);
+     
+            if ~noop
+                runs = testCase.mgr.listRuns(); % List the runs
+                [rows, cols] = size(runs);
+                assertEqual(testCase, rows, 2); % Only 2 rows should be left
+            else
+                runs = testCase.mgr.listRuns();
+                [rows, cols] = size(runs);
+                assertEqual(testCase, rows, 3); % 3 rows should be there because no delete is applied
+            end
+        end          
+        
+        function testDeleteRunsByTagsRunIdsOnly(testCase)
+            fprintf('\n*** testDeleteRunsByTagsRunIdsOnly: ***\n');
+            
+            generateTestRuns(testCase);
+                        
+            tagList = {'test_tag_1'};
+            runIds = {'1'};
+           
+            deleted_runs = testCase.mgr.deleteRuns('runIdList', runIds, 'tag', tagList);
+            [rows, columns] = size(deleted_runs);
+            assertEqual(testCase, rows, 0); % Zero row should match           
+        end   
+        
+        function testDeleteRunsBySequenceNumber(testCase)
+            fprintf('\n*** testDeleteRunsByTags: ***\n');
+            
+            generateTestRuns(testCase);
+                        
+            sequenceNumber = 2;
+            noop = false;
+            
+            % Delete the runs
+            testCase.mgr.deleteRuns('sequenceNumber', sequenceNumber, 'noop', noop);
+     
+            if ~noop
+                runs = testCase.mgr.listRuns(); % List the runs
+                [rows, cols] = size(runs);
+                assertEqual(testCase, rows, 2); % Only 2 rows should be left
+            else
+                runs = testCase.mgr.listRuns();
+                [rows, cols] = size(runs);
+                assertEqual(testCase, rows, 3); % 3 rows should be there because no delete is applied
+            end
+        end 
         
         function testView(testCase)
             fprintf('\n\nTest for view(packageId) function:\n');
@@ -450,48 +515,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
             set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
             testCase.mgr.publish(pkgId);
-        end        
-        
-        function testDeleteRunsByTags(testCase)
-            % fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
-            fprintf('\n*** testDeleteRunsByTags: ***\n');
-            
-            generateTestRuns(testCase);
-                        
-            tagList = {'test_tag_1'};
-            noop = true;
-            
-            % Delete the runs
-            % testCase.mgr.deleteRuns('', '', '', tagList, '', false);
-            testCase.mgr.deleteRuns('tag', tagList, 'noop', noop);
-            
-            % List the runs
-            % runs = testCase.mgr.listRuns('', '', '', '');
-            
-            if ~noop
-                runs = testCase.mgr.listRuns();
-                [rows, cols] = size(runs);
-                assertEqual(testCase, rows, 2); % Only 2 rows should be left
-            else
-                runs = testCase.mgr.listRuns();
-                [rows, cols] = size(runs);
-                assertEqual(testCase, rows, 3); % 3 rows should be there because no delete is applied
-            end
-        end          
-        
-        function testDeleteRunsByTagsRunIdsOnly(testCase)
-            % fprintf('\n\nTest for deletionRuns(runIdList, startDate, endDate, tags, noop, quiet) function:\n');
-            fprintf('\n*** testDeleteRunsByTagsRunIdsOnly: ***\n');
-            
-            generateTestRuns(testCase);
-                        
-            tagList = {'test_tag_1'};
-            runIds = {'1'};
-            % deleted_runs = testCase.mgr.deleteRuns(runIds, '', '', tagList, '', false);
-            deleted_runs = testCase.mgr.deleteRuns('runIdList', runIds, 'tag', tagList);
-            [rows, columns] = size(deleted_runs);
-            assertEqual(testCase, rows, 0); % Zero row should match           
-        end          
+        end 
     end
     
     methods (Access = 'private')
