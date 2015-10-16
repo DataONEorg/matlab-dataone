@@ -795,7 +795,7 @@ classdef RunManager < hgsetget
            % including prov:used, prov:hadPlan, prov:qualifiedAssociation,
            % prov:wasAssociatedWith, and rdf:type
             
-           import org.dataone.ore.RDFNode;
+           import org.dataone.util.NullRDFNode;
            import org.dataone.vocabulary.PROV;
            import org.dspace.foresite.Predicate;
            import com.hp.hpl.jena.rdf.model.Property;
