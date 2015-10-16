@@ -634,12 +634,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             try
                 if ( isprop(testCase.mgr.configuration, 'configuration_directory') )
-                    
-<<<<<<< Updated upstream
-                     rmpath(fullfile(testCase.mgr.execution.execution_directory));
-=======
                     rmpath(fullfile(testCase.mgr.execution.execution_directory));
->>>>>>> Stashed changes
                     rmdir(testCase.mgr.configuration.configuration_directory, 's');
                 end
                 
