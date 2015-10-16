@@ -1,8 +1,0 @@
-Manifest-Version: 1.0
-Built-By: syc
-Build-Jdk: 1.7.0_65
-Class-Path: jopt-simple-4.8.jar snakeyaml-1.15.jar
-Created-By: Apache Maven 3.2.3
-Main-Class: org.yesworkflow.cli.YesWorkflowCLI
-Archiver-Version: Plexus Archiver
-
