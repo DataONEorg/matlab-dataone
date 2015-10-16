@@ -169,10 +169,10 @@ classdef RunManager < hgsetget
             runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
             
             % Configure yesWorkflow language model to be Matlab
-            import org.yesworkflow.extract.HashmapMatlabWrapper;
+            import org.dataone.util.HashmapWrapper;
             import org.yesworkflow.Language;
             
-            config = HashmapMatlabWrapper;
+            config = HashmapWrapper;
             config.put('language', Language.MATLAB);
             runManager.extractor = runManager.extractor.configure(config);         
           
@@ -219,7 +219,7 @@ classdef RunManager < hgsetget
                 if runManager.configuration.generate_workflow_graphic
                     import org.yesworkflow.graph.GraphView;
                     import org.yesworkflow.graph.CommentVisibility;
-                    import org.yesworkflow.extract.HashmapMatlabWrapper;
+                    import org.dataone.util.HashmapWrapper;
                     import org.yesworkflow.graph.LayoutDirection;
                     
                     % Set the working directory to be the run metadata directory for this run
@@ -322,7 +322,7 @@ classdef RunManager < hgsetget
             
             import org.dataone.service.types.v1.Identifier;  
             import org.dataone.client.v1.types.D1TypeBuilder;
-            import org.dataone.client.v1.itk.D1Object;
+            import org.dataone.client.v2.itk.D1Object;
             import javax.activation.FileDataSource;
             import java.io.File;
             
@@ -338,11 +338,11 @@ classdef RunManager < hgsetget
             % BUILDPACKAGE  packages a datapackage for the current run
             % including the workflow script and yesWorkflow graphics
             
-            import org.dataone.client.v1.itk.DataPackage;
+            import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
             import org.dataone.client.run.NamedConstant;
-            import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
-            import org.dataone.client.v1.itk.D1Object;
+            import org.dataone.util.ArrayListWrapper;
+            import org.dataone.client.v2.itk.D1Object;
             import com.hp.hpl.jena.vocabulary.RDF;
             import org.dataone.vocabulary.PROV;
             import org.dataone.vocabulary.ProvONE;
@@ -700,7 +700,7 @@ classdef RunManager < hgsetget
            %  filePath - the path to the resourcemap
            %  p - the given property of a RDF triple
            
-           import org.dataone.ore.QueryResourceMap; % ! Need to add a new class in d1_libclient_java
+           import org.dataone.util.NullRDFNode;
            import org.dataone.vocabulary.PROV;
            import org.dspace.foresite.Predicate;
            import com.hp.hpl.jena.graph.Node;
@@ -725,7 +725,7 @@ classdef RunManager < hgsetget
            model = ModelFactory.createDefaultModel(); % Create an empty model
            model.read(in, '');
            queryPredicate= model.createProperty(p.getNamespace(), p.getName());
-           stmts = model.listStatements([], queryPredicate, QueryResourceMap.nullRDFNode); % null, (RDFNode)null
+           stmts = model.listStatements([], queryPredicate, NullRDFNode.nullRDFNode); % null, (RDFNode)null
            
            i = 1;
            while (stmts.hasNext()) 
@@ -795,7 +795,7 @@ classdef RunManager < hgsetget
            % including prov:used, prov:hadPlan, prov:qualifiedAssociation,
            % prov:wasAssociatedWith, and rdf:type
             
-           import org.dataone.ore.QueryResourceMap; % ! Need to add a new class in d1_libclient_java
+           import org.dataone.ore.RDFNode;
            import org.dataone.vocabulary.PROV;
            import org.dspace.foresite.Predicate;
            import com.hp.hpl.jena.rdf.model.Property;
@@ -1144,7 +1144,7 @@ classdef RunManager < hgsetget
             warning on MATLAB:dispatcher:nameConflict;
             
             % Initialize a dataPackage to manage the run
-            import org.dataone.client.v1.itk.DataPackage;
+            import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
           
             packageIdentifier = Identifier();
@@ -1194,8 +1194,8 @@ classdef RunManager < hgsetget
             % ENDRECORD Ends the recording of an execution (run).
             
             import org.dataone.service.types.v1.Identifier;
-            import org.dataone.client.v1.itk.D1Object;
-            import org.dataone.client.v1.itk.DataPackage;
+            import org.dataone.client.v2.itk.D1Object;
+            import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.client.run.NamedConstant;
             import java.io.File;
             import javax.activation.FileDataSource;
@@ -1203,7 +1203,7 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.PROV;
             import org.dataone.vocabulary.ProvONE;
             import java.net.URI;
-            import org.dataone.client.v1.itk.ArrayListMatlabWrapper;
+            import org.dataone.util.ArrayListWrapper;
             
             % Stop recording
             runManager.recording = false;
@@ -1671,11 +1671,11 @@ classdef RunManager < hgsetget
             import java.lang.String;
             import java.lang.Boolean;
             import java.lang.Integer;
-            import org.dataone.client.v1.MNode;
-            import org.dataone.client.v1.itk.D1Client;
+            import org.dataone.client.v2.MNode;
+            import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
-            import org.dataone.client.v1.itk.DataPackage;           
-            import org.dataone.service.types.v1.SystemMetadata;
+            import org.dataone.client.v2.itk.DataPackage;           
+            import org.dataone.service.types.v2.SystemMetadata;
             import org.dataone.service.types.v1.Session;
             import org.dataone.service.util.TypeMarshaller;
             import org.dataone.service.types.v1.AccessPolicy;
@@ -1751,7 +1751,7 @@ classdef RunManager < hgsetget
                     % get system metadata for dataObj and convert v1 systemetadata to v2 systemmetadata
                     v1SysMeta = dataObj.getSystemMetadata(); % version 1 system metadata
                      
-                    if runManager.debug
+                    if runManager.configuration.debug
                         fprintf('***********************************************************\n');
                         fprintf('d1Obj.size=%d (bytes)\n', v1SysMeta.getSize().longValue());                   
                         fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v1SysMeta.getChecksum().getAlgorithm()), char(v1SysMeta.getChecksum().getValue()));
