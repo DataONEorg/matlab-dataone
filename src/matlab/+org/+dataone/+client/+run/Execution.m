@@ -84,6 +84,9 @@ classdef Execution < hgsetget
         
         % The output id list for an execution
         execution_output_ids;
+        
+        % an array of D1Objects that are part of the execution
+        execution_objects;
     end
 
     methods
