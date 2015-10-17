@@ -991,11 +991,7 @@ classdef RunManager < hgsetget
                         end
                     end                    
                 end
-                
-                % Changed on Oct-13-2015
-                % Set data structures for runtime inputs/outputs information
-                disp('call init()');
-                
+                                
                 import org.dataone.client.run.Execution;
                 
                 runManager.execution = Execution();
@@ -1683,7 +1679,8 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.Permission;            
             import org.dataone.service.types.v1.ReplicationPolicy;
             import org.dataone.service.types.v1.Subject;
-           
+            import org.dataone.configuration.Settings;
+
             curDir = pwd();
             
             prov_dir = runManager.configuration.get('provenance_storage_directory');
@@ -1702,25 +1699,34 @@ classdef RunManager < hgsetget
                 % Pull the subject DN out of the certificate for use in system metadata
                 runManager.configuration.submitter = certificate.getSubjectDN().toString();
                
+                % Set the CN URL in the Java Client Library
+                if ( ~isempty(runManager.configuration.coordinating_node_base_url) )
+                    Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                        runManager.configuration.coordinating_node_base_url); 
+                end
+                
+                % Set the CNode ID
+                cnRef = NodeReference();
+                cnRef.setValue(runManager.configuration.coordinating_node_base_url);
+                cnNode = D1Client.getCN(cnRef.getValue());
+                if isempty(cnNode)
+                   error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint ...
+                       'encounted an error on the getCN() request.']); 
+                end
+                                
                 % Set the MNode ID
                 mnRef = NodeReference();
                 mnRef.setValue(runManager.configuration.target_member_node_id);            
                 % Get a MNode instance to the Member Node using the Node ID
                 mnNode = D1Client.getMN(mnRef);
                 if isempty(mnNode)
-                   error(['Member node' runManager.configuration.target_member_node_id 'encounted an error on the getMN() request.']); 
+                   error(['Member node' ...
+                       runManager.configuration.target_member_node_id ...
+                       'encounted an error on the getMN() request.']); 
                 end
                     
                 fprintf('MN node base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
                
-                % Set the CNode ID
-                cnRef = NodeReference();
-                cnRef.setValue(runManager.configuration.coordinating_node_base_url);
-                cnNode = D1Client.getCN(cnRef.getValue());
-                if isempty(cnNode)
-                   error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint 'encounted an error on the getCN() request.']); 
-                end
-                                
                 submitterStr = runManager.configuration.get('submitter');
                 targetmMNodeStr = runManager.configuration.get('target_member_node_id');
                 
@@ -1748,23 +1754,23 @@ classdef RunManager < hgsetget
                     dataObj = runManager.buildD1Object(dataObjId, dataObjFmt, dataObjId, submitterStr, targetmMNodeStr);
                     dataSource = dataObj.getDataSource();
                     
-                    % get system metadata for dataObj and convert v1 systemetadata to v2 systemmetadata
-                    v1SysMeta = dataObj.getSystemMetadata(); % version 1 system metadata
+                    % get system metadata for dataObj 
+                    v2SysMeta = dataObj.getSystemMetadata(); % version 2 system metadata
                      
                     if runManager.configuration.debug
                         fprintf('***********************************************************\n');
-                        fprintf('d1Obj.size=%d (bytes)\n', v1SysMeta.getSize().longValue());                   
-                        fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v1SysMeta.getChecksum().getAlgorithm()), char(v1SysMeta.getChecksum().getValue()));
-                        fprintf('d1Obj.rightHolder=%s\n', char(v1SysMeta.getRightsHolder().getValue()));
-                        fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v1SysMeta.getDateSysMetadataModified().toString()));
-                        fprintf('d1Obj.dateUploaded=%s\n', char(v1SysMeta.getDateUploaded().toString()));
-                        fprintf('d1Obj.originalMNode=%s\n', char(v1SysMeta.getOriginMemberNode().getValue()));
+                        fprintf('d1Obj.size=%d (bytes)\n', v2SysMeta.getSize().longValue());                   
+                        fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v2SysMeta.getChecksum().getAlgorithm()), char(v2SysMeta.getChecksum().getValue()));
+                        fprintf('d1Obj.rightHolder=%s\n', char(v2SysMeta.getRightsHolder().getValue()));
+                        fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v2SysMeta.getDateSysMetadataModified().toString()));
+                        fprintf('d1Obj.dateUploaded=%s\n', char(v2SysMeta.getDateUploaded().toString()));
+                        fprintf('d1Obj.originalMNode=%s\n', char(v2SysMeta.getOriginMemberNode().getValue()));
                         fprintf('***********************************************************\n');
                     end
                     
                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
-                    v1SysMeta.setSubmitter(submitter);
-                    v1SysMeta.setRightsHolder(submitter);
+                    v2SysMeta.setSubmitter(submitter);
+                    v2SysMeta.setRightsHolder(submitter);
                     
                     if runManager.configuration.public_read_allowed == 1
                         strArray = javaArray('java.lang.String', 1);
@@ -1772,8 +1778,8 @@ classdef RunManager < hgsetget
                         strArray(1,1) = String('public');
                         permsArray(1,1) = Permission.READ;
                         ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
-                        v1SysMeta.setAccessPolicy(ap);
-                        fprintf('d1Obj.accessPolicySize=%d\n', v1SysMeta.getAccessPolicy().sizeAllowList());
+                        v2SysMeta.setAccessPolicy(ap);
+                        fprintf('d1Obj.accessPolicySize=%d\n', v2SysMeta.getAccessPolicy().sizeAllowList());
                     end                   
                                     
                     if runManager.configuration.replication_allowed == 1
@@ -1781,23 +1787,23 @@ classdef RunManager < hgsetget
                         numReplicasStr = String.valueOf(int32(runManager.configuration.number_of_replicas));
                         rp.setNumberReplicas(Integer(numReplicasStr));                       
                         rp.setReplicationAllowed(java.lang.Boolean.TRUE);                      
-                        v1SysMeta.setReplicationPolicy(rp);                                               
-                        fprintf('d1Obj.numReplicas=%d\n', v1SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
+                        v2SysMeta.setReplicationPolicy(rp);                                               
+                        fprintf('d1Obj.numReplicas=%d\n', v2SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
                     end
                     
                     % Upload the data to the MN using create(), checking for success and a returned identifier       
-                    pid = cnNode.reserveIdentifier(session,v1SysMeta.getIdentifier()); 
+                    pid = cnNode.reserveIdentifier(session,v2SysMeta.getIdentifier()); 
                     if isempty(pid) ~= 1
-                        returnPid = mnNode.create(session, pid, dataSource.getInputStream(), v1SysMeta);  
+                        returnPid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta);  
                         if isempty(returnPid) ~= 1
                             fprintf('Success uploaded %s\n.', char(returnPid.getValue()));
                         else
                             % TODO: Process the error correctly.
-                            error('Error on returned identifier %s', char(v1SysMeta.getIdentifier()));
+                            error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));
                         end
                     else
                         % TODO: Process the error correctly.
-                        error('Error on duplicate identifier %s', v1SysMeta.getIdentifier());
+                        error('Error on duplicate identifier %s', v2SysMeta.getIdentifier());
                     end
                 end
                 

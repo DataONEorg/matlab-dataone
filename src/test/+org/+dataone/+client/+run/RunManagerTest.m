@@ -513,10 +513,45 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end        
         
         function testPublish(testCase)
-            fprintf('\n\nTest for publish() function:\n');
+            fprintf('\n\nTest for the publish() function:\n\n');
             
-            pkgId = 'urn:uuid:518d685f-4204-4533-a714-1a6a9f075918';
-            set(testCase.mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo5');
+            fprintf(['For testPublish() to succeed, you must log into ' ...
+                     'https://cilogon.org/?skin=DataONEDev and \n ' ...
+                     'download your X509 certificate to /tmp/x509up_u501.']);
+                 
+            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            set(testCase.mgr.configuration, 'certificate_path', '/tmp/x509up_u501');
+            
+            scriptPath = which(testCase.filename); % get the absolute path of the script
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            [scriptParentPath, name, ext] = fileparts(scriptPath);
+            tag = 'c3_c4_1'; % TODO: multiple tags passed in
+          
+            yw_process_view_properties_path = which(testCase.yw_process_view_property_file_name);
+            testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
+            
+            yw_data_view_properties_path = which(testCase.yw_data_view_property_file_name);
+            testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
+            
+            yw_comb_view_properties_path = which(testCase.yw_comb_view_property_file_name);
+            testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
+            
+            currentDir = pwd();
+            cd(scriptParentPath);
+            testCase.mgr.record(scriptPath, tag);  
+            cd(currentDir);
+
+            set(testCase.mgr.configuration, ...
+                'target_member_node_id', 'urn:node:mnDevUCSB2');
+            set(testCase.mgr.configuration, ...
+                'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn');
+            
+            runs = testCase.mgr.listRuns();
+            pkgId = runs{1,1};
             testCase.mgr.publish(pkgId);
         end 
     end
@@ -532,7 +567,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(run1, 'tag', 'test_tag_1');
             set(run1, 'execution_uri', ...
                 [testCase.mgr.configuration.coordinating_node_base_url ...
-                '/v1/resolve' run1.execution_id]);
+                '/v2/resolve' run1.execution_id]);
             set(run1, 'start_time', '20150930T101049');
             set(run1, 'end_time', '20150930T101149');
             set(run1, 'software_application', 'test_data_input1.m');
@@ -545,7 +580,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(run2, 'tag', 'test_tag_2');
             set(run2, 'execution_uri', ...
                 [testCase.mgr.configuration.coordinating_node_base_url ...
-                '/v1/resolve' run2.execution_id]);
+                '/v2/resolve' run2.execution_id]);
             set(run2, 'start_time', '20151006T101049');
             set(run2, 'end_time', '20151006T101149');
             testCase.mgr.execution = run2;
@@ -558,7 +593,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(run3, 'tag', 'test_tag_3');
             set(run3, 'execution_uri', ...
                 [testCase.mgr.configuration.coordinating_node_base_url ...
-                '/v1/resolve' run3.execution_id]);
+                '/v2/resolve' run3.execution_id]);
             set(run3, 'start_time', '20301030T101049');
             set(run3, 'end_time', '20301030T101249');
             set(run3, 'software_application', 'test_data_input3.m');
