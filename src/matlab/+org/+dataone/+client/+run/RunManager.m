@@ -123,10 +123,10 @@ classdef RunManager < hgsetget
          
             predicate.setName(property.getLocalName());
             
-            import org.jena.test.JenaPropertyTest;
+            import org.dataone.util.JenaPropertyUtil;
     
-            prop = JenaPropertyTest.getType(property);
-            ns = JenaPropertyTest.getNameSpace(property);
+            prop = JenaPropertyUtil.getType(property);
+            ns = JenaPropertyUtil.getNameSpace(property);
             predicate.setNamespace(ns);         
             %predicate.setNamespace(property.getNamespace()); % There is an error here !
             
@@ -1548,9 +1548,7 @@ classdef RunManager < hgsetget
                if isempty(selectedRuns)
                    error('No runs can be found as a match.');
                end
-               
-               % Compute the seq no 
-               % seqNo = size(execMetaMatrix(), 1);
+  
                seqNo = selectedRuns{1, 16};
                
                % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun
@@ -1596,21 +1594,40 @@ classdef RunManager < hgsetget
                fprintf('\n[DETAILS]: Run details\n');
                fprintf('-------------------------\n');
                fprintf('"%s" was executed on %s\n', scriptName, char(startTime));
-               fprintf('Tag: %s\n', selectedRuns{1,7});
-               fprintf('Run sequence #: %d\n', seqNo);
-               fprintf('Published date: %s\n', publishedTime);
-               fprintf('Published to: DateONE member node ( %s )\n', runManager.configuration.target_member_node_id); % todo: D1 member node name
-               fprintf('Run by user: %s\n', selectedRuns{1,8});
-               fprintf('Account subject: %s\n', selectedRuns{1,9});
-               fprintf('Run Id: %s\n', selectedRuns{1,1});
-               fprintf('Data package Id: %s\n', selectedRuns{1,6});
-               fprintf('Host Id: %s\n', selectedRuns{1,10});
-               fprintf('Operating system: %s\n', selectedRuns{1,11});
-               fprintf('Runtime: %s\n', selectedRuns{1,12});
-               fprintf('Dependencies: %s\n', selectedRuns{1,13});
-               fprintf('Run start time: %s\n', char(startTime)); 
-               fprintf('Run ending time: %s\n', char(endTime));
-               fprintf('Error message from this run: %s\n', selectedRuns{1,15});
+
+               fieldnames = {'Tag', 'RunSequence#', 'PublishedDate', 'PublishedTo', ...
+                             'RunByUser', 'AccountSubject', 'RunId', 'DataPackageId', ...
+                             'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
+                             'RunStartTime','RunEndingTime', 'ErrorMessageFromThisRun'};
+
+               values = {selectedRuns{1,7}, seqNo, publishedTime, runManager.configuration.target_member_node_id, ...
+                         selectedRuns{1,8}, selectedRuns{1,9}, selectedRuns{1,1}, selectedRuns{1,6}, ...
+                         selectedRuns{1,10}, selectedRuns{1,11}, selectedRuns{1,12}, selectedRuns{1,13}, ...
+                         char(startTime), char(endTime), selectedRuns{1,15}};
+               
+               
+               detailStruct = struct;
+               for i=1:length(fieldnames)
+                   detailStruct(i,1).(fieldnames{i}) = values{i};
+               end
+               
+               detailStruct
+               
+               % fprintf('Tag: %s\n', selectedRuns{1,7});
+               % fprintf('RunSequence#: %d\n', seqNo);
+               % fprintf('PublishedDate: %s\n', publishedTime);
+               % fprintf('PublishedTo: DateONE member node ( %s )\n', runManager.configuration.target_member_node_id); % todo: D1 member node name
+               % fprintf('RunByUser: %s\n', selectedRuns{1,8});
+               % fprintf('AccountSubject: %s\n', selectedRuns{1,9});
+               % fprintf('RunId: %s\n', selectedRuns{1,1});
+               % fprintf('DataPackageId: %s\n', selectedRuns{1,6});
+               % fprintf('HostId: %s\n', selectedRuns{1,10});
+               % fprintf('OperatingSystem: %s\n', selectedRuns{1,11});
+               % fprintf('Runtime: %s\n', selectedRuns{1,12});
+               % fprintf('Dependencies: %s\n', selectedRuns{1,13});
+               % fprintf('RunStartTime: %s\n', char(startTime)); 
+               % fprintf('RunEndingTime: %s\n', char(endTime));
+               % fprintf('ErrorMessageFromThisRun: %s\n', selectedRuns{1,15});
            end
                     
            if showUsed == 1
