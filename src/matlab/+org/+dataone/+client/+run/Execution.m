@@ -159,7 +159,7 @@ classdef Execution < hgsetget
             execution.start_time = char(format.format(java.util.Date()));
             
             % Set a default package id
-            execution.data_package_id = ['urn:uuid:' char(java.util.UUID.randomUUID())];
+            execution.data_package_id = char(java.util.UUID.randomUUID());
             
             % Set the account with the system username
             if ( ispc() )
