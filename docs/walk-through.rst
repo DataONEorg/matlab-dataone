@@ -1,6 +1,6 @@
 Matlab DataONE Toolbox Walk-through
 ===================================
-To understand the Matlab DataONE Toolbox, we'll step through an example by first connecting to a remote matlab server, installing the toolbox, and use the functions and classes provided with a sample soil mapping script.  The goal of the toolbox is to help scientists manage runs of their scripts, and to track the history of each run in terms of its data inputs and outputs.
+To understand the Matlab DataONE Toolbox, we'll step through an example by first connecting to a remote matlab server, installing the toolbox, and using the functions and classes provided with a sample soil mapping script.  The goal of the toolbox is to help scientists manage runs of their scripts, and to track the history of each run in terms of its data inputs and outputs.
 
 .. sectnum::
 .. contents::
@@ -85,6 +85,27 @@ First, **open the `C3_C4_map_present_NA.m` script**, and peruse the code.  Notic
 
 .. image:: images/matlab-walkthrough/review-soil-script-1.png
 
+Create a Configuration object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Customize the RunManager** with some settings that are specific to your session. 
+
+.. note::
+
+   Changing the `configuration_directory` property is usually not needed, but for our meeting, we are avoiding session collisions for each person testing the software as the same `dataone` login. Change this to `/home/dataone/Desktop/User_<num>_config`, where `<num>` is replaced with the number assigned to you during the meeting.
+
+.. code:: matlab
+
+  import org.dataone.client.configure.Configuration;
+  config = Configuration(); % Create a new configuration
+  
+  % Set the following properties
+  set(config, 'configuration_directory',     '/home/dataone/Desktop/User_<num>_config');
+  set(config, 'target_member_node_id',       'urn:node:mnDevUCSB2'); % DataONE server id for uploads
+  set(config, 'coordinating_node_base_url',  'https://cn-dev-2.test.dataone.org/cn');
+  set(config, 'public_read_allowed',         true);
+  set(config, 'replication_allowed',         true);
+  set(config, 'number_of_replicas',          2);
+        
 Create a RunManager object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 To record a run of a script in Matlab, first import the `RunManager` class, and **create a RunManager object** in the Command Window:
@@ -93,14 +114,8 @@ To record a run of a script in Matlab, first import the `RunManager` class, and 
 
   import org.dataone.client.run.RunManager;
   mgr = RunManager.getInstance();
-  
-Have a look at the default configuration properties set in `mgr`.  Notice the system level properties that are automatically set.
-
-.. code:: matlab
-
-  mgr.configuration
-  
-You can also look at the documentation of the RunManager class using:
+    
+You can look at the documentation of the RunManager class using:
 
 .. code:: matlab
 
@@ -108,7 +123,6 @@ You can also look at the documentation of the RunManager class using:
 
 Configure the RunManager
 ~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 Record a script processing soil data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
