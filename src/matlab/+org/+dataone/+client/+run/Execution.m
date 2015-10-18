@@ -85,8 +85,8 @@ classdef Execution < hgsetget
         % The output id list for an execution
         execution_output_ids;
         
-        % an array of D1Objects that are part of the execution
-        execution_objects;
+        % a map of {id, D1Object} pairs that are part of the execution
+        execution_objects = containers.Map('keyType', 'char', 'valueType', 'any');
     end
 
     methods

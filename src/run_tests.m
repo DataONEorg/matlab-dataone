@@ -31,7 +31,7 @@ warning on MATLAB:dispatcher:nameConflict;
 import matlab.unittest.TestSuite;
 
 % Use fromPackage
- suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+% suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 
 % Use fromClass
 % testCls = ?org.dataone.client.configure.ConfigurationTest;
@@ -60,7 +60,7 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite'); % Fails, same as above
-% suite = TestSuite.fromMethod(testCls, 'testPublish'); % No public field runDir exists for class org.dataone.client.run.RunManager. Error in org.dataone.client.run.RunManagerTest/testPublish (line 370): testCase.mgr.runDir = 'test/resources/runs';   
+suite = TestSuite.fromMethod(testCls, 'testPublish'); % No public field runDir exists for class org.dataone.client.run.RunManager. Error in org.dataone.client.run.RunManagerTest/testPublish (line 370): testCase.mgr.runDir = 'test/resources/runs';   
 % suite = TestSuite.fromMethod(testCls, 'testPublishPackageFromDisk'); % Need to rename this to testPubish(). function no longer exists.
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); % Error using org.dataone.client.run.RunManager/startRecord (line 1141). The script: /Users/cjones/Documents/Development/d1org/matlab-dataone/src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m could not be run. The error message was: Attempt to reference field of non-structure array.
 % suite = TestSuite.fromMethod(testCls, 'testSaveExecution'); % Error in org.dataone.client.run.RunManagerTest/testSaveExecution (line 277). execDBName = testCase.mgr.executionDatabaseName;  
