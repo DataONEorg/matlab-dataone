@@ -89,7 +89,7 @@ Create a Configuration object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Customize the RunManager** with some settings that are specific to your session. 
 
- **Note:** Changing the `configuration_directory` property is usually not needed, but for our meeting, we are avoiding session collisions for each person testing the software as the same `dataone` login. Change this to **/home/dataone/Desktop/User_<num>_config**, where **<num>** is replaced with the **number assigned to you** during the meeting.
+ **Note:** Changing the `configuration_directory` property is usually not needed, but for our meeting, we are avoiding session collisions for each person testing the software as the same 'dataone' login. Change this to **/home/dataone/Desktop/User_<num>_config**, where **<num>** is replaced with the **number assigned to you** during the meeting.
 
 .. code:: matlab
 
@@ -98,7 +98,8 @@ Create a Configuration object
   
   % Set the following properties
   set(config, 'configuration_directory',     '/home/dataone/Desktop/User_<num>_config');
-  set(config, 'target_member_node_id',       'urn:node:mnDevUCSB2'); % DataONE server id for uploads
+  set(config, 'source_member_node_id',       'urn:node:mnDevUCSB2'); % DataONE server id for reads
+  set(config, 'target_member_node_id',       'urn:node:mnDevUCSB2'); % DataONE server id for writes
   set(config, 'coordinating_node_base_url',  'https://cn-dev-2.test.dataone.org/cn');
   set(config, 'public_read_allowed',         true);
   set(config, 'replication_allowed',         true);
@@ -111,7 +112,7 @@ To record a run of a script in Matlab, first import the `RunManager` class, and 
 .. code:: matlab
 
   import org.dataone.client.run.RunManager;
-  mgr = RunManager.getInstance();
+  mgr = RunManager.getInstance(config);
     
 You can look at the documentation of the RunManager class using:
 
@@ -119,15 +120,28 @@ You can look at the documentation of the RunManager class using:
 
   doc RunManager
 
-Configure the RunManager
-~~~~~~~~~~~~~~~~~~~~~~~~
-
 Record a script processing soil data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To **record a script** run, pass it to the RunManager's record() function, and add tag to to help keep track of your runs:
+
+.. code:: matlab
+
+  mgr.record('/home/dataone/Desktop/C3_C4_mapping/C3_C4_map_present_NA.m', 'algorithm 1, no markup');
+  
+This will run the script, and will track data input and output files that are read, and will store the to a cache directory, along with other run metadata.
+
+Record a run with a script with comments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Now, **record another run**, but this time, use the script that has been documented using the YesWorkflow comments.  The comments define blocks in the code with '**@begin**', '**@end**', '**@in**' and '**@out**' statements.  First, peruse the 'C3_C4_map_present_NA_with_comments.m' script and see how YesWorkflow comments communicate the planned workflow:
+
+.. image:: images/matlab-walkthrough/yesworkflow-comments.png
 
 
-Modify the script, record another run
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Then, record a second run using this script, and tag the run accordingly:
+
+.. code:: matlab
+
+  mgr.record('/home/dataone/Desktop/C3_C4_mapping/C3_C4_map_present_NA_with_comments.m', 'algorithm 1, with YW comments');
 
 
 List the completed runs
