@@ -89,7 +89,7 @@ Create a Configuration object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Customize the RunManager** with some settings that are specific to your session. 
 
- **Note:** Changing the `configuration_directory` property is usually not needed, but for our meeting, we are avoiding session collisions for each person testing the software as the same 'dataone' login. Change this to **/home/dataone/Desktop/User_<num>_config**, where **<num>** is replaced with the **number assigned to you** during the meeting.
+ **Note:** Changing the 'configuration_directory' and 'persistent_configuration_file_name' properties is typically not needed. For our meeting, we are avoiding session collisions for each person testing the software as the same 'dataone' login. Change these to replace **<num>** with the **number assigned to you** during the meeting.
 
 .. code:: matlab
 
@@ -97,13 +97,14 @@ Create a Configuration object
   config = Configuration(); % Create a new configuration
   
   % Set the following properties
-  set(config, 'configuration_directory',     '/home/dataone/Desktop/User_<num>_config');
-  set(config, 'source_member_node_id',       'urn:node:mnDevUCSB2'); % DataONE server id for reads
-  set(config, 'target_member_node_id',       'urn:node:mnDevUCSB2'); % DataONE server id for writes
-  set(config, 'coordinating_node_base_url',  'https://cn-dev-2.test.dataone.org/cn');
-  set(config, 'public_read_allowed',         true);
-  set(config, 'replication_allowed',         true);
-  set(config, 'number_of_replicas',          2);
+  set(config, 'configuration_directory',             '/home/dataone/Desktop/Session_<num>');
+  set(config, 'persistent_configuration_file_name', '/home/dataone/Desktop/Session_<num>/configuration.json');
+  set(config, 'source_member_node_id',               'urn:node:mnDevUCSB2');
+  set(config, 'target_member_node_id',               'urn:node:mnDevUCSB2');
+  set(config, 'coordinating_node_base_url',          'https://cn-dev-2.test.dataone.org/cn');
+  set(config, 'public_read_allowed',                 true);
+  set(config, 'replication_allowed',                 true);
+  set(config, 'number_of_replicas',                  2);
         
 Create a RunManager object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
