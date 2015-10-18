@@ -129,7 +129,7 @@ To **record a script** run, pass it to the RunManager's record() function, and a
 
   mgr.record('/home/dataone/Desktop/C3_C4_mapping/C3_C4_map_present_NA.m', 'algorithm 1, no markup');
   
-This will run the script, and will track data input and output files that are read, and will store the to a cache directory, along with other run metadata.
+This will run the script, and will track data input and output files that are read, and will store  to a cache directory, along with other run metadata.
 
 Record a run with a script with comments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
