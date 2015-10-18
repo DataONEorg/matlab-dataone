@@ -3,4 +3,5 @@
 % Copyright (c) DataONE and participating institutions
 %
 % Classes
+%   D1Client - A class used to communicate with nodes in the DataONE network
 %   D1Object - A class that represents a data object with DataONE properties
