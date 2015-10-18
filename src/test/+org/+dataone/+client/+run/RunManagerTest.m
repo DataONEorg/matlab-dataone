@@ -501,15 +501,38 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testView(testCase)
             fprintf('\n\nTest for view(packageId) function:\n');
             
-            sessions = {'details', 'generated'};
-            pkgId = 'urn:uuid:34e94476-bdcf-45d7-83b4-ea977248dd35';
-            testCase.mgr.view(pkgId, sessions); % view the selected run
+            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+           
+            scriptPath = which(testCase.filename); % get the absolute path of the script
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
             
-            sessions = {};
-            testCase.mgr.view(pkgId, sessions); % view the selected run
+            [scriptParentPath, name, ext] = fileparts(scriptPath);
+            tag = 'c3_c4_1'; % TODO: multiple tags passed in
+          
+            yw_process_view_properties_path = which(testCase.yw_process_view_property_file_name);
+            testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
+            
+            yw_data_view_properties_path = which(testCase.yw_data_view_property_file_name);
+            testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
+            
+            yw_comb_view_properties_path = which(testCase.yw_comb_view_property_file_name);
+            testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
+            
+            currentDir = pwd();
+            cd(scriptParentPath);
+            testCase.mgr.record(scriptPath, tag);  
+            cd(currentDir);
+            
+            runs = testCase.mgr.listRuns();
+            pkgId = runs{1,1};
             
             sessions = {'details', 'used', 'generated'};
-            testCase.mgr.view(pkgId, sessions); % view the selected run
+            resultObjs = testCase.mgr.view(pkgId, sessions); % view the selected run
+            numOfObjects = size(resultObjs, 2);
+            assertEqual(testCase, numOfObjects, 3);        
         end        
         
         function testPublish(testCase)

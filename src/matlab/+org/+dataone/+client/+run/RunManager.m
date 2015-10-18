@@ -1259,7 +1259,7 @@ classdef RunManager < hgsetget
             tags = listRunsParser.Results.tag;
             sequenceNumber = listRunsParser.Results.sequenceNumber;
             
-            listRunsParser.Results
+            % listRunsParser.Results
             
             % Read the exeuction metadata summary from the exeuction
             % metadata database
@@ -1374,7 +1374,7 @@ classdef RunManager < hgsetget
             noop = deletedRunsParser.Results.noop;
             quiet = deletedRunsParser.Results.quiet;
             
-            deletedRunsParser.Results
+            % deletedRunsParser.Results
             
             % Read the exeuction metadata summary from the exeuction metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
@@ -1523,7 +1523,8 @@ classdef RunManager < hgsetget
         end
         
         
-        function package_id = view(runManager, packageId, sessions)
+        % function package_id = view(runManager, packageId, sessions)
+        function results = view(runManager, packageId, sessions)
            % VIEW Displays detailed information about a data package that
            % is the result of an execution (run).
  
@@ -1551,8 +1552,7 @@ classdef RunManager < hgsetget
   
                seqNo = selectedRuns{1, 16};
                
-               % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun
-               % will be return
+               % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun will be return
                selectedRunId = selectedRuns{1,1};             
            else
                error('Missing the packageId parameter.');
@@ -1577,8 +1577,47 @@ classdef RunManager < hgsetget
            startTime = datetime( selectedRuns{1,3}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
            endTime = datetime( selectedRuns{1,4}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ' );
                  
+           % Compute the details-view struct
+           fieldnames = {'Tag', 'RunSequenceNumber', 'PublishedDate', 'PublishedTo', ...
+                         'RunByUser', 'AccountSubject', 'RunId', 'DataPackageId', ...
+                         'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
+                         'RunStartTime','RunEndingTime', 'ErrorMessageFromThisRun'};
+           values = {selectedRuns{1,7}, seqNo, publishedTime, runManager.configuration.target_member_node_id, ...
+                     selectedRuns{1,8}, selectedRuns{1,9}, selectedRuns{1,1}, selectedRuns{1,6}, ...
+                     selectedRuns{1,10}, selectedRuns{1,11}, selectedRuns{1,12}, selectedRuns{1,13}, ...
+                     char(startTime), char(endTime), selectedRuns{1,15}};                   
+           detailStruct = struct;
+           for i=1:length(fieldnames)
+               detailStruct.(fieldnames{i}) = values{i};
+           end
+            
+           % Compute the used struct for used-view
+           if ~isempty(usedStruct)     
+               for i = 1:length(usedStruct)  
+                  f = dir(usedStruct(i).Object);
+                  usedFileStruct(i,1).LocalName = f.name;     
+                  fsize = FileUtils.byteCountToDisplaySize(f.bytes);                     
+                  usedFileStruct(i,1).Size = char(fsize); 
+                  usedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+                end
+           end
+           
+           % Compute the wasGeneratedBy struct for the wasGeneratedBy-view
+           if ~isempty(wasGeneratedByStruct)                       
+               for i = 1:length(wasGeneratedByStruct)
+                   f = dir(wasGeneratedByStruct(i).Subject);   
+                   generatedFileStruct(i,1).LocalName = f.name; 
+                   fsize = FileUtils.byteCountToDisplaySize(f.bytes); 
+                   generatedFileStruct(i,1).Size = char(fsize); 
+                   generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+               end
+           end               
+                   
+           results = {detailStruct, usedStruct, wasGeneratedByStruct};
+           
            more on; % Enable more for page control
            
+           % Decide the views to be displayed based on values of sessions
            if ~isempty(sessions)
                sessionArray = char(sessions);
                showDetails = ismember('details', sessionArray);
@@ -1590,57 +1629,18 @@ classdef RunManager < hgsetget
                showGenerated = 0;
            end
            
+           % Display different views
            if showDetails == 1
                fprintf('\n[DETAILS]: Run details\n');
                fprintf('-------------------------\n');
-               fprintf('"%s" was executed on %s\n', scriptName, char(startTime));
-
-               fieldnames = {'Tag', 'RunSequence#', 'PublishedDate', 'PublishedTo', ...
-                             'RunByUser', 'AccountSubject', 'RunId', 'DataPackageId', ...
-                             'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
-                             'RunStartTime','RunEndingTime', 'ErrorMessageFromThisRun'};
-
-               values = {selectedRuns{1,7}, seqNo, publishedTime, runManager.configuration.target_member_node_id, ...
-                         selectedRuns{1,8}, selectedRuns{1,9}, selectedRuns{1,1}, selectedRuns{1,6}, ...
-                         selectedRuns{1,10}, selectedRuns{1,11}, selectedRuns{1,12}, selectedRuns{1,13}, ...
-                         char(startTime), char(endTime), selectedRuns{1,15}};
-               
-               
-               detailStruct = struct;
-               for i=1:length(fieldnames)
-                   detailStruct(i,1).(fieldnames{i}) = values{i};
-               end
-               
-               detailStruct
-               
-               % fprintf('Tag: %s\n', selectedRuns{1,7});
-               % fprintf('RunSequence#: %d\n', seqNo);
-               % fprintf('PublishedDate: %s\n', publishedTime);
-               % fprintf('PublishedTo: DateONE member node ( %s )\n', runManager.configuration.target_member_node_id); % todo: D1 member node name
-               % fprintf('RunByUser: %s\n', selectedRuns{1,8});
-               % fprintf('AccountSubject: %s\n', selectedRuns{1,9});
-               % fprintf('RunId: %s\n', selectedRuns{1,1});
-               % fprintf('DataPackageId: %s\n', selectedRuns{1,6});
-               % fprintf('HostId: %s\n', selectedRuns{1,10});
-               % fprintf('OperatingSystem: %s\n', selectedRuns{1,11});
-               % fprintf('Runtime: %s\n', selectedRuns{1,12});
-               % fprintf('Dependencies: %s\n', selectedRuns{1,13});
-               % fprintf('RunStartTime: %s\n', char(startTime)); 
-               % fprintf('RunEndingTime: %s\n', char(endTime));
-               % fprintf('ErrorMessageFromThisRun: %s\n', selectedRuns{1,15});
+               fprintf('"%s" was executed on %s\n', scriptName, char(startTime));           
+               disp(detailStruct);
            end
                     
            if showUsed == 1
-               if ~isempty(usedStruct)     
+               if ~isempty(usedFileStruct)     
                    fprintf('\n\n[USED]: %d Items used by this run\n', length(usedStruct));
                    fprintf('------------------------------------\n');
-                   for i = 1:length(usedStruct)  
-                      f = dir(usedStruct(i).Object);
-                      usedFileStruct(i,1).LocalName = f.name;     
-                      fsize = FileUtils.byteCountToDisplaySize(f.bytes);                     
-                      usedFileStruct(i,1).Size = char(fsize); 
-                      usedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-                   end
                    TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
                    disp(TableForFileUsed);  
                else
@@ -1650,18 +1650,9 @@ classdef RunManager < hgsetget
            end 
            
            if showGenerated == 1
-               if ~isempty(wasGeneratedByStruct)                       
+               if ~isempty(generatedFileStruct)                       
                    fprintf('\n\n[GENERATED]: %d Items used by this run\n', length(wasGeneratedByStruct));
-                   fprintf('------------------------------------------\n');
-                   for i = 1:length(wasGeneratedByStruct)
-                      
-                       f = dir(wasGeneratedByStruct(i).Subject);
-                      
-                       generatedFileStruct(i,1).LocalName = f.name; 
-                       fsize = FileUtils.byteCountToDisplaySize(f.bytes); 
-                       generatedFileStruct(i,1).Size = char(fsize); 
-                       generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-                   end               
+                   fprintf('------------------------------------------\n');              
                    TableForFileWasGeneratedBy = struct2table(generatedFileStruct); % Convert a struct to a table
                    disp(TableForFileWasGeneratedBy);               
                else
@@ -1670,10 +1661,9 @@ classdef RunManager < hgsetget
                end
            end
            
-           more off; % terminate more
-           
-           package_id = packageId;
-           cd(curDir);
+           more off; % terminate more           
+           % package_id = packageId;
+           % cd(curDir);
         end
   
         
