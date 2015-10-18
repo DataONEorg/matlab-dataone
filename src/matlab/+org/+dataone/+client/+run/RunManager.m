@@ -802,7 +802,7 @@ classdef RunManager < hgsetget
            import com.hp.hpl.jena.rdf.model.RDFNode;
            import com.hp.hpl.jena.vocabulary.RDF;
            
-            % Query resource map
+           % Query resource map                           
            resMapFileName = strtrim(ls('*.rdf')); % list the reosurceMap.rdf and remove the whitespace and return characters  
            wasGeneratedByPredicate = PROV.predicate('wasGeneratedBy');           
            wasGeneratedByStruct = runManager.getRDFTriple(resMapFileName, wasGeneratedByPredicate);                  
@@ -821,7 +821,7 @@ classdef RunManager < hgsetget
            userList = wasAssociatedWithPredicateStruct.Object;
            
            rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-           rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);
+           rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);         
         end
     end
  
@@ -1521,8 +1521,7 @@ classdef RunManager < hgsetget
                              
             end          
         end
-        
-        
+           
         % function package_id = view(runManager, packageId, sessions)
         function results = view(runManager, packageId, sessions)
            % VIEW Displays detailed information about a data package that
@@ -1540,7 +1539,7 @@ classdef RunManager < hgsetget
            if(isempty(packageId) ~= 1)
                curDir = pwd();
                cd(prov_dir);
-            
+               
                % Read the exeuction metadata summary from the exeuction
                % metadata database
                [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
@@ -1562,8 +1561,6 @@ classdef RunManager < hgsetget
            selectedRunDir = fullfile(prov_dir, filesep, 'runs', selectedRunId, filesep);
            cd(selectedRunDir);
 
-           [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = runManager.getRelationships();
-           
            % Read information from the selectedRuns returned by the execution summary database
            filePath = selectedRuns{1, 2};
            [pathstr,scriptName,ext] = fileparts(filePath);
@@ -1577,7 +1574,7 @@ classdef RunManager < hgsetget
            startTime = datetime( selectedRuns{1,3}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
            endTime = datetime( selectedRuns{1,4}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ' );
                  
-           % Compute the details-view struct
+           % Compute the detailStruct for the details-view 
            fieldnames = {'Tag', 'RunSequenceNumber', 'PublishedDate', 'PublishedTo', ...
                          'RunByUser', 'AccountSubject', 'RunId', 'DataPackageId', ...
                          'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
@@ -1591,30 +1588,43 @@ classdef RunManager < hgsetget
                detailStruct.(fieldnames{i}) = values{i};
            end
             
-           % Compute the used struct for used-view
-           if ~isempty(usedStruct)     
-               for i = 1:length(usedStruct)  
-                  f = dir(usedStruct(i).Object);
-                  usedFileStruct(i,1).LocalName = f.name;     
-                  fsize = FileUtils.byteCountToDisplaySize(f.bytes);                     
-                  usedFileStruct(i,1).Size = char(fsize); 
-                  usedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-                end
-           end
+           % Check if one resource map exists before query the resource map
+           a = dir;
+           b = struct2cell(a);
+           matches = regexp(b(1,:), '.rdf');
+           total = sum(~cellfun('isempty', matches));
            
-           % Compute the wasGeneratedBy struct for the wasGeneratedBy-view
-           if ~isempty(wasGeneratedByStruct)                       
-               for i = 1:length(wasGeneratedByStruct)
-                   f = dir(wasGeneratedByStruct(i).Subject);   
-                   generatedFileStruct(i,1).LocalName = f.name; 
-                   fsize = FileUtils.byteCountToDisplaySize(f.bytes); 
-                   generatedFileStruct(i,1).Size = char(fsize); 
-                   generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+           usedFileStruct = struct; % create an empty struct
+           generatedFileStruct = struct; 
+           if total == 1           
+               [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = runManager.getRelationships();
+ 
+               % Compute the used struct for used-view
+               if ~isempty(usedStruct)     
+                   for i = 1:length(usedStruct)  
+                      f = dir(usedStruct(i).Object);
+                      usedFileStruct(i,1).LocalName = f.name;     
+                      fsize = FileUtils.byteCountToDisplaySize(f.bytes);                     
+                      usedFileStruct(i,1).Size = char(fsize); 
+                      usedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+                   end
                end
-           end               
-                   
-           results = {detailStruct, usedStruct, wasGeneratedByStruct};
            
+               % Compute the wasGeneratedBy struct for the wasGeneratedBy-view
+               if ~isempty(wasGeneratedByStruct)                       
+                   for i = 1:length(wasGeneratedByStruct)
+                       f = dir(wasGeneratedByStruct(i).Subject);   
+                       generatedFileStruct(i,1).LocalName = f.name; 
+                       fsize = FileUtils.byteCountToDisplaySize(f.bytes); 
+                       generatedFileStruct(i,1).Size = char(fsize); 
+                       generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+                   end
+               end  
+               results = {detailStruct, usedFileStruct, generatedFileStruct};
+           else
+               results = {detailStruct};
+           end
+               
            more on; % Enable more for page control
            
            % Decide the views to be displayed based on values of sessions
@@ -1639,7 +1649,7 @@ classdef RunManager < hgsetget
                     
            if showUsed == 1
                if ~isempty(usedFileStruct)     
-                   fprintf('\n\n[USED]: %d Items used by this run\n', length(usedStruct));
+                   fprintf('\n\n[USED]: %d Items used by this run\n', length(usedFileStruct));
                    fprintf('------------------------------------\n');
                    TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
                    disp(TableForFileUsed);  
@@ -1651,7 +1661,7 @@ classdef RunManager < hgsetget
            
            if showGenerated == 1
                if ~isempty(generatedFileStruct)                       
-                   fprintf('\n\n[GENERATED]: %d Items used by this run\n', length(wasGeneratedByStruct));
+                   fprintf('\n\n[GENERATED]: %d Items used by this run\n', length(generatedFileStruct));
                    fprintf('------------------------------------------\n');              
                    TableForFileWasGeneratedBy = struct2table(generatedFileStruct); % Convert a struct to a table
                    disp(TableForFileWasGeneratedBy);               

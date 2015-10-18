@@ -37,7 +37,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Configuration;
                         
-            %testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+            % testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
             testCase.filename = 'test/resources/myScript1.m';
             
             if ispc
@@ -500,39 +500,19 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testView(testCase)
             fprintf('\n\nTest for view(packageId) function:\n');
-            
-            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
            
-            scriptPath = which(testCase.filename); % get the absolute path of the script
-            if isempty(scriptPath)
-                [status, struc] = fileattrib(testCase.filename);
-                scriptPath = struc.Name;
-            end
-            
-            [scriptParentPath, name, ext] = fileparts(scriptPath);
-            tag = 'c3_c4_1'; % TODO: multiple tags passed in
-          
-            yw_process_view_properties_path = which(testCase.yw_process_view_property_file_name);
-            testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
-            
-            yw_data_view_properties_path = which(testCase.yw_data_view_property_file_name);
-            testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
-            
-            yw_comb_view_properties_path = which(testCase.yw_comb_view_property_file_name);
-            testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
-            
-            currentDir = pwd();
-            cd(scriptParentPath);
-            testCase.mgr.record(scriptPath, tag);  
-            cd(currentDir);
-            
-            runs = testCase.mgr.listRuns();
-            pkgId = runs{1,1};
+            generateTestRuns(testCase);
+
+            pkgId = testCase.mgr.execution.data_package_id ;
             
             sessions = {'details', 'used', 'generated'};
             resultObjs = testCase.mgr.view(pkgId, sessions); % view the selected run
             numOfObjects = size(resultObjs, 2);
-            assertEqual(testCase, numOfObjects, 3);        
+            assertGreaterThanOrEqual(testCase, numOfObjects, 1);   
+            
+            detailsView = resultObjs{1,1};
+            assertEqual(testCase, detailsView.Tag, 'test_tag_3');
+            assertEqual(testCase, detailsView.RunSequenceNumber, '3');
         end        
         
         function testPublish(testCase)
@@ -628,7 +608,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function createFakeExecution(testCase)
         % CREATEFAKEEXECUTION creates a create execution in the configuration directory
-                
+            
             % Write the execution entry to the file
             runID = char(testCase.mgr.execution.execution_id);
             filePath = char(testCase.mgr.execution.software_application);
@@ -673,7 +653,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             fclose(fileId);
-            
+                 
             % Then create the run directory for the given run
             runDirectory = fullfile(...
                 testCase.mgr.configuration.provenance_storage_directory, ...
