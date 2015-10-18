@@ -89,9 +89,7 @@ Create a Configuration object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Customize the RunManager** with some settings that are specific to your session. 
 
-.. note::
-
-   Changing the `configuration_directory` property is usually not needed, but for our meeting, we are avoiding session collisions for each person testing the software as the same `dataone` login. Change this to `/home/dataone/Desktop/User_<num>_config`, where `<num>` is replaced with the number assigned to you during the meeting.
+ **Note:** Changing the `configuration_directory` property is usually not needed, but for our meeting, we are avoiding session collisions for each person testing the software as the same `dataone` login. Change this to **/home/dataone/Desktop/User_<num>_config**, where **<num>** is replaced with the **number assigned to you** during the meeting.
 
 .. code:: matlab
 
