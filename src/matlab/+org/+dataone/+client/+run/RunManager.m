@@ -220,13 +220,15 @@ classdef RunManager < hgsetget
                     
                     % Set the working directory to be the run metadata directory for this run
                     curDir = pwd();
-                    cd(runDirectory); 
+                    cd(runDirectory);
                     
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
+
+                    % Generate YW.Process_View dot file  
+                    runManager.configuration.yesworkflow_config.process_view_property_file_name
+                    runDirectory
                     
-                    % Generate YW.Process_View dot file                   
-                    config.applyPropertyFile( ...
-                    runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties
                     gconfig = config.getSection('graph');
                     runManager.processViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
@@ -249,7 +251,7 @@ classdef RunManager < hgsetget
                     % Create yesWorkflow modelFacts prolog dump 
                     import org.yesworkflow.model.ModelFacts;
                     import org.yesworkflow.extract.ExtractFacts;
-                    
+                   
                     modelFacts = runManager.modeler.getFacts();  
                     gconfig = config.getSection('model');
                     runManager.mfilename = gconfig.get('factsfile');
@@ -1025,8 +1027,6 @@ classdef RunManager < hgsetget
                 [status, struc] = fileattrib(dirPath);
                 dirFullPath = struc.Name;
                 runManager.captureProspectiveProvenanceWithYW(dirFullPath);
-                
-                %runManager.captureProspectiveProvenanceWithYW(dirPath);
                 runManager.generateYesWorkflowGraphic(dirPath);
             end
         end
