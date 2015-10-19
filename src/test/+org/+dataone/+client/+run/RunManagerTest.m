@@ -516,7 +516,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end        
         
         function testViewBySequenceNumberOnly(testCase)
-            fprintf('\n\nTest for view(packageId) function:\n');
+            fprintf('\n\nTest for ViewBySequenceNumberOnly function:\n');
            
             generateTestRuns(testCase);
 

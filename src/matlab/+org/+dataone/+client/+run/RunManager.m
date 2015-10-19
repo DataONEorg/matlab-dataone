@@ -1300,28 +1300,29 @@ classdef RunManager < hgsetget
                 startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
                 endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
                 dateCondition = startCondition & endColCondition;
-                
+                allCondition = allCondition & dateCondition;
             elseif startDateFlag == 1
                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
                 % Extract multiple rows from a matrix 
                 dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % Column 3 for startDate
-            
+                allCondition = allCondition & dateCondition;
             elseif endDateFlag == 1
                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
                 dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum; % Column 4 for endDate
-            
-            else % No query parameters are required 
+                allCondition = allCondition & dateCondition;
+            %else % No query parameters are required 
                 %dateCondition = false(size(execMetaMatrix, 1), 1);
-                dateCondition = true(size(execMetaMatrix, 1), 1);
+                %dateCondition = true(size(execMetaMatrix, 1), 1);
             end
                         
             % Process the query parameter "tags"            
             if ~isempty(tags)               
                 tagsArray = char(tags);
                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-                allCondition = dateCondition & tagsCondition; % Logical and operator
-            else
-                allCondition = dateCondition;
+                % allCondition = dateCondition & tagsCondition; % Logical and operator
+                allCondition = allCondition & tagsCondition;
+            % else
+            %    allCondition = dateCondition;
             end
 
             if ~isempty(sequenceNumber)
