@@ -22,9 +22,7 @@ classdef Configuration < hgsetget & dynamicprops
     % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
     
     properties     
-        % The Operating System account username
-        account_name = '';
-      
+
         % The source member node identifier
         source_member_node_id  = 'urn:node:XXXX';
         
@@ -149,8 +147,8 @@ classdef Configuration < hgsetget & dynamicprops
                         'c = Configuration(',  ...
                         '''configuration_directory'',', ...
                         '''<your-custom-folder>, '',', ...
-                        '''account_name'',', ...
-                        '''<your-username>) '')', ...
+                        '''public_read_allowed'',', ...
+                        '''true) '')', ...
                         ]);
                 end
                 
@@ -200,7 +198,6 @@ classdef Configuration < hgsetget & dynamicprops
             setMatlabDataONEToolboxDirectory(configuration);
             setCoordinatingNodeURL(configuration);
             setPersistentConfigFile(configuration);
-            setAccountName(configuration);
             setMetadataTemplateFile(configuration);
             
         end        
@@ -439,28 +436,6 @@ classdef Configuration < hgsetget & dynamicprops
                     '\nPlease check that the file exists and is readable.']);
             end
 
-        end
-        
-        function setAccountName(configuration)
-        % SETACCOUNTNAME sets the system account name in the configuration
-            
-            if ( isempty(configuration.account_name) )
-                try
-                    if ( ispc)
-                        configuration.account_name = getenv('USERNAME');
-                        
-                    elseif ( isunix )
-                        configuration.account_name = getenv('USER');
-                        
-                    end
-                catch configurationError
-                    if ( configuration.debug )
-                        warn(['Could not set the user account name from ' ...
-                             'the system environment variables: ' ...
-                             configurationError.message]); 
-                    end
-                end
-            end
         end
         
         function setCoordinatingNodeURL(configuration)
