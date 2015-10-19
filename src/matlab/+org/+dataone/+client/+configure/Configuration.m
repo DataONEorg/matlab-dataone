@@ -276,6 +276,27 @@ classdef Configuration < hgsetget & dynamicprops
             for i = 1:length(configurationProps)
                % To do: check the type of configurationProps{i}
                pvals{i} = configuration.get(configurationProps{i});
+               
+               if ( isa(pvals{i}, 'org.dataone.client.configure.YesWorkflowConfig') )
+                   %configurationProps{i}
+                   %pvals{i}
+                   yconfiguration = pvals{i};
+                   yconfigurationProps = properties(yconfiguration);
+                   %yconfigurationProps
+ 
+                   yvals = cell(1, length(yconfigurationProps));
+                   for j= 1:length(yconfigurationProps)
+                       yvals{j} = yconfiguration.get(yconfigurationProps{j});
+                   end
+                   yarglist = {yconfigurationProps{:};yvals{:}};
+                   yconfigurationStruct = struct(yarglist{:});
+                   pvals{i} = yconfigurationStruct; % assign a yw configuration struct to pvals{i}
+                   %yvals
+               elseif ( isa(pvals{i}, 'org.dataone.client.configure.ScienceMetadataConfig') ) 
+                   % todo
+               else
+                   
+               end
             end
  
             arglist = {configurationProps{:};pvals{:}};
