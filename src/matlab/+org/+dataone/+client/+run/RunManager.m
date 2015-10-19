@@ -1278,7 +1278,6 @@ classdef RunManager < hgsetget
             dateCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
             sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
-            % allCondition = false(size(execMetaMatrix, 1), 1);
             allCondition = true(size(execMetaMatrix, 1), 1);
             
             % Process the query constraints
@@ -1310,9 +1309,6 @@ classdef RunManager < hgsetget
                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
                 dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum; % Column 4 for endDate
                 allCondition = allCondition & dateCondition;
-            %else % No query parameters are required 
-                %dateCondition = false(size(execMetaMatrix, 1), 1);
-                %dateCondition = true(size(execMetaMatrix, 1), 1);
             end
                         
             % Process the query parameter "tags"            
@@ -1321,8 +1317,6 @@ classdef RunManager < hgsetget
                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
                 % allCondition = dateCondition & tagsCondition; % Logical and operator
                 allCondition = allCondition & tagsCondition;
-            % else
-            %    allCondition = dateCondition;
             end
 
             if ~isempty(sequenceNumber)
@@ -1386,7 +1380,6 @@ classdef RunManager < hgsetget
             runIdCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
             sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
-            % allDeleteCondition = false(size(execMetaMatrix, 1), 1);
             allDeleteCondition = true(size(execMetaMatrix, 1), 1);
             
             startDateFlag = false;
@@ -1406,23 +1399,21 @@ classdef RunManager < hgsetget
                 startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
                 endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
                 dateCondition = startCondition & endColCondition;
+                allDeleteCondition = allDeleteCondition & dateCondition;
             elseif startDateFlag == 1
                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % logical vector for rows to delete                
+                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % logical vector for rows to delete  
+                allDeleteCondition = allDeleteCondition & dateCondition;
             elseif endDateFlag == 1
                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;                   
-            else 
-                % dateCondition = false(size(execMetaMatrix, 1), 1);
-                dateCondition = true(size(execMetaMatrix, 1), 1); % No query parameters are required, then dateCondition is set to be true
+                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;   
+                allDeleteCondition = allDeleteCondition & dateCondition;
             end
                         
             if ~isempty(runIdList)
                 runIdArray = char(runIdList);
                 runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existance between two arrays
-                allDeleteCondition = dateCondition & runIdCondition;
-            else
-                allDeleteCondition = dateCondition;
+                allDeleteCondition = allDeleteCondition & runIdCondition;
             end
                 
             if ~isempty(tags)
@@ -1436,7 +1427,7 @@ classdef RunManager < hgsetget
                 sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
                 allDeleteCondition = allDeleteCondition & sequenceNumberCondition;
             end
-            
+           
             % Extract multiple rows from a matrix satisfying the allCondition
             deleted_runs = execMetaMatrix(allDeleteCondition, :);
             
@@ -1525,7 +1516,6 @@ classdef RunManager < hgsetget
             end          
         end
            
-        % function results = view(runManager, packageId, sequenceNumber, tag, sessions)
         function results = view(runManager, varargin)
            % VIEW Displays detailed information about a data package that
            % is the result of an execution (run).
@@ -1558,7 +1548,6 @@ classdef RunManager < hgsetget
            packageIdCondition = false(size(execMetaMatrix, 1), 1);          
            sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);   
            tagsCondition = false(size(execMetaMatrix, 1), 1);
-           % allCondition = false(size(execMetaMatrix, 1), 1);
            allCondition = true(size(execMetaMatrix, 1), 1);
            
            import org.apache.commons.io.FileUtils;
@@ -1569,7 +1558,7 @@ classdef RunManager < hgsetget
            % found as a match' and returns if no runs are matched 
            if(isempty(packageId) ~= 1)
                packageIdCondition = strcmp(execMetaMatrix(:,6), packageId); % Column 6 in the execution matrix for packageId
-               allCondition = packageIdCondition;
+               allCondition = allCondition & packageIdCondition;
            end
            
            % Process the query parameter "tags"            
@@ -1598,8 +1587,7 @@ classdef RunManager < hgsetget
                
            % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun will be return
            selectedRunId = selectedRuns{1,1};             
-           
-           
+                      
            % Go to the runs/ directory
            selectedRunDir = fullfile(prov_dir, filesep, 'runs', selectedRunId, filesep);
            cd(selectedRunDir);
@@ -1715,7 +1703,6 @@ classdef RunManager < hgsetget
            end
            
            more off; % terminate more           
-           % package_id = packageId;
            % cd(curDir);
         end
   

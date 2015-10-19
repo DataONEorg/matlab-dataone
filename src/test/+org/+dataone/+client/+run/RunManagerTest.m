@@ -477,7 +477,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end   
         
         function testDeleteRunsBySequenceNumber(testCase)
-            fprintf('\n*** testDeleteRunsByTags: ***\n');
+            fprintf('\n*** DeleteRunsBySequenceNumber: ***\n');
             
             generateTestRuns(testCase);
                         
