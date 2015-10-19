@@ -87,25 +87,16 @@ First, **open the `C3_C4_map_present_NA.m` script**, and peruse the code.  Notic
 
 Create a Configuration object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-**Customize the RunManager** with some settings that are specific to your session. 
+**Customize the RunManager** with settings that are specific to your session. 
 
- **Note:** Changing the 'configuration_directory' and 'persistent_configuration_file_name' properties is typically not needed. For our meeting, we are avoiding session collisions for each person testing the software as the same 'dataone' login. Change these to replace **<num>** with the **number assigned to you** during the meeting.
+ **Note:** Changing the 'configuration_directory' property is typically not needed. For our meeting, we are avoiding session collisions for each person testing the software as the same 'dataone' login. Change these to replace **<num>** with the **number assigned to you** during the meeting.
 
 .. code:: matlab
 
+  % Create a Configuration object
   import org.dataone.client.configure.Configuration;
-  config = Configuration(); % Create a new configuration
+  config = Configuration('configuration_directory', '/home/dataone/Desktop/Session_<num>');
   
-  % Set the following properties
-  set(config, 'configuration_directory',             '/home/dataone/Desktop/Session_<num>');
-  set(config, 'persistent_configuration_file_name', '/home/dataone/Desktop/Session_<num>/configuration.json');
-  set(config, 'source_member_node_id',               'urn:node:mnDevUCSB2');
-  set(config, 'target_member_node_id',               'urn:node:mnDevUCSB2');
-  set(config, 'coordinating_node_base_url',          'https://cn-dev-2.test.dataone.org/cn');
-  set(config, 'public_read_allowed',                 true);
-  set(config, 'replication_allowed',                 true);
-  set(config, 'number_of_replicas',                  2);
-        
 Create a RunManager object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 To record a run of a script in Matlab, first import the `RunManager` class, and **create a RunManager object** in the Command Window:
@@ -113,7 +104,7 @@ To record a run of a script in Matlab, first import the `RunManager` class, and 
 .. code:: matlab
 
   import org.dataone.client.run.RunManager;
-  mgr = RunManager.getInstance(config);
+  mgr = RunManager.getInstance(config); % Pass the config in from above
     
 You can look at the documentation of the RunManager class using:
 
@@ -147,13 +138,31 @@ Then, record a second run using this script, and tag the run accordingly:
 
 List the completed runs
 ~~~~~~~~~~~~~~~~~~~~~~~
+Now that you have completed two runs, **view the runs** using the listRuns() function:
 
+.. code:: matlab
+
+  mgr.listRuns();
+  
+The number of runs you produce might get very long, so you can filter the runs by startDate, endDate, tags, or sequenceNumber, such as:
+
+.. code:: matlab
+
+  mgr.listRuns('tags', 'algorithm 1, no markup');
+  mgr.listRuns('startDate', '20151027T080000');
+  mgr.listRuns('sequenceNumber', '20151027T080000');
 
 View a selected run
 ~~~~~~~~~~~~~~~~~~~
+To view a given run, pass in the sequenceNumber or packageId from one of the resulting rows from the output of listRuns().  For instance:
+
+.. code:: matlab
+  
+  mgr.view('squenceNumber', '1');
 
 
-View YesWorkflow workflow diagrams
+
+View YesWorkflow diagrams
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
