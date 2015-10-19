@@ -1233,7 +1233,7 @@ classdef RunManager < hgsetget
         end
     
         
-       function runs = listRuns(runManager, varargin)
+        function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
             %   startDate -- the starting timestamp for an execution
@@ -1278,7 +1278,8 @@ classdef RunManager < hgsetget
             dateCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
             sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
-            allCondition = false(size(execMetaMatrix, 1), 1);
+            % allCondition = false(size(execMetaMatrix, 1), 1);
+            allCondition = true(size(execMetaMatrix, 1), 1);
             
             % Process the query constraints
             startDateFlag = false;
@@ -1331,12 +1332,12 @@ classdef RunManager < hgsetget
             
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
-            runsToDisplay = execMetaMatrix(allCondition, [16,2,7,3,4,5]);
+            runsToDisplay = execMetaMatrix(allCondition, [16,6,2,7,3,4,5]);
                        
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'SequenceNumber', 'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
+                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'SequenceNumber', 'PackageId', 'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
                 disp(tableForSelectedRuns);                      
             end          
         end
@@ -1384,7 +1385,8 @@ classdef RunManager < hgsetget
             runIdCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
             sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
-            allDeleteCondition = false(size(execMetaMatrix, 1), 1);
+            % allDeleteCondition = false(size(execMetaMatrix, 1), 1);
+            allDeleteCondition = true(size(execMetaMatrix, 1), 1);
             
             startDateFlag = false;
             endDateFlag = false;
@@ -1522,13 +1524,41 @@ classdef RunManager < hgsetget
             end          
         end
            
-        % function package_id = view(runManager, packageId, sessions)
-        function results = view(runManager, packageId, sessions)
+        % function results = view(runManager, packageId, sequenceNumber, tag, sessions)
+        function results = view(runManager, varargin)
            % VIEW Displays detailed information about a data package that
            % is the result of an execution (run).
  
            % Display a warning message to the user
            disp('Warning: There is no scientific metadata in this data package.');
+           
+           persistent viewRunsParser
+           if isempty(viewRunsParser)
+               viewRunsParser = inputParser;
+               
+               addParameter(viewRunsParser,'packageId', '', @ischar);              
+               addParameter(viewRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+               addParameter(viewRunsParser,'tag', '', @iscell);
+               addParameter(viewRunsParser,'sessions', '', @iscell);
+           end
+           parse(viewRunsParser,varargin{:})
+            
+           packageId = viewRunsParser.Results.packageId;
+           sequenceNumber = viewRunsParser.Results.sequenceNumber;
+           tags = viewRunsParser.Results.tag;
+           sessions = viewRunsParser.Results.sessions;
+            
+           % viewRunsParser.Results
+           
+           % Read the exeuction metadata summary from the exeuction metadata database
+           [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+           
+           % Initialize the logical cell arrays for the next call for listRuns() 
+           packageIdCondition = false(size(execMetaMatrix, 1), 1);          
+           sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);   
+           tagsCondition = false(size(execMetaMatrix, 1), 1);
+           % allCondition = false(size(execMetaMatrix, 1), 1);
+           allCondition = true(size(execMetaMatrix, 1), 1);
            
            import org.apache.commons.io.FileUtils;
            
@@ -1537,25 +1567,37 @@ classdef RunManager < hgsetget
            % Select runs based on the packageID. Report 'No runs can be
            % found as a match' and returns if no runs are matched 
            if(isempty(packageId) ~= 1)
-               curDir = pwd();
-               cd(prov_dir);
-               
-               % Read the exeuction metadata summary from the exeuction
-               % metadata database
-               [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-               pkgIdCondition = strcmp(execMetaMatrix(:,6), packageId); % Column 6 in the execution matrix for packageId
-               selectedRuns = execMetaMatrix(pkgIdCondition, :);
-               if isempty(selectedRuns)
-                   error('No runs can be found as a match.');
-               end
-  
-               seqNo = selectedRuns{1, 16};
-               
-               % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun will be return
-               selectedRunId = selectedRuns{1,1};             
-           else
-               error('Missing the packageId parameter.');
+               packageIdCondition = strcmp(execMetaMatrix(:,6), packageId); % Column 6 in the execution matrix for packageId
+               allCondition = packageIdCondition;
            end
+           
+           % Process the query parameter "tags"            
+           if ~isempty(tags)               
+               tagsArray = char(tags);
+               tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
+               allCondition = allCondition & tagsCondition; % Logical and operator
+           end
+
+           if ~isempty(sequenceNumber)
+               snValue = num2str(sequenceNumber);
+               sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+               allCondition = allCondition & sequenceNumberCondition;
+           end
+                       
+           curDir = pwd();
+           cd(prov_dir);
+               
+           % Extract multiple rows from a matrix satisfying the allCondition
+           selectedRuns = execMetaMatrix(allCondition, :);
+           if isempty(selectedRuns)
+               error('No runs can be found as a match.');
+           end
+  
+           seqNo = selectedRuns{1, 16}; % Todo: handle multiple views returned. Now assum only one run is returned
+               
+           % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun will be return
+           selectedRunId = selectedRuns{1,1};             
+           
            
            % Go to the runs/ directory
            selectedRunDir = fullfile(prov_dir, filesep, 'runs', selectedRunId, filesep);
