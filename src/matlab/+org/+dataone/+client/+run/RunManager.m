@@ -1135,7 +1135,7 @@ classdef RunManager < hgsetget
                 runManager.execution.error_message = [runManager.execution.error_message ' ' message]; 
             end
             
-            warning on MATLAB:dispatcher:nameConflict;
+            warning off MATLAB:dispatcher:nameConflict;
             addpath(runManager.execution.execution_directory);
             warning on MATLAB:dispatcher:nameConflict;
             
