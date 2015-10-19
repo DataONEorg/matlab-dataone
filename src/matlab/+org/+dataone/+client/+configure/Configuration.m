@@ -162,10 +162,14 @@ classdef Configuration < hgsetget & dynamicprops
                     % Set it and make it if so
                     configuration.configuration_directory = ...
                         varargin{configDirIndex + 1};
+                    
+                    % Create critical folders and files
                     createConfigurationDirectory(configuration);
                     createProvStorageDirectory(configuration);
                     createExecutionsDatabase(configuration);
                     setPersistentConfigFile(configuration);
+                    setMatlabDataONEToolboxDirectory(configuration);
+                    setMetadataTemplateFile(configuration);
 
 
                 end
@@ -391,6 +395,9 @@ classdef Configuration < hgsetget & dynamicprops
                 fullfile(configuration.configuration_directory, ...
                          'configuration.json');
             
+            % Save the configuration passed in first
+            saveConfig(configuration);
+            
             % Call loadConfig() with the default path location to the
             % configuration file on disk
             loadConfig(configuration,'');
@@ -415,7 +422,7 @@ classdef Configuration < hgsetget & dynamicprops
             end  
             
             % Now copy the template to the default location, backing up the original
-            if ( exist(configuration.science_metadata_template_file, 'file') )
+            if ( exist(configuration.science_metadata_template_file, 'file') == 2 )
                 copyfile(default_template_file_path, ...
                     [default_template_file_path '.bak']);
             end
