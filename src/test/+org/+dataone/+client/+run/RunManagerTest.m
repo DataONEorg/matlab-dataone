@@ -37,7 +37,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Configuration;
                         
-            % testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
+            % testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
             testCase.filename = 'test/resources/myScript1.m';
             
             if ispc
@@ -54,9 +54,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'configuration_directory', test_config_directory);
             
             testCase.mgr = RunManager.getInstance(config);           
-            testCase.yw_process_view_property_file_name = 'src/test/resources/yw_process_view_7.properties'; 
-            testCase.yw_data_view_property_file_name = 'src/test/resources/yw_data_view_7.properties'; 
-            testCase.yw_comb_view_property_file_name = 'src/test/resources/yw_comb_view_7.properties'; 
+            testCase.yw_process_view_property_file_name = 'lib/yesworkflow/yw_process_view.properties'; 
+            testCase.yw_data_view_property_file_name = 'lib/yesworkflow/yw_data_view.properties'; 
+            testCase.yw_comb_view_property_file_name = 'lib/yesworkflow/yw_comb_view.properties'; 
         end
     end
     
