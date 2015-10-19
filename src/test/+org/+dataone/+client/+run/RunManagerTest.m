@@ -54,9 +54,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'configuration_directory', test_config_directory);
             
             testCase.mgr = RunManager.getInstance(config);           
-            testCase.yw_process_view_property_file_name = 'test/resources/yw_process_view_7.properties'; 
-            testCase.yw_data_view_property_file_name = 'test/resources/yw_data_view_7.properties'; 
-            testCase.yw_comb_view_property_file_name = 'test/resources/yw_comb_view_7.properties'; 
+            testCase.yw_process_view_property_file_name = 'src/test/resources/yw_process_view_7.properties'; 
+            testCase.yw_data_view_property_file_name = 'src/test/resources/yw_data_view_7.properties'; 
+            testCase.yw_comb_view_property_file_name = 'src/test/resources/yw_comb_view_7.properties'; 
         end
     end
     
@@ -114,7 +114,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testYesWorkflow(testCase)
             fprintf('\nIn testYesWorkflow() ...\n');
             
-            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
               
             %scriptPath = fullfile(pwd(), filesep, testCase.filename); 
             scriptPath = which(testCase.filename);
@@ -123,13 +123,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 scriptPath = struc.Name;
             end
             
-            yw_process_view_properties_path = fullfile(pwd(), filesep, testCase.yw_process_view_property_file_name);
+            matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
+            yw_process_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
             testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
             
-            yw_data_view_properties_path = fullfile(pwd(), filesep, testCase.yw_data_view_property_file_name);
+            yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_data_view_property_file_name);
             testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
             
-            yw_comb_view_properties_path = fullfile(pwd(), filesep, testCase.yw_comb_view_property_file_name);
+            yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
            
             testCase.mgr.execution.execution_directory = '/tmp';
@@ -147,10 +148,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testRecord(testCase)
             fprintf('\nIn testRecord() ...\n');
      
-             testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-            % testCase.filename = 'test/resources/myScript1.m';
-            % testCase.filename = 'test/resources/myScript2.m';
-            % testCase.filename = '/Users/syc/Documents/matlab-dataone/src/test/resources/myScript2.m';
+             testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            % testCase.filename = 'src/test/resources/myScript1.m';
+            % testCase.filename = 'src/test/resources/myScript2.m';
+            % testCase.filename = 'src/Users/syc/Documents/matlab-dataone/src/test/resources/myScript2.m';
  
             scriptPath = which(testCase.filename); % get the absolute path of the script
             if isempty(scriptPath)
@@ -161,13 +162,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
             [scriptParentPath, name, ext] = fileparts(scriptPath);
             tag = 'c3_c4_1'; % TODO: multiple tags passed in
           
-            yw_process_view_properties_path = which(testCase.yw_process_view_property_file_name);
+            matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
+            yw_process_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
             testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
             
-            yw_data_view_properties_path = which(testCase.yw_data_view_property_file_name);
+            yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_data_view_property_file_name);
             testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
             
-            yw_comb_view_properties_path = which(testCase.yw_comb_view_property_file_name);
+            yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
             
             currentDir = pwd();
@@ -218,7 +220,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
               
         function testOverloadedNCread(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
-            testCase.filename = 'test/resources/myScript1.m';
+            testCase.filename = 'src/test/resources/myScript1.m';
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -231,7 +233,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedNCwrite(testCase)
             fprintf('\nIn testOverloadedNcwrite() ...\n');            
-            testCase.filename = 'test/resources/myScript2.m';
+            testCase.filename = 'src/test/resources/myScript2.m';
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -244,7 +246,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedCSVread(testCase)
             fprintf('\nIn testOverloadedCSVread() ...\n');            
-            testCase.filename = 'test/resources/myScript4.m';
+            testCase.filename = 'src/test/resources/myScript4.m';
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -258,7 +260,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testOverloadedLoad(testCase)
             % Todo: load coast (not working)
             fprintf('\nIn testOverloadedLoad() ...\n');            
-            testCase.filename = 'test/resources/myScript5.m';
+            testCase.filename = 'src/test/resources/myScript5.m';
             % testCase.filename = 'test/resources/myScript1.m'; % load coast
             
             scriptPath = which(testCase.filename);
@@ -273,7 +275,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testOverloadedDlmread(testCase)
           
             fprintf('\nIn testOverloadedDlmread ...\n');            
-            testCase.filename = 'test/resources/myScript6.m';
+            testCase.filename = 'src/test/resources/myScript6.m';
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -284,14 +286,6 @@ classdef RunManagerTest < matlab.unittest.TestCase
             run(scriptPath);
         end        
                 
-        function testSaveExecution(testCase)
-            fprintf('\nIn testSaveExecution() ...\n');
-            
-            % execDBName = testCase.mgr.executionDatabaseName;  
-            
-            % Todo:
-        end        
-        
         function testListRunsNoParams(testCase)
             fprintf('\n*** testListRuns with no parameters: ***\n');
             
@@ -539,7 +533,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                      'https://cilogon.org/?skin=DataONEDev and \n ' ...
                      'download your X509 certificate to /tmp/x509up_u501.']);
                  
-            testCase.filename = 'test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
             set(testCase.mgr.configuration, 'certificate_path', '/tmp/x509up_u501');
             
             scriptPath = which(testCase.filename); % get the absolute path of the script
@@ -550,14 +544,15 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             [scriptParentPath, name, ext] = fileparts(scriptPath);
             tag = 'c3_c4_1'; % TODO: multiple tags passed in
-          
-            yw_process_view_properties_path = which(testCase.yw_process_view_property_file_name);
+           
+            matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
+            yw_process_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
             testCase.mgr.PROCESS_VIEW_PROPERTY_FILE_NAME = yw_process_view_properties_path;
             
-            yw_data_view_properties_path = which(testCase.yw_data_view_property_file_name);
+            yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_data_view_property_file_name);
             testCase.mgr.DATA_VIEW_PROPERTY_FILE_NAME = yw_data_view_properties_path;
             
-            yw_comb_view_properties_path = which(testCase.yw_comb_view_property_file_name);
+            yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_comb_view_property_file_name);
             testCase.mgr.COMBINED_VIEW_PROPERTY_FILE_NAME = yw_comb_view_properties_path;
             
             currentDir = pwd();
