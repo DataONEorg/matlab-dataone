@@ -168,7 +168,7 @@ classdef Configuration < hgsetget & dynamicprops
                     setPersistentConfigFile(configuration);
                     setMatlabDataONEToolboxDirectory(configuration);
                     setMetadataTemplateFile(configuration);
-
+                    setYesWorkflowConfig(configuration);
 
                 end
                 
@@ -199,7 +199,8 @@ classdef Configuration < hgsetget & dynamicprops
             setCoordinatingNodeURL(configuration);
             setPersistentConfigFile(configuration);
             setMetadataTemplateFile(configuration);
-            
+            setYesWorkflowConfig(configuration);
+
         end        
 
         function configuration = set(configuration, name, value)
@@ -469,6 +470,33 @@ classdef Configuration < hgsetget & dynamicprops
             indxs = strfind(mpaths, 'matlab-dataone');
             configuration.matlab_dataone_toolbox_directory = ...
                 mpath(1:indxs{1} + 13); % Add the rest of the 'matlab-dataone' string
+        end
+        
+        function setYesWorkflowConfig(configuration)
+        % SETYESWORKFLOWCONFIG sets the default YesWorkflow configuration
+        
+            import org.dataone.client.configure.YesWorkflowConfig;
+        
+            ywConfig = YesWorkflowConfig();
+            shipped_yw_config_file = ...
+                fullfile( ...
+                    configuration.matlab_dataone_toolbox_directory, ...
+                    'lib', 'yesworkflow', 'yw.properties');
+                
+            if ( ~isempty(configuration.matlab_dataone_toolbox_directory) )
+                
+                set(ywConfig, 'process_view_property_file_name', ...
+                    shipped_yw_config_file);
+
+                set(ywConfig, 'data_view_property_file_name', ...
+                    shipped_yw_config_file);
+                   
+                set(ywConfig, 'combined_view_property_file_name', ...
+                    shipped_yw_config_file);
+            end
+            
+            configuration.yesworkflow_config = ywConfig;
+            
         end
         
         function createConfigurationDirectory(configuration)
