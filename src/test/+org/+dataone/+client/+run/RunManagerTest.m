@@ -38,7 +38,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.client.configure.Configuration;
                         
             % testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
-            testCase.filename = 'test/resources/myScript1.m';
+            testCase.filename = 'src/test/resources/myScript1.m';
             
             if ispc
                 home_dir = getenv('USERPROFILE');
@@ -207,7 +207,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
-            testCase.filename = 'test/resources/myScript3.m';
+            testCase.filename = 'src/test/resources/myScript3.m';
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
