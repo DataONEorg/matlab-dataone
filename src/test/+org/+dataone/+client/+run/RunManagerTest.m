@@ -498,15 +498,15 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
         end 
         
-        function testView(testCase)
-            fprintf('\n\nTest for view(packageId) function:\n');
+        function testViewByPackageIdOnly(testCase)
+            fprintf('\n\nTest for ViewByPackageIdOnly function:\n');
            
             generateTestRuns(testCase);
 
             pkgId = testCase.mgr.execution.data_package_id ;
             
             sessions = {'details', 'used', 'generated'};
-            resultObjs = testCase.mgr.view(pkgId, sessions); % view the selected run
+            resultObjs = testCase.mgr.view('packageId', pkgId, 'sessions', sessions); % view the selected run
             numOfObjects = size(resultObjs, 2);
             assertGreaterThanOrEqual(testCase, numOfObjects, 1);   
             
@@ -514,6 +514,23 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assertEqual(testCase, detailsView.Tag, 'test_tag_3');
             assertEqual(testCase, detailsView.RunSequenceNumber, '3');
         end        
+        
+        function testViewBySequenceNumberOnly(testCase)
+            fprintf('\n\nTest for view(packageId) function:\n');
+           
+            generateTestRuns(testCase);
+
+            sequenceNumber = 2;
+            
+            sessions = {'details', 'used', 'generated'};
+            resultObjs = testCase.mgr.view('sequenceNumber', sequenceNumber, 'sessions', sessions); % view the selected run
+            numOfObjects = size(resultObjs, 2);
+            assertGreaterThanOrEqual(testCase, numOfObjects, 1);   
+            
+            detailsView = resultObjs{1,1};
+            assertEqual(testCase, detailsView.Tag, 'test_tag_2');
+            assertEqual(testCase, detailsView.RunSequenceNumber, '2');
+        end 
         
         function testPublish(testCase)
             fprintf('\n\nTest for the publish() function:\n\n');
