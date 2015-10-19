@@ -154,10 +154,31 @@ classdef Configuration < hgsetget & dynamicprops
                         ]);
                 end
                 
+                configDirIndex = find(ismember(varargin, 'configuration_directory'));
+                
+                % Check to see if the configuration directory is passed in
+                if ( configDirIndex > 0 )
+                    
+                    % Set it and make it if so
+                    configuration.configuration_directory = ...
+                        varargin{configDirIndex + 1};
+                    createConfigurationDirectory(configuration);
+                    createProvStorageDirectory(configuration);
+                    createExecutionsDatabase(configuration);
+                    setPersistentConfigFile(configuration);
+
+
+                end
+                
                 % Set properties provided in the constructor call
                 for ( i = 1:2:length(varargin) )
                     propertyName = varargin{i};
                     propertyValue = varargin{i+1};
+                    
+                    if ( strcmp(propertyName, 'configuration_directory') )
+                        continue; % this has already been set
+                    end
+                    
                     if ( isprop(configuration, propertyName) )
                         set(configuration, propertyName, propertyValue);
                         
@@ -480,21 +501,22 @@ classdef Configuration < hgsetget & dynamicprops
                         fullfile(getenv('HOME'), '.d1');                  
                 else
                     error('Current platform not supported.');
-                end
-                             
-                % Check if the .d1 directory exists; create it if not 
-                if ( exist(configuration.configuration_directory, 'dir') ~= 7 )
-                    [status, message, message_id] = ...
-                        mkdir(configuration.configuration_directory);
-                    
-                    if ( status ~= 1 )
-                        error(message_id, [ 'The directory ' ...
-                            configuration.configuration_directory ...
-                            ' could not be created. The error message' ...
-                            ' was: ' message]);
-                    end                        
+                end                             
+            end
+            
+            % Check if the configuration directory exists; create it if not
+            if ( exist(configuration.configuration_directory, 'dir') ~= 7 )
+                [status, message, message_id] = ...
+                    mkdir(configuration.configuration_directory);
+                
+                if ( status ~= 1 )
+                    error(message_id, [ 'The directory ' ...
+                        configuration.configuration_directory ...
+                        ' could not be created. The error message' ...
+                        ' was: ' message]);
                 end
             end
+
         end
         
         function createProvStorageDirectory(configuration)
