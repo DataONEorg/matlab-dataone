@@ -106,6 +106,9 @@ classdef Configuration < hgsetget & dynamicprops
         % The science metadata configuration instance for the run
         science_metadata_config;
 
+        % The yesworkflow configuration instance for the run
+        yesworkflow_config;
+
         % The directory of the installed Matlab DataONE Toolbox
         matlab_dataone_toolbox_directory = '';
         
