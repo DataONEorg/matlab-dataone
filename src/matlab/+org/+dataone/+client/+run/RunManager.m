@@ -33,10 +33,6 @@ classdef RunManager < hgsetget
         % The generated workflow object built by YesWorkflow 
         workflow;
                
-        % The name for the yesWorkflow configuration file
-        PROCESS_VIEW_PROPERTY_FILE_NAME;
-        DATA_VIEW_PROPERTY_FILE_NAME;
-        COMBINED_VIEW_PROPERTY_FILE_NAME;
     end
 
     properties (Access = private)     
@@ -229,21 +225,22 @@ classdef RunManager < hgsetget
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
                     
                     % Generate YW.Process_View dot file                   
-                    config.applyPropertyFile(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME); % Read from process_view_yw.properties
+                    config.applyPropertyFile( ...
+                    runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties
                     gconfig = config.getSection('graph');
                     runManager.processViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();           
                                                          
                     % Generate YW.Data_View dot file                  
-                    config.applyPropertyFile(runManager.DATA_VIEW_PROPERTY_FILE_NAME); % Read from data_view_yw.properties 
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.data_view_property_file_name); % Read from data_view_yw.properties 
                     gconfig = config.getSection('graph');
                     runManager.dataViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();
                    
                     % Generate YW.Combined_View dot file                   
-                    config.applyPropertyFile(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME); % Read from comb_view_yw.properties
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.combined_view_property_file_name); % Read from comb_view_yw.properties
                     gconfig = config.getSection('graph');
                     runManager.combinedViewDotFileName = gconfig.get('dotfile');
                     runManager.grapher.configure(gconfig);
@@ -482,27 +479,30 @@ classdef RunManager < hgsetget
             
             % Create D1Object for process_view yw.properties and add the D1Object to the DataPackage 
             processYWPropIdentifier = Identifier();
-            pnameArray = strsplit(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME,filesep);  
+            pnameArray = strsplit( ...
+            runManager.configuration.yesworkflow_config.process_view_property_file_name,filesep);  
             processYWPropIdentifier.setValue(pnameArray(end));        
-            processYWPropertiesD1Obj = runManager.buildD1Object(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME, txtFmt, processYWPropIdentifier.getValue(), submitter, mnNodeId);
+            processYWPropertiesD1Obj = runManager.buildD1Object( ...
+            runManager.configuration.yesworkflow_config.process_view_property_file_name, ...
+            txtFmt, processYWPropIdentifier.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(processYWPropertiesD1Obj);
-            copyfile(runManager.PROCESS_VIEW_PROPERTY_FILE_NAME, '.'); % copy process_view yw.properties to the run directory
+            copyfile(runManager.configuration.yesworkflow_config.process_view_property_file_name, '.'); % copy process_view yw.properties to the run directory
             
             % Create D1Object for data_view yw.properties and add the D1Object to the DataPackage
             dataYWPropIdentifier = Identifier();
-            dnameArray = strsplit(runManager.DATA_VIEW_PROPERTY_FILE_NAME,filesep); 
+            dnameArray = strsplit(runManager.configuration.yesworkflow_config.data_view_property_file_name,filesep); 
             dataYWPropIdentifier.setValue(dnameArray(end));    
-            dataYWPropertiesD1Obj = runManager.buildD1Object(runManager.DATA_VIEW_PROPERTY_FILE_NAME, txtFmt, dataYWPropIdentifier.getValue(), submitter, mnNodeId);
+            dataYWPropertiesD1Obj = runManager.buildD1Object(runManager.configuration.yesworkflow_config.data_view_property_file_name, txtFmt, dataYWPropIdentifier.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(dataYWPropertiesD1Obj);
-            copyfile(runManager.DATA_VIEW_PROPERTY_FILE_NAME, '.'); % copy data_view yw.properties to the run directory
+            copyfile(runManager.configuration.yesworkflow_config.data_view_property_file_name, '.'); % copy data_view yw.properties to the run directory
             
             % Create D1Object for combined_view yw.properties and add the D1Object to the DataPackage
             combYWPropIdentifier = Identifier();
-            cnameArray = strsplit(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME,filesep);          
+            cnameArray = strsplit(runManager.configuration.yesworkflow_config.combined_view_property_file_name,filesep);          
             combYWPropIdentifier.setValue(cnameArray(end));        
-            combYWPropertiesD1Obj = runManager.buildD1Object(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME, txtFmt, combYWPropIdentifier.getValue(), submitter, mnNodeId);
+            combYWPropertiesD1Obj = runManager.buildD1Object(runManager.configuration.yesworkflow_config.combined_view_property_file_name, txtFmt, combYWPropIdentifier.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(combYWPropertiesD1Obj);
-            copyfile(runManager.COMBINED_VIEW_PROPERTY_FILE_NAME, '.'); % copy combined_view yw.properties to the run directory
+            copyfile(runManager.configuration.yesworkflow_config.combined_view_property_file_name, '.'); % copy combined_view yw.properties to the run directory
             
             % prov:used between execution and multiple yw.properties files
             predicate = PROV.predicate('used');
