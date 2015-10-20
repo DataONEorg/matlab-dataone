@@ -830,7 +830,7 @@ classdef RunManager < hgsetget
         function addObjectMetadata(runManager, identifier, location)
         % ADDOBJECTMETADATA adds a D1Object to the RunManager execution_objects map
         
-          import org.dataone.client.v1.D1Object;
+          import org.dataone.client.v2.D1Object;
           
           d1Object = D1Object(identifier);
           set(d1Object, 'location', location);
