@@ -175,8 +175,6 @@ classdef RunManager < hgsetget
             % Set generate_workflow_graphic to be true
             runManager.configuration.generate_workflow_graphic = true;
             
-            % Set the path to the script to be parsed
-            runManager.execution.software_application = scriptPath; % Set script path
         end
         
         
@@ -1060,10 +1058,17 @@ classdef RunManager < hgsetget
             end
             
             % Does the script exist?
-            if ( ~exist(filePath, 'file'));
+            if ( ~exist(filePath, 'file') == 2);
                 error([' The script: '  filePath ' does not exist.' ...
                        'Please provide the path to the script you want to ' ...
-                       'record, and (optionally) a tag that labels your run.']);                    
+                       'record, and (optionally) a tag that labels your run.']);
+            else
+                % Set the full path to the script
+                % [status, fileAttrs] = fileattrib(filePath); % Why does this not work?
+                % Use this hack instead:
+                fileattrib(filePath);
+                runManager.execution.software_application = ans.Name;
+                
             end
             
             % do we have a tag?
@@ -1218,9 +1223,6 @@ classdef RunManager < hgsetget
             % Return the Java DataPackage as a Matlab structured array
             data_package = struct(pkg);  
             
-            % Unlock the RunManager instance
-            munlock('RunManager');
-            
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
@@ -1230,6 +1232,10 @@ classdef RunManager < hgsetget
             % Clear runtime input/output sources (?)
             runManager.getExecInputIds().clear();
             runManager.getExecOutputIds().clear();
+            
+            % Unlock the RunManager instance
+            munlock('RunManager');            
+            clear RunManager;
         end
     
         
