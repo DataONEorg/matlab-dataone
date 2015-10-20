@@ -185,7 +185,7 @@ classdef Execution < hgsetget
             % Set the potential toolbox dependencies
             % TODO: Decide if matlab.codetools.requiredFilesAndProducts()
             % is more appropriate for this
-            % execution.module_dependencies = path; 
+            execution.module_dependencies = path; 
           
         end
 
