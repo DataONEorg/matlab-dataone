@@ -825,6 +825,18 @@ classdef RunManager < hgsetget
            rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
            rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);         
         end
+        
+        function addObjectMetadata(runManager, identifier, location)
+        % ADDOBJECTMETADATA adds a D1Object to the RunManager execution_objects map
+        
+          import org.dataone.client.v1.D1Object;
+          
+          d1Object = D1Object(identifier);
+          set(d1Object, 'location', location);
+          
+          runManager.execution_objects(identifier) = d1Object;
+          
+        end
     end
  
     
@@ -1081,7 +1093,7 @@ classdef RunManager < hgsetget
                     disp(['There was an error reading: ' ...
                         filePath '. Be sure the file exists in the ' ...
                         'location specified']);
-                    rethrow(IOError);
+                    rethrow(IOError);   
                 end
 
                 
@@ -1130,7 +1142,7 @@ classdef RunManager < hgsetget
             % STARTRECORD Starts recording provenance relationships (see record()).
 
             % Record the starting time when record() started 
-            runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS'); % Use datestr to format the time and use now to get the current time          
+            runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS');        
                
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
@@ -1140,20 +1152,24 @@ classdef RunManager < hgsetget
            
             % Compute script_base_name if it is not assigned a value
             if isempty( runManager.configuration.script_base_name )
-                [pathstr,script_base_name,ext] = fileparts(runManager.execution.software_application);
-                runManager.configuration.script_base_name = strtrim(script_base_name);      
+                [pathstr,script_base_name,ext] = ...
+                    fileparts(runManager.execution.software_application);
+                runManager.configuration.script_base_name = ...
+                    strtrim(script_base_name);      
             end
                      
             prov_dir = runManager.configuration.get('provenance_storage_directory');
                        
             runManager.execution.execution_directory = ...
                 fullfile(prov_dir, 'runs', runManager.execution.execution_id);
-            [status, message, message_id] = mkdir(runManager.execution.execution_directory);         
+            [status, message, message_id] = ...
+                mkdir(runManager.execution.execution_directory);         
             if ( status ~= 1 )
                 error(message_id, [ 'The directory %s' ...
                     ' could not be created. The error message' ...
                     ' was: ' runManager.execution.execution_directory, message]);
-                runManager.execution.error_message = [runManager.execution.error_message ' ' message]; 
+                runManager.execution.error_message = ...
+                    [runManager.execution.error_message ' ' message]; 
             end
             
             warning off MATLAB:dispatcher:nameConflict;
@@ -1171,7 +1187,8 @@ classdef RunManager < hgsetget
            
             % Create a resourceMap identifier
             resourceMapId = Identifier();
-            resourceMapId.setValue(['resourceMap_' char(java.util.UUID.randomUUID())]);
+            resourceMapId.setValue(['resourceMap_' ...
+                runManager.execution.execution_id]);
             % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
        
