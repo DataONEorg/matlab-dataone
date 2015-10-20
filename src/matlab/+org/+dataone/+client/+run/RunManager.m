@@ -138,17 +138,15 @@ classdef RunManager < hgsetget
         end
         
         
-        function certificate = getCertificate(runManager)
+        function [certificate, standardizedName] = getCertificate(runManager)
             % GETCERTIFICATE Gets a certificate 
             import org.dataone.client.auth.CertificateManager;
             import java.security.cert.X509Certificate;
             
             % Get a certificate for the Root CA           
-            certificate = CertificateManager.getInstance().loadCertificate();
-            
-            if runManager.configuration.debug
-                fprintf('Client subject is: %s\n', char(certificate.getSubjectDN()));  
-            end
+            certificate = CertificateManager.getInstance().loadCertificate();            
+            dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
+            standardizedName = CertificateManager.getInstance().standardizeDN(dn);
         end
         
                 
@@ -636,9 +634,14 @@ classdef RunManager < hgsetget
             tag = runManager.execution.tag; % Todo: a set of tag values         
             % added on Sept-17-2015
             user = char(runManager.execution.account_name);
-            subjectStr = char(runManager.getCertificate().getSubjectDN().toString());
-            runManager.configuration.submitter = subjectStr;
-            subject = strrep(subjectStr, ',', ' ');  
+            % changed on Oct-20-2015
+            [certificate, standardizedName] = runManager.getCertificate();
+            if ~isempty(certificate)
+                runManager.configuration.submitter = standardizedName;
+                subject = strrep(char(standardizedName), ',', ' ');
+            else
+                subject = '';
+            end
             hostId = char(runManager.execution.host_id);
             operatingSystem = char(runManager.execution.operating_system);
             runtime = char(runManager.execution.runtime);
