@@ -1048,7 +1048,15 @@ classdef RunManager < hgsetget
             if ( runManager.recording )
                 return;
             end
-                   
+            
+            import org.dataone.client.run.Execution;
+                
+            % Initialize a new Execution for this run
+            runManager.execution = Execution();
+            runManager.execution.execution_input_ids = java.util.Hashtable();
+            runManager.execution.execution_output_ids = java.util.Hashtable();
+            runManager.execution.tag = tag;
+
             % Do we have a script as input?
             if ( nargin < 2 )
                 message = ['Please provide the path to the script you want to ' ...
