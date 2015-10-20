@@ -1074,10 +1074,16 @@ classdef RunManager < hgsetget
                        'record, and (optionally) a tag that labels your run.']);
             else
                 % Set the full path to the script
-                 [status, fileAttrs] = fileattrib(filePath); % Why does this not work?
-                % Use this hack instead:
-                %fileattrib(filePath);
-                runManager.execution.software_application = fileAttrs.Name;
+                try
+                    [status, fileAttrs] = fileattrib(filePath);
+                    runManager.execution.software_application = fileAttrs.Name;
+                catch IOError
+                    disp(['There was an error reading: ' ...
+                        filePath '. Be sure the file exists in the ' ...
+                        'location specified']);
+                    rethrow(IOError);
+                end
+
                 
             end
             
