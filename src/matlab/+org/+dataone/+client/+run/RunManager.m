@@ -1352,7 +1352,16 @@ classdef RunManager < hgsetget
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
             runsToDisplay = execMetaMatrix(allCondition, [16,6,2,7,3,4,5]);
-                       
+               
+            % Convert the full path of a script to a base file name in
+            % listRus(). The full path is displayed in viewRun()
+            numOfRows = size(runsToDisplay, 1);
+            for i=1:numOfRows
+               fullName = runsToDisplay{i,3};
+               name_array = strsplit(fullName, filesep);
+               runsToDisplay{i,3} = name_array(end);
+            end
+            
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
