@@ -224,7 +224,6 @@ classdef RunManager < hgsetget
 
                     % Generate YW.Process_View dot file  
                     runManager.configuration.yesworkflow_config.process_view_property_file_name
-                    runDirectory
                     
                     config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties
                     gconfig = config.getSection('graph');
@@ -1169,8 +1168,8 @@ classdef RunManager < hgsetget
             warning on MATLAB:dispatcher:nameConflict;
 
             try
+                % script_name
                 eval(script_name);   
-                
             catch runtimeError
                 set(runManager.execution, 'error_message', ...
                     [runtimeError.identifier ' : ' ...
@@ -1338,7 +1337,7 @@ classdef RunManager < hgsetget
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'SequenceNumber', 'PackageId', 'ScriptName', 'Tags', 'StartDate', 'EndDate', 'PublishDate'}); 
+                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'sequenceNumber', 'packageId', 'scriptName', 'tags', 'startDate', 'endDate', 'publishDate'}); 
                 disp(tableForSelectedRuns);                      
             end          
         end
@@ -1603,13 +1602,19 @@ classdef RunManager < hgsetget
            [pathstr,scriptName,ext] = fileparts(filePath);
            
            if isempty(selectedRuns{1,5} ) ~= 1              
-               publishedTime = datetime( selectedRuns{1,5}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+               % publishedTime = datetime( selectedRuns{1,5}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+               dateNum = datenum(selectedRuns{1,5}, 'yyyymmddTHHMMSS');
+               publishedTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS');
            else
                publishedTime = 'Not Published';
            end
            
-           startTime = datetime( selectedRuns{1,3}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-           endTime = datetime( selectedRuns{1,4}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ' );
+           dateNum = datenum( selectedRuns{1,3}, 'yyyymmddTHHMMSS' ); 
+           startTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS'); % todo: add time zone and datetime is not available in R2014b version
+           dateNum = datenum(selectedRuns{1,4} , 'yyyymmddTHHMMSS');
+           endTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS');
+           % startTime = datetime( selectedRuns{1,3}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+           % endTime = datetime( selectedRuns{1,4}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ' );
                  
            % Compute the detailStruct for the details-view 
            fieldnames = {'Tag', 'RunSequenceNumber', 'PublishedDate', 'PublishedTo', ...

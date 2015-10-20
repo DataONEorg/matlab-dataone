@@ -123,15 +123,15 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 scriptPath = struc.Name;
             end
             
-            matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
-            yw_process_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.process_view_property_file_name = yw_process_view_properties_path;
+            % matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
+            % yw_process_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.process_view_property_file_name = yw_process_view_properties_path;
             
-            yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_data_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.data_view_property_file_name = yw_data_view_properties_path;
+            % yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_data_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.data_view_property_file_name = yw_data_view_properties_path;
             
-            yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_comb_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.combined_view_property_file_name = yw_comb_view_properties_path;
+            % yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_comb_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.combined_view_property_file_name = yw_comb_view_properties_path;
            
             testCase.mgr.execution.execution_directory = '/tmp';
             testCase.mgr.callYesWorkflow(scriptPath, testCase.mgr.execution.execution_directory);
@@ -162,15 +162,15 @@ classdef RunManagerTest < matlab.unittest.TestCase
             [scriptParentPath, name, ext] = fileparts(scriptPath);
             tag = 'c3_c4_1'; % TODO: multiple tags passed in
           
-            matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
-            yw_process_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.process_view_property_file_name = yw_process_view_properties_path;
+            % matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
+            % yw_process_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.process_view_property_file_name = yw_process_view_properties_path;
             
-            yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_data_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.data_view_property_file_name = yw_data_view_properties_path;
+            % yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_data_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.data_view_property_file_name = yw_data_view_properties_path;
             
-            yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_comb_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.combined_view_property_file_name = yw_comb_view_properties_path;
+            % yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, testCase.yw_comb_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.combined_view_property_file_name = yw_comb_view_properties_path;
             
             currentDir = pwd();
             cd(scriptParentPath);
@@ -514,7 +514,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
            
             generateTestRuns(testCase);
 
-            sequenceNumber = 2;
+            sequenceNumber = 1;
             
             sessions = {'details', 'used', 'generated'};
             resultObjs = testCase.mgr.view('sequenceNumber', sequenceNumber, 'sessions', sessions); % view the selected run
@@ -545,19 +545,19 @@ classdef RunManagerTest < matlab.unittest.TestCase
             [scriptParentPath, name, ext] = fileparts(scriptPath);
             tag = 'c3_c4_1'; % TODO: multiple tags passed in
            
-            matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
-            yw_process_view_properties_path = ...
-            fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.process_view_property_file_name = ...
-            yw_process_view_properties_path;
+            % matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
+            % yw_process_view_properties_path = ...
+            % fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.process_view_property_file_name = ...
+            % yw_process_view_properties_path;
             
-            yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, ...
-            testCase.yw_data_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.data_view_property_file_name = yw_data_view_properties_path;
+            % yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, ...
+            % testCase.yw_data_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.data_view_property_file_name = yw_data_view_properties_path;
             
-            yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, ...
-            testCase.yw_comb_view_property_file_name);
-            testCase.mgr.configuration.yesworkflow_config.combined_view_property_file_name = yw_comb_view_properties_path;
+            % yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, ...
+            % testCase.yw_comb_view_property_file_name);
+            % testCase.mgr.configuration.yesworkflow_config.combined_view_property_file_name = yw_comb_view_properties_path;
             
             currentDir = pwd();
             cd(scriptParentPath);

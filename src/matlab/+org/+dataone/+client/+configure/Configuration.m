@@ -294,6 +294,9 @@ classdef Configuration < hgsetget & dynamicprops
                    %yvals
                elseif ( isa(pvals{i}, 'org.dataone.client.configure.ScienceMetadataConfig') ) 
                    % todo
+                   pvals{i}
+                   scmconfiguration = pvals{i};
+                   scmconfigurationProps = properties(scmconfiguration);
                else
                    
                end
@@ -532,6 +535,17 @@ classdef Configuration < hgsetget & dynamicprops
             configuration.yesworkflow_config = ywConfig;
             
         end
+        
+        function setScienceMetadataConfig(configuration)
+        % SETSCIENCEMETADATACONFIG sets the default ScienceMetadata configuration
+        
+            import org.dataone.client.configure.ScienceMetadataConfig;
+            
+            sciMetaConfig = ScienceMetadataConfig();
+            
+            configuration.science_metadata_config = sciMetaConfig;
+        end
+        
         
         function createConfigurationDirectory(configuration)
         % CREATECONFIGURATIONDIRECTORY creates the DataONE configuration directory
