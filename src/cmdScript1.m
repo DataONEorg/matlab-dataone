@@ -19,3 +19,4 @@ mgr.listRuns();
 
 mgr.view('sequenceNumber', 1);
 
+mgr.view('sequenceNumber', 1, 'sessions', {'details', 'used', 'generated'});

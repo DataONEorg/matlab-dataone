@@ -203,7 +203,7 @@ classdef Configuration < hgsetget & dynamicprops
             setPersistentConfigFile(configuration);
             setMetadataTemplateFile(configuration);
             setYesWorkflowConfig(configuration);
-
+            setScienceMetadataConfig(configuration);
         end        
 
         function configuration = set(configuration, name, value)
@@ -294,9 +294,17 @@ classdef Configuration < hgsetget & dynamicprops
                    %yvals
                elseif ( isa(pvals{i}, 'org.dataone.client.configure.ScienceMetadataConfig') ) 
                    % todo
-                   pvals{i}
-                   scmconfiguration = pvals{i};
-                   scmconfigurationProps = properties(scmconfiguration);
+                   % configurationProps{i}
+                   % pvals{i}
+                   sciMetaConfiguration = pvals{i};
+                   sciMetaConfigurationProps = properties(sciMetaConfiguration);
+                   sciMetaVals = cell(1, length(sciMetaConfigurationProps));
+                   for k = 1:length(sciMetaConfigurationProps)
+                       sciMetaVals{k} = sciMetaConfiguration.get(sciMetaConfigurationProps{k});
+                   end
+                   sarglist = {sciMetaConfigurationProps{:};sciMetaVals{:}};
+                   sciMetaConfigStruct = struct(sarglist{:});
+                   pvals{i} = sciMetaConfigStruct;
                else
                    
                end

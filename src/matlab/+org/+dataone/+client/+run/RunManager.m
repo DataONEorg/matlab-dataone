@@ -1071,10 +1071,10 @@ classdef RunManager < hgsetget
                        'record, and (optionally) a tag that labels your run.']);
             else
                 % Set the full path to the script
-                % [status, fileAttrs] = fileattrib(filePath); % Why does this not work?
+                 [status, fileAttrs] = fileattrib(filePath); % Why does this not work?
                 % Use this hack instead:
-                fileattrib(filePath);
-                runManager.execution.software_application = ans.Name;
+                %fileattrib(filePath);
+                runManager.execution.software_application = fileAttrs.Name;
                 
             end
             
@@ -1656,7 +1656,8 @@ classdef RunManager < hgsetget
                       usedFileStruct(i,1).LocalName = f.name;     
                       fsize = FileUtils.byteCountToDisplaySize(f.bytes);                     
                       usedFileStruct(i,1).Size = char(fsize); 
-                      usedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+                      usedFileStruct(i,1).ModifiedTime = f.date;
+                      % usedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
                    end
                end
            
@@ -1667,7 +1668,8 @@ classdef RunManager < hgsetget
                        generatedFileStruct(i,1).LocalName = f.name; 
                        fsize = FileUtils.byteCountToDisplaySize(f.bytes); 
                        generatedFileStruct(i,1).Size = char(fsize); 
-                       generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
+                       generatedFileStruct(i,1).ModifiedTime = f.date;
+                       % generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
                    end
                end  
                results = {detailStruct, usedFileStruct, generatedFileStruct};
