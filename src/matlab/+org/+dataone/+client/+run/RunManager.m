@@ -191,6 +191,7 @@ classdef RunManager < hgsetget
             import org.yesworkflow.config.YWConfiguration;
        
             try
+                
                 % Read script content from disk
                 in = FileInputStream(runManager.execution.software_application);
                 reader = BufferedReader(InputStreamReader(in));
@@ -1024,9 +1025,9 @@ classdef RunManager < hgsetget
            if runManager.configuration.generate_workflow_graphic && runManager.configuration.include_workflow_graphic
                 runManager.configYesWorkflow(scriptPath);
                
-                [status, struc] = fileattrib(dirPath);
-                dirFullPath = struc.Name;
-                runManager.captureProspectiveProvenanceWithYW(dirFullPath);
+                % [status, struc] = fileattrib(dirPath);
+                % dirFullPath = struc.Name;
+                runManager.captureProspectiveProvenanceWithYW(dirPath);
                 runManager.generateYesWorkflowGraphic(dirPath);
             end
         end
@@ -1271,7 +1272,8 @@ classdef RunManager < hgsetget
                 addParameter(listRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(listRunsParser,'tag', '', @iscell);
-                addParameter(listRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+                addParameter(listRunsParser,'sequenceNumber', '', checkSequenceNumber);
             end
             parse(listRunsParser,varargin{:})
             
@@ -1378,7 +1380,8 @@ classdef RunManager < hgsetget
                 addParameter(deletedRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'tag', '', @iscell);
-                addParameter(deletedRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+                addParameter(deletedRunsParser,'sequenceNumber', '', checkSequenceNumber);
                 addParameter(deletedRunsParser,'noop', false, @islogical);
                 addParameter(deletedRunsParser,'quiet',false, @islogical);
             end
@@ -1549,8 +1552,9 @@ classdef RunManager < hgsetget
            if isempty(viewRunsParser)
                viewRunsParser = inputParser;
                
-               addParameter(viewRunsParser,'packageId', '', @ischar);              
-               addParameter(viewRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+               addParameter(viewRunsParser,'packageId', '', @ischar);   
+               checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+               addParameter(viewRunsParser,'sequenceNumber', '', checkSequenceNumber);
                addParameter(viewRunsParser,'tag', '', @iscell);
                addParameter(viewRunsParser,'sessions', '', @iscell);
            end
@@ -1590,9 +1594,9 @@ classdef RunManager < hgsetget
                allCondition = allCondition & tagsCondition; % Logical and operator
            end
 
-           if ~isempty(sequenceNumber)
+           if ~isempty(sequenceNumber)              
                snValue = num2str(sequenceNumber);
-               sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+               sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                              
                allCondition = allCondition & sequenceNumberCondition;
            end
                        
