@@ -6,17 +6,20 @@ To understand the Matlab DataONE Toolbox, we'll step through an example by first
 .. contents::
   :depth: 1
 
+
 Using the remote Matlab server
 ------------------------------
 To use Matlab on a remote server, we require that you install the X2Go_ client on your machine, configure the client, and connect to the remote server.
 
 .. _X2Go: http:x2go.org
 
+
 Install the x2go client
 ~~~~~~~~~~~~~~~~~~~~~~~
 Visit the X2Go `download page`, and follow the instructions for your operating system.  Note that on Mac OS X, an X server is a pre-requisite, so you may need to install XQuartz_.
 
 .. _XQuartz: http://xquartz.macosforge.org/landing/
+
 
 Configure an X2Go session
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,6 +45,7 @@ Once configured, choose **OK**:
 
 .. image:: images/x2go-install/x2go-session-configure.png
 
+
 Connect to the remote Matlab server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To connect, click on the configured X2Go grey session box, and **log in** using the `dataone` user's password provided during our meeting:
@@ -51,6 +55,7 @@ To connect, click on the configured X2Go grey session box, and **log in** using 
 Once logged in, a remote desktop window will open.  In this window, **open Matlab** by choosing the `Applications Menu` > `Development` > `Matlab` menu item:
   
 .. image:: images/x2go-install/x2go-open-matlab.png
+
 
 Installing the toolbox
 ----------------------
@@ -70,9 +75,9 @@ In this directory, **run the `install_matlab_dataone.m` file**.
 
 Once the toolbox is installed, **restart Matlab** to ensure all libraries are available.
 
-Using the toolbox
------------------
 
+Using the toolbox
+----------------- 
 Explore the C3 C4 soil mapping code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To start out, have a look at the example soil data processing code.  In Matlab, **change to the example directory**:
@@ -85,6 +90,7 @@ First, **open the `C3_C4_map_present_NA.m` script**, and peruse the code.  Notic
 
 .. image:: images/matlab-walkthrough/review-soil-script-1.png
 
+
 Create a Configuration object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Customize the RunManager** with settings that are specific to your session. 
@@ -96,6 +102,7 @@ Create a Configuration object
   % Create a Configuration object
   import org.dataone.client.configure.Configuration;
   config = Configuration('configuration_directory', '/home/dataone/Desktop/Session_<num>');
+
   
 Create a RunManager object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -112,6 +119,7 @@ You can look at the documentation of the RunManager class using:
 
   doc RunManager
 
+
 Record a script processing soil data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To **record a script** run, pass it to the RunManager's record() function, and add tag to to help keep track of your runs:
@@ -121,6 +129,7 @@ To **record a script** run, pass it to the RunManager's record() function, and a
   mgr.record('/home/dataone/Desktop/C3_C4_mapping/C3_C4_map_present_NA.m', 'algorithm 1, no markup');
   
 This will run the script, and will track data input and output files that are read, and will store  to a cache directory, along with other run metadata.
+
 
 Record a run with a script with comments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,7 +159,8 @@ The number of runs you produce might get very long, so you can filter the runs b
 
   mgr.listRuns('tags', 'algorithm 1, no markup');
   mgr.listRuns('startDate', '20151027T080000');
-  mgr.listRuns('sequenceNumber', '20151027T080000');
+  mgr.listRuns('sequenceNumber', '2');
+
 
 View a selected run
 ~~~~~~~~~~~~~~~~~~~
@@ -158,8 +168,9 @@ To view a given run, pass in the sequenceNumber or packageId from one of the res
 
 .. code:: matlab
   
-  mgr.view('squenceNumber', '1');
+  mgr.view('sequenceNumber', '1');
 
+The output of the view() function provides more technical details about the run.
 
 
 View YesWorkflow diagrams
@@ -168,6 +179,13 @@ View YesWorkflow diagrams
 
 Delete a selected run
 ~~~~~~~~~~~~~~~~~~~~~
+If a run wasn't useful, you can **delete one or more runs** from the database using the deleteRuns() function. Try deleting your first run and then listing the runs again:
+
+.. code:: matlab
+
+  mgr.deleteRuns('sequenceNumber', 1);
+  mgr.listRuns();
+
 
 View and modify metadata for a run
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
