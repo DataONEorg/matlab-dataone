@@ -191,6 +191,7 @@ classdef RunManager < hgsetget
             import org.yesworkflow.config.YWConfiguration;
        
             try
+                
                 % Read script content from disk
                 in = FileInputStream(runManager.execution.software_application);
                 reader = BufferedReader(InputStreamReader(in));
@@ -1036,9 +1037,9 @@ classdef RunManager < hgsetget
            if runManager.configuration.generate_workflow_graphic && runManager.configuration.include_workflow_graphic
                 runManager.configYesWorkflow(scriptPath);
                
-                [status, struc] = fileattrib(dirPath);
-                dirFullPath = struc.Name;
-                runManager.captureProspectiveProvenanceWithYW(dirFullPath);
+                % [status, struc] = fileattrib(dirPath);
+                % dirFullPath = struc.Name;
+                runManager.captureProspectiveProvenanceWithYW(dirPath);
                 runManager.generateYesWorkflowGraphic(dirPath);
             end
         end
@@ -1288,7 +1289,8 @@ classdef RunManager < hgsetget
                 addParameter(listRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(listRunsParser,'tag', '', @iscell);
-                addParameter(listRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+                addParameter(listRunsParser,'sequenceNumber', '', checkSequenceNumber);
             end
             parse(listRunsParser,varargin{:})
             
@@ -1367,7 +1369,16 @@ classdef RunManager < hgsetget
             % Extract multiple rows from a matrix satisfying the allCondition
             runs = execMetaMatrix(allCondition, :);
             runsToDisplay = execMetaMatrix(allCondition, [16,6,2,7,3,4,5]);
-                       
+               
+            % Convert the full path of a script to a base file name in
+            % listRus(). The full path is displayed in viewRun()
+            numOfRows = size(runsToDisplay, 1);
+            for i=1:numOfRows
+               fullName = runsToDisplay{i,3};
+               name_array = strsplit(fullName, filesep);
+               runsToDisplay{i,3} = name_array(end);
+            end
+            
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
@@ -1395,7 +1406,8 @@ classdef RunManager < hgsetget
                 addParameter(deletedRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'tag', '', @iscell);
-                addParameter(deletedRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+                addParameter(deletedRunsParser,'sequenceNumber', '', checkSequenceNumber);
                 addParameter(deletedRunsParser,'noop', false, @islogical);
                 addParameter(deletedRunsParser,'quiet',false, @islogical);
             end
@@ -1566,8 +1578,9 @@ classdef RunManager < hgsetget
            if isempty(viewRunsParser)
                viewRunsParser = inputParser;
                
-               addParameter(viewRunsParser,'packageId', '', @ischar);              
-               addParameter(viewRunsParser,'sequenceNumber', '', @(x)validateattributes(x, {'numeric'}, {'integer', 'positive'}));
+               addParameter(viewRunsParser,'packageId', '', @ischar);   
+               checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+               addParameter(viewRunsParser,'sequenceNumber', '', checkSequenceNumber);
                addParameter(viewRunsParser,'tag', '', @iscell);
                addParameter(viewRunsParser,'sessions', '', @iscell);
            end
@@ -1607,9 +1620,9 @@ classdef RunManager < hgsetget
                allCondition = allCondition & tagsCondition; % Logical and operator
            end
 
-           if ~isempty(sequenceNumber)
+           if ~isempty(sequenceNumber)              
                snValue = num2str(sequenceNumber);
-               sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+               sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                              
                allCondition = allCondition & sequenceNumberCondition;
            end
                        
