@@ -348,7 +348,9 @@ classdef RunManager < hgsetget
             import org.dspace.foresite.ResourceMap;
             import org.dataone.vocabulary.DC_TERMS;
             
-            disp('====== buildPackage ======');
+            if runManager.configuration.debug
+                disp('====== buildPackage ======');
+            end
             
             curPath = pwd();
             cd(dirPath);
@@ -638,6 +640,7 @@ classdef RunManager < hgsetget
             % added on Sept-17-2015
             user = char(runManager.execution.account_name);
             % changed on Oct-20-2015
+            subject = '';
             auth_token = runManager.configuration.get('authentication_token');
             if isempty(auth_token)
                 [certificate, standardizedName] = runManager.getCertificate();
@@ -1028,9 +1031,6 @@ classdef RunManager < hgsetget
             % level using the yesWorkflow tool.
            if runManager.configuration.generate_workflow_graphic && runManager.configuration.include_workflow_graphic
                 runManager.configYesWorkflow(scriptPath);
-               
-                % [status, struc] = fileattrib(dirPath);
-                % dirFullPath = struc.Name;
                 runManager.captureProspectiveProvenanceWithYW(dirPath);
                 runManager.generateYesWorkflowGraphic(dirPath);
             end
@@ -1087,9 +1087,7 @@ classdef RunManager < hgsetget
                         filePath '. Be sure the file exists in the ' ...
                         'location specified']);
                     rethrow(IOError);   
-                end
-
-                
+                end                
             end
             
             % do we have a tag?
@@ -1302,7 +1300,9 @@ classdef RunManager < hgsetget
             tags = listRunsParser.Results.tag;
             sequenceNumber = listRunsParser.Results.sequenceNumber;
             
-            % listRunsParser.Results
+            if runManager.configuration.debug
+                listRunsParser.Results
+            end
             
             % Read the exeuction metadata summary from the exeuction
             % metadata database
@@ -1424,7 +1424,9 @@ classdef RunManager < hgsetget
             noop = deletedRunsParser.Results.noop;
             quiet = deletedRunsParser.Results.quiet;
             
-            % deletedRunsParser.Results
+            if runManager.configuration.debug
+                deletedRunsParser.Results
+            end
             
             % Read the exeuction metadata summary from the exeuction metadata database
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
@@ -1575,7 +1577,9 @@ classdef RunManager < hgsetget
            % is the result of an execution (run).
  
            % Display a warning message to the user
-           disp('Warning: There is no scientific metadata in this data package.');
+           if runManager.configuration.debug
+               disp('Warning: There is no scientific metadata in this data package.');
+           end
            
            persistent viewRunsParser
            if isempty(viewRunsParser)
@@ -1594,7 +1598,9 @@ classdef RunManager < hgsetget
            tags = viewRunsParser.Results.tag;
            sessions = viewRunsParser.Results.sessions;
             
-           % viewRunsParser.Results
+           if runManager.configuration.debug
+               viewRunsParser.Results
+           end
            
            % Read the exeuction metadata summary from the exeuction metadata database
            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
@@ -1846,18 +1852,14 @@ classdef RunManager < hgsetget
                        runManager.configuration.target_member_node_id ...
                        'encounted an error on the getMN() request.']); 
                 end
-                    
-                fprintf('MN node base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
-               
+                 
                 % submitterStr = runManager.configuration.get('submitter');
                 targetmMNodeStr = runManager.configuration.get('target_member_node_id');
                 
                 submitter = Subject();
                 % submitter.setValue(runManager.configuration.submitter);
                 submitter.setValue(runManager.execution.account_name); % Todo: use account_name as the value of submitter now. But need to investigate if auth_token has the submitter information
-                
-                % session = Session();
-            
+               
                 % Upload each data object in the identifiers.txt in current directory
                 [identifierFileId, message] = fopen('identifiers.txt', 'r');
                 if identifierFileId == -1
@@ -1902,7 +1904,9 @@ classdef RunManager < hgsetget
                         permsArray(1,1) = Permission.READ;
                         ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
                         v2SysMeta.setAccessPolicy(ap);
-                        fprintf('d1Obj.accessPolicySize=%d\n', v2SysMeta.getAccessPolicy().sizeAllowList());
+                        if runManager.configuration.debug
+                            fprintf('d1Obj.accessPolicySize=%d\n', v2SysMeta.getAccessPolicy().sizeAllowList());
+                        end
                     end                   
                                     
                     if runManager.configuration.replication_allowed == 1
@@ -1910,8 +1914,10 @@ classdef RunManager < hgsetget
                         numReplicasStr = String.valueOf(int32(runManager.configuration.number_of_replicas));
                         rp.setNumberReplicas(Integer(numReplicasStr));                       
                         rp.setReplicationAllowed(java.lang.Boolean.TRUE);                      
-                        v2SysMeta.setReplicationPolicy(rp);                                               
-                        fprintf('d1Obj.numReplicas=%d\n', v2SysMeta.getReplicationPolicy().getNumberReplicas().intValue());                     
+                        v2SysMeta.setReplicationPolicy(rp);               
+                        if runManager.configuration.debug
+                            fprintf('d1Obj.numReplicas=%d\n', v2SysMeta.getReplicationPolicy().getNumberReplicas().intValue());  
+                        end
                     end
                     
                     % Upload the data to the MN using create(), checking for success and a returned identifier       

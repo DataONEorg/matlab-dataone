@@ -31,7 +31,7 @@ warning on MATLAB:dispatcher:nameConflict;
 import matlab.unittest.TestSuite;
 
 % Use fromPackage
-% suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+ suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.configure', 'IncludingSubpackages', true);
 
 % Use fromClass
@@ -61,7 +61,7 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite'); 
- suite = TestSuite.fromMethod(testCls, 'testPublish'); 
+% suite = TestSuite.fromMethod(testCls, 'testPublish'); 
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewByPackageIdOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewBySequenceNumberOnly'); 
