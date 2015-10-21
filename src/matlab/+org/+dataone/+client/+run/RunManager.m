@@ -824,22 +824,10 @@ classdef RunManager < hgsetget
            userList = wasAssociatedWithPredicateStruct.Object;
            
            rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-           rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);         
-        end
-        
-        function addObjectMetadata(runManager, identifier, location)
-        % ADDOBJECTMETADATA adds a D1Object to the RunManager execution_objects map
-        
-          import org.dataone.client.v2.D1Object;
-          
-          d1Object = D1Object(identifier);
-          set(d1Object, 'location', location);
-          
-          runManager.execution_objects(identifier) = d1Object;
-          
-        end
+           rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);    
+           
+        end       
     end
- 
     
     methods (Static)
         function runManager = getInstance(configuration)
@@ -945,8 +933,7 @@ classdef RunManager < hgsetget
            addpath(genpath(matlab_dataone_io_dir), '-begin');  
         end        
     end
-    
-    
+        
     methods         
         
         function pkg = getDataPackage(runManager)
@@ -1176,6 +1163,14 @@ classdef RunManager < hgsetget
             warning off MATLAB:dispatcher:nameConflict;
             addpath(runManager.execution.execution_directory);
             warning on MATLAB:dispatcher:nameConflict;
+            
+            % Add a D1Object to the execution objects map for the script
+            % itself
+            import org.dataone.client.v2.D1Object;
+            d1Object = D1Object(pid, 'text/plain', ...
+                runManager.execution.software_application);
+            runManager.execution.execution_object(d1Object.identifier) = ...
+                d1Object;
             
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v2.itk.DataPackage;
