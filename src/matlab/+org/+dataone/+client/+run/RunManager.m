@@ -144,9 +144,13 @@ classdef RunManager < hgsetget
             import java.security.cert.X509Certificate;
             
             % Get a certificate for the Root CA           
-            certificate = CertificateManager.getInstance().loadCertificate();            
-            dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
-            standardizedName = CertificateManager.getInstance().standardizeDN(dn);
+            certificate = CertificateManager.getInstance().loadCertificate();          
+            if ~isempty(certificate)
+                dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
+                standardizedName = CertificateManager.getInstance().standardizeDN(dn);
+            else
+                standardizedName = '';
+            end
         end
         
                 
@@ -222,8 +226,6 @@ classdef RunManager < hgsetget
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
 
                     % Generate YW.Process_View dot file  
-                    runManager.configuration.yesworkflow_config.process_view_property_file_name
-                    
                     config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties
                     gconfig = config.getSection('graph');
                     runManager.processViewDotFileName = gconfig.get('dotfile');
@@ -636,10 +638,13 @@ classdef RunManager < hgsetget
             % added on Sept-17-2015
             user = char(runManager.execution.account_name);
             % changed on Oct-20-2015
-            [certificate, standardizedName] = runManager.getCertificate();
-            if ~isempty(certificate)
-                runManager.configuration.submitter = standardizedName;
-                subject = strrep(char(standardizedName), ',', ' ');
+            auth_token = runManager.configuration.get('authentication_token');
+            if isempty(auth_token)
+                [certificate, standardizedName] = runManager.getCertificate();
+                if ~isempty(certificate)
+                    runManager.configuration.submitter = standardizedName;
+                    subject = strrep(char(standardizedName), ',', ' ');
+                end
             else
                 subject = '';
             end
@@ -1375,6 +1380,7 @@ classdef RunManager < hgsetget
                runsToDisplay{i,3} = name_array(end);
             end
             
+            % Display
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
@@ -1797,11 +1803,23 @@ classdef RunManager < hgsetget
             
             % Get a MNode instance to the Member Node
             try 
-                % Get D1 cilogon certificate stored at /tmp/x509up_u501
-                certificate = runManager.getCertificate();
-                % Pull the subject DN out of the certificate for use in system metadata
-                runManager.configuration.submitter = certificate.getSubjectDN().toString();
+                % Get authenticate token or X509 certificate 
+                auth_token = runManager.configuration.get('authentication_token');
+                [certificate, standardizedName] = runManager.getCertificate();
+                
+                if ~isempty(auth_token)
+                    D1Client.setAuthToken(auth_token);
+                elseif ~isempty(certificate)                   
+                    runManager.configuration.submitter = standardizedName;
+                else
+                    error('Authenticate token or X509 certificate need to be set before calling publish().');
+                end
                
+                % Get D1 cilogon certificate stored at /tmp/x509up_u501
+                % certificate = runManager.getCertificate();
+                % Pull the subject DN out of the certificate for use in system metadata
+                %runManager.configuration.submitter = certificate.getSubjectDN().toString();
+                             
                 % Set the CN URL in the Java Client Library
                 if ( ~isempty(runManager.configuration.coordinating_node_base_url) )
                     Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
@@ -1830,13 +1848,14 @@ classdef RunManager < hgsetget
                     
                 fprintf('MN node base url is: %s\n', char(mnNode.getNodeBaseServiceUrl()));               
                
-                submitterStr = runManager.configuration.get('submitter');
+                % submitterStr = runManager.configuration.get('submitter');
                 targetmMNodeStr = runManager.configuration.get('target_member_node_id');
                 
                 submitter = Subject();
-                submitter.setValue(submitterStr);
+                % submitter.setValue(runManager.configuration.submitter);
+                submitter.setValue(runManager.execution.account_name); % Todo: use account_name as the value of submitter now. But need to investigate if auth_token has the submitter information
                 
-                session = Session();
+                % session = Session();
             
                 % Upload each data object in the identifiers.txt in current directory
                 [identifierFileId, message] = fopen('identifiers.txt', 'r');
@@ -1854,7 +1873,7 @@ classdef RunManager < hgsetget
                     fprintf('Uploading file: %s and file format: %s\n', dataObjId, dataObjFmt);
                     
                     % build d1 object
-                    dataObj = runManager.buildD1Object(dataObjId, dataObjFmt, dataObjId, submitterStr, targetmMNodeStr);
+                    dataObj = runManager.buildD1Object(dataObjId, dataObjFmt, dataObjId, submitter.getValue(), targetmMNodeStr);
                     dataSource = dataObj.getDataSource();
                     
                     % get system metadata for dataObj 
@@ -1895,19 +1914,20 @@ classdef RunManager < hgsetget
                     end
                     
                     % Upload the data to the MN using create(), checking for success and a returned identifier       
-                    pid = cnNode.reserveIdentifier(session,v2SysMeta.getIdentifier()); 
-                    if isempty(pid) ~= 1
-                        returnPid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta);  
-                        if isempty(returnPid) ~= 1
-                            fprintf('Success uploaded %s\n.', char(returnPid.getValue()));
-                        else
-                            % TODO: Process the error correctly.
-                            error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));
-                        end
+                    % pid = cnNode.reserveIdentifier(session,v2SysMeta.getIdentifier()); 
+                    % if isempty(pid) ~= 1
+                    pid = v2SysMeta.getIdentifier();
+                    returnPid = mnNode.create([], pid, dataSource.getInputStream(), v2SysMeta);  
+                    if isempty(returnPid) ~= 1
+                        fprintf('Success uploaded %s\n.', char(returnPid.getValue()));
                     else
                         % TODO: Process the error correctly.
-                        error('Error on duplicate identifier %s', v2SysMeta.getIdentifier());
+                        error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));
                     end
+                    % else
+                        % TODO: Process the error correctly.
+                        % error('Error on duplicate identifier %s', v2SysMeta.getIdentifier());
+                    % end
                 end
                 
                 cd(curDir);
@@ -1921,14 +1941,18 @@ classdef RunManager < hgsetget
             % Record the date and time that the package from this run is uploaded to DataONE
             publishedTime = datestr( now,'yyyymmddTHHMMSS' );
             
-            % Todo: need to test tomorrow
-            %[execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-            %pkgIdCondition = strcmp(execMetaMatrix{:,6}, packageId) == 1;
-            %execMetaMatrix(pkgIdCondition, 5) = publishedTime;
+            % Todo: need to test
+            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+            numOfRows = size(execMetaMatrix, 1);
+            for i=1:numOfRows
+                if strcmp(execMetaMatrix{i,6}, packageId)
+                    execMetaMatrix{i,5} = publishedTime;
+                end
+            end
             
             % Write the updated execution metadata with headers to the execution
-            %T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
-            %writetable(T, runManager.configuration.execution_db_name);
+            T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
+            writetable(T, runManager.configuration.execution_db_name);
         end  
         
         

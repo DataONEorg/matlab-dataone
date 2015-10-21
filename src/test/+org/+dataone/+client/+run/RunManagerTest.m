@@ -535,8 +535,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
                      'https://cilogon.org/?skin=DataONEDev and \n ' ...
                      'download your X509 certificate to /tmp/x509up_u501.']);
                  
-            testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            % testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            testCase.filename = 'src/test/resources/myScript02.m';
             set(testCase.mgr.configuration, 'certificate_path', '/tmp/x509up_u501');
+            set(testCase.mgr.configuration, 'authentication_token', 'xxxxxxxxxxxxxW7FsqiW_7Hcg');
             
             scriptPath = which(testCase.filename); % get the absolute path of the script
             if isempty(scriptPath)
@@ -545,22 +547,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             [scriptParentPath, name, ext] = fileparts(scriptPath);
-            tag = 'c3_c4_1'; % TODO: multiple tags passed in
-           
-            % matlab_toolbox_directory = testCase.mgr.configuration.matlab_dataone_toolbox_directory;
-            % yw_process_view_properties_path = ...
-            % fullfile(matlab_toolbox_directory, filesep, testCase.yw_process_view_property_file_name);
-            % testCase.mgr.configuration.yesworkflow_config.process_view_property_file_name = ...
-            % yw_process_view_properties_path;
-            
-            % yw_data_view_properties_path = fullfile(matlab_toolbox_directory, filesep, ...
-            % testCase.yw_data_view_property_file_name);
-            % testCase.mgr.configuration.yesworkflow_config.data_view_property_file_name = yw_data_view_properties_path;
-            
-            % yw_comb_view_properties_path = fullfile(matlab_toolbox_directory, filesep, ...
-            % testCase.yw_comb_view_property_file_name);
-            % testCase.mgr.configuration.yesworkflow_config.combined_view_property_file_name = yw_comb_view_properties_path;
-            
+            tag = 'myscript2'; 
+ 
             currentDir = pwd();
             cd(scriptParentPath);
             testCase.mgr.record(scriptPath, tag);  
@@ -568,12 +556,17 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             set(testCase.mgr.configuration, ...
                 'target_member_node_id', 'urn:node:mnDevUCSB2');
+       
+            %set(testCase.mgr.configuration, ...
+            %    'target_member_node_id', 'urn:node:mnDevUNM2');
+            
             set(testCase.mgr.configuration, ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn');
             
             runs = testCase.mgr.listRuns();
             pkgId = runs{1,1};
             testCase.mgr.publish(pkgId);
+            runs = testCase.mgr.listRuns();
         end 
     end
     
