@@ -535,8 +535,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
                      'https://cilogon.org/?skin=DataONEDev and \n ' ...
                      'download your X509 certificate to /tmp/x509up_u501.']);
                  
-            % testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-            testCase.filename = 'src/test/resources/myScript02.m';
+            testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            %testCase.filename = 'src/test/resources/myScript02.m';
             set(testCase.mgr.configuration, 'certificate_path', '/tmp/x509up_u501');
             set(testCase.mgr.configuration, 'authentication_token', 'xxxxxxxxxxxxxW7FsqiW_7Hcg');
             
