@@ -35,6 +35,9 @@ classdef D1Object < hgsetget
         % The full path to the location of the object on disk
         full_file_path = '';
         
+        % The DataONE object format identifier for the object type
+        format_id = 'application/octet-stream';
+        
         % The DataONE system metadata associated with the object
         system_metadata;
         
@@ -48,12 +51,18 @@ classdef D1Object < hgsetget
             d1Object.identifier = identifier;
         
             import org.dataone.service.types.v1.Identifier;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
             import org.dataone.service.types.v2.SystemMetadata;
             
             d1Object.system_metadata = SystemMetadata();
+            
             pid = Identifier();
             pid.setValue(d1Object.identifier);
             d1Object.system_metadata.setIdentifier(pid);
+            
+            fmtid = ObjectFormatIdentifier();
+            fmtid.setValue(d1Object.format_id);
+            d1Object.system_metadata.setObjectFormatIdentifier(fmtid);
             
         end
     end
