@@ -71,6 +71,10 @@ function vardata = ncread( source, varname, varargin )
     if ( runManager.configuration.capture_file_reads )
         exec_input_id_list = runManager.getExecInputIds();
     
+        % TODO: determine if this is netCDF-3 or netCDF-4 from the file format
+        formatId = 'netCDF-3';
+        import org.dataone.client.v2.D1Object;
+        
         startIndex = regexp( char(source),'http' ); 
         if isempty(startIndex)
             % local file
@@ -79,11 +83,24 @@ function vardata = ncread( source, varname, varargin )
                 [status, struc] = fileattrib(source);
                 fullSourcePath = struc.Name;
             end
-                
-            exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+            % Add this object to the execution objects map
+            pid = char(java.util.UUID.randomUUID()); % generate an id
+            d1Object = D1Object(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(d1Object.identifier) = ...
+                d1Object;
+            
+            exec_input_id_list.put(d1Object.identifier, formatId);
         else
             % url
-            exec_input_id_list.put(source, 'application/netcdf');
+            % TODO: download the URL contents, cache in the execution
+            % directory, and then create a D1Object from that file and add
+            % it to the execution objects map:
+            % pid = char(java.util.UUID.randomUUID()); % generate an id
+            % d1Object = D1Object(pid, formatId, source);
+            % runManager.execution.execution_objects(d1Object.identifier) = ...
+            %     d1Object;
+
+            exec_input_id_list.put(source, formatId);
         end
     end
 end
