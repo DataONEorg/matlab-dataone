@@ -1167,9 +1167,10 @@ classdef RunManager < hgsetget
             % Add a D1Object to the execution objects map for the script
             % itself
             import org.dataone.client.v2.D1Object;
+            pid = char(java.util.UUID.randomUUID());
             d1Object = D1Object(pid, 'text/plain', ...
                 runManager.execution.software_application);
-            runManager.execution.execution_object(d1Object.identifier) = ...
+            runManager.execution.execution_objects(d1Object.identifier) = ...
                 d1Object;
             
             % Initialize a dataPackage to manage the run
