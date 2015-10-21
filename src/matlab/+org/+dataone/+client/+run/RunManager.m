@@ -1178,6 +1178,7 @@ classdef RunManager < hgsetget
             runManager.execution.execution_objects(d1Object.identifier) = ...
                 d1Object;
             
+            % { TODO: Use this in publish()
             % Initialize a dataPackage to manage the run
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
@@ -1193,7 +1194,8 @@ classdef RunManager < hgsetget
                 runManager.execution.execution_id]);
             % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
-       
+            % }
+            
             % Run the script and collect provenance information
             runManager.prov_capture_enabled = true;
             [pathstr, script_name, ext] = ...
