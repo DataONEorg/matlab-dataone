@@ -538,7 +538,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
             testCase.filename = 'src/test/resources/myScript02.m';
             set(testCase.mgr.configuration, 'certificate_path', '/tmp/x509up_u501');
-            set(testCase.mgr.configuration, 'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJjb25zdW1lcktleSI6InRoZWNvbnN1bWVya2V5IiwiaXNzdWVkQXQiOiIyMDE1LTEwLTIxVDE0OjUzOjU1LjkzMyswMDowMCIsInVzZXJJZCI6IkNOPVlhbmcgQ2FvIEExOTQwMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiZnVsbE5hbWUiOiJZYW5nQ2FvIiwidHRsIjo2NDgwMDAwMH0.BfUC9GrK-WJyrYLr_C1vi-9Ufp9n_9ZQLRT2Yeqhv0eD0nCLB_Zgc8bfCStZdar7Hol2bl9nm-igEcM7E7rm3i-JQFS_6qrqJu5vpJID-ADH7w2pusY_R7xve-qyQ5-pmznQUZOY5mwxkmFyzF4uXTawD6MpDa7T3ulc2y6By0Q9oE1BcoG8Z4GAmmXGCYvTK7JK4lv--uRKJ95VL68_wwmoH1y6Hi3f6qcv0ObBt94BhI-ItEh0vW8LrbKKNLpvQ7ivsbiniRNtzwKXwi72BJ83xqcxN1fi2kCs1-GOqcQhHIdTwtvO3d0xSf8G6UzLsHb7denTWPitMF3RA_G5etMd6v6Qgewfl0pS-fZuaP28OpzxMvHCwDGkFehtoszEdXQLiD_dylPuvEdB4RE2uvfXtR3kWEwGl1HHdaV7Eq4zVxu2N8iq27r213W_R23NdJcU9mOFbT0Dg2AVW17hhdw8Ulp_FvB4-K_JghDlbZSPZKig8TFeZiGd0feqwVrupd48fHacG4qDrTtu_Itn0My2i8dwImc0EQtscrBPUkR-UGE4xJab79OalB7imEQRiO4C9nlrvbrabGixmn1d0FPZ5fKo9Pe00aH7GqiibS3P7roe1u7GQVSMIBH6QqkE8MOTUndyx76CXZ4xR1VnuGZwA9K-2-ZW7FsqiW_7Hcg');
+            set(testCase.mgr.configuration, 'authentication_token', 'xxxxxxxxxxxxxW7FsqiW_7Hcg');
             
             scriptPath = which(testCase.filename); % get the absolute path of the script
             if isempty(scriptPath)
