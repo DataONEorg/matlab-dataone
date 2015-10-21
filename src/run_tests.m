@@ -28,6 +28,8 @@ warning off MATLAB:dispatcher:nameConflict;
 addpath(genpath(pwd));
 warning on MATLAB:dispatcher:nameConflict;
 
+ warning('off','backtrace');
+ 
 import matlab.unittest.TestSuite;
 
 % Use fromPackage

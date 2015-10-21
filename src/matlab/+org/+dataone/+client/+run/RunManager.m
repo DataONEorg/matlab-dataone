@@ -94,6 +94,8 @@ classdef RunManager < hgsetget
             % The RunManager class manages outputs of a script based on the
             % settings in the given configuration passed in.
             import org.dataone.client.configure.Configuration;
+            
+            warning('off','backtrace');
             manager.configuration = configuration;
             configuration.saveConfig();            
             manager.init();  
@@ -1873,7 +1875,9 @@ classdef RunManager < hgsetget
                 for i = 1:length(idMatrix)
                     dataObjId = idMatrix{i,1};
                     dataObjFmt = idMatrix{i,2};
-                    fprintf('Uploading file: %s and file format: %s\n', dataObjId, dataObjFmt);
+                    if runManager.configuration.debug
+                        fprintf('Uploading file: %s and file format: %s\n', dataObjId, dataObjFmt);
+                    end
                     
                     % build d1 object
                     dataObj = runManager.buildD1Object(dataObjId, dataObjFmt, dataObjId, submitter.getValue(), targetmMNodeStr);
