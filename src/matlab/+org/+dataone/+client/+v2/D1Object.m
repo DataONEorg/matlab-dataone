@@ -45,25 +45,60 @@ classdef D1Object < hgsetget
     
     methods
         
-        function d1Object = D1Object(identifier) 
+        function d1Object = D1Object(identifier, format_id, full_file_path) 
         % D1Object constructs an D1Object instance with the given identifier
             
             d1Object.identifier = identifier;
-        
+            d1Object.format_id = format_id;
+            d1Object.full_file_path = full_file_path;
+            
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.service.types.v1.ObjectFormatIdentifier;
             import org.dataone.service.types.v2.SystemMetadata;
+            import org.dataone.service.types.v1.util.ChecksumUtil;
+            import org.dataone.service.types.v1.util.AccessUtil;
+            import java.io.InputStream;
+            import java.io.FileInputStream;
+            import java.io.File;
+            import java.math.BigInteger;
+
+            try
+                sysmeta = SystemMetadata();
+                
+                % Set the identifier
+                pid = Identifier();
+                pid.setValue(d1Object.identifier);
+                sysmeta.setIdentifier(pid);
+
+                % Add the object format id
+                fmtid = ObjectFormatIdentifier();
+                fmtid.setValue(d1Object.format_id);
+                sysmeta.setFormatId(fmtid);
             
-            d1Object.system_metadata = SystemMetadata();
+                % Add the file size
+                fileInfo = dir(full_file_path);
+                fileSize = fileInfo.bytes;
+                sizeBigInt = BigInteger.valueOf(fileSize);
+                sysmeta.setSize(sizeBigInt);
+
+                % Add the checksum
+                objectFile = File(full_file_path);
+                fileInputStream = FileInputStream(objectFile);
+                checksum = ChecksumUtil.checksum(fileInputStream, 'SHA1');
+                sysmeta.setChecksum(checksum);
+
+                % Set the file name
+                [path, name, ext] = fileparts(d1Object.full_file_path);
+                sysmeta.setFileName([name ext]);
+                
+            catch Error
+                % TODO: Decide what to do here
+                rethrow(Error);
+
+            end
             
-            pid = Identifier();
-            pid.setValue(d1Object.identifier);
-            d1Object.system_metadata.setIdentifier(pid);
-            
-            fmtid = ObjectFormatIdentifier();
-            fmtid.setValue(d1Object.format_id);
-            d1Object.system_metadata.setObjectFormatIdentifier(fmtid);
-            
+            d1Object.system_metadata = sysmeta;
+
         end
     end
     
