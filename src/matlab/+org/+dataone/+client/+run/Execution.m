@@ -189,6 +189,32 @@ classdef Execution < hgsetget
           
         end
 
+        function identifier = getIdByFullFilePath(execution, full_file_path)
+        % GETIDBYFULLFILEPATH returns the identifier of an object given its path
+        %       identifier = getIdByFullFilePath(full_file_path) will
+        %       return an identifier string if the given full_file_path 
+        %       argument value matches the full_file_path property of a 
+        %       D1Object instance already stored in the 
+        %       Execuition.execution_objects map. Otherwise, it will return
+        %       an empty string.
+            identifier = '';
+        
+            object_map_keys = keys(execution.execution_objects);
+            object_map_values = values(execution.execution_objects);
+        
+            for i = 1: length(execution.execution_objects)
+                existing_identifier = object_map_keys{i};
+                existing_d1_object = object_map_values{i};
+                existing_path = existing_d1_object.full_file_path;
+            
+                % Does it already exist? Return the id
+                if ( strcmp(full_file_path, existing_path) )
+                    identifier = existing_identifier;
+                    break;
+                
+                end
+            end        
+        end
     end
     
 end
