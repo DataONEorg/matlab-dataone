@@ -87,37 +87,21 @@ function ncwrite( source, varname, varargin )
             fullSourcePath = struc.Name;
         end
         
-        % Update this object in the execution objects map
-        % Multiple calls to ncwrite on the same object will
-        % require the D1Object already in the map to be updated
-        object_map_keys = keys(runManager.execution.execution_objects);
-        object_map_values = values(runManager.execution.execution_objects);
-        
-        for i = 1: length(runManager.execution.execution_objects)
-            existingIdentifier = object_map_keys{i};
-            existingD1Object = object_map_values{i};
-            existingPath = existingD1Object.full_file_path;
-            
-            % Does it already exist? Update it
-            if ( strcmp(fullSourcePath, existing_path) )
-                updatedD1Object = D1Object( ...
-                    existingD1Object.identifier, ...
-                    existingD1Object.format_id, ...
-                    existingD1Object.full_file_path);
-                runManager.execution.execution_objects( ...
-                    d1Object.identifier) = updatedD1Object;
-                pid = existingIdentifier;
-                break;
-                
-            % Or create a new one
-            else
+            existing_id = runManager.execution.getIdByFullFilePath( ...
+                fullSourcePath);
+            if ( isempty(existing_id) )
+                % Add this object to the execution objects map
                 pid = char(java.util.UUID.randomUUID()); % generate an id
                 d1Object = D1Object(pid, formatId, fullSourcePath);
-                runManager.execution.execution_objects( ...
-                    d1Object.identifier) = d1Object;
-                
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
+            else
+                % Update the existing map entry with a new D1Object
+                pid = existing_id;
+                d1Object = D1Object(pid, formatId, fullSourcePath);
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
             end
-        end
         
         exec_output_id_list.put(pid, formatId);   
     end
