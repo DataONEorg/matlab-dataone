@@ -83,11 +83,19 @@ function vardata = ncread( source, varname, varargin )
                 [status, struc] = fileattrib(source);
                 fullSourcePath = struc.Name;
             end
-            % Add this object to the execution objects map
-            pid = char(java.util.UUID.randomUUID()); % generate an id
-            d1Object = D1Object(pid, formatId, fullSourcePath);
-            runManager.execution.execution_objects(d1Object.identifier) = ...
-                d1Object;
+            
+            existing_id = runManager.execution.getIdByFullFilePath( ...
+                fullSourcePath);
+            if ( isempty(existing_id) )
+                % Add this object to the execution objects map
+                pid = char(java.util.UUID.randomUUID()); % generate an id
+                d1Object = D1Object(pid, formatId, fullSourcePath);
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
+            else
+                d1Object = ...
+                    runManager.execution.execution_objects(existing_id);
+            end
             
             exec_input_id_list.put(d1Object.identifier, formatId);
         else
