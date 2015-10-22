@@ -92,8 +92,11 @@ function varargout = create(source, mode, varargin)
         disp('add the parent path of the overloaded netcdf.open function back.');
     end
     
-    % Identifiy the file being created/used and add a prov:wasGeneratedBy statements 
-    % in the RunManager DataPackage instance   
+    % Identify the file being created/used and add a prov:wasGeneratedBy statements 
+    % in the RunManager DataPackage instance
+    formatId = 'netCDF-3';
+    import org.dataone.client.v2.D1Object;
+
     if ( runManager.configuration.capture_file_writes )
         exec_output_id_list = runManager.getExecOutputIds();
 
@@ -102,7 +105,12 @@ function varargout = create(source, mode, varargin)
             [status, struc] = fileattrib(source);
             fullSourcePath = struc.Name;
         end
-                
-        exec_output_id_list.put(fullSourcePath, 'application/netcdf');
+        
+        pid = char(java.util.UUID.randomUUID()); % generate an id
+        d1Object = D1Object(pid, formatId, fullSourcePath);
+        runManager.execution.execution_objects( ...
+            d1Object.identifier) = d1Object;
+        
+        exec_output_id_list.put(pid, formatId);
     end
 end
