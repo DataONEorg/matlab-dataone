@@ -106,10 +106,21 @@ function varargout = create(source, mode, varargin)
             fullSourcePath = struc.Name;
         end
         
-        pid = char(java.util.UUID.randomUUID()); % generate an id
-        d1Object = D1Object(pid, formatId, fullSourcePath);
-        runManager.execution.execution_objects( ...
-            d1Object.identifier) = d1Object;
+        existing_id = runManager.execution.getIdByFullFilePath( ...
+            fullSourcePath);
+        if ( isempty(existing_id) )
+            % Add this object to the execution objects map
+            pid = char(java.util.UUID.randomUUID()); % generate an id
+            d1Object = D1Object(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(d1Object.identifier) = ...
+                d1Object;
+        else
+            % Update the existing map entry with a new D1Object
+            pid = existing_id;
+            d1Object = D1Object(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(d1Object.identifier) = ...
+                d1Object;
+        end
         
         exec_output_id_list.put(pid, formatId);
     end
