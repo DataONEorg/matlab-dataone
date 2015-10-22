@@ -623,6 +623,123 @@ classdef RunManager < hgsetget
         end
         
         
+        
+        function data_package = buildPackage2(runManager, submitter, mnNodeId, dirPath)
+            import org.dataone.client.v2.itk.DataPackage;
+            import org.dataone.service.types.v1.Identifier;            
+            import org.dataone.client.run.NamedConstant;
+            import org.dataone.util.ArrayListWrapper;
+            import org.dataone.client.v2.itk.D1Object;
+            import com.hp.hpl.jena.vocabulary.RDF;
+            import org.dataone.vocabulary.PROV;
+            import org.dataone.vocabulary.ProvONE;
+            import org.dataone.vocabulary.ProvONE_V1;
+            import java.net.URI;
+            import org.dspace.foresite.ResourceMap;
+            import org.dataone.vocabulary.DC_TERMS;
+            
+            import org.dataone.client.v2.D1Object;
+                       
+            if runManager.configuration.debug
+                disp('====== buildPackage ======');
+            end
+            
+            % Initialize a dataPackage to manage the run
+            import org.dataone.client.v2.itk.DataPackage;
+            import org.dataone.service.types.v1.Identifier;            
+          
+            packageIdentifier = Identifier();
+            packageIdentifier.setValue(runManager.execution.execution_id);      
+            runManager.execution.data_package_id = packageIdentifier.getValue();
+           
+            % Create a resourceMap identifier
+            resourceMapId = Identifier();
+            resourceMapId.setValue(['resourceMap_' runManager.execution.execution_id]);
+            % Create an empty datapackage with resourceMapId
+            runManager.dataPackage = DataPackage(resourceMapId);
+            
+            scriptIdentifier = runManager.execution.getIdByFullFilePath(runManager.execution.software_application);
+           
+            cd(dirPath);
+
+            % Find the serialized execution data
+            serFileName = strtrim(ls('*.mat'));              
+            execStruc = load(serFileName);
+            deserialized_execution = execStruc.executionObj(1);
+  
+            deserialized_execution_id = getfield(deserialized_execution, 'execution_id');
+            deserialized_execution_objects = getfield(deserialized_execution, 'execution_objects');
+            
+            scriptD1Obj = deserialized_execution_objects(scriptIdentifier);
+            programD1JavaObj = runManager.buildD1Object(scriptD1Obj.full_file_path, scriptD1Obj.format_id, scriptD1Obj.identifier, submitter, mnNodeId);
+            programD1JavaObj
+            runManager.dataPackage.addData(programD1JavaObj);
+            
+            % curPath = pwd();
+            % cd(dirPath);
+            
+            % Get the base URL of the DataONE coordinating node server
+            % runManager.D1_CN_Resolve_Endpoint = ...
+            % [char(runManager.configuration.coordinating_node_base_url) '/v1/resolve/'];
+           
+            % runManager.provONEdataURI = URI(ProvONE.Data.getURI());
+                      
+            % Create a D1Object for the program that we are running            
+            % scriptFmt = 'text/plain';        
+            % scriptNameArray = strsplit(runManager.execution.software_application, filesep);     
+            % scriptIdentifier = scriptNameArray(end);
+            % programD1Obj = runManager.buildD1Object(runManager.execution.software_application, scriptFmt, scriptIdentifier, submitter, mnNodeId);
+            % runManager.dataPackage.addData(programD1Obj);
+            % copyfile(runManager.execution.software_application, '.'); % copy script to the run directory
+            
+            % Create a D1 identifier for the workflow script  
+            % runManager.wfIdentifier = Identifier();                   
+            % runManager.wfIdentifier.setValue(char(scriptNameArray(end)));
+           
+            % Record relationship identifying workflow identifier and URI as a provONE:Program
+            % runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
+            % provOneProgramURI = URI(ProvONE.Program.getURI());        
+            % runManager.dataPackage.insertRelationship(runManager.wfIdentifier.getValue(), runManager.aTypePredicate, provOneProgramURI);
+            % Describe the workflow identifier with resovlable URI 
+            % wfSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint char(runManager.wfIdentifier.getValue())]);
+            % runManager.dataPackage.insertRelationship(wfSubjectURI, runManager.aTypePredicate, provOneProgramURI);
+           
+            % Record relationship identifying execution id as a provone:Execution                              
+            % runManager.execution.execution_uri = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' runManager.execution.execution_id]);
+
+            % runManager.associationSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint 'A0_' char(java.util.UUID.randomUUID())]);
+            % provOneProgramURI = URI(ProvONE.Program.getURI());
+            % Store the prov relationship: association->prov:hadPlan->program
+            % predicate = PROV.predicate('hadPlan');
+            % runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, predicate, provOneProgramURI);
+            % Record relationship identifying association id as a prov:Association
+            % provAssociationURI = URI(PROV.Association.getURI());
+            % runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, runManager.aTypePredicate, provAssociationURI);
+                        
+            % Store the prov relationship: execution->prov:qualifiedAssociation->association
+            % provAssociationObjURI = URI(PROV.Association.getURI());
+            % predicate = PROV.predicate('qualifiedAssociation');
+            % runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, provAssociationObjURI);
+            
+            % provOneExecURI = URI(ProvONE.Execution.getURI());           
+            % runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, runManager.aTypePredicate, provOneExecURI);  
+                      
+            % Store the ProvONE relationships for user
+            % runManager.userURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.execution.account_name]);                 
+            % Record the relationship between the Execution and the user
+            % predicate = PROV.predicate('wasAssociatedWith');
+            % runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, runManager.userURI);    
+            % Record the relationship for association->prov:agent->"user"
+            % predicate = PROV.predicate('agent');
+            % runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, predicate, runManager.userURI);
+            % Record a relationship identifying the provONE:user
+            % provONEUserURI = URI(ProvONE.User.getURI());
+            % runManager.dataPackage.insertRelationship(runManager.userURI, runManager.aTypePredicate, provONEUserURI); 
+            
+            data_package = runManager.dataPackage;
+        end
+        
+        
         function saveExecution(runManager, fileName)
             % SAVEEXECUTION saves the summary of each execution to an
             % execution database, a CSV file named execution.csv in the
@@ -1276,14 +1393,16 @@ classdef RunManager < hgsetget
             executionObj = runManager.execution;
             save(char(exec_destination), 'executionObj');
             
+             % Build a D1 datapackage
+            pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );        
             
-            eObj = load(char(exec_destination));
-            eObj
-            executionObj(1)
-            whos eObj
-            disp(executionObj(1));
-            getfield(executionObj(1), 'execution_id')
-            getfield(executionObj(1), 'execution_objects')
+            % eObj = load(char(exec_destination));
+            % eObj
+            % executionObj(1)
+            % whos eObj
+            % disp(executionObj(1));
+            % getfield(executionObj(1), 'execution_id')
+            % getfield(executionObj(1), 'execution_objects')
            
             % Clear runtime input/output sources (?)
             runManager.getExecInputIds().clear();
@@ -1833,20 +1952,7 @@ classdef RunManager < hgsetget
             % Get a MNode instance to the Member Node
             try 
                 
-                % Initialize a dataPackage to manage the run
-                import org.dataone.client.v2.itk.DataPackage;
-                import org.dataone.service.types.v1.Identifier;            
-          
-                packageIdentifier = Identifier();
-                packageIdentifier.setValue(runManager.execution.execution_id);      
-                runManager.execution.data_package_id = packageIdentifier.getValue();
-           
-                % Create a resourceMap identifier
-                resourceMapId = Identifier();
-                resourceMapId.setValue(['resourceMap_' ...
-                runManager.execution.execution_id]);
-                % Create an empty datapackage with resourceMapId
-                runManager.dataPackage = DataPackage(resourceMapId);
+
          
                 % Deserialize the execution object from the disk
                 % Build a D1 datapackage
