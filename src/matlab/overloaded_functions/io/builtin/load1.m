@@ -77,7 +77,12 @@ function S = load( source, varargin )
     
     % Call builtin load function
     S = builtin('load', source, varargin{:} );
-   
+    % varargout = builtin('load', source, varargin{:} );
+    % varargout = load( source, varargin{:} );
+    % S = varargout;
+    
+    %S = varargout;
+    
     % Add the wrapper load back to the Matlab path
     warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');

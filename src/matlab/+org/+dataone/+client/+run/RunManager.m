@@ -672,15 +672,27 @@ classdef RunManager < hgsetget
                 if fileId == -1
                     disp(message);
                 end
-                fprintf(fileId, formatSpec, 'runId', 'filePath', 'startTime', 'endTime', 'publishedTime', 'packageId', 'tag', 'user', 'subject', 'hostId', 'operatingSystem', 'runtime', 'moduleDependencies', 'console', 'errorMessage', 'sequenceNumber'); % write header
-                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tag, user, subject, hostId, operatingSystem, runtime, moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution
+                fprintf(fileId, formatSpec, ...,
+                    'runId', 'filePath', 'startTime', 'endTime', ...,
+                    'publishedTime', 'packageId', 'tag', 'user', ...,
+                    'subject', 'hostId', 'operatingSystem', 'runtime', ...,
+                    'moduleDependencies', 'console', 'errorMessage', 'sequenceNumber'); % write header
+                fprintf(fileId,formatSpec, ...,
+                    runID, filePath, startTime, endTime, ...,
+                    publishedTime, packageId, tag, user, ...,
+                    subject, hostId, operatingSystem, runtime, ...,
+                    moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution
                 fclose(fileId); 
             else
                 [fileId, message] = fopen(fileName,'a');
                 if fileId == -1
                     disp(message);
                 end
-                fprintf(fileId,formatSpec, runID, filePath, startTime, endTime, publishedTime, packageId, tag, user, subject, hostId, operatingSystem, runtime, moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
+                fprintf(fileId,formatSpec, ...,
+                    runID, filePath, startTime, endTime, ...,
+                    publishedTime, packageId, tag, user, ...,
+                    subject, hostId, operatingSystem, runtime, ...,
+                    moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
                 fclose(fileId); 
             end
             cd(curDir);
@@ -968,17 +980,7 @@ classdef RunManager < hgsetget
             exec_output_id_list = get(runManager.execution, 'execution_output_ids');
         end
         
-        
-       % function setExecInputIds(runManager, inputIdSet)
-       %     runManager.execution_input_ids = inputIdSet;
-       % end
-        
-        
-       % function setExecOutputIds(runManager, outputIdSet)
-       %     runManager.execution_output_ids = outputIdSet;
-       % end
-        
-                
+     
         function init(runManager)
             % INIT initializes the RunManager instance
                         
@@ -1126,7 +1128,7 @@ classdef RunManager < hgsetget
             runManager.startRecord(runManager.execution.tag);
 
             % End the recording session 
-            data_package = runManager.endRecord();
+            runManager.endRecord();
      
         end
         
@@ -1180,20 +1182,20 @@ classdef RunManager < hgsetget
             
             % { TODO: Use this in publish()
             % Initialize a dataPackage to manage the run
-            import org.dataone.client.v2.itk.DataPackage;
-            import org.dataone.service.types.v1.Identifier;            
+            % import org.dataone.client.v2.itk.DataPackage;
+            % import org.dataone.service.types.v1.Identifier;            
           
-            packageIdentifier = Identifier();
-            packageIdentifier.setValue(runManager.execution.execution_id);      
+            % packageIdentifier = Identifier();
+            % packageIdentifier.setValue(runManager.execution.execution_id);      
             % Question: data_pakcage_id vs exeuction_id
-            runManager.execution.data_package_id = packageIdentifier.getValue();
+            % runManager.execution.data_package_id = packageIdentifier.getValue();
            
             % Create a resourceMap identifier
-            resourceMapId = Identifier();
-            resourceMapId.setValue(['resourceMap_' ...
-                runManager.execution.execution_id]);
+            % resourceMapId = Identifier();
+            % resourceMapId.setValue(['resourceMap_' ...
+            %    runManager.execution.execution_id]);
             % Create an empty datapackage with resourceMapId
-            runManager.dataPackage = DataPackage(resourceMapId);
+            % runManager.dataPackage = DataPackage(resourceMapId);
             % }
             
             % Run the script and collect provenance information
@@ -1227,7 +1229,7 @@ classdef RunManager < hgsetget
         end
         
         
-        function data_package = endRecord(runManager)
+        function endRecord(runManager)
             % ENDRECORD Ends the recording of an execution (run).
             
             import org.dataone.service.types.v1.Identifier;
@@ -1253,11 +1255,13 @@ classdef RunManager < hgsetget
             % Generate yesWorkflow image outputs
             runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
                    
+            % { Move to publish() method
             % Build a D1 datapackage
-            pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );              
-
+            % pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );              
+            % }
+            
             % Return the Java DataPackage as a Matlab structured array
-            data_package = struct(pkg);  
+            % data_package = struct(pkg);  
             
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
@@ -1265,6 +1269,22 @@ classdef RunManager < hgsetget
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.configuration.execution_db_name);   
             
+            % Serialize the execution object to local file system in the
+            % execution_directory
+            execution_serialized_object = [runManager.execution.execution_id '.mat'];
+            exec_destination = [runManager.execution.execution_directory filesep execution_serialized_object];
+            executionObj = runManager.execution;
+            save(char(exec_destination), 'executionObj');
+            
+            
+            eObj = load(char(exec_destination));
+            eObj
+            executionObj(1)
+            whos eObj
+            disp(executionObj(1));
+            getfield(executionObj(1), 'execution_id')
+            getfield(executionObj(1), 'execution_objects')
+           
             % Clear runtime input/output sources (?)
             runManager.getExecInputIds().clear();
             runManager.getExecOutputIds().clear();
@@ -1812,6 +1832,27 @@ classdef RunManager < hgsetget
             
             % Get a MNode instance to the Member Node
             try 
+                
+                % Initialize a dataPackage to manage the run
+                import org.dataone.client.v2.itk.DataPackage;
+                import org.dataone.service.types.v1.Identifier;            
+          
+                packageIdentifier = Identifier();
+                packageIdentifier.setValue(runManager.execution.execution_id);      
+                runManager.execution.data_package_id = packageIdentifier.getValue();
+           
+                % Create a resourceMap identifier
+                resourceMapId = Identifier();
+                resourceMapId.setValue(['resourceMap_' ...
+                runManager.execution.execution_id]);
+                % Create an empty datapackage with resourceMapId
+                runManager.dataPackage = DataPackage(resourceMapId);
+         
+                % Deserialize the execution object from the disk
+                % Build a D1 datapackage
+                % pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );    
+                
+                
                 % Get authenticate token or X509 certificate 
                 auth_token = runManager.configuration.get('authentication_token');
                 [certificate, standardizedName] = runManager.getCertificate();
