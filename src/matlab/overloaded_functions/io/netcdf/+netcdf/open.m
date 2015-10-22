@@ -49,7 +49,8 @@ function varargout = open(source, varargin)
 % limitations under the License.
 
     import org.dataone.client.run.RunManager;
-   
+    import org.dataone.client.v2.D1Object;
+
     runManager = RunManager.getInstance(); 
     
     if ( runManager.configuration.debug )
@@ -83,7 +84,8 @@ function varargout = open(source, varargin)
     end
     
     % Identifiy the file being created/used and add a prov:used/prov:wasGeneratedBy statements 
-    % in the RunManager DataPackage instance        
+    % in the RunManager DataPackage instance
+    formatId = 'netCDF-3';
     exec_input_id_list = runManager.getExecInputIds();
     exec_output_id_list = runManager.getExecOutputIds();
     
@@ -102,9 +104,21 @@ function varargout = open(source, varargin)
                     [status, struc] = fileattrib(source);
                     fullSourcePath = struc.Name;
                 end
-                
+
                 if ( runManager.configuration.capture_file_reads )
-                    exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                    existing_id = runManager.execution.getIdByFullFilePath( ...
+                        fullSourcePath);
+                    if ( isempty(existing_id) )
+                        % Add this object to the execution objects map
+                        pid = char(java.util.UUID.randomUUID()); % generate an id
+                        d1Object = D1Object(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(d1Object.identifier) = ...
+                            d1Object;
+                    else
+                        d1Object = ...
+                            runManager.execution.execution_objects(existing_id);
+                    end
+                    exec_input_id_list.put(d1Object.identifier, formatId);
                 end
             else
                 % url
@@ -113,7 +127,16 @@ function varargout = open(source, varargin)
                 end
                 
                 if ( runManager.configuration.capture_file_reads )
-                    exec_input_id_list.put(source, 'application/netcdf');
+                    % TODO: download the URL contents, cache in the execution
+                    % directory, and then create a D1Object from that file and add
+                    % it to the execution objects map:
+                    % pid = char(java.util.UUID.randomUUID()); % generate an id
+                    % d1Object = D1Object(pid, formatId, source);
+                    % runManager.execution.execution_objects(d1Object.identifier) = ...
+                    %     d1Object;
+                    %    d1Object.identifier) = d1Object;
+
+                    exec_input_id_list.put(source, formatId);
                 end
             end
      
@@ -130,16 +153,43 @@ function varargout = open(source, varargin)
                     fullSourcePath = struc.Name;
                 end
                 
+                existing_id = runManager.execution.getIdByFullFilePath( ...
+                    fullSourcePath);
+                
                 if ( runManager.configuration.capture_file_reads )
-                    exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                    if ( isempty(existing_id) )
+                        % Add this object to the execution objects map
+                        pid = char(java.util.UUID.randomUUID()); % generate an id
+                        d1Object = D1Object(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(d1Object.identifier) = ...
+                            d1Object;
+                    else
+                        d1Object = ...
+                            runManager.execution.execution_objects(existing_id);
+                    end
+
+                    exec_input_id_list.put(d1Object.identifier, formatId);
                 end
                 
                 if ( runManager.configuration.capture_file_writes )
-                    exec_output_id_list.put(fullSourcePath, 'application/netcdf');
+                    if ( isempty(existing_id) )
+                        % Add this object to the execution objects map
+                        pid = char(java.util.UUID.randomUUID()); % generate an id
+                        d1Object = D1Object(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(d1Object.identifier) = ...
+                            d1Object;
+                    else
+                        % Update the existing map entry with a new D1Object
+                        pid = existing_id;
+                        d1Object = D1Object(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(d1Object.identifier) = ...
+                            d1Object;
+                    end
+                    exec_output_id_list.put(pid, formatId);
                 end
                 
             elseif any(strcmp(varargin{1}, {'NOWRITE', 'NC_NOWRITE'})) ~= 0
-                % Read-only access (Default)                
+                % Read-only access (Default)
                 if ( runManager.configuration.debug)
                     disp('> > > mode: NOWRITE/NC_NOWRITE !');
                 end
@@ -151,11 +201,24 @@ function varargout = open(source, varargin)
                 end
                 
                 if ( runManager.configuration.capture_file_reads )
-                    exec_input_id_list.put(fullSourcePath, 'application/netcdf');
+                    existing_id = runManager.execution.getIdByFullFilePath( ...
+                        fullSourcePath);
+                    if ( isempty(existing_id) )
+                        % Add this object to the execution objects map
+                        pid = char(java.util.UUID.randomUUID()); % generate an id
+                        d1Object = D1Object(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(d1Object.identifier) = ...
+                            d1Object;
+                    else
+                        d1Object = ...
+                            runManager.execution.execution_objects(existing_id);
+                    end
+                    
+                    exec_input_id_list.put(d1Object.identifier, formatId);
                 end
             else
                 % 'SHARE' Synchronous file updates
-            end        
+            end
     end
 
 end
