@@ -2138,7 +2138,7 @@ classdef RunManager < hgsetget
                     
                 end
                 
-                pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );    
+                pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );    
                                 
                 % Get authenticate token or X509 certificate 
                 auth_token = runManager.configuration.get('authentication_token');
