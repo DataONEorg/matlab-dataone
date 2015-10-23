@@ -643,10 +643,24 @@ classdef RunManager < hgsetget
                 disp('====== buildPackage ======');
             end
            
-            scriptIdentifier = runManager.execution.getIdByFullFilePath( ...
-                runManager.execution.software_application);
+            % Get the run identifier from the directory name
+            path_array = strsplit(filesep, dirPath);
+            identifier = path_array(end);
+            
+            % Load the stroed execution given the directory name
+            stored_execution = load(fullfile( ...
+                runManager.provenance_storage_directory, ...
+                'runs', ...
+                identifier, ...
+                [identifier '.mat']));
+            
+            % Assign deserialized execution to runManager.execution
+            runManager.execution = stored_execution.executionObj(1);
             
             % Initialize a dataPackage to manage the run
+            scriptIdentifier = runManager.execution.getIdByFullFilePath( ...
+                runManager.execution.software_application);
+                      
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.execution_id);      
             runManager.execution.data_package_id = packageIdentifier.getValue();
