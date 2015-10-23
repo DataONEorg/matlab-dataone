@@ -663,7 +663,6 @@ classdef RunManager < hgsetget
                       
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.execution_id);      
-            runManager.execution.data_package_id = packageIdentifier.getValue();
            
             % Create a resourceMap identifier
             resourceMapId = Identifier();
@@ -827,7 +826,7 @@ classdef RunManager < hgsetget
             startTime = char(runManager.execution.start_time);
             endTime = char(runManager.execution.end_time);
             publishedTime = char(runManager.execution.publish_time);
-            packageId = char(runManager.execution.data_package_id);
+            packageId = char(runManager.execution.execution_id);
             tag = runManager.execution.tag; % Todo: a set of tag values         
             % added on Sept-17-2015
             user = char(runManager.execution.account_name);
@@ -1369,25 +1368,7 @@ classdef RunManager < hgsetget
                 runManager.execution.software_application);
             runManager.execution.execution_objects(d1Object.identifier) = ...
                 d1Object;
-            
-            % { TODO: Use this in publish()
-            % Initialize a dataPackage to manage the run
-            % import org.dataone.client.v2.itk.DataPackage;
-            % import org.dataone.service.types.v1.Identifier;            
-          
-            % packageIdentifier = Identifier();
-            % packageIdentifier.setValue(runManager.execution.execution_id);      
-            % Question: data_pakcage_id vs exeuction_id
-            % runManager.execution.data_package_id = packageIdentifier.getValue();
-           
-            % Create a resourceMap identifier
-            % resourceMapId = Identifier();
-            % resourceMapId.setValue(['resourceMap_' ...
-            %    runManager.execution.execution_id]);
-            % Create an empty datapackage with resourceMapId
-            % runManager.dataPackage = DataPackage(resourceMapId);
-            % }
-            
+                        
             % Run the script and collect provenance information
             runManager.prov_capture_enabled = true;
             [pathstr, script_name, ext] = ...
@@ -2010,24 +1991,32 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.ReplicationPolicy;
             import org.dataone.service.types.v1.Subject;
             import org.dataone.configuration.Settings;
-
-            curDir = pwd();
             
             prov_dir = runManager.configuration.get('provenance_storage_directory');
-            curRunDir = [prov_dir filesep 'runs' filesep packageId filesep];
+            curRunDir = fullfile(prov_dir, 'runs', packageId);
          
             if exist(curRunDir, 'dir') ~= 7
-                error([' A directory was not found for execution identifier: ' packageId]);       
+                error([' A directory was not found for execution identifier: ' packageId]);
+                
             end       
             
-            cd(curRunDir); % go the the selected run directory
             
             % Get a MNode instance to the Member Node
-            try 
+            try
                 
-
-         
                 % Deserialize the execution object from the disk
+                
+                % Load the stroed execution given the directory name
+                exec_file_base_name = [packageId '.mat'];
+                stored_execution = load(fullfile( ...
+                    runManager.configuration.provenance_storage_directory, ...
+                    'runs', ...
+                    packageId, ...
+                    exec_file_base_name));
+                
+                % Assign deserialized execution to runManager.execution
+                runManager.execution = stored_execution.executionObj(1);
+
                 % Build a D1 datapackage
                 % pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );    
                 

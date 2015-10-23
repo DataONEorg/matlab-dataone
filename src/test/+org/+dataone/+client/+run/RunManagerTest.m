@@ -479,7 +479,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
            
             generateTestRuns(testCase);
 
-            pkgId = testCase.mgr.execution.data_package_id ;
+            pkgId = testCase.mgr.execution.execution_id ;
             
             sessions = {'details', 'used', 'generated'};
             resultObjs = testCase.mgr.view('packageId', pkgId, 'sessions', sessions); % view the selected run
@@ -607,7 +607,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             startTime = char(testCase.mgr.execution.start_time);
             endTime = char(testCase.mgr.execution.end_time);
             publishedTime = char(testCase.mgr.execution.publish_time);
-            packageId = char(testCase.mgr.execution.data_package_id);
+            packageId = char(testCase.mgr.execution.execution_id);
             tag = testCase.mgr.execution.tag;  
             user = char(testCase.mgr.execution.account_name);
             subject = 'CN=Test User, dc=dataone, dc=org'; 

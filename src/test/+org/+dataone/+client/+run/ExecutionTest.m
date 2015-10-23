@@ -64,9 +64,6 @@ classdef ExecutionTest < matlab.unittest.TestCase
             execution_id = get(execution, 'execution_id');
             assertMatches(testCase, execution_id, matchPattern);
             
-            data_package_id = get(execution, 'data_package_id');
-            assertMatches(testCase, data_package_id, matchPattern);
-
         end
     end
     

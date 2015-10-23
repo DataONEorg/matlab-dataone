@@ -63,9 +63,6 @@ classdef Execution < hgsetget
         % The operating system the execution was run on
         operating_system;
         
-        % The identifier for the DataONE data package associated with this run
-        data_package_id = '';
-        
         % The software application associated with this run (script name)
         software_application = '';
         
@@ -157,9 +154,6 @@ classdef Execution < hgsetget
             % encode the timezone offset correctly
             format = java.text.SimpleDateFormat('yyyy-MM-dd HH:MM:ss.SSSZ');
             execution.start_time = char(format.format(java.util.Date()));
-            
-            % Set a default package id
-            execution.data_package_id = char(java.util.UUID.randomUUID());
             
             % Set the account with the system username
             if ( ispc() )
