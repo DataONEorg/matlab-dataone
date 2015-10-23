@@ -69,7 +69,6 @@ function vardata = ncread( source, varname, varargin )
     % Identifiy the file being used and add a prov:used statement 
     % in the RunManager DataPackage instance   
     if ( runManager.configuration.capture_file_reads )
-        exec_input_id_list = runManager.getExecInputIds();
     
         % TODO: determine if this is netCDF-3 or netCDF-4 from the file format
         formatId = 'netCDF-3';
@@ -97,7 +96,8 @@ function vardata = ncread( source, varname, varargin )
                     runManager.execution.execution_objects(existing_id);
             end
             
-            exec_input_id_list.put(d1Object.identifier, formatId);
+            runManager.execution.execution_input_ids{ ...
+                length(runManager.execution.execution_input_ids + 1)} = pid;
         else
             % url
             % TODO: download the URL contents, cache in the execution
@@ -108,7 +108,8 @@ function vardata = ncread( source, varname, varargin )
             % runManager.execution.execution_objects(d1Object.identifier) = ...
             %     d1Object;
 
-            exec_input_id_list.put(source, formatId);
+            runManager.execution.execution_input_ids{ ...
+                length(runManager.execution.execution_input_ids + 1)} = source;
         end
     end
 end
