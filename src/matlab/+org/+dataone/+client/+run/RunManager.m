@@ -841,15 +841,26 @@ classdef RunManager < hgsetget
           
             % Write to a resourceMap file
             resourceMapName = [char(resourceMapId.getValue()) '.rdf'];  
-            fw = fopen(resourceMapName, 'w'); 
-            if fw == -1, error('Cannot write "%s%".',resourceMapName); end
+            resourceMapFullPath = fullfile( ...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', ...
+                identifier, ...
+                resourceMapName);
+            fw = fopen(resourceMapFullPath, 'w'); 
+            if fw == -1, error('Cannot write "%s%".',resourceMapFullPath); end
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
 
             % Add resourceMap D1Object to the DataPackage                      
             resMapFmt = 'http://www.openarchives.org/ore/terms'; 
-            resMapD1JavaObj = runManager.buildD1Object(resourceMapName, resMapFmt, resourceMapName, submitter, mnNodeId);
+            resMapD1JavaObj = runManager.buildD1Object(resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
             runManager.dataPackage.addData(resMapD1JavaObj);     
+            
+            path = fullfile( ...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', ...
+                identifier);
+            dir(path)
             
             data_package = runManager.dataPackage;
             
