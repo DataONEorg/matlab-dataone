@@ -1477,9 +1477,9 @@ classdef RunManager < hgsetget
             % getfield(executionObj(1), 'execution_id')
             % getfield(executionObj(1), 'execution_objects')
            
-            % Clear runtime input/output sources (?)
-            runManager.getExecInputIds().clear();
-            runManager.getExecOutputIds().clear();
+            % Clear runtime input/output sources
+            runManager.execution.execution_input_ids = {};
+            runManager.execution.execution_output_ids = {};
             
             % Unlock the RunManager instance
             munlock('RunManager');            
