@@ -17,6 +17,6 @@ mgr.record(script_path, tag);
 
 mgr.listRuns();
 
-mgr.view('sequenceNumber', 1);
+mgr.view('runNumber', 1);
 
-mgr.view('sequenceNumber', 1, 'sessions', {'details', 'used', 'generated'});
+mgr.view('runNumber', 1, 'sessions', {'details', 'used', 'generated'});

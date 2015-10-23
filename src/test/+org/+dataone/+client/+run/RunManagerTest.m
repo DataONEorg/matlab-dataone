@@ -409,9 +409,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             generateTestRuns(testCase);
             
-            sequenceNumber = 1;
+            runNumber = 1;
 
-            runs = testCase.mgr.listRuns('sequenceNumber', sequenceNumber);
+            runs = testCase.mgr.listRuns('runNumber', runNumber);
             [rows, columns] = size(runs);
             assertEqual(testCase, rows, 1); % Only one row should match
             % TODO: Compare the execution ids            
@@ -457,11 +457,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             generateTestRuns(testCase);
                         
-            sequenceNumber = 2;
+            runNumber = 2;
             noop = false;
             
             % Delete the runs
-            testCase.mgr.deleteRuns('sequenceNumber', sequenceNumber, 'noop', noop);
+            testCase.mgr.deleteRuns('runNumber', runNumber, 'noop', noop);
      
             if ~noop
                 runs = testCase.mgr.listRuns(); % List the runs
@@ -496,10 +496,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
            
             generateTestRuns(testCase);
 
-            sequenceNumber = 2;
+            runNumber = 2;
             
             sessions = {'details', 'used', 'generated'};
-            resultObjs = testCase.mgr.view('sequenceNumber', sequenceNumber, 'sessions', sessions); % view the selected run
+            resultObjs = testCase.mgr.view('runNumber', runNumber, 'sessions', sessions); % view the selected run
             numOfObjects = size(resultObjs, 2);
             assertGreaterThanOrEqual(testCase, numOfObjects, 1);   
             

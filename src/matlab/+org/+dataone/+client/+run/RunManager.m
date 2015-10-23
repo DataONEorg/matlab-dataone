@@ -465,7 +465,7 @@ classdef RunManager < hgsetget
             modelFactsD1Obj = runManager.buildD1Object(modelFactsFileName, txtFmt, modelFactsId.getValue(), submitter, mnNodeId);
             runManager.dataPackage.addData(modelFactsD1Obj);
                          
-            extractFactsId = Identifier;
+            extramatctFactsId = Identifier;
             extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump             
             extractFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.efilename]);
                 
@@ -866,7 +866,7 @@ classdef RunManager < hgsetget
                     'runId', 'filePath', 'startTime', 'endTime', ...,
                     'publishedTime', 'packageId', 'tag', 'user', ...,
                     'subject', 'hostId', 'operatingSystem', 'runtime', ...,
-                    'moduleDependencies', 'console', 'errorMessage', 'sequenceNumber'); % write header
+                    'moduleDependencies', 'console', 'errorMessage', 'runNumber'); % write header
                 fprintf(fileId,formatSpec, ...,
                     runID, filePath, startTime, endTime, ...,
                     publishedTime, packageId, tag, user, ...,
@@ -1493,7 +1493,7 @@ classdef RunManager < hgsetget
             %   startDate -- the starting timestamp for an execution
             %   endDate -- the ending timestamp for an execution
             %   tag -- a tag given to an execution 
-            %   sequenceNumber -- a sequence number given to an execution
+            %   runNumber -- a sequence number given to an execution
        
             persistent listRunsParser
             if isempty(listRunsParser)
@@ -1504,7 +1504,7 @@ classdef RunManager < hgsetget
                 addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(listRunsParser,'tag', '', @iscell);
                 checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
-                addParameter(listRunsParser,'sequenceNumber', '', checkSequenceNumber);
+                addParameter(listRunsParser,'runNumber', '', checkSequenceNumber);
             end
             parse(listRunsParser,varargin{:})
             
@@ -1512,7 +1512,7 @@ classdef RunManager < hgsetget
             startDate = listRunsParser.Results.startDate;
             endDate = listRunsParser.Results.endDate;
             tags = listRunsParser.Results.tag;
-            sequenceNumber = listRunsParser.Results.sequenceNumber;
+            runNumber = listRunsParser.Results.runNumber;
             
             if runManager.configuration.debug
                 listRunsParser.Results
@@ -1534,7 +1534,7 @@ classdef RunManager < hgsetget
             % Initialize the logical cell arrays for the next call for listRuns()
             dateCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
-            sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
+            runNumberCondition = false(size(execMetaMatrix, 1), 1);
             allCondition = true(size(execMetaMatrix, 1), 1);
             
             % Process the query constraints
@@ -1576,10 +1576,10 @@ classdef RunManager < hgsetget
                 allCondition = allCondition & tagsCondition;
             end
 
-            if ~isempty(sequenceNumber)
-                snValue = num2str(sequenceNumber);
-                sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
-                allCondition = allCondition & sequenceNumberCondition;
+            if ~isempty(runNumber)
+                snValue = num2str(runNumber);
+                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+                allCondition = allCondition & runNumberCondition;
             end
             
             % Extract multiple rows from a matrix satisfying the allCondition
@@ -1599,7 +1599,7 @@ classdef RunManager < hgsetget
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'sequenceNumber', 'packageId', 'scriptName', 'tags', 'startDate', 'endDate', 'publishDate'}); 
+                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tags', 'startDate', 'endDate', 'publishDate'}); 
                 disp(tableForSelectedRuns);                      
             end          
         end
@@ -1611,7 +1611,7 @@ classdef RunManager < hgsetget
             %   startDate -- the starting timestamp for an execution to be deleted
             %   endDate -- the ending timestamp for an execution to be deleted
             %   tag -- a tag given to an execution to be deleted
-            %   sequenceNumber -- a sequence number given to an execution to be deleted
+            %   runNumber -- a sequence number given to an execution to be deleted
             %   noop -- control delete the exuecution from disk or not
             %   quiet -- control the output or not
             
@@ -1624,7 +1624,7 @@ classdef RunManager < hgsetget
                 addParameter(deletedRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'tag', '', @iscell);
                 checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
-                addParameter(deletedRunsParser,'sequenceNumber', '', checkSequenceNumber);
+                addParameter(deletedRunsParser,'runNumber', '', checkSequenceNumber);
                 addParameter(deletedRunsParser,'noop', false, @islogical);
                 addParameter(deletedRunsParser,'quiet',false, @islogical);
             end
@@ -1634,7 +1634,7 @@ classdef RunManager < hgsetget
             startDate = deletedRunsParser.Results.startDate;
             endDate = deletedRunsParser.Results.endDate;
             tags = deletedRunsParser.Results.tag;
-            sequenceNumber = deletedRunsParser.Results.sequenceNumber;
+            runNumber = deletedRunsParser.Results.runNumber;
             noop = deletedRunsParser.Results.noop;
             quiet = deletedRunsParser.Results.quiet;
             
@@ -1649,7 +1649,7 @@ classdef RunManager < hgsetget
             dateCondition = false(size(execMetaMatrix, 1), 1);
             runIdCondition = false(size(execMetaMatrix, 1), 1);
             tagsCondition = false(size(execMetaMatrix, 1), 1);
-            sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);
+            runNumberCondition = false(size(execMetaMatrix, 1), 1);
             allDeleteCondition = true(size(execMetaMatrix, 1), 1);
             
             startDateFlag = false;
@@ -1692,10 +1692,10 @@ classdef RunManager < hgsetget
                 allDeleteCondition = allDeleteCondition & tagsCondition;
             end
            
-            if ~isempty(sequenceNumber)
-                snValue = num2str(sequenceNumber);
-                sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
-                allDeleteCondition = allDeleteCondition & sequenceNumberCondition;
+            if ~isempty(runNumber)
+                snValue = num2str(runNumber);
+                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+                allDeleteCondition = allDeleteCondition & runNumberCondition;
             end
            
             % Extract multiple rows from a matrix satisfying the allCondition
@@ -1759,7 +1759,7 @@ classdef RunManager < hgsetget
                         'moduleDependencies', ...
                         'console', ...
                         'errorMessage', ...
-                        'sequenceNumber');
+                        'runNumber');
                     [rows, cols] = size(execMetaMatrix);
                     for (row = 1:rows)
                         fprintf(fileId, formatSpec, ...
@@ -1801,14 +1801,14 @@ classdef RunManager < hgsetget
                
                addParameter(viewRunsParser,'packageId', '', @ischar);   
                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
-               addParameter(viewRunsParser,'sequenceNumber', '', checkSequenceNumber);
+               addParameter(viewRunsParser,'runNumber', '', checkSequenceNumber);
                addParameter(viewRunsParser,'tag', '', @iscell);
                addParameter(viewRunsParser,'sessions', '', @iscell);
            end
            parse(viewRunsParser,varargin{:})
             
            packageId = viewRunsParser.Results.packageId;
-           sequenceNumber = viewRunsParser.Results.sequenceNumber;
+           runNumber = viewRunsParser.Results.runNumber;
            tags = viewRunsParser.Results.tag;
            sessions = viewRunsParser.Results.sessions;
             
@@ -1821,7 +1821,7 @@ classdef RunManager < hgsetget
            
            % Initialize the logical cell arrays for the next call for listRuns() 
            packageIdCondition = false(size(execMetaMatrix, 1), 1);          
-           sequenceNumberCondition = false(size(execMetaMatrix, 1), 1);   
+           runNumberCondition = false(size(execMetaMatrix, 1), 1);   
            tagsCondition = false(size(execMetaMatrix, 1), 1);
            allCondition = true(size(execMetaMatrix, 1), 1);
            
@@ -1843,10 +1843,10 @@ classdef RunManager < hgsetget
                allCondition = allCondition & tagsCondition; % Logical and operator
            end
 
-           if ~isempty(sequenceNumber)              
-               snValue = num2str(sequenceNumber);
-               sequenceNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                              
-               allCondition = allCondition & sequenceNumberCondition;
+           if ~isempty(runNumber)              
+               snValue = num2str(runNumber);
+               runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                              
+               allCondition = allCondition & runNumberCondition;
            end
                        
            curDir = pwd();

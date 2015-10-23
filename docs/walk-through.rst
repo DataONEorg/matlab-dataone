@@ -131,9 +131,9 @@ To **record a script** run, pass it to the RunManager's record() function, and a
 This will run the script, and will track data input and output files that are read, and will store  to a cache directory, along with other run metadata.
 
 
-Record a run with a script with comments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Now, **record another run**, but this time, use the script that has been documented using the YesWorkflow comments.  The comments define blocks in the code with '**@begin**', '**@end**', '**@in**' and '**@out**' statements.  First, peruse the 'C3_C4_map_present_NA_with_comments.m' script and see how YesWorkflow comments communicate the planned workflow:
+Record a run with a script with workflow comments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Now, **record another run**, but this time, use the script that has been documented using the workflow comments using the YesWorkflow syntax  .  The comments define blocks in the code with '**@begin**', '**@end**', '**@in**' and '**@out**' statements.  First, peruse the 'C3_C4_map_present_NA_with_comments.m' script and see how YesWorkflow comments communicate the planned workflow:
 
 .. image:: images/matlab-walkthrough/yesworkflow-comments.png
 
@@ -153,22 +153,22 @@ Now that you have completed two runs, **view the runs** using the listRuns() fun
 
   mgr.listRuns();
   
-The number of runs you produce might get very long, so you can filter the runs by startDate, endDate, tags, or sequenceNumber, such as:
+The number of runs you produce might get very long, so you can filter the runs by startDate, endDate, tags, or runNumber, such as:
 
 .. code:: matlab
 
   mgr.listRuns('tags', 'algorithm 1, no markup');
   mgr.listRuns('startDate', '20151027T080000');
-  mgr.listRuns('sequenceNumber', '2');
+  mgr.listRuns('runNumber', '2');
 
 
 View a selected run
 ~~~~~~~~~~~~~~~~~~~
-To view a given run, pass in the sequenceNumber or packageId from one of the resulting rows from the output of listRuns().  For instance:
+To view a given run, pass in the runNumber or packageId from one of the resulting rows from the output of listRuns().  For instance:
 
 .. code:: matlab
   
-  mgr.view('sequenceNumber', '1');
+  mgr.view('runNumber', '1');
 
 The output of the view() function provides more technical details about the run.
 
@@ -183,14 +183,14 @@ If a run wasn't useful, you can **delete one or more runs** from the database us
 
 .. code:: matlab
 
-  mgr.deleteRuns('sequenceNumber', 1);
+  mgr.deleteRuns('runNumber', 1);
   mgr.listRuns();
 
 
 View and modify metadata for a run
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
+  
 Publish a selected run
 ~~~~~~~~~~~~~~~~~~~~~~
 
