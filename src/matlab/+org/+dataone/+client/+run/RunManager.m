@@ -2073,9 +2073,28 @@ classdef RunManager < hgsetget
                 runManager.execution = stored_execution.executionObj(1);
 
                 % Build a D1 datapackage
-                % pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );    
+                if ( ~isempty(runManager.configuration.submitter) )
+                    submitter = char(runManager.configuration.submitter);
+                    
+                else
+                    submitter = char(runManager.configuration.account_name); %Hack
+                    
+                end
                 
+                if ( ~isempty(runManager.configuration.target_member_node_id) || ...
+                        (strcmp(runManager.configuration.target_member_node_id, ...
+                        'urn:node:XXXX')) )
+                    mnNodeId = runManager.configuration.target_member_node_id;
+                    
+                else
+                    error('RunManager:missingTargetMemberNode', ...
+                        ['There is no valid Configuration.target_member_node_id set.\n', ...
+                        'Please set it with the correct Member Node id.']);
+                    
+                end
                 
+                pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );    
+                                
                 % Get authenticate token or X509 certificate 
                 auth_token = runManager.configuration.get('authentication_token');
                 [certificate, standardizedName] = runManager.getCertificate();
