@@ -251,24 +251,46 @@ classdef RunManager < hgsetget
                     % Create yesWorkflow modelFacts prolog dump 
                     import org.yesworkflow.model.ModelFacts;
                     import org.yesworkflow.extract.ExtractFacts;
-                   
+                    
+                    import org.dataone.client.v2.D1Object;
+                    
+                    prologDumpFormatId = 'text/plain';
+                    
                     modelFacts = runManager.modeler.getFacts();  
                     gconfig = config.getSection('model');
                     runManager.mfilename = gconfig.get('factsfile');
-                    fw = fopen([runDirectory filesep runManager.mfilename], 'w'); 
+                    mf_fullFilePath = [runDirectory filesep runManager.mfilename];
+                    fw = fopen(mf_fullFilePath, 'w'); 
                     if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
                     fprintf(fw, '%s', char(modelFacts));
                     fclose(fw);
+                    
+                    % Create D1 object for yesworkflow model facts dump file and put
+                    % its id into execution_output_ids array
+                    mf_pid = char(java.util.UUID.randomUUID());
+                    mf_d1Object = D1Object(mf_pid, prologDumpFormatId, mf_fullFilePath); 
+                    runManager.execution.execution_objects(mf_d1Object.identifier) = ...
+                        mf_d1Object;
+                    runManager.execution.execution_output_ids{end+1} = mf_pid;
                     
                     % Create yesWorkflow extractFacts prolog dump
                     extractFacts = runManager.extractor.getFacts(); 
                     gconfig = config.getSection('extract');
                     runManager.efilename = gconfig.get('factsfile');
-                    fw = fopen([runDirectory filesep runManager.efilename], 'w');    
+                    ef_fullFilePath = [runDirectory filesep runManager.efilename];
+                    fw = fopen(ef_fullFilePath, 'w');    
                     if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
                     fprintf(fw, '%s', char(extractFacts));
                     fclose(fw);
                    
+                    % Create D1 object for yesworkflow extract facts dump file and put
+                    % its id into execution_output_ids array
+                    ef_pid = char(java.util.UUID.randomUUID());
+                    ef_d1Object = D1Object(ef_pid, prologDumpFormatId, ef_fullFilePath);
+                    runManager.execution.execution_objects(ef_d1Object.identifier) = ...
+                        ef_d1Object;
+                    runManager.execution.execution_output_ids{end+1} = ef_pid;
+                    
                     cd(curDir); % go back to current working directory          
                 end  
                 
@@ -279,7 +301,10 @@ classdef RunManager < hgsetget
  
        
         function generateYesWorkflowGraphic(runManager, runDirectory)
-            % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format            
+            % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format    
+            
+            import org.dataone.client.v2.D1Object;
+            
             position = strfind(runManager.processViewDotFileName, '.gv'); % get the index of '.gv'            
             processViewDotName = strtrim(runManager.processViewDotFileName(1:(position-1)));
             
@@ -299,6 +324,8 @@ classdef RunManager < hgsetget
             fullPathCombinedViewPdfFileName = [runDirectory filesep combViewDotName '.pdf'];
             fullPathCombViewDotName = [runDirectory filesep runManager.combinedViewDotFileName];
              
+            imageFormatId = 'application/pdf';
+           
             % Convert .gv files to .pdf files
             if isunix    
                 system(['/usr/local/bin/dot -Tpdf '  fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
@@ -308,6 +335,26 @@ classdef RunManager < hgsetget
                 delete(fullPathProcessViewDotFileName);
                 delete(fullPathDataViewDotFileName);
                 delete(fullPathCombViewDotName);
+                
+                % Create D1 object for three yesworkflow images and put
+                % them into execution_output_ids array
+                comb_image_pid = char(java.util.UUID.randomUUID());
+                comb_image_d1Object = D1Object(comb_image_pid, imageFormatId, fullPathCombinedViewPdfFileName);
+                runManager.execution.execution_objects(comb_image_d1Object.identifier) = ...
+                        comb_image_d1Object;
+                runManager.execution.execution_output_ids{end+1} = comb_image_pid;
+                
+                process_image_pid = char(java.util.UUID.randomUUID());
+                process_image_d1Object = D1Object(process_image_pid, imageFormatId, fullPathProcessViewPdfFileName);
+                runManager.execution.execution_objects(process_image_d1Object.identifier) = ...
+                        process_image_d1Object;
+                runManager.execution.execution_output_ids{end+1} = process_image_pid;
+                
+                data_image_pid = char(java.util.UUID.randomUUID());
+                data_image_d1Object = D1Object(data_image_pid, imageFormatId, fullPathDataViewPdfFileName);
+                runManager.execution.execution_objects(data_image_d1Object.identifier) = ...
+                        data_image_d1Object;
+                runManager.execution.execution_output_ids{end+1} = data_image_pid;
             end
         end
         
@@ -776,6 +823,10 @@ classdef RunManager < hgsetget
                 submitter = runManager.execution.account_name;
                 mnNodeId = runManager.configuration.target_member_node_id;
                 
+                if runManager.configuration.debug
+                    outputD1Obj.full_file_path
+                end
+                
                 outputD1JavaObj = runManager.buildD1Object( ...
                         outputD1Obj.full_file_path, outputD1Obj.format_id, ...
                         outputD1Obj.identifier, submitter, mnNodeId);
@@ -838,7 +889,7 @@ classdef RunManager < hgsetget
             
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
-          
+         
             % Write to a resourceMap file
             resourceMapName = [char(resourceMapId.getValue()) '.rdf'];  
             resourceMapFullPath = fullfile( ...
@@ -855,13 +906,7 @@ classdef RunManager < hgsetget
             resMapFmt = 'http://www.openarchives.org/ore/terms'; 
             resMapD1JavaObj = runManager.buildD1Object(resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
             runManager.dataPackage.addData(resMapD1JavaObj);     
-            
-            path = fullfile( ...
-                runManager.configuration.provenance_storage_directory, ...
-                'runs', ...
-                identifier);
-            dir(path)
-            
+           
             data_package = runManager.dataPackage;
             
         end
