@@ -789,7 +789,7 @@ classdef RunManager < hgsetget
                 
                     set(inputD1Obj, 'system_metadata', inputD1JavaObj.getSystemMetadata);
                 
-                    % runManager.execution.execution_objects(inputD1Obj.identifier) = inputD1Obj;
+                    runManager.execution.execution_objects(inputD1Obj.identifier) = inputD1Obj;
                 
                     inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inputD1Obj.identifier]); 
                     runManager.dataPackage.insertRelationship( ...
