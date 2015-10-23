@@ -121,7 +121,7 @@ function S = load( source, varargin )
         
         if ~isempty(fullSourcePath)
             runManager.execution.execution_input_ids{ ...
-                end + 1} = pid;
+                end + 1} = d1Object.identifier;
         end
     end
 end
