@@ -163,10 +163,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             a = dir(testCase.mgr.execution.execution_directory);
             b = struct2cell(a);
             
-            [path, name, ext] = fileparts(testCase.filename);
-            testResMapFileName = ['resourceMap_' name '.rdf'];
-            existed = any(ismember(b(1,:), testResMapFileName));
-            assert(isequal(existed,1));
+            matches = regexp(b(1,:), '.rdf');
+            total = sum(~cellfun('isempty', matches));
+            assertEqual(testCase, total, 1);
             
             % Test if there are three views outputs exist 
             matches = regexp(b(1,:), '.pdf');
@@ -174,9 +173,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assertEqual(testCase, total, 3);
             
             % Test if there are three yw.properties 
-            matches = regexp(b(1,:), '.properties');
-            total = sum(~cellfun('isempty', matches));
-            assertEqual(testCase, total, 3);
+            % matches = regexp(b(1,:), '.properties');
+            % total = sum(~cellfun('isempty', matches));
+            % assertEqual(testCase, total, 3);
             
             % Test if there are two prolog dump files
             matches = regexp(b(1,:), 'extractfacts');
