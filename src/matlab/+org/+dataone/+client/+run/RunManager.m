@@ -622,8 +622,7 @@ classdef RunManager < hgsetget
             cd(curPath);
         end
         
-        
-        
+                
         function data_package = buildPackage2(runManager, submitter, mnNodeId, dirPath)
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
@@ -646,25 +645,15 @@ classdef RunManager < hgsetget
            
             scriptIdentifier = runManager.execution.getIdByFullFilePath( ...
                 runManager.execution.software_application);
-           
-            cd(dirPath);
- 
-            % Find the serialized execution data
-            serFileName = strtrim(ls('*.mat'));              
-            execStruc = load(serFileName);
-            deserialized_execution = execStruc.executionObj(1);
-  
-            deserialized_execution_id = getfield(deserialized_execution, 'execution_id');
-            deserialized_execution_objects = getfield(deserialized_execution, 'execution_objects');
             
             % Initialize a dataPackage to manage the run
             packageIdentifier = Identifier();
-            packageIdentifier.setValue(deserialized_execution_id);      
+            packageIdentifier.setValue(runManager.execution.execution_id);      
             runManager.execution.data_package_id = packageIdentifier.getValue();
            
             % Create a resourceMap identifier
             resourceMapId = Identifier();
-            resourceMapId.setValue(['resourceMap_' deserialized_execution_id]);
+            resourceMapId.setValue(['resourceMap_' runManager.execution.execution_id]);
             % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
             
@@ -683,42 +672,86 @@ classdef RunManager < hgsetget
             wasAssociatedWithPredicate = PROV.predicate('wasAssociatedWith');
             agentPredicate = PROV.predicate('agent');
             provONEUserURI = URI(ProvONE.User.getURI());                                                
-            runManager.execution.execution_uri = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' deserialized_execution_id]);
-            runManager.associationSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint 'a_' char(java.util.UUID.randomUUID())]);
+            runManager.execution.execution_uri = ...
+                URI([runManager.D1_CN_Resolve_Endpoint  ...
+                'execution_' runManager.execution.execution_id]);
+            runManager.associationSubjectURI = ...
+                URI([runManager.D1_CN_Resolve_Endpoint ...
+                'a_' char(java.util.UUID.randomUUID())]);
            
-            % Create a D1Object for the program that we are running  
-            scriptD1Obj = deserialized_execution_objects(scriptIdentifier);
-            programD1JavaObj = runManager.buildD1Object(scriptD1Obj.full_file_path, scriptD1Obj.format_id, scriptD1Obj.identifier, submitter, mnNodeId);
+            % Create a D1Object for the program that we are running and
+            %    update the resulting sysmeta in the stored exucution matlab D1Object
+            scriptD1Obj = runManager.execution.execution_objects(scriptIdentifier);
+            programD1JavaObj = runManager.buildD1Object( ...
+                scriptD1Obj.full_file_path, scriptD1Obj.format_id, ...
+                scriptD1Obj.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(programD1JavaObj);
+            set(scriptD1Obj, 'system_metadata', programD1JavaObj.getSystemMetadata);
+            runManager.execution.execution_objects(scriptIdentifier) = scriptD1Obj;
             
             % Create a D1 identifier for the workflow script  
             runManager.wfIdentifier = Identifier();                   
             runManager.wfIdentifier.setValue(scriptD1Obj.identifier);
           
             % Record relationship identifying workflow identifier and URI as a provONE:Program
-            runManager.dataPackage.insertRelationship(runManager.wfIdentifier.getValue(), runManager.aTypePredicate, provOneProgramURI);
+            runManager.dataPackage.insertRelationship( ...
+                runManager.wfIdentifier.getValue(), ...
+                runManager.aTypePredicate, ...
+                provOneProgramURI);
+            
             % Describe the workflow identifier with resovlable URI 
-            wfSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint char(runManager.wfIdentifier.getValue())]);
-            runManager.dataPackage.insertRelationship(wfSubjectURI, runManager.aTypePredicate, provOneProgramURI);
+            wfSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint ...
+                char(runManager.wfIdentifier.getValue())]);
+            runManager.dataPackage.insertRelationship( ...
+                wfSubjectURI, ...
+                runManager.aTypePredicate, ...
+                provOneProgramURI);
            
             % Store the prov relationship: association->prov:hadPlan->program
-            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, hadPlanPredicate, provOneProgramURI);
+            runManager.dataPackage.insertRelationship( ...
+                runManager.associationSubjectURI, ...
+                hadPlanPredicate, ...
+                provOneProgramURI);
+            
             % Record relationship identifying association id as a prov:Association
-            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, runManager.aTypePredicate, provAssociationURI);
+            runManager.dataPackage.insertRelationship( ...
+                runManager.associationSubjectURI, ...
+                runManager.aTypePredicate, ...
+                provAssociationURI);
                         
             % Store the prov relationship: execution->prov:qualifiedAssociation->association
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, qualifiedAssociationPredicate, provAssociationURI);
+            runManager.dataPackage.insertRelationship( ...
+                runManager.execution.execution_uri, ...
+                qualifiedAssociationPredicate, ...
+                provAssociationURI);
+            
             % Record relationship identifying execution id as a provone:Execution 
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, runManager.aTypePredicate, provOneExecURI);  
+            runManager.dataPackage.insertRelationship(...
+                runManager.execution.execution_uri, ...
+                runManager.aTypePredicate, ...
+                provOneExecURI);  
                       
             % Store the ProvONE relationships for user
-            runManager.userURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.execution.account_name]);                 
+            runManager.userURI = URI([runManager.D1_CN_Resolve_Endpoint ...
+                runManager.execution.account_name]);                 
+            
             % Record the relationship between the Execution and the user
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, wasAssociatedWithPredicate, runManager.userURI);    
+            runManager.dataPackage.insertRelationship( ...
+                runManager.execution.execution_uri, ...
+                wasAssociatedWithPredicate, ...
+                runManager.userURI);    
+            
             % Record the relationship for association->prov:agent->"user"
-            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, agentPredicate, runManager.userURI);
+            runManager.dataPackage.insertRelationship( ...
+                runManager.associationSubjectURI, ...
+                agentPredicate, ...
+                runManager.userURI);
+            
             % Record a relationship identifying the provONE:user
-            runManager.dataPackage.insertRelationship(runManager.userURI, runManager.aTypePredicate, provONEUserURI); 
+            runManager.dataPackage.insertRelationship( ...
+                runManager.userURI, ...
+                runManager.aTypePredicate, ...
+                provONEUserURI); 
                         
             data_package = runManager.dataPackage;
             
