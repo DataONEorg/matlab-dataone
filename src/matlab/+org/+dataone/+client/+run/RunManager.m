@@ -770,7 +770,9 @@ classdef RunManager < hgsetget
        
             % Process execution_input_ids
             for i=1:length(runManager.execution.execution_input_ids)
-                inputId = runManager.execution.execution_input_ids(i);
+                inputId = runManager.execution.execution_input_ids{i};
+                inputId
+                whos inputId
                 
                 startIndex = regexp( inputId,'http' ); 
                 if isempty(startIndex)                   
@@ -1251,8 +1253,8 @@ classdef RunManager < hgsetget
                 
             % Initialize a new Execution for this run
             runManager.execution = Execution();
-            runManager.execution.execution_input_ids = java.util.Hashtable();
-            runManager.execution.execution_output_ids = java.util.Hashtable();
+            runManager.execution.execution_input_ids = {};
+            runManager.execution.execution_output_ids = {};
             runManager.execution.tag = tag;
 
             % Do we have a script as input?
