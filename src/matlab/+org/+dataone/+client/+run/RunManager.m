@@ -771,16 +771,18 @@ classdef RunManager < hgsetget
             % Process execution_input_ids
             for i=1:length(runManager.execution.execution_input_ids)
                 inputId = runManager.execution.execution_input_ids{i};
-                inputId
-                whos inputId
+                % inputId
+                % whos inputId
                 
                 startIndex = regexp( inputId,'http' ); 
                 if isempty(startIndex)                   
                     inputD1Obj = runManager.execution.execution_objects(inputId);
                 
-                    submitter = inputD1Obj.system_metadata.getSubmitter().getValue();
-                    mnNodeId = inputD1Obj.system_metadata.getAuthoritativeMemberNode().getValue();
-                
+                    % submitter = inputD1Obj.system_metadata.getSubmitter().getValue();
+                    % mnNodeId = inputD1Obj.system_metadata.getAuthoritativeMemberNode().getValue();
+                    submitter = runManager.execution.account_name;
+                    mnNodeId = runManager.configuration.target_member_node_id;
+                    
                     inputD1JavaObj = runManager.buildD1Object( ...
                         inputD1Obj.full_file_path, inputD1Obj.format_id, ...
                         inputD1Obj.identifier, submitter, mnNodeId);
