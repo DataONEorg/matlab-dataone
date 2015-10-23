@@ -622,7 +622,6 @@ classdef RunManager < hgsetget
             cd(curPath);
         end
         
-                
         function data_package = buildPackage2(runManager, submitter, mnNodeId, dirPath)
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
@@ -654,7 +653,7 @@ classdef RunManager < hgsetget
                 'runs', ...
                 identifier, ...
                 exec_file_base_name));
-            
+
             % Assign deserialized execution to runManager.execution
             runManager.execution = stored_execution.executionObj(1);
             
@@ -693,7 +692,8 @@ classdef RunManager < hgsetget
             runManager.associationSubjectURI = ...
                 URI([runManager.D1_CN_Resolve_Endpoint ...
                 'a_' char(java.util.UUID.randomUUID())]);
-           
+            usedPredicate = PROV.predicate('used');
+            
             % Create a D1Object for the program that we are running and
             %    update the resulting sysmeta in the stored exucution matlab D1Object
             scriptD1Obj = runManager.execution.execution_objects(scriptIdentifier);
@@ -767,7 +767,43 @@ classdef RunManager < hgsetget
                 runManager.userURI, ...
                 runManager.aTypePredicate, ...
                 provONEUserURI); 
-                        
+       
+            % Process execution_input_ids
+            for i=1:length(runManager.execution.execution_input_ids)
+                inputId = runManager.execution.execution_input_ids(i);
+                
+                startIndex = regexp( inputId,'http' ); 
+                if isempty(startIndex)                   
+                    inputD1Obj = runManager.execution.execution_objects(inputId);
+                
+                    submitter = inputD1Obj.system_metadata.getSubmitter().getValue();
+                    mnNodeId = inputD1Obj.system_metadata.getAuthoritativeMemberNode().getValue();
+                
+                    inputD1JavaObj = runManager.buildD1Object( ...
+                        inputD1Obj.full_file_path, inputD1Obj.format_id, ...
+                        inputD1Obj.identifier, submitter, mnNodeId);
+                
+                    runManager.dataPackage.addData(inputD1JavaObj);
+                    systemMetadata = inputD1JavaObj.getSystemMetadata; % java version sysmeta            
+                    systemMetadata.setFileName(inputD1Obj.system_metadata.getFileName); % use Java sysmeta base file name to set matlab sysmeta
+                
+                    set(inputD1Obj, 'system_metadata', inputD1JavaObj.getSystemMetadata);
+                
+                    % runManager.execution.execution_objects(inputD1Obj.identifier) = inputD1Obj;
+                
+                    inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inputD1Obj.identifier]); 
+                    runManager.dataPackage.insertRelationship( ...
+                        runManager.execution.execution_uri, ...
+                        usedPredicate, ...
+                        inSourceURI); 
+                
+                    runManager.dataPackage.insertRelationship(...
+                        inSourceURI, ...
+                        runManager.aTypePredicate, ...
+                        runManager.provONEdataURI);
+                end
+            end
+            
             data_package = runManager.dataPackage;
             
         end
@@ -1159,8 +1195,8 @@ classdef RunManager < hgsetget
                 import org.dataone.client.run.Execution;
                 
                 runManager.execution = Execution();
-                runManager.execution.execution_input_ids = java.util.Hashtable();
-                runManager.execution.execution_output_ids = java.util.Hashtable();
+                runManager.execution.execution_input_ids = {};
+                runManager.execution.execution_output_ids = {};
             
                 % Set the manager.last_sequence_number based on execution_db_name last
                 % sequence number
