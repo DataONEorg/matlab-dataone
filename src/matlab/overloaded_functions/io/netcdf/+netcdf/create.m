@@ -98,7 +98,6 @@ function varargout = create(source, mode, varargin)
     import org.dataone.client.v2.D1Object;
 
     if ( runManager.configuration.capture_file_writes )
-        exec_output_id_list = runManager.getExecOutputIds();
 
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
@@ -122,6 +121,7 @@ function varargout = create(source, mode, varargin)
                 d1Object;
         end
         
-        exec_output_id_list.put(pid, formatId);
+        runManager.execution.execution_output_ids{ ...
+            end + 1} = pid;
     end
 end
