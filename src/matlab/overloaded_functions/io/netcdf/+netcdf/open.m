@@ -86,8 +86,6 @@ function varargout = open(source, varargin)
     % Identifiy the file being created/used and add a prov:used/prov:wasGeneratedBy statements 
     % in the RunManager DataPackage instance
     formatId = 'netCDF-3';
-    exec_input_id_list = runManager.getExecInputIds();
-    exec_output_id_list = runManager.getExecOutputIds();
     
     switch nargin
         case 1
@@ -118,7 +116,11 @@ function varargout = open(source, varargin)
                         d1Object = ...
                             runManager.execution.execution_objects(existing_id);
                     end
-                    exec_input_id_list.put(d1Object.identifier, formatId);
+                    runManager.execution.execution_input_ids{ ...
+                        length( ...
+                        runManager.execution.execution_input_ids + 1)} = ...
+                        d1Object.identifier;
+
                 end
             else
                 % url
@@ -136,7 +138,10 @@ function varargout = open(source, varargin)
                     %     d1Object;
                     %    d1Object.identifier) = d1Object;
 
-                    exec_input_id_list.put(source, formatId);
+                    runManager.execution.execution_input_ids{ ...
+                        length( ...
+                        runManager.execution.execution_input_ids + 1)} = ...
+                        source;
                 end
             end
      
@@ -168,7 +173,8 @@ function varargout = open(source, varargin)
                             runManager.execution.execution_objects(existing_id);
                     end
 
-                    exec_input_id_list.put(d1Object.identifier, formatId);
+                    runManager.execution.execution_input_ids{ ...
+                        end + 1} = d1Object.identifier;
                 end
                 
                 if ( runManager.configuration.capture_file_writes )
@@ -185,7 +191,8 @@ function varargout = open(source, varargin)
                         runManager.execution.execution_objects(d1Object.identifier) = ...
                             d1Object;
                     end
-                    exec_output_id_list.put(pid, formatId);
+                    runManager.execution.execution_output_ids{ ...
+                        end + 1} = d1Object.identifier;
                 end
                 
             elseif any(strcmp(varargin{1}, {'NOWRITE', 'NC_NOWRITE'})) ~= 0
@@ -214,7 +221,8 @@ function varargout = open(source, varargin)
                             runManager.execution.execution_objects(existing_id);
                     end
                     
-                    exec_input_id_list.put(d1Object.identifier, formatId);
+                    runManager.execution.execution_input_ids{ ...
+                        end + 1} = d1Object.identifier;
                 end
             else
                 % 'SHARE' Synchronous file updates
