@@ -97,7 +97,7 @@ function vardata = ncread( source, varname, varargin )
             end
             
             runManager.execution.execution_input_ids{ ...
-                length(runManager.execution.execution_input_ids + 1)} = pid;
+                end + 1} = pid;
         else
             % url
             % TODO: download the URL contents, cache in the execution
@@ -109,7 +109,7 @@ function vardata = ncread( source, varname, varargin )
             %     d1Object;
 
             runManager.execution.execution_input_ids{ ...
-                length(runManager.execution.execution_input_ids + 1)} = source;
+                end + 1} = source;
         end
     end
 end

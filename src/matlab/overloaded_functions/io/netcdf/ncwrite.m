@@ -102,7 +102,7 @@ function ncwrite( source, varname, varargin )
                 d1Object;
         end
         
-        runManager.execution.execution_output_ids{ ...
-            length(runManager.execution.execution_output_ids + 1)} = pid;  
+        runManager.execution.execution_input_ids{ ...
+            end + 1} = pid;
     end
 end
