@@ -79,7 +79,6 @@ function ncwrite( source, varname, varargin )
     if ( runManager.configuration.capture_file_writes )
         formatId = 'netCDF-3';
         import org.dataone.client.v2.D1Object;
-        exec_output_id_list = runManager.getExecOutputIds();
     
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
@@ -103,6 +102,7 @@ function ncwrite( source, varname, varargin )
                 d1Object;
         end
         
-        exec_output_id_list.put(pid, formatId);   
+        runManager.execution.execution_output_ids{ ...
+            length(runManager.execution.execution_output_ids + 1)} = pid;  
     end
 end
