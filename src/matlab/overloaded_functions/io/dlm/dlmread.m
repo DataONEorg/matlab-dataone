@@ -89,14 +89,32 @@ function result = dlmread( source, varargin )
     % Identifiy the file being used and add a prov:used statement 
     % in the RunManager DataPackage instance   
     if ( runManager.configuration.capture_file_reads )
-        exec_input_id_list = runManager.getExecInputIds();
+        formatId = 'text/plain'; % Todo: determine the object format for dlmread type
+        import org.dataone.client.v2.D1Object;
+        
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
             [status, struc] = fileattrib(source);
             fullSourcePath = struc.Name;
         end
  
-        % Todo: determine the object format for dlmread type
-        exec_input_id_list.put(fullSourcePath, 'text/plain');
+        existing_id = runManager.execution.getIdByFullFilePath( ...
+            fullSourcePath);
+        if ( isempty(existing_id) )
+            % Add this object to the execution objects map
+            pid = char(java.util.UUID.randomUUID()); % generate an id
+            d1Object = D1Object(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(d1Object.identifier) = ...
+                d1Object;
+        else
+            % Update the existing map entry with a new D1Object
+            pid = existing_id;
+            d1Object = D1Object(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(d1Object.identifier) = ...
+                d1Object;
+        end
+        
+        runManager.execution.execution_input_ids{end+1} = pid;       
+        % exec_input_id_list.put(fullSourcePath, 'text/plain');
     end
 end
