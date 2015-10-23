@@ -644,15 +644,16 @@ classdef RunManager < hgsetget
             end
            
             % Get the run identifier from the directory name
-            path_array = strsplit(filesep, dirPath);
-            identifier = path_array(end);
+            path_array = strsplit(dirPath, filesep);
+            identifier = char(path_array(end));
             
             % Load the stroed execution given the directory name
+            exec_file_base_name = [identifier '.mat'];
             stored_execution = load(fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
                 'runs', ...
                 identifier, ...
-                [identifier '.mat']));
+                exec_file_base_name));
             
             % Assign deserialized execution to runManager.execution
             runManager.execution = stored_execution.executionObj(1);
