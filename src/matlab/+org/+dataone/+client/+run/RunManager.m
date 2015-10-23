@@ -2122,7 +2122,7 @@ classdef RunManager < hgsetget
                     submitter = char(runManager.configuration.submitter);
                     
                 else
-                    submitter = char(runManager.configuration.account_name); %Hack
+                    submitter = char(runManager.execution.account_name); %Hack
                     
                 end
                 
@@ -2184,31 +2184,29 @@ classdef RunManager < hgsetget
                 end
                  
                 % submitterStr = runManager.configuration.get('submitter');
-                targetmMNodeStr = runManager.configuration.get('target_member_node_id');
+                targetMNodeStr = runManager.configuration.get('target_member_node_id');
                 
                 submitter = Subject();
                 % submitter.setValue(runManager.configuration.submitter);
                 submitter.setValue(runManager.execution.account_name); % Todo: use account_name as the value of submitter now. But need to investigate if auth_token has the submitter information
                
-                % Upload each data object in the identifiers.txt in current directory
-                [identifierFileId, message] = fopen('identifiers.txt', 'r');
-                if identifierFileId == -1
-                    error(message);
-                else
-                    idList = textscan(identifierFileId, '%s %s\n', 'Delimiter', ' ');
-                    idMatrix = [idList{[1 2]}];
-                    fclose(identifierFileId);
-                end
+                % Upload each data object in the execution_objects map
+                identifiers = keys(runManager.execution.execution_objects);
+                d1objects = values(runManager.execution.execution_objects);
                 
-                for i = 1:length(idMatrix)
-                    dataObjId = idMatrix{i,1};
-                    dataObjFmt = idMatrix{i,2};
+                for k = 1: length(identifiers)
+                    
+                    dataObjId = identifiers{k};
+                    dataObj = d1objects{k};
+                    dataObjFmt = dataObj.format_id;
+                    
                     if runManager.configuration.debug
                         fprintf('Uploading file: %s and file format: %s\n', dataObjId, dataObjFmt);
                     end
                     
                     % build d1 object
-                    dataObj = runManager.buildD1Object(dataObjId, dataObjFmt, dataObjId, submitter.getValue(), targetmMNodeStr);
+                    dataObj = runManager.buildD1Object(dataObj.full_file_path, ...
+                        dataObjFmt, dataObjId, submitter.getValue(), targetMNodeStr);
                     dataSource = dataObj.getDataSource();
                     
                     % get system metadata for dataObj 
@@ -2226,6 +2224,7 @@ classdef RunManager < hgsetget
                     end
                     
                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
+                    v2SysMeta.setFileName(dataObj.system_metadata.getFileName());
                     v2SysMeta.setSubmitter(submitter);
                     v2SysMeta.setRightsHolder(submitter);
                     
@@ -2269,7 +2268,6 @@ classdef RunManager < hgsetget
                     % end
                 end
                 
-                cd(curDir);
                 package_id = packageId; 
          
             catch runtimeError 
@@ -2290,9 +2288,56 @@ classdef RunManager < hgsetget
             end
             
             % Write the updated execution metadata with headers to the execution
-            T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
-            writetable(T, runManager.configuration.execution_db_name);
-        end  
+            % T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
+            % writetable(T, runManager.configuration.execution_db_name);
+            % Write the updated execution metadata with headers to the execution database
+            formatSpec = runManager.configuration.execution_db_write_format;
+            if exist(runManager.configuration.execution_db_name, 'file') == 2
+                [fileId, message] = ...
+                    fopen(runManager.configuration.execution_db_name,'w');
+                if fileId == -1
+                    disp(message);
+                end
+                fprintf(fileId, formatSpec, ...
+                    'runId', ...
+                    'filePath', ...
+                    'startTime', ...
+                    'endTime', ...
+                    'publishedTime', ...
+                    'packageId', ...
+                    'tag', ...
+                    'user', ...
+                    'subject', ...
+                    'hostId', ...
+                    'operatingSystem', ...
+                    'runtime', ...
+                    'moduleDependencies', ...
+                    'console', ...
+                    'errorMessage', ...
+                    'runNumber');
+                [rows, cols] = size(execMetaMatrix);
+                for (row = 1:rows)
+                    fprintf(fileId, formatSpec, ...
+                        char(execMetaMatrix(row, 1)), ...
+                        char(execMetaMatrix(row, 2)), ...
+                        char(execMetaMatrix(row, 3)), ...
+                        char(execMetaMatrix(row, 4)), ...
+                        char(execMetaMatrix(row, 5)), ...
+                        char(execMetaMatrix(row, 6)), ...
+                        char(execMetaMatrix(row, 7)), ...
+                        char(execMetaMatrix(row, 8)), ...
+                        char(execMetaMatrix(row, 9)), ...
+                        char(execMetaMatrix(row, 10)), ...
+                        char(execMetaMatrix(row, 11)), ...
+                        char(execMetaMatrix(row, 12)), ...
+                        char(execMetaMatrix(row, 13)), ...
+                        char(execMetaMatrix(row, 14)), ...
+                        char(execMetaMatrix(row, 15)), ...
+                        char(execMetaMatrix(row, 16)));
+                end
+                fclose(fileId);
+            end
+        end
         
         
         function combFileName = getYWCombViewFileName(runManager)
