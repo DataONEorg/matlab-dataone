@@ -768,18 +768,47 @@ classdef RunManager < hgsetget
                 runManager.aTypePredicate, ...
                 provONEUserURI); 
        
+            % Process execution_output_ids
+            for i=1:length(runManager.execution.execution_output_ids)
+                outputId = runManager.execution.execution_output_ids{i};
+                
+                outputD1Obj = runManager.execution.execution_objects(outputId);
+                
+                submitter = runManager.execution.account_name;
+                mnNodeId = runManager.configuration.target_member_node_id;
+                
+                outputD1JavaObj = runManager.buildD1Object( ...
+                        outputD1Obj.full_file_path, outputD1Obj.format_id, ...
+                        outputD1Obj.identifier, submitter, mnNodeId);
+                    
+                runManager.dataPackage.addData(outputD1JavaObj);
+                systemMetadata = outputD1JavaObj.getSystemMetadata; % java version sysmeta            
+                systemMetadata.setFileName(outputD1Obj.system_metadata.getFileName); % use Java sysmeta base file name to set matlab sysmeta
+                
+                set(outputD1Obj, 'system_metadata', outputD1JavaObj.getSystemMetadata);
+                
+                runManager.execution.execution_objects(outputD1Obj.identifier) = outputD1Obj;
+                
+                outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outputD1Obj.identifier]); 
+                runManager.dataPackage.insertRelationship( ...
+                    outSourceURI, ...
+                    wasAssociatedWithPredicate, ...
+                    runManager.execution.execution_uri );
+                
+                runManager.dataPackage.insertRelationship(...
+                    outSourceURI, ...
+                    runManager.aTypePredicate, ...
+                    runManager.provONEdataURI);
+            end
+            
             % Process execution_input_ids
             for i=1:length(runManager.execution.execution_input_ids)
                 inputId = runManager.execution.execution_input_ids{i};
-                % inputId
-                % whos inputId
-                
+       
                 startIndex = regexp( inputId,'http' ); 
                 if isempty(startIndex)                   
                     inputD1Obj = runManager.execution.execution_objects(inputId);
-                
-                    % submitter = inputD1Obj.system_metadata.getSubmitter().getValue();
-                    % mnNodeId = inputD1Obj.system_metadata.getAuthoritativeMemberNode().getValue();
+  
                     submitter = runManager.execution.account_name;
                     mnNodeId = runManager.configuration.target_member_node_id;
                     
@@ -807,6 +836,21 @@ classdef RunManager < hgsetget
                         runManager.provONEdataURI);
                 end
             end
+            
+            % Serialize a datapackage
+            rdfXml = runManager.dataPackage.serializePackage();
+          
+            % Write to a resourceMap file
+            resourceMapName = [char(resourceMapId.getValue()) '.rdf'];  
+            fw = fopen(resourceMapName, 'w'); 
+            if fw == -1, error('Cannot write "%s%".',resourceMapName); end
+            fprintf(fw, '%s', char(rdfXml));
+            fclose(fw);
+
+            % Add resourceMap D1Object to the DataPackage                      
+            resMapFmt = 'http://www.openarchives.org/ore/terms'; 
+            resMapD1JavaObj = runManager.buildD1Object(resourceMapName, resMapFmt, resourceMapName, submitter, mnNodeId);
+            runManager.dataPackage.addData(resMapD1JavaObj);     
             
             data_package = runManager.dataPackage;
             
