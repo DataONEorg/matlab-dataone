@@ -24,10 +24,10 @@ classdef Configuration < hgsetget & dynamicprops
     properties     
 
         % The source member node identifier
-        source_member_node_id  = '';
+        source_member_node_id  = 'urn:node:XXXX';
         
         % The target member node identifier
-        target_member_node_id = '';
+        target_member_node_id = 'urn:node:XXXX';
         
         % The default object format identifier when creating system metadata and uploading files to a member node. 
         format_id = 'application/octet-stream';
