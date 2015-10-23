@@ -2196,17 +2196,17 @@ classdef RunManager < hgsetget
                 
                 for k = 1: length(identifiers)
                     
-                    dataObjId = identifiers{k};
-                    dataObj = d1objects{k};
-                    dataObjFmt = dataObj.format_id;
+                    d1_object_id = identifiers{k};
+                    d1_object = d1objects{k};
+                    d1_object_format = d1_object.format_id;
                     
                     if runManager.configuration.debug
-                        fprintf('Uploading file: %s and file format: %s\n', dataObjId, dataObjFmt);
+                        fprintf('Uploading file: %s and file format: %s\n', d1_object_id, d1_object_format);
                     end
                     
                     % build d1 object
-                    dataObj = runManager.buildD1Object(dataObj.full_file_path, ...
-                        dataObjFmt, dataObjId, submitter.getValue(), targetMNodeStr);
+                    dataObj = runManager.buildD1Object(d1_object.full_file_path, ...
+                        d1_object_format, d1_object_id, submitter.getValue(), targetMNodeStr);
                     dataSource = dataObj.getDataSource();
                     
                     % get system metadata for dataObj 
@@ -2224,7 +2224,7 @@ classdef RunManager < hgsetget
                     end
                     
                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
-                    v2SysMeta.setFileName(dataObj.system_metadata.getFileName());
+                    v2SysMeta.setFileName(d1_object.system_metadata.getFileName());
                     v2SysMeta.setSubmitter(submitter);
                     v2SysMeta.setRightsHolder(submitter);
                     
