@@ -1,0 +1,158 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:j.0="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:ore="http://www.openarchives.org/ore/terms/"
+    xmlns:dcterms="http://purl.org/dc/terms/"
+    xmlns:j.1="http://www.w3.org/ns/prov#" > 
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/c05f1586-731b-4958-a800-34d1b9d3c869">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/569d1189-7ce6-4eef-87dd-c064100c84b3">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/3a6d99e9-9dcd-489e-bdbe-6aa1754192bb">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/a7fe2aed-04a8-4d5d-b9c8-c1080a11efba">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Program"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/026f01c1-8aa8-498e-afb2-9a8af9ef3a1e">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A0">
+    <rdf:type rdf:resource="http://purl.org/dc/terms/Agent"/>
+    <foaf:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">DataONE Java Client Library</foaf:name>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/88ac64c6-e05c-43b5-a95a-75cf3b73e93e">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/8c7b2849-838b-4801-89d8-56d8c01393ec">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/a_64e342f6-9d61-40c3-9f7f-b2d7d926cec0">
+    <j.1:hadPlan rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Program"/>
+    <rdf:type rdf:resource="http://www.w3.org/ns/prov#Association"/>
+    <j.1:agent rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/syc"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/d4c79d2b-81b2-4fd0-b2fd-f902869ea5b8">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/e1c6da04-4931-4a13-97c2-b7a769ab55bd">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/resourceMap_8c97998e-b5c3-425b-aaa3-04a2553850d1">
+    <dcterms:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#string">resourceMap_8c97998e-b5c3-425b-aaa3-04a2553850d1</dcterms:identifier>
+    <dc:creator rdf:nodeID="A0"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/ResourceMap"/>
+    <ore:describes rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/resourceMap_8c97998e-b5c3-425b-aaa3-04a2553850d1#aggregation"/>
+    <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2015-10-23T15:30:30.544-05:00</dcterms:modified>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/2bbd1843-509d-448a-8905-6d30cb3317f6">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/2a6cfac1-1be3-4279-bd4b-3f2f89980386">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <j.1:wasAssociatedWith rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/execution_8c97998e-b5c3-425b-aaa3-04a2553850d1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/1e00b9bf-a2d0-49c0-afb4-2218da449c17">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/b938d580-8038-47c0-9f1d-4f540c2ea808">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/361ac273-1dcb-4072-865c-a6c60f937153">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/fd32464e-2567-46bc-8149-9182bb371d26">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <j.1:wasAssociatedWith rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/execution_8c97998e-b5c3-425b-aaa3-04a2553850d1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/ed7c27e5-967a-49c9-9a0d-5c634ec9e643">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/ad54a9f3-6306-4cf4-9e29-ec237dd2fa65">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/execution_8c97998e-b5c3-425b-aaa3-04a2553850d1">
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/3a6d99e9-9dcd-489e-bdbe-6aa1754192bb"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/69eb35b4-e233-4522-8bc3-9c85d7d86417"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/cfb95c48-9871-40d8-a8e1-e9a909c8b7e3"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/b938d580-8038-47c0-9f1d-4f540c2ea808"/>
+    <j.1:qualifiedAssociation rdf:resource="http://www.w3.org/ns/prov#Association"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/04ade9df-06a9-44f2-990d-c9baf80bfc6e"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/87633361-dc3d-4770-a63d-fd2fbc583f0d"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/1e00b9bf-a2d0-49c0-afb4-2218da449c17"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/ed7c27e5-967a-49c9-9a0d-5c634ec9e643"/>
+    <j.1:wasAssociatedWith rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/syc"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/88ac64c6-e05c-43b5-a95a-75cf3b73e93e"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/361ac273-1dcb-4072-865c-a6c60f937153"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/5b710113-bc75-4567-ad67-384264313ce4"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/673f0213-d092-45b4-a6bb-42a92aba0a65"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/8c7b2849-838b-4801-89d8-56d8c01393ec"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/e1c6da04-4931-4a13-97c2-b7a769ab55bd"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/ef5cb55c-3ef8-4a3d-9286-a9fc64f51fa7"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/ffef1fb0-f7db-459e-a075-b157701e9b93"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/569d1189-7ce6-4eef-87dd-c064100c84b3"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/026f01c1-8aa8-498e-afb2-9a8af9ef3a1e"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/2bbd1843-509d-448a-8905-6d30cb3317f6"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/f7329498-57b1-4de0-9963-f13aa4db6855"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/0f4b6809-f0fb-416c-b9d8-39341ac5624a"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/7051f024-4671-40b9-94a7-7c7d19b0670c"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/d4c79d2b-81b2-4fd0-b2fd-f902869ea5b8"/>
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Execution"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/ad54a9f3-6306-4cf4-9e29-ec237dd2fa65"/>
+    <j.1:used rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/c05f1586-731b-4958-a800-34d1b9d3c869"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/d4fb76df-2b30-43f4-899e-ef7d74401797">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+    <j.1:wasAssociatedWith rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/execution_8c97998e-b5c3-425b-aaa3-04a2553850d1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/87633361-dc3d-4770-a63d-fd2fbc583f0d">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/syc">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#User"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/f7329498-57b1-4de0-9963-f13aa4db6855">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/5b710113-bc75-4567-ad67-384264313ce4">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/cfb95c48-9871-40d8-a8e1-e9a909c8b7e3">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/ffef1fb0-f7db-459e-a075-b157701e9b93">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/04ade9df-06a9-44f2-990d-c9baf80bfc6e">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/resourceMap_8c97998e-b5c3-425b-aaa3-04a2553850d1#aggregation">
+    <dc:title>DataONE Aggregation</dc:title>
+    <ore:isDescribedBy rdf:resource="https://cn-dev.test.dataone.org/cn/v1/resolve/resourceMap_8c97998e-b5c3-425b-aaa3-04a2553850d1"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/673f0213-d092-45b4-a6bb-42a92aba0a65">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/7051f024-4671-40b9-94a7-7c7d19b0670c">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/ef5cb55c-3ef8-4a3d-9286-a9fc64f51fa7">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/0f4b6809-f0fb-416c-b9d8-39341ac5624a">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A1">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Program"/>
+    <dcterms:identifier>a7fe2aed-04a8-4d5d-b9c8-c1080a11efba</dcterms:identifier>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://cn-dev.test.dataone.org/cn/v1/resolve/69eb35b4-e233-4522-8bc3-9c85d7d86417">
+    <rdf:type rdf:resource="https://purl.org/dataone/ontologies/provenance/ProvONE/v1/owl/provone.owl#Data"/>
+  </rdf:Description>
+</rdf:RDF>
