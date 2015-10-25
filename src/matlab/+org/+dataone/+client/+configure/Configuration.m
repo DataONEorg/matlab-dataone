@@ -126,6 +126,75 @@ classdef Configuration < hgsetget & dynamicprops
         % A boolean property that enables or disables debugging 
         debug = false; 
     end
+ 
+    methods (Static)
+        
+        function configuration = loadConfig(filename)
+            % LOADCONFIG  
+            
+            % Get persistent configuration file path
+            if strcmp(filename, '')
+                
+                % Check if configuration.json file exists under $HOME/.d1 directory 
+                % (for linux) or $userprofile/.d1 directory (for windows); create it if not
+               
+                if ( ~exist(fullfile( ...
+                        configuration.configuration_directory, ...
+                        'configuration.json'), 'file') )
+                    % The configuration.json does not exist
+                    % Create an empty configuration.json here.             
+                    if ( configuration.debug )
+                        fprintf('\nCreate a new and empty configuration.json at %s.', ...
+                            fullfile(configuration.configuration_directory, ...
+                                     'configuration.json'));
+                    end
+                    
+                    % Save default configuration object in configuration.json 
+                    % Not necessary to explicit an empty file.
+                    configuration.saveConfig();
+                    return;
+                else
+                    % The configuration.json exists under the default directory
+                    configurationStruct = loadjson(configuration.persistent_configuration_file_name);
+                    
+                    % Convert configuration struct to configuration object ***
+                    fnames = fieldnames(configurationStruct);                    
+                    for i = 1:size(fnames)                       
+                       val =  getfield(configurationStruct,fnames{i});
+                       
+                       try
+                           % assign instance property value directy and not call set()
+                           configuration.(fnames{i}) = val;
+                       catch noPublicfieldError
+                           if ( configuration.debug )
+                               warning(noPublicfieldError.message)
+                           end
+                           
+                           % Add an instance property instead
+                           addprop(configuration, fnames{i});
+                           configuration.(fnames{i}) = val;
+                       end
+                    end               
+                end
+            else
+                % The configuration.json exists under the user-specified directory
+                import org.dataone.client.configure.Configuration;
+                configuration = Configuration();
+                configuration.persistent_configuration_file_name = filename;
+                % Load configuration data from one's specified path 
+                configurationStruct = loadjson(configuration.persistent_configuration_file_name); %???  populate obj using objStruct
+                
+                 % Convert configuration struct to configuration object
+                fnames = fieldnames(configurationStruct);
+                for i = 1:size(fnames)                       
+                    val =  getfield(configurationStruct,fnames{i});
+                   %configuration.set(fnames{i}, val);
+                   configuration.(fnames{i}) = val; % assign instance property value directy and not call set()
+                end               
+            end                                    
+        end
+
+    end
     
     methods
         
@@ -138,6 +207,7 @@ classdef Configuration < hgsetget & dynamicprops
             %       pairs set as properties of the object.  Ensure that the
             %       name argument is a valid property name of the 
             %       Configuration object.
+            import org.dataone.client.configure.Configuration;
             
             if ( nargin > 0 )
                 if ( mod(nargin, 2) ~= 0) % Only accept even numbers of args
@@ -160,6 +230,16 @@ classdef Configuration < hgsetget & dynamicprops
                 % Check to see if the configuration directory is passed in
                 if ( configDirIndex > 0 )
                     
+                    config_file = fullfile( ...
+                            varargin{configDirIndex + 1}, ...
+                            'configuration.json');
+                        
+                    % load the existing config if it exists
+                    if ( exist( ...
+                            config_file, 'file') )
+                        configuration = Configuration.loadConfig(config_file);
+                        
+                    end
                     % Set it and make it if so
                     configuration.configuration_directory = ...
                         varargin{configDirIndex + 1};
@@ -276,119 +356,48 @@ classdef Configuration < hgsetget & dynamicprops
             
             pvals = cell(1, length(configurationProps));
             for i = 1:length(configurationProps)
-               % To do: check the type of configurationProps{i}
-               pvals{i} = configuration.get(configurationProps{i});
-               
-               if ( isa(pvals{i}, 'org.dataone.client.configure.YesWorkflowConfig') )
-                   %configurationProps{i}
-                   %pvals{i}
-                   yconfiguration = pvals{i};
-                   yconfigurationProps = properties(yconfiguration);
-                   %yconfigurationProps
- 
-                   yvals = cell(1, length(yconfigurationProps));
-                   for j= 1:length(yconfigurationProps)
-                       yvals{j} = yconfiguration.get(yconfigurationProps{j});
-                   end
-                   yarglist = {yconfigurationProps{:};yvals{:}};
-                   yconfigurationStruct = struct(yarglist{:});
-                   pvals{i} = yconfigurationStruct; % assign a yw configuration struct to pvals{i}
-                   %yvals
-               elseif ( isa(pvals{i}, 'org.dataone.client.configure.ScienceMetadataConfig') ) 
-                   % todo
-                   % configurationProps{i}
-                   % pvals{i}
-                   sciMetaConfiguration = pvals{i};
-                   sciMetaConfigurationProps = properties(sciMetaConfiguration);
-                   sciMetaVals = cell(1, length(sciMetaConfigurationProps));
-                   for k = 1:length(sciMetaConfigurationProps)
-                       sciMetaVals{k} = sciMetaConfiguration.get(sciMetaConfigurationProps{k});
-                   end
-                   sarglist = {sciMetaConfigurationProps{:};sciMetaVals{:}};
-                   sciMetaConfigStruct = struct(sarglist{:});
-                   pvals{i} = sciMetaConfigStruct;
-               else
-                   
-               end
+                % To do: check the type of configurationProps{i}
+                pvals{i} = configuration.get(configurationProps{i});
+                
+                if ( isa(pvals{i}, 'org.dataone.client.configure.YesWorkflowConfig') )
+                    %configurationProps{i}
+                    %pvals{i}
+                    yconfiguration = pvals{i};
+                    yconfigurationProps = properties(yconfiguration);
+                    %yconfigurationProps
+                    
+                    yvals = cell(1, length(yconfigurationProps));
+                    for j= 1:length(yconfigurationProps)
+                        yvals{j} = yconfiguration.get(yconfigurationProps{j});
+                    end
+                    yarglist = {yconfigurationProps{:};yvals{:}};
+                    yconfigurationStruct = struct(yarglist{:});
+                    pvals{i} = yconfigurationStruct; % assign a yw configuration struct to pvals{i}
+                    %yvals
+                elseif ( isa(pvals{i}, 'org.dataone.client.configure.ScienceMetadataConfig') )
+                    % todo
+                    % configurationProps{i}
+                    % pvals{i}
+                    sciMetaConfiguration = pvals{i};
+                    sciMetaConfigurationProps = properties(sciMetaConfiguration);
+                    sciMetaVals = cell(1, length(sciMetaConfigurationProps));
+                    for k = 1:length(sciMetaConfigurationProps)
+                        sciMetaVals{k} = sciMetaConfiguration.get(sciMetaConfigurationProps{k});
+                    end
+                    sarglist = {sciMetaConfigurationProps{:};sciMetaVals{:}};
+                    sciMetaConfigStruct = struct(sarglist{:});
+                    pvals{i} = sciMetaConfigStruct;
+                else
+                    
+                end
             end
- 
+            
             arglist = {configurationProps{:};pvals{:}};
             configurationStruct = struct(arglist{:});
             
-         %  savejson('configuration', configurationStruct, configuration.persistent_configuration_file_name);   
+            %  savejson('configuration', configurationStruct, configuration.persistent_configuration_file_name);
             savejson('', configurationStruct, configuration.persistent_configuration_file_name);
         end
-        
-        function configuration = loadConfig(configuration, filename)
-            % LOADCONFIG  
-            
-            % Get persistent configuration file path
-            if strcmp(filename, '')
-                
-                % Check if configuration.json file exists under $HOME/.d1 directory 
-                % (for linux) or $userprofile/.d1 directory (for windows); create it if not
-               
-                if ( ~exist(fullfile( ...
-                        configuration.configuration_directory, ...
-                        'configuration.json'), 'file') )
-                    % The configuration.json does not exist
-                    % Create an empty configuration.json here.             
-                    if ( configuration.debug )
-                        fprintf('\nCreate a new and empty configuration.json at %s.', ...
-                            fullfile(configuration.configuration_directory, ...
-                                     'configuration.json'));
-                    end
-                    
-                    % Save default configuration object in configuration.json 
-                    % Not necessary to explicit an empty file.
-                    configuration.saveConfig();
-                    return;
-                else
-                    % The configuration.json exists under the default directory
-                    configurationStruct = loadjson(configuration.persistent_configuration_file_name);
-                    
-                    % Convert configuration struct to configuration object ***
-                    fnames = fieldnames(configurationStruct);                    
-                    for i = 1:size(fnames)                       
-                       val =  getfield(configurationStruct,fnames{i});
-                       
-                       try
-                           % assign instance property value directy and not call set()
-                           configuration.(fnames{i}) = val;
-                       catch noPublicfieldError
-                           if ( configuration.debug )
-                               warning(noPublicfieldError.message)
-                           end
-                           
-                           % Add an instance property instead
-                           addprop(configuration, fnames{i});
-                           configuration.(fnames{i}) = val;
-                       end
-                    end               
-                end
-            else
-                % The configuration.json exists under the user-specified directory
-                configuration.persistent_configuration_file_name = filename;
-                % Load configuration data from one's specified path 
-                configurationStruct = loadjson(configuration.persistent_configuration_file_name); %???  populate obj using objStruct
-                
-                 % Convert configuration struct to configuration object
-                fnames = fieldnames(configurationStruct);
-                for i = 1:size(fnames)                       
-                    val =  getfield(configurationStruct,fnames{i});
-                   %configuration.set(fnames{i}, val);
-                   configuration.(fnames{i}) = val; % assign instance property value directy and not call set()
-                end
-                
-                % Save the configuration to the user-specified location
-                configuration.saveConfig();
-
-            end
-                                    
-            % Save configuration object to disk in a JSON format
-          % savejson('configuration', configurationStruct, configuration.persistent_configuration_file_name); % double check the file path location ??
-            savejson('', configurationStruct, configuration.persistent_configuration_file_name); 
-         end    
         
         function listConfig(configuration, varargin)
             % LISTCONFIG  lists configuration properties and their values
@@ -399,11 +408,11 @@ classdef Configuration < hgsetget & dynamicprops
             % find the max legth of the longest property name
             for i = 1:length(configurationProps)
                 propLengths(i) = length(char(configurationProps(i)));
-            end            
+            end
             maxLength = max(propLengths);
             
             format = ['%' num2str(maxLength) 's: %s\n'];
-
+            
             propName = '';
             propValue = '';
             
@@ -418,9 +427,9 @@ classdef Configuration < hgsetget & dynamicprops
                 end
                 fprintf(format, propName, propValue);
                 propName = ''; propValue = '';
-            end            
-        end      
-    end  
+            end
+        end
+    end
     
     methods (Access='private')
         
@@ -435,7 +444,7 @@ classdef Configuration < hgsetget & dynamicprops
             
             % Call loadConfig() with the default path location to the
             % configuration file on disk
-            loadConfig(configuration,'');
+            % Configuration.loadConfig(configuration,'');
             
         end
         
