@@ -20,6 +20,6 @@ mgr.listRuns();
 
 mgr.view('runNumber', 1);
 
-mgr.view('runNumber', 1, 'sessions', {'details', 'used', 'generated'});
+mgr.view('runNumber', 17, 'sections', {'details', 'used', 'generated'});
 
 

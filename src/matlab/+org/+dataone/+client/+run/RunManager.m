@@ -1544,14 +1544,14 @@ classdef RunManager < hgsetget
                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
                addParameter(viewRunsParser,'runNumber', '', checkSequenceNumber);
                addParameter(viewRunsParser,'tag', '', @iscell);
-               addParameter(viewRunsParser,'sessions', '', @iscell);
+               addParameter(viewRunsParser,'sections', '', @iscell);
            end
            parse(viewRunsParser,varargin{:})
             
            packageId = viewRunsParser.Results.packageId;
            runNumber = viewRunsParser.Results.runNumber;
            tags = viewRunsParser.Results.tag;
-           sessions = viewRunsParser.Results.sessions;
+           sections = viewRunsParser.Results.sections;
             
            if runManager.configuration.debug
                viewRunsParser.Results
@@ -1613,7 +1613,7 @@ classdef RunManager < hgsetget
            % startTime = datetime( selectedRuns{1,3}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
            % endTime = datetime( selectedRuns{1,4}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ' );
                  
-           % Compute the detailStruct for the details-view 
+           % Compute the detailStruct for the details_section 
            fieldnames = {'Tag', 'RunSequenceNumber', 'PublishedDate', 'PublishedTo', ...
                          'RunByUser', 'AccountSubject', 'RunId', 'DataPackageId', ...
                          'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
@@ -1642,7 +1642,7 @@ classdef RunManager < hgsetget
            
            import org.apache.commons.io.FileUtils;
            
-           % Compute the used struct for the used_view
+           % Compute the used struct for the used_section
            for i=1:length(runManager.execution.execution_input_ids)
                inId = runManager.execution.execution_input_ids{i};
                
@@ -1658,7 +1658,7 @@ classdef RunManager < hgsetget
                usedFileStruct(i,1).ModifiedTime = in_file_metadata.date;     
            end
            
-           % Compute the wasGeneratedBy struct for the wasGeneratedBy_view  
+           % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
            for j=1:length(runManager.execution.execution_output_ids)
                outId = runManager.execution.execution_output_ids{j};
                
@@ -1678,19 +1678,19 @@ classdef RunManager < hgsetget
  
            more on; % Enable more for page control
            
-           % Decide the views to be displayed based on values of sessions
-           if ~isempty(sessions)
-               sessionArray = char(sessions);
-               showDetails = ismember('details', sessionArray);
-               showUsed = ismember('used', sessionArray);
-               showGenerated = ismember('generated', sessionArray);
+           % Decide the sections to be displayed based on values of sections
+           if ~isempty(sections)
+               sectionArray = char(sections);
+               showDetails = ismember('details', sectionArray);
+               showUsed = ismember('used', sectionArray);
+               showGenerated = ismember('generated', sectionArray);
            else
                showDetails = 1;
                showUsed = 0;
                showGenerated = 0;
            end
            
-           % Display different views
+           % Display different sections
            if showDetails == 1
                fprintf('\n[DETAILS]: Run details\n');
                fprintf('-------------------------\n');

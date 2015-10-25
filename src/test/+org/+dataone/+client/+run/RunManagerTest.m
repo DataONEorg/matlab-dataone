@@ -480,8 +480,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             pkgId = testCase.mgr.execution.execution_id ;
             
-            sessions = {'details', 'used', 'generated'};
-            resultObjs = testCase.mgr.view('packageId', pkgId, 'sessions', sessions); % view the selected run
+            sections = {'details', 'used', 'generated'};
+            resultObjs = testCase.mgr.view('packageId', pkgId, 'sections', sections); % view the selected run
             numOfObjects = size(resultObjs, 2);
             assertGreaterThanOrEqual(testCase, numOfObjects, 1);   
             
@@ -497,8 +497,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
             runNumber = 2;
             
-            sessions = {'details', 'used', 'generated'};
-            resultObjs = testCase.mgr.view('runNumber', runNumber, 'sessions', sessions); % view the selected run
+            sections = {'details', 'used', 'generated'};
+            resultObjs = testCase.mgr.view('runNumber', runNumber, 'sections', sections); % view the selected run
             numOfObjects = size(resultObjs, 2);
             assertGreaterThanOrEqual(testCase, numOfObjects, 1);   
             
