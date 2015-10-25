@@ -379,296 +379,7 @@ classdef RunManager < hgsetget
             d1Obj = D1Object(d1ObjIdentifier, data, D1TypeBuilder.buildFormatIdentifier(fileFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId)); 
         end
         
-        
-        function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath) 
-            % BUILDPACKAGE  packages a datapackage for the current run
-            % including the workflow script and yesWorkflow graphics
-            
-            import org.dataone.client.v2.itk.DataPackage;
-            import org.dataone.service.types.v1.Identifier;            
-            import org.dataone.client.run.NamedConstant;
-            import org.dataone.util.ArrayListWrapper;
-            import org.dataone.client.v2.itk.D1Object;
-            import com.hp.hpl.jena.vocabulary.RDF;
-            import org.dataone.vocabulary.PROV;
-            import org.dataone.vocabulary.ProvONE;
-            import org.dataone.vocabulary.ProvONE_V1;
-            import java.net.URI;
-            import org.dspace.foresite.ResourceMap;
-            import org.dataone.vocabulary.DC_TERMS;
-            
-            if runManager.configuration.debug
-                disp('====== buildPackage ======');
-            end
-            
-            curPath = pwd();
-            cd(dirPath);
-            
-            % Get the base URL of the DataONE coordinating node server
-            runManager.D1_CN_Resolve_Endpoint = ...
-            [char(runManager.configuration.coordinating_node_base_url) '/v1/resolve/'];
-           
-            runManager.provONEdataURI = URI(ProvONE.Data.getURI());
-                      
-            % Create a D1Object for the program that we are running            
-            scriptFmt = 'text/plain';        
-            scriptNameArray = strsplit(runManager.execution.software_application, filesep);     
-            scriptIdentifier = scriptNameArray(end);
-            programD1Obj = runManager.buildD1Object(runManager.execution.software_application, scriptFmt, scriptIdentifier, submitter, mnNodeId);
-            runManager.dataPackage.addData(programD1Obj);
-            copyfile(runManager.execution.software_application, '.'); % copy script to the run directory
-            
-            % Create a D1 identifier for the workflow script  
-            runManager.wfIdentifier = Identifier();                   
-            runManager.wfIdentifier.setValue(char(scriptNameArray(end)));
-           
-            % Record relationship identifying workflow identifier and URI as a provONE:Program
-            runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-            provOneProgramURI = URI(ProvONE.Program.getURI());        
-            runManager.dataPackage.insertRelationship(runManager.wfIdentifier.getValue(), runManager.aTypePredicate, provOneProgramURI);
-            % Describe the workflow identifier with resovlable URI 
-            wfSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint char(runManager.wfIdentifier.getValue())]);
-            runManager.dataPackage.insertRelationship(wfSubjectURI, runManager.aTypePredicate, provOneProgramURI);
-           
-            % Record relationship identifying execution id as a provone:Execution                              
-            runManager.execution.execution_uri = URI([runManager.D1_CN_Resolve_Endpoint  'execution_' runManager.execution.execution_id]);
-
-            runManager.associationSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint 'A0_' char(java.util.UUID.randomUUID())]);
-            provOneProgramURI = URI(ProvONE.Program.getURI());
-            % Store the prov relationship: association->prov:hadPlan->program
-            predicate = PROV.predicate('hadPlan');
-            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, predicate, provOneProgramURI);
-            % Record relationship identifying association id as a prov:Association
-            provAssociationURI = URI(PROV.Association.getURI());
-            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, runManager.aTypePredicate, provAssociationURI);
-                        
-            % Store the prov relationship: execution->prov:qualifiedAssociation->association
-            provAssociationObjURI = URI(PROV.Association.getURI());
-            predicate = PROV.predicate('qualifiedAssociation');
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, provAssociationObjURI);
-            
-            provOneExecURI = URI(ProvONE.Execution.getURI());           
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, runManager.aTypePredicate, provOneExecURI);  
-                      
-            % Store the ProvONE relationships for user
-            runManager.userURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.execution.account_name]);                 
-            % Record the relationship between the Execution and the user
-            predicate = PROV.predicate('wasAssociatedWith');
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, runManager.userURI);    
-            % Record the relationship for association->prov:agent->"user"
-            predicate = PROV.predicate('agent');
-            runManager.dataPackage.insertRelationship(runManager.associationSubjectURI, predicate, runManager.userURI);
-            % Record a relationship identifying the provONE:user
-            provONEUserURI = URI(ProvONE.User.getURI());
-            runManager.dataPackage.insertRelationship(runManager.userURI, runManager.aTypePredicate, provONEUserURI); 
-            
-             % YesWorkflow combined view image (.pdf)
-            combinedViewId = Identifier();
-            combinedViewId.setValue(runManager.combinedViewPdfFileName);
-            combinedViewURI = URI([runManager.D1_CN_Resolve_Endpoint  runManager.combinedViewPdfFileName]);
-                        
-            % YesWorkflow data view image (.pdf)
-            dataViewId = Identifier();
-            dataViewId.setValue(runManager.dataViewPdfFileName); 
-            dataViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.dataViewPdfFileName]);           
-                 
-            % YesWorkflow process view image (.pdf)
-            processViewId = Identifier();
-            processViewId.setValue(runManager.processViewPdfFileName); 
-            processViewURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.processViewPdfFileName]);
-                
-            % wasGeneratedBy
-            predicate = PROV.predicate('wasGeneratedBy');
-            runManager.dataPackage.insertRelationship(combinedViewURI, predicate, runManager.execution.execution_uri);  
-            runManager.dataPackage.insertRelationship(dataViewURI, predicate, runManager.execution.execution_uri);  
-            runManager.dataPackage.insertRelationship(processViewURI, predicate, runManager.execution.execution_uri);  
-                
-            % Record relationship identifying as provONE:Data              
-            runManager.dataPackage.insertRelationship(combinedViewURI, runManager.aTypePredicate, runManager.provONEdataURI);
-            runManager.dataPackage.insertRelationship(dataViewURI, runManager.aTypePredicate, runManager.provONEdataURI);
-            runManager.dataPackage.insertRelationship(processViewURI, runManager.aTypePredicate, runManager.provONEdataURI);
-                
-            % Create D1Object for each figure and add the D1Object to the DataPackage
-            imgFmt = 'application/pdf';      
-            combinedViewFileName = [pwd() filesep runManager.combinedViewPdfFileName];
-            combinedViewD1Obj = runManager.buildD1Object(combinedViewFileName, imgFmt, combinedViewId.getValue(), submitter, mnNodeId);
-            runManager.dataPackage.addData(combinedViewD1Obj);
-             
-            dataViewFileName = [pwd() filesep runManager.dataViewPdfFileName];
-            dataViewD1Obj = runManager.buildD1Object(dataViewFileName, imgFmt, dataViewId.getValue(), submitter, mnNodeId);
-            runManager.dataPackage.addData(dataViewD1Obj);
-                
-            processViewFileName = [pwd() filesep runManager.processViewPdfFileName];
-            processViewD1Obj = runManager.buildD1Object(processViewFileName, imgFmt, processViewId.getValue(), submitter, mnNodeId);
-            runManager.dataPackage.addData(processViewD1Obj);               
-                                
-            modelFactsId = Identifier();
-            modelFactsId.setValue(runManager.mfilename); % ywModelFacts prolog dump           
-            modelFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.mfilename]);
-                
-            % Create D1Object for ywModelFacts prolog dump and add the D1Object to the DataPackage
-            txtFmt = 'text/plain';      
-            modelFactsFileName = [pwd() filesep runManager.mfilename];
-            modelFactsD1Obj = runManager.buildD1Object(modelFactsFileName, txtFmt, modelFactsId.getValue(), submitter, mnNodeId);
-            runManager.dataPackage.addData(modelFactsD1Obj);
-                         
-            extramatctFactsId = Identifier;
-            extractFactsId.setValue(runManager.efilename); % ywExtractFacts prolog dump             
-            extractFactsURI = URI([runManager.D1_CN_Resolve_Endpoint runManager.efilename]);
-                
-            % Record wasDocumentedBy / wasGeneratedBy / provONE:Data relationships for ywModelFacts prolog and ywExtractFacts prolog dumps
-            predicate = PROV.predicate('wasGeneratedBy');
-            runManager.dataPackage.insertRelationship(modelFactsURI, predicate, runManager.execution.execution_uri);  
-            runManager.dataPackage.insertRelationship(extractFactsURI, predicate, runManager.execution.execution_uri); 
-            runManager.dataPackage.insertRelationship(modelFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
-            runManager.dataPackage.insertRelationship(extractFactsURI, runManager.aTypePredicate, runManager.provONEdataURI);
-           
-            % Create D1Object for ywExtractFacts prolog dump and add the D1Object to the DataPackage      
-            extractFactsFileName = [pwd() filesep runManager.efilename];
-            extractFactsD1Obj = runManager.buildD1Object(extractFactsFileName, txtFmt, extractFactsId.getValue(), submitter, mnNodeId);
-            runManager.dataPackage.addData(extractFactsD1Obj);
-            
-            % Create D1Object for process_view yw.properties and add the D1Object to the DataPackage 
-            processYWPropIdentifier = Identifier();
-            pnameArray = strsplit( ...
-            runManager.configuration.yesworkflow_config.process_view_property_file_name,filesep);  
-            processYWPropIdentifier.setValue(pnameArray(end));        
-            processYWPropertiesD1Obj = runManager.buildD1Object( ...
-            runManager.configuration.yesworkflow_config.process_view_property_file_name, ...
-            txtFmt, processYWPropIdentifier.getValue(), submitter, mnNodeId);
-            runManager.dataPackage.addData(processYWPropertiesD1Obj);
-            copyfile(runManager.configuration.yesworkflow_config.process_view_property_file_name, '.'); % copy process_view yw.properties to the run directory
-            
-            % Create D1Object for data_view yw.properties and add the D1Object to the DataPackage
-            dataYWPropIdentifier = Identifier();
-            dnameArray = strsplit(runManager.configuration.yesworkflow_config.data_view_property_file_name,filesep); 
-            dataYWPropIdentifier.setValue(dnameArray(end));    
-            dataYWPropertiesD1Obj = runManager.buildD1Object(runManager.configuration.yesworkflow_config.data_view_property_file_name, txtFmt, dataYWPropIdentifier.getValue(), submitter, mnNodeId);
-            runManager.dataPackage.addData(dataYWPropertiesD1Obj);
-            copyfile(runManager.configuration.yesworkflow_config.data_view_property_file_name, '.'); % copy data_view yw.properties to the run directory
-            
-            % Create D1Object for combined_view yw.properties and add the D1Object to the DataPackage
-            combYWPropIdentifier = Identifier();
-            cnameArray = strsplit(runManager.configuration.yesworkflow_config.combined_view_property_file_name,filesep);          
-            combYWPropIdentifier.setValue(cnameArray(end));        
-            combYWPropertiesD1Obj = runManager.buildD1Object(runManager.configuration.yesworkflow_config.combined_view_property_file_name, txtFmt, combYWPropIdentifier.getValue(), submitter, mnNodeId);
-            runManager.dataPackage.addData(combYWPropertiesD1Obj);
-            copyfile(runManager.configuration.yesworkflow_config.combined_view_property_file_name, '.'); % copy combined_view yw.properties to the run directory
-            
-            % prov:used between execution and multiple yw.properties files
-            predicate = PROV.predicate('used');
-            processYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(processYWPropIdentifier.getValue())]);
-            dataYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(dataYWPropIdentifier.getValue())]);
-            combYWPropURI = URI([runManager.D1_CN_Resolve_Endpoint char(combYWPropIdentifier.getValue())]);
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, processYWPropURI);  
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, dataYWPropURI);  
-            runManager.dataPackage.insertRelationship(runManager.execution.execution_uri, predicate, combYWPropURI);
-                        
-            import java.util.Iterator;
-            import java.util.Hashtable;
-            import java.util.Set;
-            import java.util.Enumeration;
-            
-            % prov:wasGeneratedBy between runtime execution_output_ids and execution            
-            predicate = PROV.predicate('wasGeneratedBy');
-            execOutSources = runManager.getExecOutputIds();
-            outKeySet = execOutSources.keys();
-            while outKeySet.hasMoreElements()           
-                fullSourcePath = outKeySet.nextElement();
-                copyfile(fullSourcePath, runManager.execution.execution_directory); % copy local source file to the run directory
-                
-                outSourceFmt = execOutSources.get(fullSourcePath);
-                [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);
-                outSource = [sourceName sourceExt];
-                            
-                outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outSource]);
-                runManager.dataPackage.insertRelationship( outSourceURI, predicate, runManager.execution.execution_uri );
-                            
-                outSourceD1Obj = runManager.buildD1Object(fullSourcePath, outSourceFmt, outSource, submitter, mnNodeId);
-                runManager.dataPackage.addData(outSourceD1Obj);
-            end
-            
-            % prov:used between execution and runtime execution_input_ids
-            predicate = PROV.predicate('used');
-            execInSources = runManager.getExecInputIds();
-            inKeySet = execInSources.keys();
-            while inKeySet.hasMoreElements()
-                fullSourcePath = inKeySet.nextElement();
-                inSourceFmt = execInSources.get(fullSourcePath);
-   
-                startIndex = regexp( fullSourcePath,'http' ); 
-                if isempty(startIndex) 
-                   
-                    [sourcePathStr, sourceName, sourceExt] = fileparts(fullSourcePath);
-                    inSource = [sourceName sourceExt];
-                    inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inSource]);
-                    runManager.dataPackage.insertRelationship( runManager.execution.execution_uri, predicate, inSourceURI ); 
-                    
-                    copyfile(fullSourcePath, runManager.execution.execution_directory); % copy local source file to the run directory
-                    
-                    inSourceD1Obj = runManager.buildD1Object(fullSourcePath, inSourceFmt, inSource, submitter, mnNodeId);
-                    runManager.dataPackage.addData(inSourceD1Obj);
-                else
-                    
-                    inSource = fullSourcePath;
-                    inSourceURI = URI( inSource );
-                    runManager.dataPackage.insertRelationship( runManager.execution.execution_uri, predicate, inSourceURI );
-                    % how to handle a source file with url
-                end
-            end
-            
-            % Serialize a datapackage
-            rdfXml = runManager.dataPackage.serializePackage();
-            if runManager.configuration.debug 
-                fprintf('\nThe resource map is :\n %s \n\n', char(rdfXml)); % print it to stdout
-            end
-            
-            % Print to a resourceMap 
-            scriptFileName = char(scriptNameArray(end));
-            nameComponents = strsplit(scriptFileName, '.'); 
-            resMapName = ['resourceMap_' char(nameComponents(1)) '.rdf'];  
-            fw = fopen(resMapName, 'w'); 
-            if fw == -1, error('Cannot write "%s%".',resMapName); end
-            fprintf(fw, '%s', char(rdfXml));
-            fclose(fw);
-
-            % Add resourceMap D1Object to the DataPackage                      
-            resMapFmt = 'http://www.openarchives.org/ore/terms'; 
-            resMapFileName = [pwd() filesep resMapName];
-            resMapD1Obj = runManager.buildD1Object(resMapFileName, resMapFmt, resMapName, submitter, mnNodeId);
-            runManager.dataPackage.addData(resMapD1Obj);     
-            
-            data_package = runManager.dataPackage; % return a java datapackage object
-            
-            % Question and Todo: Serialize the datapackage content on disk
- 
-            % Write the identifier list contained in a datapackage to a file for later use
-            import java.io.File;
-            import java.io.FileWriter;
-            import java.io.BufferedWriter;
-            
-            %idArrray =  runManager.dataPackage.identifiers().toArray();
-            outFile = File('identifiers.txt');
-            writer = BufferedWriter(FileWriter(outFile)); 
-            
-            d1ObjIdentifiers = runManager.dataPackage.identifiers();
-            iter = d1ObjIdentifiers.iterator();
-            while iter.hasNext()
-                dataObjId = iter.next();
-                dataObj = runManager.dataPackage.get(dataObjId);
-                d1ObjFmt = dataObj.getFormatId().getValue();
-                
-                writer.write(dataObjId.getValue());
-                writer.write(' ');
-                writer.write(d1ObjFmt);
-                writer.newLine();
-            end
-            writer.flush();
-            writer.close();
-            
-            cd(curPath);
-        end
-        
+       
         function data_package = buildPackage2(runManager, submitter, mnNodeId, dirPath)
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
@@ -1068,42 +779,7 @@ classdef RunManager < hgsetget
                 i = i + 1;
            end         
         end
-        
-        
-       % function u = union2Cells(runManager, m, n)
-            % UNION2CELLS Merge two cell arrays by rows and remove
-            % duplicate rows
-            %   m -- cell array to be merged
-            %   n -- cell array to be merged
-            
-            % Process data
-       %     a = [n;m];          % All
-       %     u = cell(size(a));  % Unique
-     
-       %     ku = 1;      % Unique counter
-       %     u(ku,:) = a(1,:);   % Add first row
-
-            % Add only rows that do not exist in u
-       %     for ia = 2:size(a,1)
-       %         found = false;   % search flag
-       %         for iu = 1:ku
-       %             if all(strcmp(a(ia,:), u(iu,:)))
-                            % row is already registered
-       %                     found = true;
-       %                     break;
-       %             end;
-       %         end;
-       %         if ~found
-                    % add row
-       %             ku = ku+1;
-       %             u(ku,:) = a(ia,:);
-       %         end;
-       %     end;
-
-       %     u = u(1:ku,:); % Trim unused space in u           
-       % end      
-        
-        
+             
         function [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = getRelationships(runManager)
            % GETRELATIONSHIPS get the relationships from the resourceMap
            % including prov:used, prov:hadPlan, prov:qualifiedAssociation,
@@ -1526,14 +1202,6 @@ classdef RunManager < hgsetget
             % Generate yesWorkflow image outputs
             runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
                    
-            % { Move to publish() method
-            % Build a D1 datapackage
-            % pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );              
-            % }
-            
-            % Return the Java DataPackage as a Matlab structured array
-            % data_package = struct(pkg);  
-            
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
@@ -1550,14 +1218,6 @@ classdef RunManager < hgsetget
              % Build a D1 datapackage
             pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );        
             
-            % eObj = load(char(exec_destination));
-            % eObj
-            % executionObj(1)
-            % whos eObj
-            % disp(executionObj(1));
-            % getfield(executionObj(1), 'execution_id')
-            % getfield(executionObj(1), 'execution_objects')
-           
             % Clear runtime input/output sources
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
@@ -1905,13 +1565,8 @@ classdef RunManager < hgsetget
            runNumberCondition = false(size(execMetaMatrix, 1), 1);   
            tagsCondition = false(size(execMetaMatrix, 1), 1);
            allCondition = true(size(execMetaMatrix, 1), 1);
-           
-           import org.apache.commons.io.FileUtils;
-           
-           prov_dir = runManager.configuration.get('provenance_storage_directory');
-           
-           % Select runs based on the packageID. Report 'No runs can be
-           % found as a match' and returns if no runs are matched 
+                   
+           % Select runs based on the packageID. 
            if(isempty(packageId) ~= 1)
                packageIdCondition = strcmp(execMetaMatrix(:,6), packageId); % Column 6 in the execution matrix for packageId
                allCondition = allCondition & packageIdCondition;
@@ -1929,25 +1584,26 @@ classdef RunManager < hgsetget
                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                              
                allCondition = allCondition & runNumberCondition;
            end
-                       
-           curDir = pwd();
-           cd(prov_dir);
-               
+            
            % Extract multiple rows from a matrix satisfying the allCondition
            selectedRuns = execMetaMatrix(allCondition, :);
            if isempty(selectedRuns)
                error('No runs can be found as a match.');
            end
-  
+            
            seqNo = selectedRuns{1, 16}; % Todo: handle multiple views returned. Now assum only one run is returned
-               
+           packageId = selectedRuns{1, 6};
+           
            % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun will be return
            selectedRunId = selectedRuns{1,1};             
                       
            % Go to the runs/ directory
-           selectedRunDir = fullfile(prov_dir, filesep, 'runs', selectedRunId, filesep);
-           cd(selectedRunDir);
-
+           prov_dir = runManager.configuration.get('provenance_storage_directory');
+           selectedRunDir = fullfile(prov_dir, ...
+               filesep, ...
+               'runs', selectedRunId, ...
+               filesep);
+ 
            % Read information from the selectedRuns returned by the execution summary database
            filePath = selectedRuns{1, 2};
            [pathstr,scriptName,ext] = fileparts(filePath);
@@ -1980,46 +1636,54 @@ classdef RunManager < hgsetget
            for i=1:length(fieldnames)
                detailStruct.(fieldnames{i}) = values{i};
            end
-            
-           % Check if one resource map exists before query the resource map
-           a = dir;
-           b = struct2cell(a);
-           matches = regexp(b(1,:), '.rdf');
-           total = sum(~cellfun('isempty', matches));
+
+           % Deserialize the execution object from the disk
            
-           usedFileStruct = struct; % create an empty struct
-           generatedFileStruct = struct; 
-           if total == 1           
-               [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = runManager.getRelationships();
- 
-               % Compute the used struct for used-view
-               if ~isempty(usedStruct)     
-                   for i = 1:length(usedStruct)  
-                      f = dir(usedStruct(i).Object);
-                      usedFileStruct(i,1).LocalName = f.name;     
-                      fsize = FileUtils.byteCountToDisplaySize(f.bytes);                     
-                      usedFileStruct(i,1).Size = char(fsize); 
-                      usedFileStruct(i,1).ModifiedTime = f.date;
-                      % usedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-                   end
-               end
+           % Load the stroed execution given the directory name
+           exec_file_base_name = [packageId '.mat'];
+           stored_execution = load(fullfile( ...
+               runManager.configuration.provenance_storage_directory, ...
+               'runs', ...
+               packageId, ...
+               exec_file_base_name));
            
-               % Compute the wasGeneratedBy struct for the wasGeneratedBy-view
-               if ~isempty(wasGeneratedByStruct)                       
-                   for i = 1:length(wasGeneratedByStruct)
-                       f = dir(wasGeneratedByStruct(i).Subject);   
-                       generatedFileStruct(i,1).LocalName = f.name; 
-                       fsize = FileUtils.byteCountToDisplaySize(f.bytes); 
-                       generatedFileStruct(i,1).Size = char(fsize); 
-                       generatedFileStruct(i,1).ModifiedTime = f.date;
-                       % generatedFileStruct(i,1).ModifiedTime = datetime( f.date, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-                   end
-               end  
-               results = {detailStruct, usedFileStruct, generatedFileStruct};
-           else
-               results = {detailStruct};
-           end
+           % Assign deserialized execution to runManager.execution
+           runManager.execution = stored_execution.executionObj(1);
+           
+           import org.apache.commons.io.FileUtils;
+           
+           % Compute the used struct for the used_view
+           for i=1:length(runManager.execution.execution_input_ids)
+               inId = runManager.execution.execution_input_ids{i};
                
+               inD1Object = runManager.execution.execution_objects(inId);
+               in_d1_sysmeta = inD1Object.system_metadata;
+               in_file_size = in_d1_sysmeta.getSize;
+               in_file_name = in_d1_sysmeta.getFileName;
+              
+               usedFileStruct(i,1).LocalName = char(in_file_name);     
+               fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
+               usedFileStruct(i,1).Size = char(fsize); 
+               % usedFileStruct(i,1).ModifiedTime = f.date;     
+           end
+           
+           % Compute the wasGeneratedBy struct for the wasGeneratedBy_view  
+           for j=1:length(runManager.execution.execution_output_ids)
+               outId = runManager.execution.execution_output_ids{j};
+               
+               outD1Object = runManager.execution.execution_objects(outId);
+               out_d1_sysmeta = outD1Object.system_metadata;
+               out_file_size = out_d1_sysmeta.getSize;
+               out_file_name = out_d1_sysmeta.getFileName;
+               
+               generatedFileStruct(j,1).LocalName = char(out_file_name);     
+               fsize = FileUtils.byteCountToDisplaySize(out_file_size.longValue());                     
+               generatedFileStruct(j,1).Size = char(fsize); 
+               % generatedFileStruct(j,1).ModifiedTime = f.date;     
+           end
+           
+           results = {detailStruct, usedFileStruct, generatedFileStruct};
+ 
            more on; % Enable more for page control
            
            % Decide the views to be displayed based on values of sessions
@@ -2042,32 +1706,21 @@ classdef RunManager < hgsetget
                disp(detailStruct);
            end
                     
-           if showUsed == 1
-               if ~isempty(usedFileStruct)     
-                   fprintf('\n\n[USED]: %d Items used by this run\n', length(usedFileStruct));
-                   fprintf('------------------------------------\n');
-                   TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
-                   disp(TableForFileUsed);  
-               else
-                   fprintf('\n\n[USED]: %d Items used by this run\n', 0);
-                   fprintf('------------------------------------\n');
-               end
+           if showUsed == 1    
+               fprintf('\n\n[USED]: %d Items used by this run\n', length(usedFileStruct));
+               fprintf('------------------------------------\n');
+               TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
+               disp(TableForFileUsed);  
            end 
            
-           if showGenerated == 1
-               if ~isempty(generatedFileStruct)                       
-                   fprintf('\n\n[GENERATED]: %d Items used by this run\n', length(generatedFileStruct));
-                   fprintf('------------------------------------------\n');              
-                   TableForFileWasGeneratedBy = struct2table(generatedFileStruct); % Convert a struct to a table
-                   disp(TableForFileWasGeneratedBy);               
-               else
-                   fprintf('\n\n[GENERATED]: %d Items used by this run\n', 0);
-                   fprintf('------------------------------------\n');
-               end
+           if showGenerated == 1                    
+               fprintf('\n\n[GENERATED]: %d Items used by this run\n', length(generatedFileStruct));
+               fprintf('------------------------------------------\n');              
+               TableForFileWasGeneratedBy = struct2table(generatedFileStruct); % Convert a struct to a table
+               disp(TableForFileWasGeneratedBy);               
            end
            
            more off; % terminate more           
-           % cd(curDir);
         end
   
         
@@ -2096,14 +1749,11 @@ classdef RunManager < hgsetget
             curRunDir = fullfile(prov_dir, 'runs', packageId);
          
             if exist(curRunDir, 'dir') ~= 7
-                error([' A directory was not found for execution identifier: ' packageId]);
-                
-            end       
-            
+                error([' A directory was not found for execution identifier: ' packageId]);               
+            end                 
             
             % Get a MNode instance to the Member Node
-            try
-                
+            try                
                 % Deserialize the execution object from the disk
                 
                 % Load the stroed execution given the directory name
@@ -2122,8 +1772,7 @@ classdef RunManager < hgsetget
                     submitter = char(runManager.configuration.submitter);
                     
                 else
-                    submitter = char(runManager.execution.account_name); %Hack
-                    
+                    submitter = char(runManager.execution.account_name); %Hack                  
                 end
                 
                 if ( ~isempty(runManager.configuration.target_member_node_id) || ...
@@ -2134,17 +1783,17 @@ classdef RunManager < hgsetget
                 else
                     error('RunManager:missingTargetMemberNode', ...
                         ['There is no valid Configuration.target_member_node_id set.\n', ...
-                        'Please set it with the correct Member Node id.']);
-                    
+                        'Please set it with the correct Member Node id.']);                 
                 end
                 
                 pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );    
                                 
                 % Get authenticate token or X509 certificate 
                 auth_token = runManager.configuration.get('authentication_token');
+             
                 [certificate, standardizedName] = runManager.getCertificate();
                 
-                if ~isempty(auth_token)
+                if ~isempty(auth_token)             
                     D1Client.setAuthToken(auth_token);
                 elseif ~isempty(certificate)                   
                     runManager.configuration.submitter = standardizedName;
@@ -2187,7 +1836,6 @@ classdef RunManager < hgsetget
                 targetMNodeStr = runManager.configuration.get('target_member_node_id');
                 
                 submitter = Subject();
-                % submitter.setValue(runManager.configuration.submitter);
                 submitter.setValue(runManager.execution.account_name); % Todo: use account_name as the value of submitter now. But need to investigate if auth_token has the submitter information
                
                 % Upload each data object in the execution_objects map
@@ -2277,8 +1925,7 @@ classdef RunManager < hgsetget
             
             % Record the date and time that the package from this run is uploaded to DataONE
             publishedTime = datestr( now,'yyyymmddTHHMMSS' );
-            
-            % Todo: need to test
+
             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
             numOfRows = size(execMetaMatrix, 1);
             for i=1:numOfRows
