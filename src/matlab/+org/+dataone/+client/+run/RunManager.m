@@ -404,7 +404,7 @@ classdef RunManager < hgsetget
             path_array = strsplit(dirPath, filesep);
             identifier = char(path_array(end));
             
-            % Load the stroed execution given the directory name
+            % Load the stored execution given the directory name
             exec_file_base_name = [identifier '.mat'];
             stored_execution = load(fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
@@ -524,7 +524,14 @@ classdef RunManager < hgsetget
                 runManager.userURI, ...
                 runManager.aTypePredicate, ...
                 provONEUserURI); 
-       
+
+            % Create a science metadata object and add it to the package
+            import org.ecoinformatics.eml.EML;
+            eml = EML();
+            
+            % Update the science metadata with configured fields
+            eml.update(runManager.configuration, runManager.execution);
+
             % Process execution_output_ids
             for i=1:length(runManager.execution.execution_output_ids)
                 outputId = runManager.execution.execution_output_ids{i};
@@ -597,7 +604,12 @@ classdef RunManager < hgsetget
                         runManager.provONEdataURI);
                 end
             end
+                        
+            % Associate science metadata with the data objects of the
+            % package
             
+            
+
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
          
@@ -817,6 +829,7 @@ classdef RunManager < hgsetget
     end
     
     methods (Static)
+
         function runManager = getInstance(configuration)
             % GETINSTANCE returns an instance of the RunManager by either
             % creating a new instance or returning an existing one.
@@ -1344,6 +1357,7 @@ classdef RunManager < hgsetget
                 disp(tableForSelectedRuns);                      
             end          
         end
+
         
         function deleted_runs = deleteRuns(runManager, varargin)
             % DELETERUNS Deletes prior executions (runs) from the stored
@@ -1526,7 +1540,8 @@ classdef RunManager < hgsetget
                              
             end          
         end
-           
+
+        
         function results = view(runManager, varargin)
            % VIEW Displays detailed information about a data package that
            % is the result of an execution (run).
@@ -1714,7 +1729,8 @@ classdef RunManager < hgsetget
            
            more off; % terminate more           
         end
-          
+
+        
         function package_id = publish(runManager, packageId)
             % PUBLISH Uploads a data package from a folder on disk
             % to the configured DataONE Member Node server.
@@ -1976,7 +1992,7 @@ classdef RunManager < hgsetget
                 fclose(fileId);
             end
         end
-        
+
         
         function combFileName = getYWCombViewFileName(runManager)
             combFileName = runManager.combinedViewPdfFileName;

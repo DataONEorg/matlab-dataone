@@ -38,7 +38,172 @@ classdef EML
             eml.document = eml.buildValidEmptyEMLDocument();
         
         end
-        
+
+        function eml = update(eml, configuration, execution)
+            
+            import org.dataone.client.run.Execution;
+            import org.dataone.client.configure.Configuration;
+            import org.dataone.client.configure.ScienceMetadataConfig;
+            cfg = configuration;
+            exec = execution;
+            
+            datasetElements = eml.document.getElementsByTagName('dataset');
+            datasetNode = datasetElements.item(0);
+            
+            % Update the title
+            if ( ~ isempty(cfg.science_metadata_config.title_prefix) )
+                title_str = cfg.science_metadata_config.title_prefix;
+                
+            end
+            
+            [file_path, file_name, ext] = fileparts( ...
+                exec.software_application);
+            script_name = [file_name ext];
+            run_str = ['Run of ' script_name ' on ' exec.start_time];
+            title_str = [title_str run_str];
+            
+            if ( ~ isempty(cfg.science_metadata_config.title_suffix) )
+                title_str = [title_str cfg.science_metadata_config.title_suffix];
+                
+            end
+            
+            titleElements = eml.document.getElementsByTagName('title');
+            titleNode = titleElements.item(0).getFirstChild();
+            if ( strcmp(char(titleNode.getNodeValue()), 'YOUR_TITLE') )
+                titleNode.setNodeValue(title_str);
+                
+            end
+            
+            % Update the primary creator
+            creatorElements = eml.document.getElementsByTagName('creator');
+            creatorNode = creatorElements.item(0);
+            individualNode = creatorNode.getFirstChild();
+            salutationNode = individualNode.getFirstChild();
+            salutationTextNode = salutationNode.getFirstChild();
+            
+            % Update or remove the salutation
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_salutation) ) 
+                
+                if ( strcmp(char(salutationTextNode.getNodeValue()), 'YOUR_SALUTATION') )
+                    salutationTextNode.setNodeValue( ...
+                        cfg.science_metadata_config.primary_creator_salutation);
+                    
+                end
+                
+            else
+                individualNode.removeChild(salutationNode);
+            end
+            
+            % Update or remove the givenname
+            givenNameNode = salutationNode.getNextSibling();
+            givenNameTextNode = givenNameNode.getFirstChild();
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_givenname) ) 
+                
+                if ( strcmp(char(givenNameTextNode.getNodeValue()), 'YOUR_GIVEN_NAME') )
+                    givenNameTextNode.setNodeValue( ...
+                        cfg.science_metadata_config.primary_creator_givenname);
+                    
+                end
+                
+            else
+                individualNode.removeChild(givenNameNode);
+            end
+            
+            % Update the surname
+            surNameNode = givenNameNode.getNextSibling();
+            surNameTextNode = surNameNode.getFirstChild();
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_surname) ) 
+                
+                if ( strcmp(char(surNameTextNode.getNodeValue()), 'YOUR_SURNAME') )
+                    surNameTextNode.setNodeValue( ...
+                        cfg.science_metadata_config.primary_creator_surname);
+                    
+                end                
+            end
+            
+            % Insert or remove primary_creator_address1
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_address1) )
+                addressElement = eml.document.createElement('address');
+                deliveryPoint1Element = eml.document.createElement('deliveryPoint');
+                deliveryPoint1Element.setTextContent( ...
+                    cfg.science_metadata_config.primary_creator_address1);
+                addressNode = creatorNode.appendChild(addressElement);
+                addressNode.appendChild(deliveryPoint1Element);
+                
+            end
+            
+            % Insert or remove primary_creator_address2
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_address2) )
+                deliveryPoint2Element = eml.document.createElement('deliveryPoint');
+                deliveryPoint2Element.setTextContent( ...
+                    cfg.science_metadata_config.primary_creator_address2);
+                addressNode.appendChild(deliveryPoint2Element);
+                
+            end
+
+            % Insert or remove primary_creator_city
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_city) )
+                cityElement = eml.document.createElement('city');
+                cityElement.setTextContent( ...
+                    cfg.science_metadata_config.primary_creator_city);
+                addressNode.appendChild(cityElement);
+                
+            end
+
+            % Insert or remove primary_creator_state
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_state) )
+                stateElement = eml.document.createElement('administrativeArea');
+                stateElement.setTextContent( ...
+                    cfg.science_metadata_config.primary_creator_state);
+                addressNode.appendChild(stateElement);
+                
+            end
+            
+            % Insert or remove primary_creator_zipcode
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_zipcode) )
+                zipElement = eml.document.createElement('postalCode');
+                zipElement.setTextContent( ...
+                    cfg.science_metadata_config.primary_creator_zipcode);
+                addressNode.appendChild(zipElement);
+                
+            end
+            
+            % Insert or remove primary_creator_country
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_country) )
+                countryElement = eml.document.createElement('country');
+                countryElement.setTextContent( ...
+                    cfg.science_metadata_config.primary_creator_country);
+                addressNode.appendChild(countryElement);
+                
+            end
+            
+            % Insert or remove primary_creator_email
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_email) )
+                emailElement = eml.document.createElement('electronicMail');
+                emailElement.setTextContent( ...
+                    cfg.science_metadata_config.primary_creator_email);
+                creatorNode.appendChild(emailElement);
+                
+            end            
+           
+            % Update or insert the language
+%             if ( ~ isempty(cfg.science_metadata_config.language) )
+%                 languageElement = eml.document.createElement('language');
+%                 languageElement.setTextContent( ...
+%                     cfg.science_metadata_config.language);
+%                 datasetNode.appendChild(languageElement);
+%                 
+%             end            
+           
+            
+            % Update the abstract
+            
+            % Update the keywords
+            
+            % Update the intellectual rights
+            
+            % Update the contact
+        end
         function documentStr = toXML(eml)
         % TOXML serializes the EML document to a string representation
             
@@ -128,11 +293,7 @@ classdef EML
             surNameElement.appendChild(documentNode.createTextNode('YOUR_SURNAME'));
             individualElement.appendChild(surNameElement);
             
-            emailElement = documentNode.createElement('electronicMailAddress');
-            emailElement.appendChild(documentNode.createTextNode('YOUR_EMAIL'));
-
             creatorElement.appendChild(individualElement);
-            creatorElement.appendChild(emailElement);
 
             datasetElement.appendChild(creatorElement);
             
