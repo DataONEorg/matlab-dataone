@@ -1593,17 +1593,7 @@ classdef RunManager < hgsetget
             
            seqNo = selectedRuns{1, 16}; % Todo: handle multiple views returned. Now assum only one run is returned
            packageId = selectedRuns{1, 6};
-           
-           % Get the runId from the selectedRuns because packageId is unique, so only one selectedRun will be return
-           selectedRunId = selectedRuns{1,1};             
-                      
-           % Go to the runs/ directory
-           prov_dir = runManager.configuration.get('provenance_storage_directory');
-           selectedRunDir = fullfile(prov_dir, ...
-               filesep, ...
-               'runs', selectedRunId, ...
-               filesep);
- 
+
            % Read information from the selectedRuns returned by the execution summary database
            filePath = selectedRuns{1, 2};
            [pathstr,scriptName,ext] = fileparts(filePath);
@@ -1660,11 +1650,12 @@ classdef RunManager < hgsetget
                in_d1_sysmeta = inD1Object.system_metadata;
                in_file_size = in_d1_sysmeta.getSize;
                in_file_name = in_d1_sysmeta.getFileName;
-              
+               in_file_metadata = dir(inD1Object.full_file_path);
+               
                usedFileStruct(i,1).LocalName = char(in_file_name);     
                fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
                usedFileStruct(i,1).Size = char(fsize); 
-               % usedFileStruct(i,1).ModifiedTime = f.date;     
+               usedFileStruct(i,1).ModifiedTime = in_file_metadata.date;     
            end
            
            % Compute the wasGeneratedBy struct for the wasGeneratedBy_view  
@@ -1675,11 +1666,12 @@ classdef RunManager < hgsetget
                out_d1_sysmeta = outD1Object.system_metadata;
                out_file_size = out_d1_sysmeta.getSize;
                out_file_name = out_d1_sysmeta.getFileName;
+               out_file_metadata = dir(outD1Object.full_file_path);
                
                generatedFileStruct(j,1).LocalName = char(out_file_name);     
                fsize = FileUtils.byteCountToDisplaySize(out_file_size.longValue());                     
                generatedFileStruct(j,1).Size = char(fsize); 
-               % generatedFileStruct(j,1).ModifiedTime = f.date;     
+               generatedFileStruct(j,1).ModifiedTime = out_file_metadata.date;     
            end
            
            results = {detailStruct, usedFileStruct, generatedFileStruct};
@@ -1722,8 +1714,7 @@ classdef RunManager < hgsetget
            
            more off; % terminate more           
         end
-  
-        
+          
         function package_id = publish(runManager, packageId)
             % PUBLISH Uploads a data package from a folder on disk
             % to the configured DataONE Member Node server.

@@ -17,6 +17,9 @@ mgr.record(script_path, tag);
 
 mgr.listRuns();
 
+
 mgr.view('runNumber', 1);
 
 mgr.view('runNumber', 1, 'sessions', {'details', 'used', 'generated'});
+
+
