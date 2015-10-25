@@ -530,7 +530,7 @@ classdef RunManager < hgsetget
             eml = EML();
             
             % Update the science metadata with configured fields
-            eml.update(runManager.configuration, runManager.execution);
+             eml.update(runManager.configuration, runManager.execution);
 
             % Process execution_output_ids
             for i=1:length(runManager.execution.execution_output_ids)
