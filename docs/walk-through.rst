@@ -181,6 +181,8 @@ To view a given run, pass in the runNumber or packageId from one of the resultin
 
 The output of the view() function provides more technical details about the run. You can also see the provenance details of the run by showing the 'used' and 'generated' sections, like:
 
+.. code:: matlab
+
   mgr.view('runNumber', '1', 'sections', {'details, 'used', 'generated'});
 
 
@@ -205,39 +207,39 @@ View and modify metadata for a run
 Basic metadata are generated for each run.  The toolbox provides a template metadata file that will be populated with preset configuration properties.  For instance, by setting the following values, each metadata document for a run will contain these values:
 
 .. code:: matlab
-
-set(mgr.configuration.science_metadata_config, 'title_prefix', 'MsTMIP: C3 C4 soil map processing: ');
-set(mgr.configuration.science_metadata_config, 'title_suffix', '');
-set(mgr.configuration.science_metadata_config, 'primary_creator_salutation', 'Dr.');
-set(mgr.configuration.science_metadata_config, 'primary_creator_givenname', 'Yaxing');
-set(mgr.configuration.science_metadata_config, 'primary_creator_surname', 'Wei');
-set(mgr.configuration.science_metadata_config, 'primary_creator_address1', 'Environmental Sciences Division');
-set(mgr.configuration.science_metadata_config, 'primary_creator_address2', 'Oak Ridge National Laboratory');
-set(mgr.configuration.science_metadata_config, 'primary_creator_city', 'Oak Ridge');
-set(mgr.configuration.science_metadata_config, 'primary_creator_state', 'TN');
-set(mgr.configuration.science_metadata_config, 'primary_creator_zipcode', '37831-6290');
-set(mgr.configuration.science_metadata_config, 'primary_creator_country', 'USA');
-set(mgr.configuration.science_metadata_config, 'primary_creator_email', 'weiy@ornl.gov');
-set(mgr.configuration.science_metadata_config, 'language', 'English');
-set(mgr.configuration.science_metadata_config, 'abstract', 'Global land surfaces are classified by their relative fraction of Carbon 3 or Carbon 4 grasses, ...');
-set(mgr.configuration.science_metadata_config, 'keyword1', 'Carbon 3');
-set(mgr.configuration.science_metadata_config, 'keyword2', 'Carbon 4');
-set(mgr.configuration.science_metadata_config, 'keyword3', 'soil');
-set(mgr.configuration.science_metadata_config, 'keyword4', 'mapping');
-set(mgr.configuration.science_metadata_config, 'keyword5', 'global');
-set(mgr.configuration.science_metadata_config, 'intellectual_rights', 'When using these data, please cite the originators as ...');
+  
+  set(mgr.configuration.science_metadata_config, 'title_prefix', 'MsTMIP: C3 C4 soil map processing: ');
+  set(mgr.configuration.science_metadata_config, 'title_suffix', '');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_salutation', 'Dr.');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_givenname', 'Yaxing');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_surname', 'Wei');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_address1', 'Environmental Sciences Division');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_address2', 'Oak Ridge National Laboratory');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_city', 'Oak Ridge');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_state', 'TN');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_zipcode', '37831-6290');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_country', 'USA');
+  set(mgr.configuration.science_metadata_config, 'primary_creator_email', 'weiy@ornl.gov');
+  set(mgr.configuration.science_metadata_config, 'language', 'English');
+  set(mgr.configuration.science_metadata_config, 'abstract', 'Global land surfaces are classified by their relative fraction of Carbon 3 or Carbon 4 grasses, ...');
+  set(mgr.configuration.science_metadata_config, 'keyword1', 'Carbon 3');
+  set(mgr.configuration.science_metadata_config, 'keyword2', 'Carbon 4');
+  set(mgr.configuration.science_metadata_config, 'keyword3', 'soil');
+  set(mgr.configuration.science_metadata_config, 'keyword4', 'mapping');
+  set(mgr.configuration.science_metadata_config, 'keyword5', 'global');
+  set(mgr.configuration.science_metadata_config, 'intellectual_rights', 'When using these data, please cite the originators as ...');
 
 To see the metadata that are generated for a run, **pass the packageId to the getMetadata()** function:
 
 .. code:: matlab
 
-metadata = mgr.getMetadata('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % Replace the packageId here
+  metadata = mgr.getMetadata('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % Replace the packageId here
 
 You can edit the medata in an external XML editor, or an editor that is aware of the syntax of your metadata standard (by default we generate Ecological Metadata Language files).  Once you've edited the file, you can replace the generated file with:
 
 .. code:: matlab
-
-mgr.putMetadata('86ac27de-f45c-4bc2-ba09-d4bedcec9546', 'path/to/file') % Replace packageId and file path here
+  
+  mgr.putMetadata('86ac27de-f45c-4bc2-ba09-d4bedcec9546', 'path/to/file') % Replace packageId and file path here
 
   
 Publish a selected run
@@ -246,12 +248,12 @@ With the metadata populated, you may choose to publish a run and its artifacts t
 
 .. code:: matlab
 
-set(mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo2');
-set(mgr.configuration, 'source_member_node_id', 'urn:node:mnDemo2');
-set(mgr.configuration, 'coordinating_node_base_url', 'https://cn-sandbox-2.test.dataone.org/cn');
-set(mgr.configuration, 'certificate_path', '/tmp/x509up_u501'); 
-set(mgr.configuration, 'authentication_token', 'eyJhbGciOiJSUzI1Ni ...'); % Replace token here
-mgr.publish('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % replace the packageId here
+  set(mgr.configuration, 'target_member_node_id', 'urn:node:mnDemo2');
+  set(mgr.configuration, 'source_member_node_id', 'urn:node:mnDemo2');
+  set(mgr.configuration, 'coordinating_node_base_url', 'https://cn-sandbox-2.test.dataone.org/cn');
+  set(mgr.configuration, 'certificate_path', '/tmp/x509up_u501'); 
+  set(mgr.configuration, 'authentication_token', 'eyJhbGciOiJSUzI1Ni ...'); % Replace token here
+  mgr.publish('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % replace the packageId here
 
 Viewing the data package on the web
 -----------------------------------
