@@ -179,7 +179,7 @@ classdef EML
             
             % Insert or remove primary_creator_email
             if ( ~ isempty(cfg.science_metadata_config.primary_creator_email) )
-                emailElement = eml.document.createElement('electronicMail');
+                emailElement = eml.document.createElement('electronicMailAddress');
                 emailElement.setTextContent( ...
                     cfg.science_metadata_config.primary_creator_email);
                 creatorNode.appendChild(emailElement);
@@ -272,7 +272,20 @@ classdef EML
             
             % Update intellectual rights
             
-            % Update contact
+            rightsElement = eml.document.createElement('intellectualRights');
+            rightsParaElement = eml.document.createElement('para');
+            
+            if ( ~ isempty(cfg.science_metadata_config.intellectual_rights) )
+                rightsParaElement.setTextContent( ...
+                    cfg.science_metadata_config.intellectual_rights);
+                rightsElement.appendChild(rightsParaElement);
+                contactElement.getParentNode().insertBefore( ...
+                    rightsElement, contactElement);
+                
+            end
+            
+            % TODO: Update contact
+            
             disp(eml.toXML());
 
         end
