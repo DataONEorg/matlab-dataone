@@ -50,6 +50,11 @@ classdef EML
             datasetElements = eml.document.getElementsByTagName('dataset');
             datasetNode = datasetElements.item(0);
             
+            % Update the packageId
+            emlElement = eml.document.getDocumentElement();
+            emlElement.setAttribute('packageId', ...
+                exec.execution_id);
+            
             % Update the title
             title_str = '';
             if ( ~ isempty(cfg.science_metadata_config.title_prefix) )
