@@ -96,7 +96,7 @@ classdef EML
             end
             
             % Update or remove the givenname
-            givenNameNode = salutationNode.getNextSibling();
+            givenNameNode = eml.document.getElementsByTagName('givenName').item(0);
             givenNameTextNode = givenNameNode.getFirstChild();
             if ( ~ isempty(cfg.science_metadata_config.primary_creator_givenname) ) 
                 
@@ -111,7 +111,7 @@ classdef EML
             end
             
             % Update the surname
-            surNameNode = givenNameNode.getNextSibling();
+            surNameNode = eml.document.getElementsByTagName('surName').item(0);
             surNameTextNode = surNameNode.getFirstChild();
             if ( ~ isempty(cfg.science_metadata_config.primary_creator_surname) ) 
                 
