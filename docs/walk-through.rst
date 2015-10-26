@@ -65,7 +65,6 @@ Open these instructions in a remote browser
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To help with copy/paste of commands, **open a browser** by choosing Applications Menu > Web Browser menu item, and navigate to **https://goo.gl/vqBTwI**
 
-
 Installing the toolbox
 ----------------------
 In Matlab, **change to the Desktop/matlab-dataone** directory.  
@@ -147,11 +146,12 @@ Now, **record another run**, but this time, use the script that has been documen
 .. image:: images/matlab-walkthrough/yesworkflow-comments.png
 
 
-Then, record a second run using this script, and tag the run accordingly:
+Then, record a second run using this script, and tag the run accordingly. Prior to using the YesWorkflow capture, enable it in your configuration:
 
 .. code:: matlab
-
-  mgr.record('/home/dataone/Desktop/C3_C4_mapping/C3_C4_map_present_NA_with_comments.m', 'algorithm 1, with YW comments');
+  
+  set(mgr.configuration, 'capture_yesworkflow_comments', true);
+  mgr.record('/home/<your-username>/Desktop/C3_C4_mapping/C3_C4_map_present_NA_with_comments.m', 'algorithm 1, with YW comments');
 
 
 List the completed runs
@@ -186,7 +186,9 @@ The output of the view() function provides more technical details about the run.
 
 View YesWorkflow diagrams
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Workflow provenance is captured with the YesWorkflow tool, and it outputs three diagrams: data flow, process flow, and combined data and process flow.  Have a look at the three diagrams by opening your configuration folder on your Desktop, and navigating into the Desktop > <your-username> > provenance > runs > <run_id> folder.  These PDF files will be named 'testdata_7.pdf', 'testprocess_7.pdf', and 'testcomb_7.pdf'. An example of the combined workflow view is below:
 
+.. image:: images/matlab-walkthrough/yesworkflow-combined.png
 
 Delete a selected run
 ~~~~~~~~~~~~~~~~~~~~~
