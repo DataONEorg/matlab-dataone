@@ -27,16 +27,21 @@ Open the X2Go application and choose the  Session > New Session ... menu item.
 
 .. image:: images/x2go-install/x2go-new-session.png
 
-Configure the session with the following values, and replace <num> with the number assigned to you during our meeting:
+Configure the session with the following values. User names that were created are: 
+
+- schwalm
+- aulenbach
+- brin
+- bocinsky
 
 .. table: Session values
 
 ============== ======================
    Setting             Value
 ============== ======================
- Session name   Aurora DataONE <num>
+ Session name   Aurora DataONE
  Host           aurora.nceas.ucsb.edu
- login          dataone
+ login          <your-username>
  SSH port       22
  Session type   XFCE
 ============== ======================
@@ -48,7 +53,7 @@ Once configured, choose **OK**:
 
 Connect to the remote Matlab server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-To connect, click on the configured X2Go grey session box, and **log in** using the `dataone` user's password provided during our meeting:
+To connect, click on the configured X2Go grey session box, and **log in** using your password provided during our meeting:
 
 .. image:: images/x2go-install/x2go-login.png
 
@@ -95,13 +100,13 @@ Create a Configuration object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Customize the RunManager** with settings that are specific to your session. 
 
- **Note:** Changing the 'configuration_directory' property is typically not needed. For our meeting, we are avoiding session collisions for each person testing the software as the same 'dataone' login. Change these to replace **<num>** with the **number assigned to you** during the meeting.
+ **Note:** Changing the 'configuration_directory' property is typically not needed. We are using the directory on the desktop for ease of access.
 
 .. code:: matlab
 
   % Create a Configuration object
   import org.dataone.client.configure.Configuration;
-  config = Configuration('configuration_directory', '/home/dataone/Desktop/Session_<num>');
+  config = Configuration('configuration_directory', '/home/dataone/Desktop/<your-username>');
 
   
 Create a RunManager object
@@ -122,7 +127,7 @@ You can look at the documentation of the RunManager class using:
 
 Record a script processing soil data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-To **record a script** run, pass it to the RunManager's record() function, and add tag to to help keep track of your runs:
+To **record a script** run, pass it to the RunManager's record() function, and add a tag to to help keep track of your runs:
 
 .. code:: matlab
 
@@ -170,7 +175,9 @@ To view a given run, pass in the runNumber or packageId from one of the resultin
   
   mgr.view('runNumber', '1');
 
-The output of the view() function provides more technical details about the run.
+The output of the view() function provides more technical details about the run. You can also see the provenance details of the run by showing the 'used' and 'generated' sections, like:
+
+  mgr.view('runNumber', '1', 'sections', {'details, 'used', 'generated'});
 
 
 View YesWorkflow diagrams
