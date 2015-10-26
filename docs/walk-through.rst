@@ -57,13 +57,14 @@ To connect, click on the configured X2Go grey session box, and **log in** using 
 
 .. image:: images/x2go-install/x2go-login.png
 
-Once logged in, a remote desktop window will open.  In this window, **open Matlab** by choosing the `Applications Menu` > `Development` > `Matlab` menu item:
+Once logged in, a remote desktop window will open.  In this window, **open Matlab** by choosing the Applications Menu > Development > Matlab menu item:
   
 .. image:: images/x2go-install/x2go-open-matlab.png
 
 Open these instructions in a remote browser
--------------------------------------------
-To help with copy/paste of commands, **open a browser** by choosing Applications Menu > Web Browser, and navigate to **https://goo.gl/vqBTwI**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To help with copy/paste of commands, **open a browser** by choosing Applications Menu > Web Browser menu item, and navigate to **https://goo.gl/vqBTwI**
+
 
 Installing the toolbox
 ----------------------
