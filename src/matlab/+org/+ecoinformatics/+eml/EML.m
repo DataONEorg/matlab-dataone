@@ -186,23 +186,95 @@ classdef EML
                 
             end            
            
-            % Update or insert the language
-%             if ( ~ isempty(cfg.science_metadata_config.language) )
-%                 languageElement = eml.document.createElement('language');
-%                 languageElement.setTextContent( ...
-%                     cfg.science_metadata_config.language);
-%                 datasetNode.appendChild(languageElement);
-%                 
-%             end            
-           
+            % Update or insert  language
+            if ( ~ isempty(cfg.science_metadata_config.language) )
+                languageElement = eml.document.createElement('language');
+                languageElement.setTextContent( ...
+                    cfg.science_metadata_config.language);
+                
+                abstractElements = eml.document.getElementsByTagName('abstract');
+                abstractElement = abstractElements.item(0);
+                abstractElement.getParentNode().insertBefore( ...
+                    languageElement, abstractElement);
+                
+            end            
+                       
+            % Update abstract
+            abstractElement = eml.document.getElementsByTagName('abstract').item(0);
+            paraElement = abstractElement.getFirstChild();
+            paraElementTextNode = paraElement.getFirstChild();
+            paraElementText = char(paraElementTextNode.getNodeValue());
             
-            % Update the abstract
+            if ( ~ isempty(cfg.science_metadata_config.abstract) )
+                if ( strcmp(paraElementText, 'YOUR_ABSTRACT') )
+                    paraElementTextNode.setNodeValue( ...
+                        cfg.science_metadata_config.abstract);
+                    
+                end
+            end
             
-            % Update the keywords
+            % Update keywords
+            contactElement = eml.document.getElementsByTagName('contact').item(0);            
+            keywordSetElement = eml.document.createElement('keywordSet');
+            keywordSetElement = ...
+                contactElement.getParentNode().insertBefore( ...
+                keywordSetElement, contactElement);
             
-            % Update the intellectual rights
+            % Keyword 1
+            keywordElement1 = eml.document.createElement('keyword');
             
-            % Update the contact
+            if ( ~ isempty(cfg.science_metadata_config.keyword1) )
+                keywordElement1.setTextContent( ...
+                    cfg.science_metadata_config.keyword1);
+                keywordSetElement.appendChild(keywordElement1);
+                
+            end
+            
+            % Keyword 2
+            keywordElement2 = eml.document.createElement('keyword');
+            
+            if ( ~ isempty(cfg.science_metadata_config.keyword2) )
+                keywordElement2.setTextContent( ...
+                    cfg.science_metadata_config.keyword2);
+                keywordSetElement.appendChild(keywordElement2);
+                
+            end
+            
+            % Keyword 3
+            keywordElement3 = eml.document.createElement('keyword');
+            
+            if ( ~ isempty(cfg.science_metadata_config.keyword3) )
+                keywordElement3.setTextContent( ...
+                    cfg.science_metadata_config.keyword3);
+                keywordSetElement.appendChild(keywordElement3);
+                
+            end
+            
+            % Keyword 4
+            keywordElement4 = eml.document.createElement('keyword');
+            
+            if ( ~ isempty(cfg.science_metadata_config.keyword4) )
+                keywordElement4.setTextContent( ...
+                    cfg.science_metadata_config.keyword4);
+                keywordSetElement.appendChild(keywordElement4);
+                
+            end
+            
+            % Keyword 5
+            keywordElement5 = eml.document.createElement('keyword');
+            
+            if ( ~ isempty(cfg.science_metadata_config.keyword5) )
+                keywordElement5.setTextContent( ...
+                    cfg.science_metadata_config.keyword5);
+                keywordSetElement.appendChild(keywordElement5);
+                
+            end
+            
+            % Update intellectual rights
+            
+            % Update contact
+            disp(eml.toXML());
+
         end
         function documentStr = toXML(eml)
         % TOXML serializes the EML document to a string representation
