@@ -2061,10 +2061,35 @@ classdef RunManager < hgsetget
         end
 
         
-        function science_memtadata = getMetadata(runManager, runId)
+        function science_metadata = getMetadata(runManager, runId)
             % GETMETADATA retrieves the metadata describing data objects of an execution
             
-            % TODO: implement this
+            run_directory = fullfile( ...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', runId);
+            
+            % Check if the file exists
+            if ( exist(run_directory, 'dir') == 7)
+                
+                science_metadata_file = ['metadata_' runId '.xml'];
+                if ( exist(fullfile( run_directory, ...
+                        science_metadata_file), 'file') )
+                    import org.ecoinformatics.eml.EML;
+                    eml = EML.loadDocument( ...
+                        fullfile(run_directory, ...
+                        science_metadata_file));
+                    science_metadata = eml.toXML;
+                    
+                end
+            else
+                disp(['There is no run directory with the id: ' runId]);
+                return;
+                
+            end
+            % Load it
+            
+            % Return it
+            
         end
 
         
