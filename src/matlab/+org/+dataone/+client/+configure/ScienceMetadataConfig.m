@@ -66,7 +66,7 @@ classdef ScienceMetadataConfig < hgsetget & dynamicprops
         % The fifth keyword describing the run
         keyword5 = '';
         % The intellectual rights statement defining use of the data or software used in the run
-        intelectual_rights = '';
+        intellectual_rights = '';
         % The salutation for the primary contact of the run (Dr., Ms., Mr. etc.)
         primary_contact_salutation = '';
         % The given name of the primary contact of the run
