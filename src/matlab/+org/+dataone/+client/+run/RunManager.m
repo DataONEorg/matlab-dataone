@@ -328,6 +328,7 @@ classdef RunManager < hgsetget
            
             % Convert .gv files to .pdf files
             if isunix    
+                
                 system(['/usr/local/bin/dot -Tpdf '  fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
                 system(['/usr/local/bin/dot -Tpdf '  fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);  
                 system(['/usr/local/bin/dot -Tpdf '  fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
@@ -535,7 +536,7 @@ classdef RunManager < hgsetget
             scienceMetadataId.setValue(scienceMetadataIdStr);
             
             % Update the science metadata with configured fields
-             eml.update(runManager.configuration, runManager.execution);
+            eml.update(runManager.configuration, runManager.execution);
 
             % Process execution_output_ids
             for i=1:length(runManager.execution.execution_output_ids)
@@ -1268,8 +1269,10 @@ classdef RunManager < hgsetget
             mnNodeId = runManager.configuration.get('target_member_node_id');
                      
             % Generate yesWorkflow image outputs
-            runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
-                   
+            if runManager.configuration.capture_yesworkflow_comments
+                runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
+            end
+            
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
@@ -1713,6 +1716,7 @@ classdef RunManager < hgsetget
            import org.apache.commons.io.FileUtils;
            
            % Compute the used struct for the used_section
+           usedFileStruct = struct;
            for i=1:length(runManager.execution.execution_input_ids)
                inId = runManager.execution.execution_input_ids{i};
                
@@ -1729,6 +1733,7 @@ classdef RunManager < hgsetget
            end
            
            % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
+           generatedFileStruct = struct;
            for j=1:length(runManager.execution.execution_output_ids)
                outId = runManager.execution.execution_output_ids{j};
                
