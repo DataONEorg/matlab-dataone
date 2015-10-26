@@ -8,7 +8,8 @@ else
     userdir= getenv('HOME');
 end
 
-matlab_path = fullfile(userdir, '.matlab');
+user_path = strsplit(userpath, ':');
+matlab_path = char(user_path{1});
 
 % Add to Matlab path
 warning off MATLAB:dispatcher:nameConflict;
@@ -24,15 +25,15 @@ mrc_fid = fopen(startup_path, 'w');
 % src/matlab to the path
 
 lib_matlab_path = fullfile(mlt_dataone_root, 'lib', 'matlab');
-fprintf(mrc_fid, '\naddpath(genpath(%s));\n', lib_matlab_path);    
+fprintf(mrc_fid, '\naddpath(genpath(''%s''));\n', lib_matlab_path);    
 
 src_matlab_dataone_path = fullfile(mlt_dataone_root, 'src', 'matlab');
-fprintf(mrc_fid, 'addpath(genpath(%s));\n', src_matlab_dataone_path);      
+fprintf(mrc_fid, 'addpath(genpath(''%s''));\n', src_matlab_dataone_path);      
 
 % Add the YW libraries to the dynamic java path
 yw_library_name = 'yesworkflow-0.2-SNAPSHOT.jar';
 yw_library_path = fullfile(mlt_dataone_root, 'lib', 'java', yw_library_name);
-fprintf(mrc_fid, 'javaaddpath(%s);\n', yw_library_path);
+fprintf(mrc_fid, 'javaaddpath(''%s'');\n', yw_library_path);
 
 % close the file
 fclose(mrc_fid);
@@ -46,6 +47,7 @@ matlabVersion = ver('MATLAB');
 
 
 % Open the ~/.matlab/[R2015a]/javaclasspath.txt
+matlab_path = fullfile(userdir, '.matlab');
 javaclasspath_file_path = fullfile(matlab_path, matlabVersion.Release(2:end-1), 'javaclasspath.txt');
 jcls_fid = fopen(javaclasspath_file_path, 'w');
 
