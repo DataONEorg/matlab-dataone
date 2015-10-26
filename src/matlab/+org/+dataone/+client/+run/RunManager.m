@@ -1297,7 +1297,7 @@ classdef RunManager < hgsetget
             
             % Unlock the RunManager instance
             munlock('RunManager');            
-            clear RunManager;
+            % clear RunManager;
         end
     
         
