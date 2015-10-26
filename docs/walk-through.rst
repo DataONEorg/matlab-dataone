@@ -61,6 +61,9 @@ Once logged in, a remote desktop window will open.  In this window, **open Matla
   
 .. image:: images/x2go-install/x2go-open-matlab.png
 
+Open these instructions in a remote browser
+-------------------------------------------
+To help with copy/paste of commands, **open a browser** by choosing Applications Menu > Web Browser, and navigate to **https://goo.gl/vqBTwI**
 
 Installing the toolbox
 ----------------------
@@ -131,7 +134,7 @@ To **record a script** run, pass it to the RunManager's record() function, and a
 
 .. code:: matlab
 
-  mgr.record('/home/dataone/Desktop/C3_C4_mapping/C3_C4_map_present_NA.m', 'algorithm 1, no markup');
+  mgr.record('/home/<your-username>/Desktop/C3_C4_mapping/C3_C4_map_present_NA.m', 'algorithm 1, no markup');
   
 This will run the script, and will track data input and output files that are read, and will store  to a cache directory, along with other run metadata.
 
