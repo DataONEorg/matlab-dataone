@@ -286,9 +286,8 @@ classdef EML
             
             % TODO: Update contact
             
-            disp(eml.toXML());
-
         end
+        
         function documentStr = toXML(eml)
         % TOXML serializes the EML document to a string representation
             
