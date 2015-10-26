@@ -529,6 +529,11 @@ classdef RunManager < hgsetget
             import org.ecoinformatics.eml.EML;
             eml = EML();
             
+            scienceMetadataIdStr = ['metadata_' ...
+                runManager.execution.execution_id '.xml'];
+            scienceMetadataId = Identifier();
+            scienceMetadataId.setValue(scienceMetadataIdStr);
+            
             % Update the science metadata with configured fields
              eml.update(runManager.configuration, runManager.execution);
 
@@ -604,12 +609,37 @@ classdef RunManager < hgsetget
                         runManager.provONEdataURI);
                 end
             end
-                        
+
+            % Write the science metadata to the execution directory
+            scienceMetadataFile = ...
+                fopen(fullfile( ...
+                runManager.execution.execution_directory, ...
+                scienceMetadataIdStr), 'w');
+            if ( scienceMetadataFile == -1 )
+                error('Could not open the science metadata file for writing.');
+            end
+            
+            fprintf(scienceMetadataFile, '%s', eml.toXML());
+            fclose(scienceMetadataFile);            
+
             % Associate science metadata with the data objects of the
             % package
+            import org.dataone.util.ArrayListWrapper;
+            inputOutputList = ArrayListWrapper();
+            inputOutputIds = union( ...
+                runManager.execution.execution_input_ids, ...
+                runManager.execution.execution_output_ids);
             
+            for idx = 1: length(inputOutputIds)
+                inputOutputId = Identifier();
+                inputOutputId.setValue(inputOutputIds{idx});
+                inputOutputList.add(inputOutputId);
+                
+            end
             
-
+            runManager.dataPackage.insertRelationship(scienceMetadataId, ...
+                inputOutputList);
+            
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
          
