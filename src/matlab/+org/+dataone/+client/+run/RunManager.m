@@ -2086,17 +2086,44 @@ classdef RunManager < hgsetget
                 return;
                 
             end
-            % Load it
-            
-            % Return it
             
         end
 
         
-        function science_memtadata = putMetadata(runManager, runId, file)
+        function putMetadata(runManager, runId, file)
             % PUTMETADATA stores (or replaces) the metadata describing data objects of an execution
             
-            % TODO: implement this
+            run_directory = fullfile( ...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', runId);
+            
+            if ( ~ exist(file, 'file') )
+                error('RunManager:putMetadata:IOError', ...
+                    ['The file ' file 'does not exist.']);
+                
+            end
+            
+            % Check if the file exists
+            if ( exist(run_directory, 'dir') == 7)
+                
+                science_metadata_file = ['metadata_' runId '.xml'];
+                
+                % TODO: validate the metadata
+                
+                [status, message] = copyfile( ...
+                    file, ...
+                    fullfile(run_directory, science_metadata_file), 'f');
+                if ( status == -1 )
+                    error('RunManager:putMetadata:IOError', ...
+                          message);
+                      
+                end
+                
+            else
+                disp(['There is no run directory with the id: ' runId]);
+                return;
+                
+            end
         end
 
     end
