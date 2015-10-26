@@ -51,6 +51,7 @@ classdef EML
             datasetNode = datasetElements.item(0);
             
             % Update the title
+            title_str = '';
             if ( ~ isempty(cfg.science_metadata_config.title_prefix) )
                 title_str = cfg.science_metadata_config.title_prefix;
                 
