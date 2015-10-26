@@ -1101,8 +1101,8 @@ classdef RunManager < hgsetget
             runManager.execution = Execution();
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
-            all_keys = keys(mgr.execution.execution_objects);
-            remove(mgr.execution.execution_objects, all_keys);
+            all_keys = keys(runManager.execution.execution_objects);
+            remove(runManager.execution.execution_objects, all_keys);
             runManager.execution.tag = tag;
 
             % Do we have a script as input?
