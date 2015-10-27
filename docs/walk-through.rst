@@ -109,7 +109,7 @@ Create a Configuration object
 
   % Create a Configuration object
   import org.dataone.client.configure.Configuration;
-  config = Configuration('configuration_directory', '/home/dataone/Desktop/<your-username>');
+  config = Configuration('configuration_directory', '/home/<your-username>/Desktop/<your-username>');
 
   
 Create a RunManager object
