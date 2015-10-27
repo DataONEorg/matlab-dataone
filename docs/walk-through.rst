@@ -167,7 +167,7 @@ The number of runs you produce might get very long, so you can filter the runs b
 .. code:: matlab
 
   mgr.listRuns('tags', 'algorithm 1, no markup');
-  mgr.listRuns('runNumber', '2');
+  mgr.listRuns('runNumber', 2);
   mgr.listRuns('startDate', '20151027T080000', 'endDate', '20151030T080000');
 
 
