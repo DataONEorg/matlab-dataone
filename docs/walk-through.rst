@@ -183,7 +183,7 @@ The output of the view() function provides more technical details about the run.
 
 .. code:: matlab
 
-  mgr.view('runNumber', 1, 'sections', {'details, 'used', 'generated'});
+  mgr.view('runNumber', 1, 'sections', {'details', 'used', 'generated'});
 
 
 View YesWorkflow diagrams
