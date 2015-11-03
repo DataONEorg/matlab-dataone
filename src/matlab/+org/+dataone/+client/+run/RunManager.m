@@ -149,7 +149,7 @@ classdef RunManager < hgsetget
             certificate = CertificateManager.getInstance().loadCertificate();          
             if ~isempty(certificate)
                 dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
-                standardizedName = CertificateManager.getInstance().standardizeDN(dn);
+                standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
             else
                 standardizedName = '';
             end
@@ -330,7 +330,8 @@ classdef RunManager < hgsetget
             if isunix    
                 
                 [status, path2dot] = system('which dot');
-                path2dot = strtrim(path2dot);
+                % path2dot = strtrim(path2dot);
+                path2dot = char('/usr/local/bin/dot');
                 system([path2dot ' -Tpdf ' fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
                 system([path2dot ' -Tpdf ' fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);  
                 system([path2dot ' -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & m
@@ -1105,6 +1106,7 @@ classdef RunManager < hgsetget
             runManager.execution.execution_output_ids = {};
             all_keys = keys(runManager.execution.execution_objects);
             remove(runManager.execution.execution_objects, all_keys);
+
             runManager.execution.tag = tag;
 
             % Do we have a script as input?
