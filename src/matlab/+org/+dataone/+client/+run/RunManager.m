@@ -221,16 +221,14 @@ classdef RunManager < hgsetget
                     import org.dataone.util.HashmapWrapper;
                     import org.yesworkflow.graph.LayoutDirection;
                     
-                    % Set the working directory to be the run metadata directory for this run
-                    curDir = pwd();
-                    cd(runDirectory);
-                    
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
 
                     % Generate YW.Process_View dot file  
                     config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties
                     gconfig = config.getSection('graph');
-                    runManager.processViewDotFileName = gconfig.get('dotfile');
+                    runManager.processViewDotFileName = gconfig.get('dotfile');                  
+                    full_path_processViewDotFileName = [runDirectory filesep runManager.processViewDotFileName];
+                    gconfig.put('dotfile', full_path_processViewDotFileName);                    
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();           
                                                          
@@ -238,6 +236,8 @@ classdef RunManager < hgsetget
                     config.applyPropertyFile(runManager.configuration.yesworkflow_config.data_view_property_file_name); % Read from data_view_yw.properties 
                     gconfig = config.getSection('graph');
                     runManager.dataViewDotFileName = gconfig.get('dotfile');
+                    full_path_dataViewDotFileName = [runDirectory filesep runManager.dataViewDotFileName];
+                    gconfig.put('dotfile', full_path_dataViewDotFileName);                      
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();
                    
@@ -245,6 +245,8 @@ classdef RunManager < hgsetget
                     config.applyPropertyFile(runManager.configuration.yesworkflow_config.combined_view_property_file_name); % Read from comb_view_yw.properties
                     gconfig = config.getSection('graph');
                     runManager.combinedViewDotFileName = gconfig.get('dotfile');
+                    full_path_combinedViewDotFileName = [runDirectory filesep runManager.combinedViewDotFileName];
+                    gconfig.put('dotfile', full_path_combinedViewDotFileName);
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();
                    
@@ -290,8 +292,7 @@ classdef RunManager < hgsetget
                     runManager.execution.execution_objects(ef_d1Object.identifier) = ...
                         ef_d1Object;
                     runManager.execution.execution_output_ids{end+1} = ef_pid;
-                    
-                    cd(curDir); % go back to current working directory          
+                           
                 end  
                 
             catch ME 
@@ -702,7 +703,7 @@ classdef RunManager < hgsetget
             % user, subject, hostId, operatingSystem, runtime, moduleDependencies, 
             % console, errorMessage.
             %   fileName - the name of the execution database
-            
+           
             runID = char(runManager.execution.execution_id);
             filePath = char(runManager.execution.software_application);
             startTime = char(runManager.execution.start_time);
@@ -736,8 +737,6 @@ classdef RunManager < hgsetget
             
             formatSpec = runManager.configuration.execution_db_write_format;
            
-            curDir = pwd();
-            cd(runManager.configuration.provenance_storage_directory);
             if exist(fileName, 'file') ~= 2
                 [fileId, message] = fopen(fileName,'w');
                 if fileId == -1
@@ -765,8 +764,7 @@ classdef RunManager < hgsetget
                     subject, hostId, operatingSystem, runtime, ...,
                     moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
                 fclose(fileId); 
-            end
-            cd(curDir);
+            end           
         end
        
         
