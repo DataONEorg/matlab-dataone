@@ -65,7 +65,9 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedCdfread'); 
-suite = TestSuite.fromMethod(testCls, 'testOverloadedCdfwrite'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedCdfwrite'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedH5read'); 
+ suite = TestSuite.fromMethod(testCls, 'testOverloadedH5write'); 
 
 % suite = TestSuite.fromMethod(testCls, 'testPublish'); 
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); 

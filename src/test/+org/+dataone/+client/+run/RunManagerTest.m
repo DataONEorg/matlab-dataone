@@ -215,6 +215,34 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end 
         
         
+        function testOverloadedH5read(testCase)
+            fprintf('\nIn testOverloadedH5read ...\n');            
+            testCase.filename = 'src/test/resources/myScript9.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedH5write(testCase)
+            fprintf('\nIn testOverloadedH5write ...\n');            
+            testCase.filename = 'src/test/resources/myScript10.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
             testCase.filename = 'src/test/resources/myScript3.m';
