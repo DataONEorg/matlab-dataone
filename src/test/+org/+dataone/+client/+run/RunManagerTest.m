@@ -185,7 +185,36 @@ classdef RunManagerTest < matlab.unittest.TestCase
             total = total1 + total2;
             assertEqual(testCase, total, 2);
         end
-                
+        
+        
+        function testOverloadedCdfread(testCase)
+            fprintf('\nIn testOverloadedCdfread() ...\n');            
+            testCase.filename = 'src/test/resources/myScript7.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedCdfwrite(testCase)
+            fprintf('\nIn testOverloadedCdfwrite() ...\n');            
+            testCase.filename = 'src/test/resources/myScript8.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
             testCase.filename = 'src/test/resources/myScript3.m';
@@ -241,8 +270,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testOverloadedLoad(testCase)
             % Todo: load coast (not working)
             fprintf('\nIn testOverloadedLoad() ...\n');            
-            testCase.filename = 'src/test/resources/myScript5.m';
-            % testCase.filename = 'test/resources/myScript1.m'; % load coast
+            % testCase.filename = 'src/test/resources/myScript5.m';
+             testCase.filename = 'test/resources/myScript1.m'; % load coast
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)

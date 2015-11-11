@@ -28,7 +28,7 @@ warning off MATLAB:dispatcher:nameConflict;
 addpath(genpath(pwd));
 warning on MATLAB:dispatcher:nameConflict;
 
- warning('off','backtrace');
+warning('off','backtrace');
  
 import matlab.unittest.TestSuite;
 
@@ -57,14 +57,18 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testListRunsTagsOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testDeleteRunsByTags');
 % suite = TestSuite.fromMethod(testCls, 'testDeleteRunsByTagsRunIdsOnly');
+
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCwrite'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedCdfread'); 
+suite = TestSuite.fromMethod(testCls, 'testOverloadedCdfwrite'); 
+
 % suite = TestSuite.fromMethod(testCls, 'testPublish'); 
- suite = TestSuite.fromMethod(testCls, 'testRecord'); 
+% suite = TestSuite.fromMethod(testCls, 'testRecord'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewByPackageIdOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewBySequenceNumberOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
