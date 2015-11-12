@@ -168,7 +168,7 @@ function [data, info] = cdfread(source, varargin)
     % Identifiy the file being used and add a prov:used statement 
     % in the RunManager DataPackage instance  
     if ( runManager.configuration.capture_file_reads )
-        formatId = 'application/netcdf'; % Todo: what is the correct object format for common data format (cdf). 
+        formatId = 'application/octet-stream'; % Todo: what is the correct object format for common data format (cdf). 
                                          % Temporary to borrow: Network Common Data Format
         import org.dataone.client.v2.D1Object;
 
