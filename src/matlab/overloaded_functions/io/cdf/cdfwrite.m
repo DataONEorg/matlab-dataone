@@ -161,7 +161,7 @@ function cdfwrite(source, varcell, varargin)
     % Identifiy the file being used and add a prov:wasGeneratedBy statement 
     % in the RunManager DataPackage instance  
     if ( runManager.configuration.capture_file_writes )
-        formatId = 'application/netcdf'; % Todo: what is the correct object format for common data format (cdf). 
+        formatId = 'application/octet-stream'; % Todo: what is the correct object format for common data format (cdf). 
                                          % Temporary to borrow: Network Common Data Format
         import org.dataone.client.v2.D1Object;
         
