@@ -70,8 +70,10 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedH5write'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedHdfread'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedHdfinfo');
- suite = TestSuite.fromMethod(testCls, 'testOverloadedTextread');
- 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedTextread');
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedReadtable');
+suite = TestSuite.fromMethod(testCls, 'testOverloadedWritetable');
+
 % suite = TestSuite.fromMethod(testCls, 'testPublish'); 
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewByPackageIdOnly'); 
