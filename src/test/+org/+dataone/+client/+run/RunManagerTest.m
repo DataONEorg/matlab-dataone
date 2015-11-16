@@ -312,6 +312,34 @@ classdef RunManagerTest < matlab.unittest.TestCase
             run(scriptPath);
         end 
         
+        function testOverloadedImread(testCase)
+            fprintf('\nIn testOverloadedImread ...\n');            
+            testCase.filename = 'src/test/resources/myScript15.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedImwrite(testCase)
+            fprintf('\nIn testOverloadedImwrite ...\n');            
+            testCase.filename = 'src/test/resources/myScript16.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
         
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
