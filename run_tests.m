@@ -74,8 +74,14 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedReadtable');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedWritetable');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedImread');
- suite = TestSuite.fromMethod(testCls, 'testOverloadedImwrite');
-
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedImwrite');
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedXmlread');
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedXmlwrite');
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedMultibandwrite');
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedMultibandread');
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedFitswrite');
+ suite = TestSuite.fromMethod(testCls, 'testOverloadedFitsread');
+ 
 % suite = TestSuite.fromMethod(testCls, 'testPublish'); 
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewByPackageIdOnly'); 
