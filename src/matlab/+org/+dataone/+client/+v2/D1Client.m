@@ -27,6 +27,14 @@ classdef D1Client < hgsetget
     end
 
     methods
+        function mnNode = getMN(mnBaseUrl)
+            
+        end
+        
+        
+        function mnNode = getMN(nodeRef)
+            
+        end
     end
     
 end
