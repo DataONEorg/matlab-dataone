@@ -27,14 +27,15 @@ classdef MNode < hgsetget
         
     end
     
-    methods
-        
+    methods (Static)
         function mnode = getMN(mnBaseUrl)
             import org.dataone.client.v2.itk.D1Client;
             
             mnode = D1Client.getMN(mnBaseUrl);
         end
-        
+    end
+    
+    methods       
         function inputStream = get(mnode, pid)
             % Call the Java function with the same name to retrieve the DataONE object
             
