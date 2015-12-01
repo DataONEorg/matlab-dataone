@@ -35,27 +35,60 @@ classdef MNode < hgsetget
         end
     end
     
-    methods       
+    methods      
+        
         function inputStream = get(mnode, pid)
-            % Call the Java function with the same name to retrieve the DataONE object
+            % GET Get a D1Objet instance with the givien identifier from
+            % the given member node
             
-            % Write provenance information for this object to the
-            % DataPackage object
+            import org.dataone.client.v2.impl;
+            import org.dataone.client.run.RunManager;
+            import org.dataone.service.types.v2.SystemMetadata;
+                      
+            runManager = RunManager.getInstance();
             
-                % Identifiy the D1object being used and add a prov:used statement 
-                % in the RunManager DataPackage instance 
-                
+            if ( runManager.configuration.debug)
+                disp('Called the mnode.get() wrapper function.');
+            end
+
+            % Call the Java function with the same name to retrieve the
+            % DataONE object and get system metadata for this d1 object.
+            % The formatId information is obtained from the system metadata
+            inputStream = mnode.get(pid);  
+            sysMetaData = mnode.getSystemMetadata(null, pid);
+            formatId = sysMetaData.getFormatId();
+         
+            % Identifiy the D1Object being used and add a prov:used statement
+            % in the RunManager DataPackage instance            
+            if ( runManager.configuration.capture_file_reads )
                 % Record the DataONE resolve service endpoint + pid for the object of the RDF triple
-                
-                
                 % Decode the URL that will eventually be added to the
                 % resource map
+                % Get the base URL of the DataONE coordinating node server
+                D1_Resolve_pid = ...
+                    [char(runManager.configuration.coordinating_node_base_url) '/' pid];
+   
+                import org.dataone.client.v2.D1Object;
+  
+                existing_id = runManager.execution.getIdByFullFilePath( ...
+                     D1_Resolve_pid );
+                                
+                if ( isempty(existing_id) )
+                    % Add this object to the execution objects map
+                    d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    runManager.execution.execution_objects(d1Object.identifier) = ...
+                        d1Object;
+                else
+                    % Update the existing map entry with a new D1Object
+                    pid = existing_id;
+                    d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    runManager.execution.execution_objects(d1Object.identifier) = ...
+                        d1Object;
+                end
                 
-               
-                % Add this object to the execution objects map
-                
-                
-                % Else, update the existing map entry with a new D1Object
+                runManager.execution.execution_input_ids{end+1} = pid;
+            end
+            
         end
         
         
