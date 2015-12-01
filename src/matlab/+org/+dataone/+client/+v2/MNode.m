@@ -48,7 +48,7 @@ classdef MNode < hgsetget
             runManager = RunManager.getInstance();
             
             if ( runManager.configuration.debug)
-                disp('Called the mnode.get() wrapper function.');
+                disp('Called the java version mnode.get() wrapper function.');
             end
 
             % Call the Java function with the same name to retrieve the
@@ -56,7 +56,7 @@ classdef MNode < hgsetget
             % The formatId information is obtained from the system metadata
             inputStream = mnode.get(pid);  
             sysMetaData = mnode.getSystemMetadata(null, pid);
-            formatId = sysMetaData.getFormatId();
+            formatId = sysMetaData.getFormatId().getValue;
          
             % Identifiy the D1Object being used and add a prov:used statement
             % in the RunManager DataPackage instance            
@@ -64,6 +64,7 @@ classdef MNode < hgsetget
                 % Record the DataONE resolve service endpoint + pid for the object of the RDF triple
                 % Decode the URL that will eventually be added to the
                 % resource map
+                
                 % Get the base URL of the DataONE coordinating node server
                 D1_Resolve_pid = ...
                     [char(runManager.configuration.coordinating_node_base_url) '/' pid];
@@ -95,13 +96,64 @@ classdef MNode < hgsetget
         end
         
         
-        function inputStream = get(mnode, session, pid)
+        %function inputStream = get(mnode, session, pid)          
+        %end
+                
+        function identifier = create(mnode, session, pid, objectInputStream, sysmeta)
+            % CREATE Creates a D1Objet instance with the givien identifier
+            % at the given member node
             
-        end
-        
-        
-        function identifier = create(mnode, session, pid, object, sysmeta)
+            import org.dataone.client.v2.impl;
+            import org.dataone.client.run.RunManager;
+            import org.dataone.service.types.v2.SystemMetadata;
             
+            runManager = RunManager.getInstance();
+            
+            if ( runManager.configuration.debug )
+                disp('Called the java version mnode.create() wrapper function.');
+            end
+            
+            % Call the Java function with the same name to create the
+            % DataONE object 
+            identifier = mnode.create(session, pid, objectInputStream, sysmeta);
+          
+            % Identifiy the file being used and add a prov:wasGeneratedBy statement
+            % in the RunManager DataPackage instance
+            if ( runManager.configuration.capture_file_writes )
+                % Record the DataONE resolve service endpoint + pid for the object of the RDF triple
+                % Decode the URL that will eventually be added to the
+                % resource map
+                
+                % Get the base URL of the DataONE coordinating node server
+                D1_Resolve_pid = ...
+                    [char(runManager.configuration.coordinating_node_base_url) '/' pid];
+                
+                import org.dataone.client.v2.D1Object;
+                
+                formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
+               
+                existing_id = runManager.execution.getIdByFullFilePath( ...
+                    D1_Resolve_pid );
+                
+                if ( isempty(existing_id) )
+                    % Add this object to the execution objects map
+                    
+                    d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    % Set the system metadata downloaded from the given
+                    % mnode for the current d1Object
+                    set(d1Object, 'system_metadata', sysMetaData);
+                    runManager.execution.execution_objects(d1Object.identifier) = ...
+                        d1Object;
+                else
+                    % Update the existing map entry with a new D1Object
+                    pid = existing_id;
+                    d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    runManager.execution.execution_objects(d1Object.identifier) = ...
+                        d1Object;
+                end
+                
+                runManager.execution.execution_output_ids{end+1} = pid; 
+            end
         end
         
         
