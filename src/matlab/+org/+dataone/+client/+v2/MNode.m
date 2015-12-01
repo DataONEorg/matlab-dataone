@@ -76,6 +76,9 @@ classdef MNode < hgsetget
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map
                     d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    % Set the system metadata downloaded from the given
+                    % mnode for the current d1Object
+                    set(d1Object, 'system_metadata', sysMetaData);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
                 else
