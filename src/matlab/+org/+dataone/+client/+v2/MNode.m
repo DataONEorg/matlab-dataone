@@ -24,20 +24,29 @@
 
 classdef MNode < hgsetget
     properties
+        % A Java version member node object 
+        mnode;
         
-    end
-    
-    methods (Static)
-        function mnode = getMN(mnBaseUrl)
-            import org.dataone.client.v2.itk.D1Client;
-            
-            mnode = D1Client.getMN(mnBaseUrl);
-        end
+        % A base usl for a member node
+        mn_base_url;
     end
     
     methods      
+        function memberNode = MNode(mnBaseUrl)
+            % MNODE constructs an MNode object instance with the given
+            % member node base url
+            memberNode.mn_base_url = mnBaseUrl;
+        end
         
-        function inputStream = get(mnode, pid)
+        function getMN(memberNode, mnBaseUrl)
+            % GETMN Returns a Member Node using the base service URL for the node 
+            import org.dataone.client.v2.itk.D1Client;
+            
+            memberNode.mnode = D1Client.getMN(mnBaseUrl);
+        end
+        
+        
+        function inputStream = get(memberNode, session, pid)
             % GET Get a D1Objet instance with the givien identifier from
             % the given member node
             
@@ -54,8 +63,8 @@ classdef MNode < hgsetget
             % Call the Java function with the same name to retrieve the
             % DataONE object and get system metadata for this d1 object.
             % The formatId information is obtained from the system metadata
-            inputStream = mnode.get(pid);  
-            sysMetaData = mnode.getSystemMetadata(null, pid);
+            inputStream = memberNode.mnode.get(pid);  
+            sysMetaData = memberNode.mnode.getSystemMetadata(session, pid);
             formatId = sysMetaData.getFormatId().getValue;
          
             % Identifiy the D1Object being used and add a prov:used statement
@@ -67,7 +76,7 @@ classdef MNode < hgsetget
                 
                 % Get the base URL of the DataONE coordinating node server
                 D1_Resolve_pid = ...
-                    [char(runManager.configuration.coordinating_node_base_url) '/' pid];
+                    [char(memberNode.mn_base_url) '/' pid];
    
                 import org.dataone.client.v2.D1Object;
   
@@ -94,12 +103,9 @@ classdef MNode < hgsetget
             end
             
         end
+ 
         
-        
-        %function inputStream = get(mnode, session, pid)          
-        %end
-                
-        function identifier = create(mnode, session, pid, objectInputStream, sysmeta)
+        function identifier = create(memberNode, session, pid, objectInputStream, sysmeta)
             % CREATE Creates a D1Objet instance with the given identifier
             % at the given member node
             
@@ -115,7 +121,7 @@ classdef MNode < hgsetget
             
             % Call the Java function with the same name to create the
             % DataONE object 
-            identifier = mnode.create(session, pid, objectInputStream, sysmeta);
+            identifier = memberNode.mnode.create(session, pid, objectInputStream, sysmeta);
           
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
@@ -126,7 +132,7 @@ classdef MNode < hgsetget
                 
                 % Get the base URL of the DataONE coordinating node server
                 D1_Resolve_pid = ...
-                    [char(runManager.configuration.coordinating_node_base_url) '/' pid];
+                    [char(memberNode.mn_base_url) '/' pid];
                 
                 import org.dataone.client.v2.D1Object;
                 
@@ -155,7 +161,7 @@ classdef MNode < hgsetget
         end
         
         
-        function identifier = update(mnode, session, pid, objectInputStream, newPid, sysmeta)
+        function identifier = update(memberNode, session, pid, objectInputStream, newPid, sysmeta)
             % UPDATE Updates a D1Objet instance with a new identifier
             % at the given member node
             % Assume: only pid is changed. Need verify with Chris
@@ -172,7 +178,7 @@ classdef MNode < hgsetget
             
             % Call the Java function with the same name to update a
             % DataONE object 
-            identifier = mnode.update(session, pid, objectInputStream, newPid, sysmeta);
+            identifier = memberNode.mnode.update(session, pid, objectInputStream, newPid, sysmeta);
           
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
@@ -183,9 +189,9 @@ classdef MNode < hgsetget
                 
                 % Get the base URL of the DataONE coordinating node server
                 old_D1_Resolve_pid = ...
-                    [char(runManager.configuration.coordinating_node_base_url) '/' pid];
+                    [char(memberNode.mn_base_url) '/' pid];
                 D1_Resolve_pid = ...
-                    [char(runManager.configuration.coordinating_node_base_url) '/' newPid];
+                    [char(memberNode.mn_base_url) '/' newPid];
                 
                 import org.dataone.client.v2.D1Object;
                 
