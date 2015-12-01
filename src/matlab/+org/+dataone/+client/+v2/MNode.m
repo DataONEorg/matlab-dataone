@@ -205,8 +205,10 @@ classdef MNode < hgsetget
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;
                     d1Object = D1Object(newPid, formatId, D1_Resolve_pid);
+                    % Set the system metadata for the current d1Object
+                    set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;
+                        d1Object; % Question: should the d1Object with the old "pid" identifier kept in the exeuciton_objects map or not?
                 end
                 
                 % Replace the old "pid" with "newPid" in execution_output_ids array
