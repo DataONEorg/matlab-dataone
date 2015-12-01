@@ -100,7 +100,7 @@ classdef MNode < hgsetget
         %end
                 
         function identifier = create(mnode, session, pid, objectInputStream, sysmeta)
-            % CREATE Creates a D1Objet instance with the givien identifier
+            % CREATE Creates a D1Objet instance with the given identifier
             % at the given member node
             
             import org.dataone.client.v2.impl;
@@ -155,10 +155,70 @@ classdef MNode < hgsetget
         end
         
         
-        function identifier = update(mnode, session, pid, object, newPid, sysmeta)
+        function identifier = update(mnode, session, pid, objectInputStream, newPid, sysmeta)
+            % UPDATE Updates a D1Objet instance with a new identifier
+            % at the given member node
+            % Assume: only pid is changed. Need verify with Chris
             
+            import org.dataone.client.v2.impl;
+            import org.dataone.client.run.RunManager;
+            import org.dataone.service.types.v2.SystemMetadata;
             
+            runManager = RunManager.getInstance();
+            
+            if ( runManager.configuration.debug )
+                disp('Called the java version mnode.update() wrapper function.');
+            end
+            
+            % Call the Java function with the same name to update a
+            % DataONE object 
+            identifier = mnode.update(session, pid, objectInputStream, newPid, sysmeta);
+          
+            % Identifiy the file being used and add a prov:wasGeneratedBy statement
+            % in the RunManager DataPackage instance
+            if ( runManager.configuration.capture_file_writes )
+                % Record the DataONE resolve service endpoint + pid for the object of the RDF triple
+                % Decode the URL that will eventually be added to the
+                % resource map
+                
+                % Get the base URL of the DataONE coordinating node server
+                old_D1_Resolve_pid = ...
+                    [char(runManager.configuration.coordinating_node_base_url) '/' pid];
+                D1_Resolve_pid = ...
+                    [char(runManager.configuration.coordinating_node_base_url) '/' newPid];
+                
+                import org.dataone.client.v2.D1Object;
+                
+                formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
+               
+                existing_id = runManager.execution.getIdByFullFilePath( ...
+                    old_D1_Resolve_pid );
+                
+                if ( isempty(existing_id) )
+                    % Add this object to the execution objects map                  
+                    d1Object = D1Object(newPid, formatId, D1_Resolve_pid);
+                    % Set the system metadata for the current d1Object
+                    set(d1Object, 'system_metadata', sysmeta);
+                    runManager.execution.execution_objects(d1Object.identifier) = ...
+                        d1Object;
+                else
+                    % Update the existing map entry with a new D1Object
+                    pid = existing_id;
+                    d1Object = D1Object(newPid, formatId, D1_Resolve_pid);
+                    runManager.execution.execution_objects(d1Object.identifier) = ...
+                        d1Object;
+                end
+                
+                % Replace the old "pid" with "newPid" in execution_output_ids array
+                for i=1:length(runManager.execution.execution_output_ids)
+                    value = runManager.execution.execution_output_ids{i};
+                    if strcmp(pid, value)
+                        runManager.execution.execution_output_ids{i} = newPid;
+                        break;
+                    end                    
+                end
+            end          
         end
-    end
-    
+        
+    end   
 end
