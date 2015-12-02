@@ -27,16 +27,18 @@ classdef MNode < hgsetget
         % A Java version member node object 
         mnode;
         
-        % A base usl for a member node
+        % A base url for a member node
         mn_base_url;
     end
     
-    methods      
+    methods     
+        
         function memberNode = MNode(mnBaseUrl)
-            % MNODE constructs an MNode object instance with the given
+            % MNODE Constructs an MNode object instance with the given
             % member node base url
             memberNode.mn_base_url = mnBaseUrl;
         end
+        
         
         function getMN(memberNode, mnBaseUrl)
             % GETMN Returns a Member Node using the base service URL for the node 
@@ -66,7 +68,26 @@ classdef MNode < hgsetget
             inputStream = memberNode.mnode.get(pid);  
             sysMetaData = memberNode.mnode.getSystemMetadata(session, pid);
             formatId = sysMetaData.getFormatId().getValue;
-         
+            
+            % Get filename from d1 object system metadata; otherwise, 
+            % a UUID string is used as the filename of the local copy of the d1 object
+            d1FileName = sysMetaData.getFileName;
+            if isempty(d1FileName)
+                d1FileName = char(java.util.UUID.randomUUID());
+            end
+            
+            % Create a local copy for the d1 object
+            d1FileFullPath = fullfile( ...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', ...
+                runManager.execution.execution_id, ...
+                d1FileName);
+            fw = fopen(d1FileFullPath, 'w');
+            if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
+            d1ObjString = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+            fprintf(fw, '%s', d1ObjString);
+            fclose(fw);
+            
             % Identifiy the D1Object being used and add a prov:used statement
             % in the RunManager DataPackage instance            
             if ( runManager.configuration.capture_file_reads )
@@ -74,18 +95,19 @@ classdef MNode < hgsetget
                 % Decode the URL that will eventually be added to the
                 % resource map
                 
-                % Get the base URL of the DataONE coordinating node server
+                % Create a url for the d1 object using the base URL of the
+                % member node and the pid
                 D1_Resolve_pid = ...
                     [char(memberNode.mn_base_url) '/' pid];
    
                 import org.dataone.client.v2.D1Object;
   
                 existing_id = runManager.execution.getIdByFullFilePath( ...
-                     D1_Resolve_pid );
+                     d1FileFullPath );
                                 
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map
-                    d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    d1Object = D1Object(pid, formatId, d1FileFullPath);
                     % Set the system metadata downloaded from the given
                     % mnode for the current d1Object
                     set(d1Object, 'system_metadata', sysMetaData);
@@ -94,7 +116,7 @@ classdef MNode < hgsetget
                 else
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;
-                    d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    d1Object = D1Object(pid, formatId, d1FileFullPath);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
                 end
@@ -130,7 +152,8 @@ classdef MNode < hgsetget
                 % Decode the URL that will eventually be added to the
                 % resource map
                 
-                % Get the base URL of the DataONE coordinating node server
+                % Create a url for the d1 object using the base URL of the
+                % member node and the pid
                 D1_Resolve_pid = ...
                     [char(memberNode.mn_base_url) '/' pid];
                 
@@ -187,7 +210,8 @@ classdef MNode < hgsetget
                 % Decode the URL that will eventually be added to the
                 % resource map
                 
-                % Get the base URL of the DataONE coordinating node server
+                % Create a url for the d1 object using the base URL of the
+                % member node and the pid
                 old_D1_Resolve_pid = ...
                     [char(memberNode.mn_base_url) '/' pid];
                 D1_Resolve_pid = ...
