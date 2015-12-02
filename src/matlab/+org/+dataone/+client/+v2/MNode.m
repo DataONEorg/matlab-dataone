@@ -76,7 +76,8 @@ classdef MNode < hgsetget
                 d1FileName = char(java.util.UUID.randomUUID());
             end
             
-            % Create a local copy for the d1 object
+            % Create a local copy for the d1 object under the execution
+            % directory
             d1FileFullPath = fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
                 'runs', ...
@@ -84,7 +85,7 @@ classdef MNode < hgsetget
                 d1FileName);
             fw = fopen(d1FileFullPath, 'w');
             if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
-            d1ObjString = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+            d1ObjString = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name()); % Question: correct convert inputStream to String?
             fprintf(fw, '%s', d1ObjString);
             fclose(fw);
             
@@ -95,11 +96,6 @@ classdef MNode < hgsetget
                 % Decode the URL that will eventually be added to the
                 % resource map
                 
-                % Create a url for the d1 object using the base URL of the
-                % member node and the pid
-                D1_Resolve_pid = ...
-                    [char(memberNode.mn_base_url) '/' pid];
-   
                 import org.dataone.client.v2.D1Object;
   
                 existing_id = runManager.execution.getIdByFullFilePath( ...
@@ -145,6 +141,26 @@ classdef MNode < hgsetget
             % DataONE object 
             identifier = memberNode.mnode.create(session, pid, objectInputStream, sysmeta);
           
+            % Get filename from d1 object system metadata; otherwise,
+            % a UUID string is used as the filename of the local copy of the d1 object
+            d1FileName = sysmeta.getFileName;
+            if isempty(d1FileName)
+                d1FileName = char(java.util.UUID.randomUUID());
+            end
+            
+            % Create a local copy for the d1 object under the execution
+            % directory
+            d1FileFullPath = fullfile( ...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', ...
+                runManager.execution.execution_id, ...
+                d1FileName);
+            fw = fopen(d1FileFullPath, 'w');
+            if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
+            d1ObjString = IOUtils.toString(objectInputStream, StandardCharsets.UTF_8.name());
+            fprintf(fw, '%s', d1ObjString);
+            fclose(fw);
+            
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
             if ( runManager.configuration.capture_file_writes )
@@ -152,21 +168,16 @@ classdef MNode < hgsetget
                 % Decode the URL that will eventually be added to the
                 % resource map
                 
-                % Create a url for the d1 object using the base URL of the
-                % member node and the pid
-                D1_Resolve_pid = ...
-                    [char(memberNode.mn_base_url) '/' pid];
-                
                 import org.dataone.client.v2.D1Object;
                 
                 formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
                
                 existing_id = runManager.execution.getIdByFullFilePath( ...
-                    D1_Resolve_pid );
+                    d1FileFullPath );
                 
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map                  
-                    d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    d1Object = D1Object(pid, formatId, d1FileFullPath);
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
@@ -174,7 +185,7 @@ classdef MNode < hgsetget
                 else
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;
-                    d1Object = D1Object(pid, formatId, D1_Resolve_pid);
+                    d1Object = D1Object(pid, formatId, d1FileFullPath);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
                 end
@@ -186,9 +197,9 @@ classdef MNode < hgsetget
         
         function identifier = update(memberNode, session, pid, objectInputStream, newPid, sysmeta)
             % UPDATE Updates a D1Objet instance with a new identifier
-            % at the given member node
-            % Assume: only pid is changed. Need verify with Chris
-            
+            % at the given member node. The last three parameters have new
+            % information
+                 
             import org.dataone.client.v2.impl;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
@@ -203,6 +214,26 @@ classdef MNode < hgsetget
             % DataONE object 
             identifier = memberNode.mnode.update(session, pid, objectInputStream, newPid, sysmeta);
           
+            % Get filename from d1 object system metadata; otherwise,
+            % a UUID string is used as the filename of the local copy of the d1 object
+            d1FileName = sysmeta.getFileName;
+            if isempty(d1FileName)
+                d1FileName = char(java.util.UUID.randomUUID());
+            end
+            
+            % Create a local copy for the d1 object under the execution
+            % directory
+            d1FileFullPath = fullfile( ...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', ...
+                runManager.execution.execution_id, ...
+                d1FileName);
+            fw = fopen(d1FileFullPath, 'w');
+            if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
+            d1ObjString = IOUtils.toString(objectInputStream, StandardCharsets.UTF_8.name());
+            fprintf(fw, '%s', d1ObjString);
+            fclose(fw);           
+            
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
             if ( runManager.configuration.capture_file_writes )
@@ -210,23 +241,16 @@ classdef MNode < hgsetget
                 % Decode the URL that will eventually be added to the
                 % resource map
                 
-                % Create a url for the d1 object using the base URL of the
-                % member node and the pid
-                old_D1_Resolve_pid = ...
-                    [char(memberNode.mn_base_url) '/' pid];
-                D1_Resolve_pid = ...
-                    [char(memberNode.mn_base_url) '/' newPid];
-                
                 import org.dataone.client.v2.D1Object;
                 
                 formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
                
                 existing_id = runManager.execution.getIdByFullFilePath( ...
-                    old_D1_Resolve_pid );
+                    d1FileFullPath );
                 
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map                  
-                    d1Object = D1Object(newPid, formatId, D1_Resolve_pid);
+                    d1Object = D1Object(newPid, formatId, d1FileFullPath);
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
@@ -234,7 +258,7 @@ classdef MNode < hgsetget
                 else
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;
-                    d1Object = D1Object(newPid, formatId, D1_Resolve_pid);
+                    d1Object = D1Object(newPid, formatId, d1FileFullPath);
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
