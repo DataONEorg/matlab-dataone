@@ -55,7 +55,8 @@ classdef MNode < hgsetget
             import org.dataone.client.v2.impl;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
-                      
+            import org.apache.commons.io.IOUtils;
+            
             runManager = RunManager.getInstance();
             
             if ( runManager.configuration.debug)
@@ -130,6 +131,7 @@ classdef MNode < hgsetget
             import org.dataone.client.v2.impl;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
+            import org.apache.commons.io.IOUtils;
             
             runManager = RunManager.getInstance();
             
@@ -203,6 +205,7 @@ classdef MNode < hgsetget
             import org.dataone.client.v2.impl;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
+            import org.apache.commons.io.IOUtils;
             
             runManager = RunManager.getInstance();
             
