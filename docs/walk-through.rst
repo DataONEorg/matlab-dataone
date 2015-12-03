@@ -157,6 +157,9 @@ Then, record a second run using this script, and tag the run accordingly. Prior 
   mgr.record('/home/<your-username>/Desktop/C3_C4_mapping/C3_C4_map_present_NA_with_comments.m', 'algorithm 1, with YW comments');
 
 
+.. image:: images/walkthrough-images/sec3.5-output.png
+
+
 List the completed runs
 ~~~~~~~~~~~~~~~~~~~~~~~
 Now that you have completed two runs, **view the runs** using the listRuns() function:
@@ -164,14 +167,25 @@ Now that you have completed two runs, **view the runs** using the listRuns() fun
 .. code:: matlab
 
   mgr.listRuns();
+
+.. image:: images/walkthrough-images/sec3.6-listRuns()-output.png
+
   
 The number of runs you produce might get very long, so you can filter the runs by startDate, endDate, tags, or runNumber, such as:
 
 .. code:: matlab
 
   mgr.listRuns('tags', 'algorithm 1, no markup');
+
+.. image:: images/walkthrough-images/sec3.6-listRuns(tag)-output.png
+
   mgr.listRuns('runNumber', 2);
+
+.. image:: images/walkthrough-images/sec3.6-listRuns(runNumber)-output.png
+
   mgr.listRuns('startDate', '20151027T080000', 'endDate', '20151030T080000');
+
+.. image:: images/walkthrough-images/sec3.6-listRuns(startDate-endDate)-output.png
 
 
 View a selected run
@@ -182,11 +196,19 @@ To view a given run, pass in the runNumber or packageId from one of the resultin
   
   mgr.view('runNumber', 1);
 
+.. image:: images/walkthrough-images/sec3.7-view(yw-basic-output).png
+
+
 The output of the view() function provides more technical details about the run. You can also see the provenance details of the run by showing the 'used' and 'generated' sections, like:
 
 .. code:: matlab
 
   mgr.view('runNumber', 1, 'sections', {'details', 'used', 'generated'});
+
+.. image:: images/walkthrough-images/sec3.7-view(yw-all-output).png
+
+.. image:: images/walkthrough-images/sec3.7-view(yw-all-more).png
+
 
 
 View YesWorkflow diagrams
@@ -194,6 +216,7 @@ View YesWorkflow diagrams
 Workflow provenance is captured with the YesWorkflow tool, and it outputs three diagrams: data flow, process flow, and combined data and process flow.  Have a look at the three diagrams by opening your configuration folder on your Desktop, and navigating into the Desktop > <your-username> > provenance > runs > <run_id> folder.  These PDF files will be named 'testdata_7.pdf', 'testprocess_7.pdf', and 'testcomb_7.pdf'. An example of the combined workflow view is below:
 
 .. image:: images/matlab-walkthrough/yesworkflow-combined.png
+
 
 Delete a selected run
 ~~~~~~~~~~~~~~~~~~~~~
@@ -203,6 +226,8 @@ If a run wasn't useful, you can **delete one or more runs** from the database us
 
   mgr.deleteRuns('runNumber', 1);
   mgr.listRuns();
+
+.. image:: images/walkthrough-images/sec3.9-delete( )-output.png
 
 
 View and modify metadata for a run
@@ -257,6 +282,10 @@ With the metadata populated, you may choose to publish a run and its artifacts t
   set(mgr.configuration, 'certificate_path', '/tmp/x509up_u501'); 
   set(mgr.configuration, 'authentication_token', 'eyJhbGciOiJSUzI1Ni ...'); % Replace token here
   mgr.publish('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % replace the packageId here
+
+.. image:: images/walkthrough-images/sec3.11-publish( )-output-1.png
+.. image:: images/walkthrough-images/sec3.11-publish( )-output-2.png
+
 
 Viewing the data package on the web
 -----------------------------------
