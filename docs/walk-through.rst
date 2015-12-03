@@ -290,12 +290,13 @@ With the metadata populated, you may choose to publish a run and its artifacts t
 .. image:: images/walkthrough-images/sec3.11-publish-output-1.png
 .. image:: images/walkthrough-images/sec3.11-publish-output-2.png
 
+A resource map example
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Example: **https://github.com/DataONEorg/matlab-dataone/blob/master/docs/resourceMap_343813cd-2894-4331-935b-e4564d8a4277.rdf**
+
 
 Viewing the data package on the web
 -----------------------------------
 We are still working on getting the appropriate provenance information indexed on the Coordinating Nodes after the publish() call is made.  Lauren will be showing you an example of viewing provenance-enabled metadata on a DataONE search interface.
 
 
-A resource map example
-~~~~~~~~~~~~~~~~~~~~~~~~~
-.. Example: https://github.com/DataONEorg/matlab-dataone/blob/master/docs/resourceMap_343813cd-2894-4331-935b-e4564d8a4277.rdf
