@@ -296,3 +296,6 @@ Viewing the data package on the web
 We are still working on getting the appropriate provenance information indexed on the Coordinating Nodes after the publish() call is made.  Lauren will be showing you an example of viewing provenance-enabled metadata on a DataONE search interface.
 
 
+A resource map example
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. Example: https://github.com/DataONEorg/matlab-dataone/blob/master/docs/resourceMap_343813cd-2894-4331-935b-e4564d8a4277.rdf
