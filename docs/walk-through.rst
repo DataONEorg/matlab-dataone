@@ -127,7 +127,7 @@ You can look at the documentation of the RunManager class using:
 
   doc RunManager
 
-.. image:: images/walkthrough-images/Initialize a runManager 2015-12-03_1307.png
+.. image:: images/walkthrough-images/Initialize-a-runManager.png
 
 Record a script processing soil data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -140,7 +140,7 @@ To **record a script** run, pass it to the RunManager's record() function, and a
 This will run the script, and will track data input and output files that are read, and will store  to a cache directory, along with other run metadata.
 
 
-.. image:: images/walkthrough-images/sec3.4 output 2015-12-03_1310.png
+.. image:: images/walkthrough-images/sec3.4-output.png
 
 Record a run with a script with workflow comments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
