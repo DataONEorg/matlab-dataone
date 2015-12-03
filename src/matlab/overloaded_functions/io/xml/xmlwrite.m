@@ -104,30 +104,31 @@ function varargout = xmlwrite(varargin)
                 source = result;
             end
         end
-     
-        fullSourcePath = which(source);
-        if isempty(fullSourcePath)
-            [status, struc] = fileattrib(source);
-            fullSourcePath = struc.Name;
-        end
         
-        existing_id = runManager.execution.getIdByFullFilePath( ...
-            fullSourcePath);
-        if ( isempty(existing_id) )
-            % Add this object to the execution objects map
-            pid = char(java.util.UUID.randomUUID()); % generate an id
-            d1Object = D1Object(pid, formatId, fullSourcePath);
-            runManager.execution.execution_objects(d1Object.identifier) = ...
-                d1Object;
-        else
-            % Update the existing map entry with a new D1Object
-            pid = existing_id;
-            d1Object = D1Object(pid, formatId, fullSourcePath);
-            runManager.execution.execution_objects(d1Object.identifier) = ...
-                d1Object;
+        if ischar(source) % For instance documentStr = xmlwrite(eml.document)
+            fullSourcePath = which(source);
+            if isempty(fullSourcePath)
+                [status, struc] = fileattrib(source);
+                fullSourcePath = struc.Name;
+            end
+            
+            existing_id = runManager.execution.getIdByFullFilePath( ...
+                fullSourcePath);
+            if ( isempty(existing_id) )
+                % Add this object to the execution objects map
+                pid = char(java.util.UUID.randomUUID()); % generate an id
+                d1Object = D1Object(pid, formatId, fullSourcePath);
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
+            else
+                % Update the existing map entry with a new D1Object
+                pid = existing_id;
+                d1Object = D1Object(pid, formatId, fullSourcePath);
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
+            end
+            
+            runManager.execution.execution_output_ids{end+1} = pid;
         end
-     
-        runManager.execution.execution_output_ids{end+1} = pid;    
-       
     end
 end
