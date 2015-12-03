@@ -179,9 +179,13 @@ The number of runs you produce might get very long, so you can filter the runs b
 
 .. image:: images/walkthrough-images/sec3.6-listRuns(tag)-output.png
 
+.. code:: matlab
+
   mgr.listRuns('runNumber', 2);
 
 .. image:: images/walkthrough-images/sec3.6-listRuns(runNumber)-output.png
+
+.. code:: matlab
 
   mgr.listRuns('startDate', '20151027T080000', 'endDate', '20151030T080000');
 
@@ -227,7 +231,7 @@ If a run wasn't useful, you can **delete one or more runs** from the database us
   mgr.deleteRuns('runNumber', 1);
   mgr.listRuns();
 
-.. image:: images/walkthrough-images/sec3.9-delete( )-output.png
+.. image:: images/walkthrough-images/sec3.9-delete-output.png
 
 
 View and modify metadata for a run
@@ -283,8 +287,8 @@ With the metadata populated, you may choose to publish a run and its artifacts t
   set(mgr.configuration, 'authentication_token', 'eyJhbGciOiJSUzI1Ni ...'); % Replace token here
   mgr.publish('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % replace the packageId here
 
-.. image:: images/walkthrough-images/sec3.11-publish( )-output-1.png
-.. image:: images/walkthrough-images/sec3.11-publish( )-output-2.png
+.. image:: images/walkthrough-images/sec3.11-publish-output-1.png
+.. image:: images/walkthrough-images/sec3.11-publish-output-2.png
 
 
 Viewing the data package on the web
