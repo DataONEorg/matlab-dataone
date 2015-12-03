@@ -175,7 +175,7 @@ The number of runs you produce might get very long, so you can filter the runs b
 
 .. code:: matlab
 
-  mgr.listRuns('tags', 'algorithm 1, no markup');
+  mgr.listRuns('tag', {'algorithm 1, no markup'});
 
 .. image:: images/walkthrough-images/sec3.6-listRuns(tag)-output.png
 
