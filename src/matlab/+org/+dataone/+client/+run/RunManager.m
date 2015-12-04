@@ -644,9 +644,17 @@ classdef RunManager < hgsetget
                 scienceMetadataD1Object.format_id, ...
                 scienceMetadataD1Object.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(scienceMetadataD1JavaObject);
-            set(scienceMetadataD1Object, 'system_metadata', ...
-                scienceMetadataD1JavaObject.getSystemMetadata());
             
+            % Update the property "fileName" for the java system metadata.
+            % Then, update the matlab system metadata using the java system
+            % metadata Dec-4-2015
+            scienceMetadata_metadata = scienceMetadataD1JavaObject.getSystemMetadata();
+            scienceMetadata_metadata.setFileName(scienceMetadataD1Object.full_file_path);
+            set(scienceMetadataD1Object, 'system_metadata', ...
+                scienceMetadata_metadata);            
+            % set(scienceMetadataD1Object, 'system_metadata', ...
+            %    scienceMetadataD1JavaObject.getSystemMetadata());
+                        
             % Add the science metadata D1Object to the execution_objects map
             runManager.execution.execution_objects( ...
                 scienceMetadataD1Object.identifier) = scienceMetadataD1Object;
@@ -1748,14 +1756,13 @@ classdef RunManager < hgsetget
            % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
            generatedFileStruct = struct;
            for j=1:length(runManager.execution.execution_output_ids)
-               outId = runManager.execution.execution_output_ids{j};
-             
+               outId = runManager.execution.execution_output_ids{j};              
                outD1Object = runManager.execution.execution_objects(outId);
                out_d1_sysmeta = outD1Object.system_metadata;
                out_file_size = out_d1_sysmeta.getSize;
                out_file_name = out_d1_sysmeta.getFileName;
                out_file_metadata = dir(outD1Object.full_file_path);
-    
+   
                generatedFileStruct(j,1).LocalName = char(out_file_name);     
                fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
                generatedFileStruct(j,1).Size = char(fsize); 
