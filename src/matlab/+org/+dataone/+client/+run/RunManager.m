@@ -1415,7 +1415,7 @@ classdef RunManager < hgsetget
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tags', 'startDate', 'endDate', 'publishDate'}); 
+                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tag', 'startDate', 'endDate', 'publishDate'}); 
                 disp(tableForSelectedRuns);                      
             end          
         end

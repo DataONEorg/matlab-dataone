@@ -24,7 +24,7 @@
 
 classdef MNode < hgsetget
     properties
-        % A Java version member node object 
+        % A Java object representing a member node 
         mnode;
         
         % A base url for a member node
@@ -59,7 +59,7 @@ classdef MNode < hgsetget
             
             runManager = RunManager.getInstance();
             
-            if ( runManager.configuration.debug)
+            if ( runManager.configuration.debug )
                 disp('Called the java version mnode.get() wrapper function.');
             end
 
@@ -265,7 +265,10 @@ classdef MNode < hgsetget
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object; % Question: should the d1Object with the old "pid" identifier kept in the exeuciton_objects map or not?
+                        d1Object; 
+                    % Remove the d1 object with the old "pid" identifier from the exeuciton_objects map 
+                    oldKeySet = {pid};
+                    remove(runManager.execution.execution_objects, oldKeySet);
                 end
                 
                 % Replace the old "pid" with "newPid" in execution_output_ids array
