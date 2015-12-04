@@ -209,8 +209,6 @@ The output of the view() function provides more technical details about the run.
 
   mgr.view('runNumber', 1, 'sections', {'details', 'used', 'generated'});
 
-.. image:: images/walkthrough-images/sec3.7-view(yw-all-output).png
-
 .. image:: images/walkthrough-images/sec3.7-view(yw-all-more).png
 
 
