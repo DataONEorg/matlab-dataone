@@ -398,6 +398,7 @@ classdef RunManager < hgsetget
             import java.net.URI;
             import org.dspace.foresite.ResourceMap;
             import org.dataone.vocabulary.DC_TERMS;
+            import java.math.BigInteger;
             
             import org.dataone.client.v2.D1Object;
                        
@@ -560,11 +561,13 @@ classdef RunManager < hgsetget
                         outputD1Obj.identifier, submitter, mnNodeId);
                     
                 runManager.dataPackage.addData(outputD1JavaObj);
-                systemMetadata = outputD1JavaObj.getSystemMetadata; % java version sysmeta            
-                systemMetadata.setFileName(outputD1Obj.system_metadata.getFileName); % use Java sysmeta base file name to set matlab sysmeta
                 
-                set(outputD1Obj, 'system_metadata', outputD1JavaObj.getSystemMetadata);
-                
+                systemMetadata = outputD1JavaObj.getSystemMetadata; % java version sysmeta     
+                out_file_metadata = dir(outputD1Obj.full_file_path);
+                systemMetadata.setFileName(outputD1Obj.system_metadata.getFileName); % use Java sysmeta base file name to set matlab sysmeta               
+                systemMetadata.setSize(BigInteger.valueOf(out_file_metadata.bytes)); % Set the file size for the generated data Dec-4-2015
+                % set(outputD1Obj, 'system_metadata', outputD1JavaObj.getSystemMetadata);
+                set(outputD1Obj, 'system_metadata', systemMetadata); % Update the d1 object system metadata Dec-4-2015
                 runManager.execution.execution_objects(outputD1Obj.identifier) = outputD1Obj;
                 
                 outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outputD1Obj.identifier]); 
@@ -1282,7 +1285,7 @@ classdef RunManager < hgsetget
 
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.configuration.execution_db_name);   
-            
+                       
             % Serialize the execution object to local file system in the
             % execution_directory
             execution_serialized_object = [runManager.execution.execution_id '.mat'];
@@ -1290,8 +1293,14 @@ classdef RunManager < hgsetget
             executionObj = runManager.execution;
             save(char(exec_destination), 'executionObj');
             
-             % Build a D1 datapackage
-            pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );        
+            % Build a D1 datapackage
+            pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );
+            
+            % Re-Serialize the execution object to local file system in the
+            % execution_directory because we need to set the actual file
+            % size for the generated files during a run Dec-4-2015
+            executionObj = runManager.execution;
+            save(char(exec_destination), 'executionObj');
             
             % Clear runtime input/output sources
             runManager.execution.execution_input_ids = {};
@@ -1706,7 +1715,7 @@ classdef RunManager < hgsetget
 
            % Deserialize the execution object from the disk
            
-           % Load the stroed execution given the directory name
+           % Load the stored execution given the directory name
            exec_file_base_name = [packageId '.mat'];
            stored_execution = load(fullfile( ...
                runManager.configuration.provenance_storage_directory, ...
@@ -1740,15 +1749,15 @@ classdef RunManager < hgsetget
            generatedFileStruct = struct;
            for j=1:length(runManager.execution.execution_output_ids)
                outId = runManager.execution.execution_output_ids{j};
-               
+             
                outD1Object = runManager.execution.execution_objects(outId);
                out_d1_sysmeta = outD1Object.system_metadata;
                out_file_size = out_d1_sysmeta.getSize;
                out_file_name = out_d1_sysmeta.getFileName;
                out_file_metadata = dir(outD1Object.full_file_path);
-               
+    
                generatedFileStruct(j,1).LocalName = char(out_file_name);     
-               fsize = FileUtils.byteCountToDisplaySize(out_file_size.longValue());                     
+               fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
                generatedFileStruct(j,1).Size = char(fsize); 
                generatedFileStruct(j,1).ModifiedTime = out_file_metadata.date;     
            end
