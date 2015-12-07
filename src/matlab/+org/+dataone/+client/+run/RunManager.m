@@ -1306,6 +1306,8 @@ classdef RunManager < hgsetget
             import java.net.URI;
             import org.dataone.util.ArrayListWrapper;
             
+            import org.dataone.client.v2.D1Object;
+                
             % Stop recording
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
@@ -1345,21 +1347,23 @@ classdef RunManager < hgsetget
                 
                 % Write the commands history between startRecord() and
                 % endRecord() to a file under the execution directory
-                scriptText = char(history(startRecordIndex:endRecordIndex));
                 scriptName = [runManager.configuration.script_base_name '.m'];
                 scriptFullPath = fullfile( ...
                     runManager.execution.execution_directory, ...
                     scriptName);
-                fw = fopen(scriptFullPath, 'w');
-                if fw == -1, error('Cannot write "%s%".',scriptFullPath); end
-                fprintf(fw, '%s', scriptText);
-                fclose(fw);
-                
-                scriptText
+                [fileId, message] = fopen(scriptFullPath, 'wt');
+                if fileId == -1, disp(message); end
+                for i=startRecordIndex:endRecordIndex
+                    fprintf(fileId, '%s\n', char(history(i)));
+                end
+                fclose(fileId);
                 
                 % Create a file for the collected commands and put the script
-                % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)
-                
+                % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)                
+                pid = char(java.util.UUID.randomUUID());
+                d1Object = D1Object(pid, 'text/plain', char(scriptFullPath));
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
             end
             
             % Save the metadata for the current execution
