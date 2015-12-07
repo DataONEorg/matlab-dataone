@@ -85,6 +85,9 @@ classdef RunManager < hgsetget
         grapher;
                     
         last_sequence_number;
+        
+        % A flag for interactive mode or not
+        console = true; % Dec-7-2015
     end
    
     methods (Access = private)
@@ -1108,7 +1111,10 @@ classdef RunManager < hgsetget
             end
             
             import org.dataone.client.run.Execution;
-                
+            
+            % Set the interactive mode to be false
+            runManager.console = false; % Dec-7-2015
+            
             % Initialize a new Execution for this run
             runManager.execution = Execution();
             runManager.execution.execution_input_ids = {};
@@ -1188,10 +1194,28 @@ classdef RunManager < hgsetget
             % Record the starting time when record() started 
             runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS');        
                
+            if ( runManager.console == 1 )
+                % We are in the interactive mode Dec-7-2015
+                
+                % Set runManager.recording = true;
+                runManager.recording = true;
+                
+                % Initialize a new execution object for this run
+                runManager.execution = Execution();
+                runManager.execution.execution_input_ids = {};
+                runManager.execution.execution_output_ids = {};
+                all_keys = keys(runManager.execution.execution_objects);
+                remove(runManager.execution.execution_objects, all_keys);
+                
+                runManager.execution.tag = ''; % Todo: how to handle tag?
+                
+                % Use a uuid string as a temporary file name for the script
+                % to be collected
+            end
+            
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
                          'endRecord() if you wish to close this session']);
-                  
             end                
            
             % Compute script_base_name if it is not assigned a value
@@ -1199,11 +1223,11 @@ classdef RunManager < hgsetget
                 [pathstr,script_base_name,ext] = ...
                     fileparts(runManager.execution.software_application);
                 runManager.configuration.script_base_name = ...
-                    strtrim(script_base_name);      
+                    strtrim(script_base_name);    
             end
                      
-            prov_dir = runManager.configuration.get('provenance_storage_directory');
-                       
+            % Create an execution directory for the current run
+            prov_dir = runManager.configuration.get('provenance_storage_directory');                       
             runManager.execution.execution_directory = ...
                 fullfile(prov_dir, 'runs', runManager.execution.execution_id);
             [status, message, message_id] = ...
@@ -1222,41 +1246,42 @@ classdef RunManager < hgsetget
             
             % Add a D1Object to the execution objects map for the script
             % itself
-            import org.dataone.client.v2.D1Object;
-            pid = char(java.util.UUID.randomUUID());
-            d1Object = D1Object(pid, 'text/plain', ...
-                runManager.execution.software_application);
-            runManager.execution.execution_objects(d1Object.identifier) = ...
-                d1Object;
-                        
-            % Run the script and collect provenance information
-            runManager.prov_capture_enabled = true;
-            [pathstr, script_name, ext] = ...
-               fileparts(runManager.execution.software_application);
-            
-            warning off MATLAB:dispatcher:nameConflict;
-            addpath(pathstr);
-            warning on MATLAB:dispatcher:nameConflict;
-
-            try
-                % script_name
-                eval(script_name);   
-            catch runtimeError
-                set(runManager.execution, 'error_message', ...
-                    [runtimeError.identifier ' : ' ...
-                     runtimeError.message]);
-                disp(['The script: ' ...
-                      runManager.execution.software_application ...
-                      ' failed to run completely. See the error output.']);
+            if (runManager.console ~= 1) % Non-interactive mode (Dec-7-2015)
+                import org.dataone.client.v2.D1Object;
+                pid = char(java.util.UUID.randomUUID());
+                d1Object = D1Object(pid, 'text/plain', ...
+                    runManager.execution.software_application);
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
                 
-                % for stack_item = 1:length(runtimeError.stack)
-                %     disp(['Error in function ' ...
-                %         runtimeError.stack(stack_item).name ' in file ' ...
-                %         runtimeError.stack(stack_item).file ' on line ' ...
-                %         num2str(runtimeError.stack(stack_item).line)]);
-                % end
+                % Run the script and collect provenance information
+                runManager.prov_capture_enabled = true;
+                [pathstr, script_name, ext] = ...
+                    fileparts(runManager.execution.software_application);
+                
+                warning off MATLAB:dispatcher:nameConflict;
+                addpath(pathstr);
+                warning on MATLAB:dispatcher:nameConflict;
+                
+                try
+                    % script_name
+                    eval(script_name);
+                catch runtimeError
+                    set(runManager.execution, 'error_message', ...
+                        [runtimeError.identifier ' : ' ...
+                        runtimeError.message]);
+                    disp(['The script: ' ...
+                        runManager.execution.software_application ...
+                        ' failed to run completely. See the error output.']);
+                    
+                    % for stack_item = 1:length(runtimeError.stack)
+                    %     disp(['Error in function ' ...
+                    %         runtimeError.stack(stack_item).name ' in file ' ...
+                    %         runtimeError.stack(stack_item).file ' on line ' ...
+                    %         num2str(runtimeError.stack(stack_item).line)]);
+                    % end
+                end
             end
-          
         end
         
         
