@@ -1197,6 +1197,8 @@ classdef RunManager < hgsetget
             if ( runManager.console == 1 )
                 % We are in the interactive mode Dec-7-2015
                 
+                import org.dataone.client.run.Execution;
+                
                 % Set runManager.recording = true;
                 runManager.recording = true;
                 
@@ -1322,12 +1324,41 @@ classdef RunManager < hgsetget
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
-            % Get the commands entered by the user (Dec-7-2015) 
-            
-            % Create a file for the collected commands and put the script
-            % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015) 
-            
-            
+            if ( runManager.console == 1 ) % Interactive mode (Dec-7-2015)
+                % Get the commands entered by the user
+                history = com.mathworks.mlservices.MLCommandHistoryServices.getSessionHistory;
+                startRecordIndex = 0;
+                endRecordIndex = 0;
+                for i= length(history): -1:1
+                    % Try to find the position of the latest startRecord()
+                    % and endRecord() pair from the command history
+                    k = strfind(history{i}, 'endRecord');
+                    if ~isempty(k)
+                        endRecordIndex = i-1; % last command is at position (i-1)
+                    end
+                    
+                    k = strfind(history{i}, 'startRecord');
+                    if ~isempty(k)
+                        startRecordIndex = i+1; % first command is at position (i+1)
+                    end
+                end
+                
+                % Write the commands history between startRecord() and
+                % endRecord() to a file under the execution directory
+                scriptText = char(history(startRecordIndex:endRecordIndex));
+                scriptName = [runManager.configuration.script_base_name '.m'];
+                scriptFullPath = fullfile( ...
+                    runManager.execution.execution_directory, ...
+                    scriptName);
+                fw = fopen(scriptFullPath, 'w');
+                if fw == -1, error('Cannot write "%s%".',scriptFullPath); end
+                fprintf(fw, '%s', scriptText);
+                fclose(fw);
+                
+                % Create a file for the collected commands and put the script
+                % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)
+                
+            end
             
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.configuration.execution_db_name);   
