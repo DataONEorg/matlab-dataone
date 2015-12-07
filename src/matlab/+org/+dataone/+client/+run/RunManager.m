@@ -1211,6 +1211,11 @@ classdef RunManager < hgsetget
                 
                 % Use a uuid string as a temporary file name for the script
                 % to be collected
+                runManager.configuration.script_base_name = char(java.util.UUID.randomUUID());
+                
+                % Todo: set the correct value for
+                % execution.software_application
+                % runManager.execution.software_application = ?
             end
             
             if ( runManager.recording )
