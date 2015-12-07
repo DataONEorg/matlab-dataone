@@ -1213,8 +1213,7 @@ classdef RunManager < hgsetget
                 % to be collected
                 runManager.configuration.script_base_name = char(java.util.UUID.randomUUID());
                 
-                % Todo: set the correct value for
-                % execution.software_application
+                % Todo: set the correct value for execution.software_application
                 % runManager.execution.software_application = ?
             end
             
@@ -1308,19 +1307,28 @@ classdef RunManager < hgsetget
             % Stop recording
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
-               
+           
             % Get submitter and MN node reference
             submitter = runManager.execution.get('account_name');
             mnNodeId = runManager.configuration.get('target_member_node_id');
                      
             % Generate yesWorkflow image outputs
-            if runManager.configuration.capture_yesworkflow_comments
-                runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
+            if (runManager.console ~= 1) % Dec-7-2015
+                if runManager.configuration.capture_yesworkflow_comments
+                    runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
+                end
             end
             
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
+            % Get the commands entered by the user (Dec-7-2015) 
+            
+            % Create a file for the collected commands and put the script
+            % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015) 
+            
+            
+            
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.configuration.execution_db_name);   
                        
@@ -1343,6 +1351,11 @@ classdef RunManager < hgsetget
             % Clear runtime input/output sources
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
+            
+            % Set back to the default value of "console" (Dec-7-2015)
+            if ( runManager.console ~= 1 )
+                runManager.console = true; 
+            end
             
             % Unlock the RunManager instance
             munlock('RunManager');            
