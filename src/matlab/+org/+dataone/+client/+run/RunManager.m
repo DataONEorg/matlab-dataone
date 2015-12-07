@@ -1332,12 +1332,12 @@ classdef RunManager < hgsetget
                 for i= length(history): -1:1
                     % Try to find the position of the latest startRecord()
                     % and endRecord() pair from the command history
-                    k = strfind(history{i}, 'endRecord');
+                    k = strfind(history(i), 'endRecord');
                     if ~isempty(k)
                         endRecordIndex = i-1; % last command is at position (i-1)
                     end
                     
-                    k = strfind(history{i}, 'startRecord');
+                    k = strfind(history(i), 'startRecord');
                     if ~isempty(k)
                         startRecordIndex = i+1; % first command is at position (i+1)
                     end
@@ -1354,6 +1354,8 @@ classdef RunManager < hgsetget
                 if fw == -1, error('Cannot write "%s%".',scriptFullPath); end
                 fprintf(fw, '%s', scriptText);
                 fclose(fw);
+                
+                scriptText
                 
                 % Create a file for the collected commands and put the script
                 % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)
