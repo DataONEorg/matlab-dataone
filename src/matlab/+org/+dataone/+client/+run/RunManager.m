@@ -1190,10 +1190,7 @@ classdef RunManager < hgsetget
         
         function startRecord(runManager, tag)
             % STARTRECORD Starts recording provenance relationships (see record()).
-
-            % Record the starting time when record() started 
-            runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS');        
-                         
+                       
             if ( runManager.console == 1 ) % (Interactive mode) Dec-7-2015                              
                 
                 import org.dataone.client.run.Execution;
@@ -1214,6 +1211,9 @@ classdef RunManager < hgsetget
                 % to be collected
                 runManager.configuration.script_base_name = char(java.util.UUID.randomUUID());
             end
+            
+            % Record the starting time when record() started
+            runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS');
             
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
