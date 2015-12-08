@@ -158,6 +158,8 @@ if ( runManager.configuration.capture_file_reads )
         d1Object = D1Object(pid, formatId, fullSourcePath);
         runManager.execution.execution_objects(d1Object.identifier) = ...
             d1Object;
+        
+        runManager.execution.execution_input_ids{end+1} = pid; % Only add to the collection for the first time (Dec-7-2015)
     else
         % Update the existing map entry with a new D1Object
         pid = existing_id;
@@ -166,7 +168,7 @@ if ( runManager.configuration.capture_file_reads )
             d1Object;
     end
     
-    runManager.execution.execution_input_ids{end+1} = pid;
+    % runManager.execution.execution_input_ids{end+1} = pid;
 end
 
 end
