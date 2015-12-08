@@ -427,7 +427,7 @@ classdef RunManager < hgsetget
             % Initialize a dataPackage to manage the run
             scriptIdentifier = runManager.execution.getIdByFullFilePath( ...
                 runManager.execution.software_application);
-                      
+        
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.execution_id);      
            
@@ -1332,7 +1332,9 @@ classdef RunManager < hgsetget
                 
                 import org.dataone.client.v2.D1Object;   
                 
-                history = com.mathworks.mlservices.MLCommandHistoryServices.getSessionHistory;
+                % Access the command history using matlab java internal
+                % classes
+                history = com.mathworks.mlservices.MLCommandHistoryServices.getSessionHistory; 
                 startRecordIndex = 0;
                 endRecordIndex = 0;
                 for i= length(history): -1:1
@@ -1351,7 +1353,6 @@ classdef RunManager < hgsetget
                 
                 % Write the commands history between startRecord() and
                 % endRecord() to a file under the execution directory
-                runManager.execution.software_application
                 [fileId, message] = fopen(runManager.execution.software_application, 'wt');
                 if fileId == -1, disp(message); end
                 for i=startRecordIndex:endRecordIndex
@@ -1831,12 +1832,12 @@ classdef RunManager < hgsetget
                in_file_name = in_d1_sysmeta.getFileName;
                in_file_metadata = dir(inD1Object.full_file_path);
                
-               usedFileStruct(i,1).LocalName = char(in_file_name);     
+               usedFileStruct(i,1).LocalName = cell(in_file_name); % Convert java string to cell so that the usedFile table can be displayed Dec-8-2015    
                fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
                usedFileStruct(i,1).Size = char(fsize); 
                usedFileStruct(i,1).ModifiedTime = in_file_metadata.date;     
            end
-           
+                      
            % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
            generatedFileStruct = struct;
            for j=1:length(runManager.execution.execution_output_ids)
@@ -1847,12 +1848,12 @@ classdef RunManager < hgsetget
                out_file_name = out_d1_sysmeta.getFileName;
                out_file_metadata = dir(outD1Object.full_file_path);
    
-               generatedFileStruct(j,1).LocalName = char(out_file_name);     
+               generatedFileStruct(j,1).LocalName = cell(out_file_name); % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
                fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
                generatedFileStruct(j,1).Size = char(fsize); 
                generatedFileStruct(j,1).ModifiedTime = out_file_metadata.date;     
            end
-           
+        
            results = {detailStruct, usedFileStruct, generatedFileStruct};
  
            more on; % Enable more for page control
@@ -1881,7 +1882,7 @@ classdef RunManager < hgsetget
                fprintf('\n\n[USED]: %d Items used by this run\n', length(usedFileStruct));
                fprintf('------------------------------------\n');
                TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
-               disp(TableForFileUsed);  
+               disp(TableForFileUsed);
            end 
            
            if showGenerated == 1                    
