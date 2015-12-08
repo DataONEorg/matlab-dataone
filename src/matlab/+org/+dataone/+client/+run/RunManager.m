@@ -1193,10 +1193,9 @@ classdef RunManager < hgsetget
 
             % Record the starting time when record() started 
             runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS');        
-               
+                         
             if ( runManager.console == 1 )
-                % We are in the interactive mode Dec-7-2015
-                
+                % We are in the interactive mode Dec-7-2015               
                 import org.dataone.client.run.Execution;
                 
                 % Set runManager.recording = true;
@@ -1214,9 +1213,6 @@ classdef RunManager < hgsetget
                 % Use a uuid string as a temporary file name for the script
                 % to be collected
                 runManager.configuration.script_base_name = char(java.util.UUID.randomUUID());
-                
-                % Todo: set the correct value for execution.software_application
-                % runManager.execution.software_application = ?
             end
             
             if ( runManager.recording )
@@ -1231,19 +1227,27 @@ classdef RunManager < hgsetget
                 runManager.configuration.script_base_name = ...
                     strtrim(script_base_name);    
             end
-                     
+                  
             % Create an execution directory for the current run
-            prov_dir = runManager.configuration.get('provenance_storage_directory');                       
+            prov_dir = runManager.configuration.get('provenance_storage_directory');
             runManager.execution.execution_directory = ...
                 fullfile(prov_dir, 'runs', runManager.execution.execution_id);
             [status, message, message_id] = ...
-                mkdir(runManager.execution.execution_directory);         
+                mkdir(runManager.execution.execution_directory);
             if ( status ~= 1 )
                 error(message_id, [ 'The directory %s' ...
                     ' could not be created. The error message' ...
                     ' was: ' runManager.execution.execution_directory, message]);
                 runManager.execution.error_message = ...
-                    [runManager.execution.error_message ' ' message]; 
+                    [runManager.execution.error_message ' ' message];
+            end
+            
+            % Set the correct value for execution.software_application
+            if (runManager.console == 1)
+                scriptName = [runManager.configuration.script_base_name '.m'];
+                runManager.execution.software_application = fullfile( ...
+                    runManager.execution.execution_directory, ...
+                    scriptName);
             end
             
             warning off MATLAB:dispatcher:nameConflict;
@@ -1295,7 +1299,6 @@ classdef RunManager < hgsetget
             % ENDRECORD Ends the recording of an execution (run).
             
             import org.dataone.service.types.v1.Identifier;
-            import org.dataone.client.v2.itk.D1Object;
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.client.run.NamedConstant;
             import java.io.File;
@@ -1305,9 +1308,7 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.ProvONE;
             import java.net.URI;
             import org.dataone.util.ArrayListWrapper;
-            
-            import org.dataone.client.v2.D1Object;
-                
+                           
             % Stop recording
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
@@ -1328,6 +1329,9 @@ classdef RunManager < hgsetget
 
             if ( runManager.console == 1 ) % Interactive mode (Dec-7-2015)
                 % Get the commands entered by the user
+                
+                import org.dataone.client.v2.D1Object;   
+                
                 history = com.mathworks.mlservices.MLCommandHistoryServices.getSessionHistory;
                 startRecordIndex = 0;
                 endRecordIndex = 0;
@@ -1347,11 +1351,8 @@ classdef RunManager < hgsetget
                 
                 % Write the commands history between startRecord() and
                 % endRecord() to a file under the execution directory
-                scriptName = [runManager.configuration.script_base_name '.m'];
-                scriptFullPath = fullfile( ...
-                    runManager.execution.execution_directory, ...
-                    scriptName);
-                [fileId, message] = fopen(scriptFullPath, 'wt');
+                runManager.execution.software_application
+                [fileId, message] = fopen(runManager.execution.software_application, 'wt');
                 if fileId == -1, disp(message); end
                 for i=startRecordIndex:endRecordIndex
                     fprintf(fileId, '%s\n', char(history(i)));
@@ -1359,9 +1360,11 @@ classdef RunManager < hgsetget
                 fclose(fileId);
                 
                 % Create a file for the collected commands and put the script
-                % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)                
-                pid = char(java.util.UUID.randomUUID());
-                d1Object = D1Object(pid, 'text/plain', char(scriptFullPath));
+                % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)                         
+                pid = char(java.util.UUID.randomUUID());                 
+                d1Object = D1Object( pid, ...
+                    'text/plain', ...
+                    runManager.execution.software_application );
                 runManager.execution.execution_objects(d1Object.identifier) = ...
                     d1Object;
             end
@@ -1379,7 +1382,7 @@ classdef RunManager < hgsetget
             % Build a D1 datapackage
             pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );
             
-            % Re-Serialize the execution object to local file system in the
+            % Re-serialize the execution object to local file system in the
             % execution_directory because we need to set the actual file
             % size for the generated files during a run Dec-4-2015
             executionObj = runManager.execution;
