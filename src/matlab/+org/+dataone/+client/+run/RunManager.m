@@ -1194,8 +1194,8 @@ classdef RunManager < hgsetget
             % Record the starting time when record() started 
             runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS');        
                          
-            if ( runManager.console == 1 )
-                % We are in the interactive mode Dec-7-2015               
+            if ( runManager.console == 1 ) % (Interactive mode) Dec-7-2015                              
+                
                 import org.dataone.client.run.Execution;
                 
                 % Set runManager.recording = true;
@@ -1243,7 +1243,7 @@ classdef RunManager < hgsetget
             end
             
             % Set the correct value for execution.software_application
-            if (runManager.console == 1)
+            if (runManager.console == 1) % (Interactive mode) Dec-7-2015    
                 scriptName = [runManager.configuration.script_base_name '.m'];
                 runManager.execution.software_application = fullfile( ...
                     runManager.execution.execution_directory, ...
@@ -1256,7 +1256,7 @@ classdef RunManager < hgsetget
             
             % Add a D1Object to the execution objects map for the script
             % itself
-            if (runManager.console ~= 1) % Non-interactive mode (Dec-7-2015)
+            if (runManager.console ~= 1) % (Non-interactive mode) (Dec-7-2015)
                 import org.dataone.client.v2.D1Object;
                 pid = char(java.util.UUID.randomUUID());
                 d1Object = D1Object(pid, 'text/plain', ...
@@ -1317,7 +1317,7 @@ classdef RunManager < hgsetget
             submitter = runManager.execution.get('account_name');
             mnNodeId = runManager.configuration.get('target_member_node_id');
                      
-            % Generate yesWorkflow image outputs
+            % Generate yesWorkflow image outputs (non-interactive mode)
             if (runManager.console ~= 1) % Dec-7-2015
                 if runManager.configuration.capture_yesworkflow_comments
                     runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
@@ -1327,7 +1327,7 @@ classdef RunManager < hgsetget
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
-            if ( runManager.console == 1 ) % Interactive mode (Dec-7-2015)
+            if ( runManager.console == 1 ) % (Interactive mode) (Dec-7-2015)
                 % Get the commands entered by the user
                 
                 import org.dataone.client.v2.D1Object;   
@@ -1393,6 +1393,7 @@ classdef RunManager < hgsetget
             runManager.execution.execution_output_ids = {};
             
             % Set back to the default value of "console" (Dec-7-2015)
+            % (non-interactive mode)
             if ( runManager.console ~= 1 )
                 runManager.console = true; 
             end
