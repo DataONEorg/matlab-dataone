@@ -28,7 +28,10 @@ classdef D1Client < hgsetget
 
     methods
         function mnNode = getMN(mnBaseUrl)
+            import org.dataone.client.v2.MNode;
+            import org.dataone.client.v2.itk.D1Client;
             
+            mnNode = D1Client.getMN(mnBaseUrl);
         end
         
         

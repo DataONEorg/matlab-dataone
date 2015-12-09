@@ -40,7 +40,7 @@ classdef MNode < hgsetget
         end
         
         
-        function getMN(memberNode, mnBaseUrl)
+        function setMN(memberNode, mnBaseUrl)
             % GETMN Returns a Member Node using the base service URL for the node 
             import org.dataone.client.v2.itk.D1Client;
             
