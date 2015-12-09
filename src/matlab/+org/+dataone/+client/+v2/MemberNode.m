@@ -71,7 +71,7 @@ classdef MemberNode < hgsetget
             % Call the Java function with the same name to retrieve the
             % DataONE object and get system metadata for this d1 object.
             % The formatId information is obtained from the system metadata
-            inputStream = memberNode.mnode.get(pid);  
+            inputStream = memberNode.mnode.get(session, pid);  
             sysMetaData = memberNode.mnode.getSystemMetadata(session, pid);
             formatId = sysMetaData.getFormatId().getValue;
             

@@ -195,15 +195,25 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % getCertExpires(cm);
             
             import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
             
             % mnNode = D1Client('SANDBOX', 'urn:node:mnSandboxUCSB1');
-            mn_base_url = 'urn:node:mnSandboxUCSB1';
+            % mn_base_url = 'urn:node:mnDevUCSB2';
+            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             matlab_mn_node = MemberNode(mn_base_url);
-            matlab_mn_node.setMN(matlab_mn_node);
-            
+           
             % Download a single D1 object
+            object_list = matlab_mn_node.mnode.listObjects([], [], [], [], [], [], [], []);
+            objList = object_list.getObjectInfoList();
+            for i=1:length(objList)
+                obj_pid = objList.get(i).getIdentifier().getValue();
+                obj_pid
+            end
+            
+            pid = Identifier();
+            pid.setValue('00223c14-ba07-4fc4-93c3-5caaac5041f3_0');
             % item = getD1Object(cli, 'doi:10.6085/AA/pisco_intertidal_summary.42.3');
-            item = matlab_mn_node.get([], 'doi:10.6085/AA/pisco_intertidal_summary.42.3'); % Is it ok that a pid is an instance of doi?
+            item = matlab_mn_node.get([], pid); % Is it ok that a pid is an instance of doi?
             
             % Pull out data as a data frame
             % df = asDataFrame(item);
