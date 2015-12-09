@@ -23,28 +23,33 @@
 % limitations under the License.
 
 classdef MNode < hgsetget
+    
     properties
-        % A Java object representing a member node 
-        mnode;
-        
         % A base url for a member node
-        mn_base_url;
+        mn_base_url = '';
+        
+        % A Java object representing a member node
+        mnode;
     end
     
-    methods     
+    
+    methods % class methods (function and operator definitions)    
         
-        function memberNode = MNode(mnBaseUrl)
+        function memberNode = MNode(mnBaseUrl) % class constructor method
             % MNODE Constructs an MNode object instance with the given
             % member node base url
-            memberNode.mn_base_url = mnBaseUrl;
+            import org.dataone.client.v2.itk.D1Client;
+            
+            if ~isemtpy(mnBaseUrl)
+                memberNode.mn_base_url = mnBaseUrl;
+                memberNode.mnode = D1Client.getMN(mnBaseUrl);
+            end
         end
         
         
-        function setMN(memberNode, mnBaseUrl)
+        function getMN(memberNode, mnBaseUrl)
             % GETMN Returns a Member Node using the base service URL for the node 
-            import org.dataone.client.v2.itk.D1Client;
-            
-            memberNode.mnode = D1Client.getMN(mnBaseUrl);
+
         end
         
         
