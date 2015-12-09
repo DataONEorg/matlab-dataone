@@ -187,6 +187,34 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
+        function testMNodeGet(testCase)
+            fprintf('\nIn testMNodeGet ...\n');
+     
+            % Set the certificate/token in order to call services at d1 mn node
+            % cm = CertificateMaanger();
+            % getCertExpires(cm);
+            
+            import org.dataone.client.v2.MemberNode;
+            
+            % mnNode = D1Client('SANDBOX', 'urn:node:mnSandboxUCSB1');
+            mn_base_url = 'urn:node:mnSandboxUCSB1';
+            matlab_mn_node = MemberNode(mn_base_url);
+            matlab_mn_node.setMN(matlab_mn_node);
+            
+            % Download a single D1 object
+            % item = getD1Object(cli, 'doi:10.6085/AA/pisco_intertidal_summary.42.3');
+            item = matlab_mn_node.get([], 'doi:10.6085/AA/pisco_intertidal_summary.42.3'); % Is it ok that a pid is an instance of doi?
+            
+            % Pull out data as a data frame
+            % df = asDataFrame(item);
+            df = csvread(item);
+            
+            % Save local file
+            % write.csv(df, file='testData.csv');
+            csvwrite('testData.csv', df);
+        end
+        
+        
         function testOverloadedCdfread(testCase)
             fprintf('\nIn testOverloadedCdfread() ...\n');            
             testCase.filename = 'src/test/resources/myScript7.m';

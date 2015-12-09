@@ -22,7 +22,7 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef MNode < hgsetget
+classdef MemberNode < hgsetget
     
     properties
         % A base url for a member node
@@ -35,12 +35,12 @@ classdef MNode < hgsetget
     
     methods % class methods (function and operator definitions)    
         
-        function memberNode = MNode(mnBaseUrl) % class constructor method
+        function memberNode = MemberNode(mnBaseUrl) % class constructor method
             % MNODE Constructs an MNode object instance with the given
             % member node base url
             import org.dataone.client.v2.itk.D1Client;
             
-            if ~isemtpy(mnBaseUrl)
+            if ~isempty(mnBaseUrl)
                 memberNode.mn_base_url = mnBaseUrl;
                 memberNode.mnode = D1Client.getMN(mnBaseUrl);
             end
@@ -57,7 +57,7 @@ classdef MNode < hgsetget
             % GET Get a D1Objet instance with the givien identifier from
             % the given member node
             
-            import org.dataone.client.v2.impl;
+            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
@@ -133,7 +133,7 @@ classdef MNode < hgsetget
             % CREATE Creates a D1Objet instance with the given identifier
             % at the given member node
             
-            import org.dataone.client.v2.impl;
+            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
@@ -207,7 +207,7 @@ classdef MNode < hgsetget
             % at the given member node. The last three parameters have new
             % information
                  
-            import org.dataone.client.v2.impl;
+            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
