@@ -1862,12 +1862,23 @@ classdef RunManager < hgsetget
              
                 [certificate, standardizedName] = runManager.getCertificate();
                 
-                if ~isempty(auth_token)             
-                    D1Client.setAuthToken(auth_token);
-                elseif ~isempty(certificate)                   
+                if ~isempty(auth_token)
+                    import org.dataone.client.auth.AuthTokenSession;
+                    session = AuthTokenSession(auth_token);
+                    
+                elseif ~isempty(certificate)
+                    session = [];
                     runManager.configuration.submitter = standardizedName;
+                    
                 else
-                    error('Authenticate token or X509 certificate need to be set before calling publish().');
+                    error('RunManager:publish:missingAuthentication', ...
+                          ['To publish a run to a Member Node, you need ' ...
+                          'to be logged in. Please provide your credentials \n' ...
+                          'either as a Configuration.authentication_token ' ...
+                          'property, or a Configuration.certificate_path \n' ...
+                          'property that points to an X509 certificate ' ...
+                          'saved to disk.']);
+                
                 end
                
                 % Get D1 cilogon certificate stored at /tmp/x509up_u501
@@ -1972,7 +1983,7 @@ classdef RunManager < hgsetget
                     % pid = cnNode.reserveIdentifier(session,v2SysMeta.getIdentifier()); 
                     % if isempty(pid) ~= 1
                     pid = v2SysMeta.getIdentifier();
-                    returnPid = mnNode.create([], pid, dataSource.getInputStream(), v2SysMeta);  
+                    returnPid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta);  
                     if isempty(returnPid) ~= 1
                         fprintf('Success: Uploaded %s\n.', char(v2SysMeta.getFileName()));
                     else
