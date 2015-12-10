@@ -190,15 +190,27 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testMNodeGet(testCase)
             fprintf('\nIn testMNodeGet ...\n');
      
-            % Set the certificate/token in order to call services at d1 mn node
-            % cm = CertificateMaanger();
-            % getCertExpires(cm);
-            
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
             
-            % mnNode = D1Client('SANDBOX', 'urn:node:mnSandboxUCSB1');
-            % mn_base_url = 'urn:node:mnDevUCSB2';
+            % Create a faked run
+            import org.dataone.client.run.Execution;
+            run1 = Execution();
+            set(run1, 'tag', 'test_MN_Get');
+            testCase.mgr.execution = run1;
+             
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end
+            end
+
             mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             matlab_mn_node = MemberNode(mn_base_url);
            
@@ -207,21 +219,17 @@ classdef RunManagerTest < matlab.unittest.TestCase
             objList = object_list.getObjectInfoList();
             for i=1:length(objList)
                 obj_pid = objList.get(i).getIdentifier().getValue();
-                obj_pid
+                if ~isempty(obj_pid)
+                    break;
+                end
             end
             
             pid = Identifier();
-            pid.setValue('00223c14-ba07-4fc4-93c3-5caaac5041f3_0');
-            % item = getD1Object(cli, 'doi:10.6085/AA/pisco_intertidal_summary.42.3');
-            item = matlab_mn_node.get([], pid); % Is it ok that a pid is an instance of doi?
+            pid.setValue(obj_pid);
+            item = matlab_mn_node.get([], pid); % Call MNode.get()
             
-            % Pull out data as a data frame
-            % df = asDataFrame(item);
-            df = csvread(item);
-            
-            % Save local file
-            % write.csv(df, file='testData.csv');
-            csvwrite('testData.csv', df);
+            % Verify if an object is returned 
+            assert(~isempty(item));  
         end
         
         

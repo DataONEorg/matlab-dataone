@@ -61,6 +61,7 @@ classdef MemberNode < hgsetget
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
+            import java.nio.charset.StandardCharsets;
             
             runManager = RunManager.getInstance();
             
@@ -92,7 +93,7 @@ classdef MemberNode < hgsetget
             fw = fopen(d1FileFullPath, 'w');
             if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
             d1ObjString = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name()); % Question: correct convert inputStream to String?
-            fprintf(fw, '%s', d1ObjString);
+            fprintf(fw, '%s', char(d1ObjString));
             fclose(fw);
             
             % Identifiy the D1Object being used and add a prov:used statement
@@ -109,21 +110,20 @@ classdef MemberNode < hgsetget
                                 
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map
-                    d1Object = D1Object(pid, formatId, d1FileFullPath);
+                    d1Object = D1Object(char(pid.getValue()), formatId, d1FileFullPath);
                     % Set the system metadata downloaded from the given
                     % mnode for the current d1Object
                     set(d1Object, 'system_metadata', sysMetaData);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
+                     runManager.execution.execution_input_ids{end+1} = pid;
                 else
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;
                     d1Object = D1Object(pid, formatId, d1FileFullPath);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
-                end
-                
-                runManager.execution.execution_input_ids{end+1} = pid;
+                end               
             end
             
         end
@@ -189,15 +189,14 @@ classdef MemberNode < hgsetget
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
+                     runManager.execution.execution_output_ids{end+1} = pid; 
                 else
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;
                     d1Object = D1Object(pid, formatId, d1FileFullPath);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
-                end
-                
-                runManager.execution.execution_output_ids{end+1} = pid; 
+                end               
             end
         end
         
