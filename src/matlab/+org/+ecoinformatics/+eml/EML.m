@@ -314,7 +314,7 @@ classdef EML
         function eml = loadDocument(emlFilePath)
         % LOADDOCUMENT Loads an EML document as a Document Object Model
         %   Returns an EML object with the document as its property
-        
+         
            try
                import org.ecoinformatics.eml.EML;
                eml = EML();

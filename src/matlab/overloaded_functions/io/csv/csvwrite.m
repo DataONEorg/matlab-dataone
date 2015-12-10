@@ -47,7 +47,7 @@ function csvwrite(source, varargin)
         disp('Called the csvwrite wrapper function.');
     end
     
-    % Remove wrapper ncwrite from the Matlab path
+    % Remove wrapper csvwrite from the Matlab path
     overloadedFunctPath = which('csvwrite');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
@@ -95,6 +95,6 @@ function csvwrite(source, varargin)
         end
      
         runManager.execution.execution_output_ids{end+1} = pid;    
-        % exec_output_id_list.put(fullSourcePath, 'text/csv');
+       
     end
 end

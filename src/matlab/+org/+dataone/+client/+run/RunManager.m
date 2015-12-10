@@ -85,6 +85,9 @@ classdef RunManager < hgsetget
         grapher;
                     
         last_sequence_number;
+        
+        % A flag for interactive mode or not
+        console = true; % Dec-7-2015
     end
    
     methods (Access = private)
@@ -149,7 +152,7 @@ classdef RunManager < hgsetget
             certificate = CertificateManager.getInstance().loadCertificate();          
             if ~isempty(certificate)
                 dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
-                standardizedName = CertificateManager.getInstance().standardizeDN(dn);
+                standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
             else
                 standardizedName = '';
             end
@@ -221,16 +224,14 @@ classdef RunManager < hgsetget
                     import org.dataone.util.HashmapWrapper;
                     import org.yesworkflow.graph.LayoutDirection;
                     
-                    % Set the working directory to be the run metadata directory for this run
-                    curDir = pwd();
-                    cd(runDirectory);
-                    
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
 
                     % Generate YW.Process_View dot file  
                     config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties
                     gconfig = config.getSection('graph');
-                    runManager.processViewDotFileName = gconfig.get('dotfile');
+                    runManager.processViewDotFileName = gconfig.get('dotfile');                  
+                    full_path_processViewDotFileName = [runDirectory filesep runManager.processViewDotFileName];
+                    gconfig.put('dotfile', full_path_processViewDotFileName);                    
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();           
                                                          
@@ -238,6 +239,8 @@ classdef RunManager < hgsetget
                     config.applyPropertyFile(runManager.configuration.yesworkflow_config.data_view_property_file_name); % Read from data_view_yw.properties 
                     gconfig = config.getSection('graph');
                     runManager.dataViewDotFileName = gconfig.get('dotfile');
+                    full_path_dataViewDotFileName = [runDirectory filesep runManager.dataViewDotFileName];
+                    gconfig.put('dotfile', full_path_dataViewDotFileName);                      
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();
                    
@@ -245,6 +248,8 @@ classdef RunManager < hgsetget
                     config.applyPropertyFile(runManager.configuration.yesworkflow_config.combined_view_property_file_name); % Read from comb_view_yw.properties
                     gconfig = config.getSection('graph');
                     runManager.combinedViewDotFileName = gconfig.get('dotfile');
+                    full_path_combinedViewDotFileName = [runDirectory filesep runManager.combinedViewDotFileName];
+                    gconfig.put('dotfile', full_path_combinedViewDotFileName);
                     runManager.grapher.configure(gconfig);
                     runManager.grapher = runManager.grapher.graph();
                    
@@ -290,8 +295,7 @@ classdef RunManager < hgsetget
                     runManager.execution.execution_objects(ef_d1Object.identifier) = ...
                         ef_d1Object;
                     runManager.execution.execution_output_ids{end+1} = ef_pid;
-                    
-                    cd(curDir); % go back to current working directory          
+                           
                 end  
                 
             catch ME 
@@ -329,9 +333,12 @@ classdef RunManager < hgsetget
             % Convert .gv files to .pdf files
             if isunix    
                 
-                system(['/usr/local/bin/dot -Tpdf '  fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
-                system(['/usr/local/bin/dot -Tpdf '  fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);  
-                system(['/usr/local/bin/dot -Tpdf '  fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & mac platform, not for windows OS family             
+                [status, path2dot] = system('which dot');
+                % path2dot = strtrim(path2dot);
+                path2dot = char('/usr/local/bin/dot');
+                system([path2dot ' -Tpdf ' fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
+                system([path2dot ' -Tpdf ' fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);  
+                system([path2dot ' -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & m
             
                 delete(fullPathProcessViewDotFileName);
                 delete(fullPathDataViewDotFileName);
@@ -394,6 +401,7 @@ classdef RunManager < hgsetget
             import java.net.URI;
             import org.dspace.foresite.ResourceMap;
             import org.dataone.vocabulary.DC_TERMS;
+            import java.math.BigInteger;
             
             import org.dataone.client.v2.D1Object;
                        
@@ -419,7 +427,7 @@ classdef RunManager < hgsetget
             % Initialize a dataPackage to manage the run
             scriptIdentifier = runManager.execution.getIdByFullFilePath( ...
                 runManager.execution.software_application);
-                      
+        
             packageIdentifier = Identifier();
             packageIdentifier.setValue(runManager.execution.execution_id);      
            
@@ -556,11 +564,13 @@ classdef RunManager < hgsetget
                         outputD1Obj.identifier, submitter, mnNodeId);
                     
                 runManager.dataPackage.addData(outputD1JavaObj);
-                systemMetadata = outputD1JavaObj.getSystemMetadata; % java version sysmeta            
-                systemMetadata.setFileName(outputD1Obj.system_metadata.getFileName); % use Java sysmeta base file name to set matlab sysmeta
                 
-                set(outputD1Obj, 'system_metadata', outputD1JavaObj.getSystemMetadata);
-                
+                systemMetadata = outputD1JavaObj.getSystemMetadata; % java version sysmeta     
+                out_file_metadata = dir(outputD1Obj.full_file_path);
+                systemMetadata.setFileName(outputD1Obj.system_metadata.getFileName); % use Java sysmeta base file name to set matlab sysmeta               
+                systemMetadata.setSize(BigInteger.valueOf(out_file_metadata.bytes)); % Set the file size for the generated data Dec-4-2015
+                % set(outputD1Obj, 'system_metadata', outputD1JavaObj.getSystemMetadata);
+                set(outputD1Obj, 'system_metadata', systemMetadata); % Update the d1 object system metadata Dec-4-2015
                 runManager.execution.execution_objects(outputD1Obj.identifier) = outputD1Obj;
                 
                 outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outputD1Obj.identifier]); 
@@ -637,9 +647,17 @@ classdef RunManager < hgsetget
                 scienceMetadataD1Object.format_id, ...
                 scienceMetadataD1Object.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(scienceMetadataD1JavaObject);
-            set(scienceMetadataD1Object, 'system_metadata', ...
-                scienceMetadataD1JavaObject.getSystemMetadata());
             
+            % Update the property "fileName" for the java system metadata.
+            % Then, update the matlab system metadata using the java system
+            % metadata Dec-4-2015
+            scienceMetadata_metadata = scienceMetadataD1JavaObject.getSystemMetadata();
+            scienceMetadata_metadata.setFileName(scienceMetadataD1Object.full_file_path);
+            set(scienceMetadataD1Object, 'system_metadata', ...
+                scienceMetadata_metadata);            
+            % set(scienceMetadataD1Object, 'system_metadata', ...
+            %    scienceMetadataD1JavaObject.getSystemMetadata());
+                        
             % Add the science metadata D1Object to the execution_objects map
             runManager.execution.execution_objects( ...
                 scienceMetadataD1Object.identifier) = scienceMetadataD1Object;
@@ -699,7 +717,7 @@ classdef RunManager < hgsetget
             % user, subject, hostId, operatingSystem, runtime, moduleDependencies, 
             % console, errorMessage.
             %   fileName - the name of the execution database
-            
+           
             runID = char(runManager.execution.execution_id);
             filePath = char(runManager.execution.software_application);
             startTime = char(runManager.execution.start_time);
@@ -733,8 +751,6 @@ classdef RunManager < hgsetget
             
             formatSpec = runManager.configuration.execution_db_write_format;
            
-            curDir = pwd();
-            cd(runManager.configuration.provenance_storage_directory);
             if exist(fileName, 'file') ~= 2
                 [fileId, message] = fopen(fileName,'w');
                 if fileId == -1
@@ -762,8 +778,7 @@ classdef RunManager < hgsetget
                     subject, hostId, operatingSystem, runtime, ...,
                     moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
                 fclose(fileId); 
-            end
-            cd(curDir);
+            end           
         end
        
         
@@ -1096,13 +1111,17 @@ classdef RunManager < hgsetget
             end
             
             import org.dataone.client.run.Execution;
-                
+            
+            % Set the interactive mode to be false
+            runManager.console = false; % Dec-7-2015
+            
             % Initialize a new Execution for this run
             runManager.execution = Execution();
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
             all_keys = keys(runManager.execution.execution_objects);
             remove(runManager.execution.execution_objects, all_keys);
+
             runManager.execution.tag = tag;
 
             % Do we have a script as input?
@@ -1171,14 +1190,34 @@ classdef RunManager < hgsetget
         
         function startRecord(runManager, tag)
             % STARTRECORD Starts recording provenance relationships (see record()).
-
-            % Record the starting time when record() started 
-            runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS');        
-               
+                       
+            if ( runManager.console == 1 ) % (Interactive mode) Dec-7-2015                              
+                
+                import org.dataone.client.run.Execution;
+                
+                % Set runManager.recording = true;
+                runManager.recording = true;
+                
+                % Initialize a new execution object for this run
+                runManager.execution = Execution();
+                runManager.execution.execution_input_ids = {};
+                runManager.execution.execution_output_ids = {};
+                all_keys = keys(runManager.execution.execution_objects);
+                remove(runManager.execution.execution_objects, all_keys);
+                
+                runManager.execution.tag = ''; % Todo: how to handle tag?
+                
+                % Use a uuid string as a temporary file name for the script
+                % to be collected
+                runManager.configuration.script_base_name = char(java.util.UUID.randomUUID());
+            end
+            
+            % Record the starting time when record() started
+            runManager.execution.start_time = datestr(now, 'yyyymmddTHHMMSS');
+            
             if ( runManager.recording )
                 warning(['A RunManager session is already active. Please call ' ...
                          'endRecord() if you wish to close this session']);
-                  
             end                
            
             % Compute script_base_name if it is not assigned a value
@@ -1186,21 +1225,29 @@ classdef RunManager < hgsetget
                 [pathstr,script_base_name,ext] = ...
                     fileparts(runManager.execution.software_application);
                 runManager.configuration.script_base_name = ...
-                    strtrim(script_base_name);      
+                    strtrim(script_base_name);    
             end
-                     
+                  
+            % Create an execution directory for the current run
             prov_dir = runManager.configuration.get('provenance_storage_directory');
-                       
             runManager.execution.execution_directory = ...
                 fullfile(prov_dir, 'runs', runManager.execution.execution_id);
             [status, message, message_id] = ...
-                mkdir(runManager.execution.execution_directory);         
+                mkdir(runManager.execution.execution_directory);
             if ( status ~= 1 )
                 error(message_id, [ 'The directory %s' ...
                     ' could not be created. The error message' ...
                     ' was: ' runManager.execution.execution_directory, message]);
                 runManager.execution.error_message = ...
-                    [runManager.execution.error_message ' ' message]; 
+                    [runManager.execution.error_message ' ' message];
+            end
+            
+            % Set the correct value for execution.software_application
+            if (runManager.console == 1) % (Interactive mode) Dec-7-2015    
+                scriptName = [runManager.configuration.script_base_name '.m'];
+                runManager.execution.software_application = fullfile( ...
+                    runManager.execution.execution_directory, ...
+                    scriptName);
             end
             
             warning off MATLAB:dispatcher:nameConflict;
@@ -1209,41 +1256,42 @@ classdef RunManager < hgsetget
             
             % Add a D1Object to the execution objects map for the script
             % itself
-            import org.dataone.client.v2.D1Object;
-            pid = char(java.util.UUID.randomUUID());
-            d1Object = D1Object(pid, 'text/plain', ...
-                runManager.execution.software_application);
-            runManager.execution.execution_objects(d1Object.identifier) = ...
-                d1Object;
-                        
-            % Run the script and collect provenance information
-            runManager.prov_capture_enabled = true;
-            [pathstr, script_name, ext] = ...
-               fileparts(runManager.execution.software_application);
-            
-            warning off MATLAB:dispatcher:nameConflict;
-            addpath(pathstr);
-            warning on MATLAB:dispatcher:nameConflict;
-
-            try
-                % script_name
-                eval(script_name);   
-            catch runtimeError
-                set(runManager.execution, 'error_message', ...
-                    [runtimeError.identifier ' : ' ...
-                     runtimeError.message]);
-                disp(['The script: ' ...
-                      runManager.execution.software_application ...
-                      ' failed to run completely. See the error output.']);
+            if (runManager.console ~= 1) % (Non-interactive mode) (Dec-7-2015)
+                import org.dataone.client.v2.D1Object;
+                pid = char(java.util.UUID.randomUUID());
+                d1Object = D1Object(pid, 'text/plain', ...
+                    runManager.execution.software_application);
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
                 
-                % for stack_item = 1:length(runtimeError.stack)
-                %     disp(['Error in function ' ...
-                %         runtimeError.stack(stack_item).name ' in file ' ...
-                %         runtimeError.stack(stack_item).file ' on line ' ...
-                %         num2str(runtimeError.stack(stack_item).line)]);
-                % end
+                % Run the script and collect provenance information
+                runManager.prov_capture_enabled = true;
+                [pathstr, script_name, ext] = ...
+                    fileparts(runManager.execution.software_application);
+                
+                warning off MATLAB:dispatcher:nameConflict;
+                addpath(pathstr);
+                warning on MATLAB:dispatcher:nameConflict;
+                
+                try
+                    % script_name
+                    eval(script_name);
+                catch runtimeError
+                    set(runManager.execution, 'error_message', ...
+                        [runtimeError.identifier ' : ' ...
+                        runtimeError.message]);
+                    disp(['The script: ' ...
+                        runManager.execution.software_application ...
+                        ' failed to run completely. See the error output.']);
+                    
+                    % for stack_item = 1:length(runtimeError.stack)
+                    %     disp(['Error in function ' ...
+                    %         runtimeError.stack(stack_item).name ' in file ' ...
+                    %         runtimeError.stack(stack_item).file ' on line ' ...
+                    %         num2str(runtimeError.stack(stack_item).line)]);
+                    % end
+                end
             end
-          
         end
         
         
@@ -1251,7 +1299,6 @@ classdef RunManager < hgsetget
             % ENDRECORD Ends the recording of an execution (run).
             
             import org.dataone.service.types.v1.Identifier;
-            import org.dataone.client.v2.itk.D1Object;
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.client.run.NamedConstant;
             import java.io.File;
@@ -1261,26 +1308,71 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.ProvONE;
             import java.net.URI;
             import org.dataone.util.ArrayListWrapper;
-            
+                           
             % Stop recording
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
-               
+           
             % Get submitter and MN node reference
             submitter = runManager.execution.get('account_name');
             mnNodeId = runManager.configuration.get('target_member_node_id');
                      
-            % Generate yesWorkflow image outputs
-            if runManager.configuration.capture_yesworkflow_comments
-                runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
+            % Generate yesWorkflow image outputs (non-interactive mode)
+            if (runManager.console ~= 1) % Dec-7-2015
+                if runManager.configuration.capture_yesworkflow_comments
+                    runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
+                end
             end
             
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
 
+            if ( runManager.console == 1 ) % (Interactive mode) (Dec-7-2015)
+                % Get the commands entered by the user
+                
+                import org.dataone.client.v2.D1Object;   
+                
+                % Access the command history using matlab java internal
+                % classes
+                history = com.mathworks.mlservices.MLCommandHistoryServices.getSessionHistory; 
+                startRecordIndex = 0;
+                endRecordIndex = 0;
+                for i= length(history): -1:1
+                    % Try to find the position of the latest startRecord()
+                    % and endRecord() pair from the command history
+                    k = strfind(history(i), 'endRecord');
+                    if ~isempty(k)
+                        endRecordIndex = i-1; % last command is at position (i-1)
+                    end
+                    
+                    k = strfind(history(i), 'startRecord');
+                    if ~isempty(k)
+                        startRecordIndex = i+1; % first command is at position (i+1)
+                    end
+                end
+                
+                % Write the commands history between startRecord() and
+                % endRecord() to a file under the execution directory
+                [fileId, message] = fopen(runManager.execution.software_application, 'wt');
+                if fileId == -1, disp(message); end
+                for i=startRecordIndex:endRecordIndex
+                    fprintf(fileId, '%s\n', char(history(i)));
+                end
+                fclose(fileId);
+                
+                % Create a file for the collected commands and put the script
+                % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)                         
+                pid = char(java.util.UUID.randomUUID());                 
+                d1Object = D1Object( pid, ...
+                    'text/plain', ...
+                    runManager.execution.software_application );
+                runManager.execution.execution_objects(d1Object.identifier) = ...
+                    d1Object;
+            end
+            
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.configuration.execution_db_name);   
-            
+                       
             % Serialize the execution object to local file system in the
             % execution_directory
             execution_serialized_object = [runManager.execution.execution_id '.mat'];
@@ -1288,12 +1380,24 @@ classdef RunManager < hgsetget
             executionObj = runManager.execution;
             save(char(exec_destination), 'executionObj');
             
-             % Build a D1 datapackage
-            pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );        
+            % Build a D1 datapackage
+            pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );
+            
+            % Re-serialize the execution object to local file system in the
+            % execution_directory because we need to set the actual file
+            % size for the generated files during a run Dec-4-2015
+            executionObj = runManager.execution;
+            save(char(exec_destination), 'executionObj');
             
             % Clear runtime input/output sources
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
+            
+            % Set back to the default value of "console" (Dec-7-2015)
+            % (non-interactive mode)
+            if ( runManager.console ~= 1 )
+                runManager.console = true; 
+            end
             
             % Unlock the RunManager instance
             munlock('RunManager');            
@@ -1413,7 +1517,7 @@ classdef RunManager < hgsetget
             if isempty(quiet) ~= 1 && quiet ~= 1
                 % Convert a cell array to a table with headers                 
                % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tags', 'startDate', 'endDate', 'publishDate'}); 
+                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tag', 'startDate', 'endDate', 'publishDate'}); 
                 disp(tableForSelectedRuns);                      
             end          
         end
@@ -1704,7 +1808,7 @@ classdef RunManager < hgsetget
 
            % Deserialize the execution object from the disk
            
-           % Load the stroed execution given the directory name
+           % Load the stored execution given the directory name
            exec_file_base_name = [packageId '.mat'];
            stored_execution = load(fullfile( ...
                runManager.configuration.provenance_storage_directory, ...
@@ -1728,29 +1832,28 @@ classdef RunManager < hgsetget
                in_file_name = in_d1_sysmeta.getFileName;
                in_file_metadata = dir(inD1Object.full_file_path);
                
-               usedFileStruct(i,1).LocalName = char(in_file_name);     
+               usedFileStruct(i,1).LocalName = cell(in_file_name); % Convert java string to cell so that the usedFile table can be displayed Dec-8-2015    
                fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
                usedFileStruct(i,1).Size = char(fsize); 
                usedFileStruct(i,1).ModifiedTime = in_file_metadata.date;     
            end
-           
+                      
            % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
            generatedFileStruct = struct;
            for j=1:length(runManager.execution.execution_output_ids)
-               outId = runManager.execution.execution_output_ids{j};
-               
+               outId = runManager.execution.execution_output_ids{j};              
                outD1Object = runManager.execution.execution_objects(outId);
                out_d1_sysmeta = outD1Object.system_metadata;
                out_file_size = out_d1_sysmeta.getSize;
                out_file_name = out_d1_sysmeta.getFileName;
                out_file_metadata = dir(outD1Object.full_file_path);
-               
-               generatedFileStruct(j,1).LocalName = char(out_file_name);     
-               fsize = FileUtils.byteCountToDisplaySize(out_file_size.longValue());                     
+   
+               generatedFileStruct(j,1).LocalName = cell(out_file_name); % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
+               fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
                generatedFileStruct(j,1).Size = char(fsize); 
                generatedFileStruct(j,1).ModifiedTime = out_file_metadata.date;     
            end
-           
+        
            results = {detailStruct, usedFileStruct, generatedFileStruct};
  
            more on; % Enable more for page control
@@ -1779,7 +1882,7 @@ classdef RunManager < hgsetget
                fprintf('\n\n[USED]: %d Items used by this run\n', length(usedFileStruct));
                fprintf('------------------------------------\n');
                TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
-               disp(TableForFileUsed);  
+               disp(TableForFileUsed);
            end 
            
            if showGenerated == 1                    

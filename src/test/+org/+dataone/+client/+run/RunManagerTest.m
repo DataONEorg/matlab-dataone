@@ -185,7 +185,283 @@ classdef RunManagerTest < matlab.unittest.TestCase
             total = total1 + total2;
             assertEqual(testCase, total, 2);
         end
+        
+        
+        function testMNodeGet(testCase)
+            fprintf('\nIn testMNodeGet ...\n');
+     
+            % Set the certificate/token in order to call services at d1 mn node
+            % cm = CertificateMaanger();
+            % getCertExpires(cm);
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            
+            % mnNode = D1Client('SANDBOX', 'urn:node:mnSandboxUCSB1');
+            % mn_base_url = 'urn:node:mnDevUCSB2';
+            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode(mn_base_url);
+           
+            % Download a single D1 object
+            object_list = matlab_mn_node.mnode.listObjects([], [], [], [], [], [], [], []);
+            objList = object_list.getObjectInfoList();
+            for i=1:length(objList)
+                obj_pid = objList.get(i).getIdentifier().getValue();
+                obj_pid
+            end
+            
+            pid = Identifier();
+            pid.setValue('00223c14-ba07-4fc4-93c3-5caaac5041f3_0');
+            % item = getD1Object(cli, 'doi:10.6085/AA/pisco_intertidal_summary.42.3');
+            item = matlab_mn_node.get([], pid); % Is it ok that a pid is an instance of doi?
+            
+            % Pull out data as a data frame
+            % df = asDataFrame(item);
+            df = csvread(item);
+            
+            % Save local file
+            % write.csv(df, file='testData.csv');
+            csvwrite('testData.csv', df);
+        end
+        
+        
+        function testOverloadedCdfread(testCase)
+            fprintf('\nIn testOverloadedCdfread() ...\n');            
+            testCase.filename = 'src/test/resources/myScript7.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedCdfwrite(testCase)
+            fprintf('\nIn testOverloadedCdfwrite() ...\n');            
+            testCase.filename = 'src/test/resources/myScript8.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedHdfread(testCase)
+            fprintf('\nIn testOverloadedHdfread() ...\n');            
+            testCase.filename = 'src/test/resources/myScript11.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedHdfinfo(testCase)
+            fprintf('\nIn testOverloadedHdfinfo() ...\n');            
+            testCase.filename = 'src/test/resources/myScript12.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedH5read(testCase)
+            fprintf('\nIn testOverloadedH5read ...\n');            
+            testCase.filename = 'src/test/resources/myScript9.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedH5write(testCase)
+            fprintf('\nIn testOverloadedH5write ...\n');            
+            testCase.filename = 'src/test/resources/myScript10.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedTextread(testCase)
+            fprintf('\nIn testOverloadedTextread ...\n');            
+            testCase.filename = 'src/test/resources/myScript13.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedReadtable(testCase)
+            fprintf('\nIn testOverloadedReadtable ...\n');            
+            testCase.filename = 'src/test/resources/myScript14.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedWritetable(testCase)
+            fprintf('\nIn testOverloadedWritetable ...\n');            
+            testCase.filename = 'src/test/resources/myScript14.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        function testOverloadedImread(testCase)
+            fprintf('\nIn testOverloadedImread ...\n');            
+            testCase.filename = 'src/test/resources/myScript15.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedImwrite(testCase)
+            fprintf('\nIn testOverloadedImwrite ...\n');            
+            testCase.filename = 'src/test/resources/myScript16.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+          
+            run(scriptPath);
+        end 
+        
+        
+        function testOverloadedXmlread(testCase)
+            fprintf('\nIn testOverloadedXmlread ...\n');
+            testCase.filename = 'src/test/resources/myScript17.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+        end
+        
+        
+        function testOverloadedXmlwrite(testCase)
+            fprintf('\nIn testOverloadedXmlwrite ...\n');
+            testCase.filename = 'src/test/resources/myScript18.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+        end
+        
+          
+        function testOverloadedMultibandread(testCase)
+            fprintf('\nIn testOverloadedMultibandread ...\n');
+            testCase.filename = 'src/test/resources/myScript20.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+        end
+        
                 
+        function testOverloadedMultibandwrite(testCase)
+            fprintf('\nIn testOverloadedMultibandwrite ...\n');
+            testCase.filename = 'src/test/resources/myScript19.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+        end
+        
+        
+        function testOverloadedFitsread(testCase)
+            fprintf('\nIn testOverloadedFitsread ...\n');
+            testCase.filename = 'src/test/resources/myScript22.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+        end
+        
+                
+        function testOverloadedFitswrite(testCase)
+            fprintf('\nIn testOverloadedFitswrite ...\n');
+            testCase.filename = 'src/test/resources/myScript21.m';
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+        end
+        
+        
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
             testCase.filename = 'src/test/resources/myScript3.m';
@@ -241,8 +517,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testOverloadedLoad(testCase)
             % Todo: load coast (not working)
             fprintf('\nIn testOverloadedLoad() ...\n');            
-            testCase.filename = 'src/test/resources/myScript5.m';
-            % testCase.filename = 'test/resources/myScript1.m'; % load coast
+            % testCase.filename = 'src/test/resources/myScript5.m';
+             testCase.filename = 'test/resources/myScript1.m'; % load coast
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
