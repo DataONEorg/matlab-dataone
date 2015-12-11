@@ -188,7 +188,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         
         function testMNodeGet(testCase)
-            fprintf('\nIn testMNodeGet ...\n');
+            fprintf('\nIn test Member Node Get() ...\n');
      
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
@@ -235,7 +235,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         
         function testMNodeCreate(testCase)
-            fprintf('\nIn testMNodeCreate ...\n');
+            fprintf('\nIn test Member Node Create() ...\n');
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
