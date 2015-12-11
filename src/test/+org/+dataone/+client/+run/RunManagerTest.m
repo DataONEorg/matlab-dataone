@@ -235,6 +235,16 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             % Verify if get() call is successful
             assert(~isempty(item));  
+            
+            % Verify if the execution_input_ids contains one pid
+            size = length(testCase.mgr.execution.execution_input_ids);
+            assertEqual(testCase, size, 1);
+            
+            % Clear runtime input/output sources
+            testCase.mgr.execution.execution_input_ids = {};
+            testCase.mgr.execution.execution_output_ids = {};
+            all_keys = keys(testCase.mgr.execution.execution_objects);
+            remove(testCase.mgr.execution.execution_objects, all_keys);
         end
         
         
@@ -347,6 +357,16 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 
                 % Verify if create() call is successful
                 assertEqual(testCase, char(returned_pid.getValue()), char(obj_pid.getValue()));
+               
+                % Verify if the execution_output_ids contains one pid
+                size = length(testCase.mgr.execution.execution_output_ids);
+                assertEqual(testCase, size, 1);
+                
+                % Clear runtime input/output sources
+                testCase.mgr.execution.execution_input_ids = {};
+                testCase.mgr.execution.execution_output_ids = {};
+                all_keys = keys(testCase.mgr.execution.execution_objects);
+                remove(testCase.mgr.execution.execution_objects, all_keys);
                 
             catch Error
                 rethrow(Error);

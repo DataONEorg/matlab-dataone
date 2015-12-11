@@ -181,7 +181,7 @@ classdef MemberNode < hgsetget
                     d1Object = D1Object(pid, formatId, d1FileName);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
-                end               
+                end    
             end
             
             % Todo: create a local copy for the d1 object under the execution
