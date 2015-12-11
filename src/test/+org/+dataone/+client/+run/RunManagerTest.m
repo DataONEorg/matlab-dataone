@@ -224,15 +224,121 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 end
             end
             
+            % Call MNode.get()
             pid = Identifier();
             pid.setValue(obj_pid);
-            item = matlab_mn_node.get([], pid); % Call MNode.get()
+            item = matlab_mn_node.get([], pid); 
             
             % Verify if an object is returned 
             assert(~isempty(item));  
         end
         
         
+        function testMNodeCreate(testCase)
+            fprintf('\nIn testMNodeCreate ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            import java.io.File;
+            import org.dataone.service.types.v2.SystemMetadata;
+            import java.math.BigInteger;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.util.ChecksumUtil;
+            import java.io.FileInputStream;
+            import org.dataone.service.types.v1.AccessPolicy;
+            import org.dataone.service.types.v1.util.AccessUtil;
+            import java.lang.String;
+            import org.dataone.service.types.v1.Permission; 
+            import org.dataone.service.types.v1.ReplicationPolicy;
+            import java.lang.Integer;
+            import javax.activation.FileDataSource;
+            import org.dataone.service.types.v1.Subject;
+            
+            testCase.filename = 'src/test/resources/testData.csv';
+            full_file_path = which(testCase.filename);
+            if isempty(full_file_path)
+                [status, struc] = fileattrib(testCase.filename);
+                full_file_path = struc.Name;
+            end
+            
+            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode(mn_base_url);
+            
+            % Create a faked run
+            import org.dataone.client.run.Execution;
+            run2 = Execution();
+            set(run2, 'tag', 'test_MN_Create');
+            testCase.mgr.execution = run2;
+            
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end
+            end
+            
+            % Call MNode.create()
+            obj_pid = Identifier();
+            obj_pid.setValue(java.util.UUID.randomUUID().toString());
+            
+            objectFile = File(full_file_path);
+            data = FileDataSource(objectFile);
+            
+            try
+                sysmeta = SystemMetadata();
+                
+                % Set the identifier
+                sysmeta.setIdentifier(obj_pid);
+                
+                % Add the object format id
+                fmtid = ObjectFormatIdentifier();
+                fmtid.setValue('text/csv');
+                sysmeta.setFormatId(fmtid);
+                
+                % Add the file size
+                fileInfo = dir(full_file_path);
+                fileSize = fileInfo.bytes;
+                sizeBigInt = BigInteger.valueOf(fileSize);
+                sysmeta.setSize(sizeBigInt);
+              
+                % Add the checksum              
+                fileInputStream = FileInputStream(objectFile);
+                checksum = ChecksumUtil.checksum(fileInputStream, 'SHA1');
+                sysmeta.setChecksum(checksum);
+                
+                % Set the file name
+                sysmeta.setFileName(full_file_path); % Question: pass the full_file_path here because in the java call create() there is no way to get the full_file_path in systemeta. No matlab d1object is used.
+                
+                % Set the access policy
+                strArray = javaArray('java.lang.String', 1);
+                permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
+                strArray(1,1) = String('public');
+                permsArray(1,1) = Permission.READ;
+                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                sysmeta.setAccessPolicy(ap);
+
+                submitter = Subject();
+                submitter.setValue('abc'); 
+                sysmeta.setSubmitter(submitter);
+                sysmeta.setRightsHolder(submitter);
+                
+                % Call MNode.create()
+                returned_pid = matlab_mn_node.create([], obj_pid, data.getInputStream(), sysmeta);
+                
+                % Verify if create call is successful
+                assertEqual(testCase, char(returned_pid.getValue()), char(obj_pid.getValue()));
+                
+            catch Error
+                rethrow(Error);
+            end
+        end
+        
+              
         function testOverloadedCdfread(testCase)
             fprintf('\nIn testOverloadedCdfread() ...\n');            
             testCase.filename = 'src/test/resources/myScript7.m';

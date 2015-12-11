@@ -49,7 +49,6 @@ classdef MemberNode < hgsetget
         
         function getMN(memberNode, mnBaseUrl)
             % GETMN Returns a Member Node using the base service URL for the node 
-
         end
         
         
@@ -99,9 +98,8 @@ classdef MemberNode < hgsetget
             % Identifiy the D1Object being used and add a prov:used statement
             % in the RunManager DataPackage instance            
             if ( runManager.configuration.capture_file_reads )
-                % Record the DataONE resolve service endpoint + pid for the object of the RDF triple
-                % Decode the URL that will eventually be added to the
-                % resource map
+                % Record the full path to the local copy of the downloaded object
+                % that will eventually be added to the resource map
                 
                 import org.dataone.client.v2.D1Object;
   
@@ -129,7 +127,7 @@ classdef MemberNode < hgsetget
         end
  
         
-        function identifier = create(memberNode, session, pid, objectInputStream, sysmeta)
+        function identifier = create(memberNode, session, pid_obj, objectInputStream, sysmeta)
             % CREATE Creates a D1Objet instance with the given identifier
             % at the given member node
             
@@ -146,28 +144,15 @@ classdef MemberNode < hgsetget
             
             % Call the Java function with the same name to create the
             % DataONE object 
-            identifier = memberNode.mnode.create(session, pid, objectInputStream, sysmeta);
+            identifier = memberNode.mnode.create(session, pid_obj, objectInputStream, sysmeta);
           
             % Get filename from d1 object system metadata; otherwise,
             % a UUID string is used as the filename of the local copy of the d1 object
-            d1FileName = sysmeta.getFileName;
+            d1FileName = char(sysmeta.getFileName); % full_file_path
             if isempty(d1FileName)
                 d1FileName = char(java.util.UUID.randomUUID());
             end
-            
-            % Create a local copy for the d1 object under the execution
-            % directory
-            d1FileFullPath = fullfile( ...
-                runManager.configuration.provenance_storage_directory, ...
-                'runs', ...
-                runManager.execution.execution_id, ...
-                d1FileName);
-            fw = fopen(d1FileFullPath, 'w');
-            if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
-            d1ObjString = IOUtils.toString(objectInputStream, StandardCharsets.UTF_8.name());
-            fprintf(fw, '%s', d1ObjString);
-            fclose(fw);
-            
+                                 
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
             if ( runManager.configuration.capture_file_writes )
@@ -180,11 +165,12 @@ classdef MemberNode < hgsetget
                 formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
                
                 existing_id = runManager.execution.getIdByFullFilePath( ...
-                    d1FileFullPath );
+                    d1FileName);
                 
                 if ( isempty(existing_id) )
-                    % Add this object to the execution objects map                  
-                    d1Object = D1Object(pid, formatId, d1FileFullPath);
+                    % Add this object to the execution objects map 
+                    pid = char(pid_obj.getValue());
+                    d1Object = D1Object(pid, formatId, d1FileName);
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
@@ -193,11 +179,14 @@ classdef MemberNode < hgsetget
                 else
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;
-                    d1Object = D1Object(pid, formatId, d1FileFullPath);
+                    d1Object = D1Object(pid, formatId, d1FileName);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
                 end               
             end
+            
+            % Todo: create a local copy for the d1 object under the execution
+            % directory
         end
         
         
