@@ -88,8 +88,9 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testViewBySequenceNumberOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
-  suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
-   
+% suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
+  suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate'); 
+  
 run(suite);
 
 % rmpath(genpath(pwd));

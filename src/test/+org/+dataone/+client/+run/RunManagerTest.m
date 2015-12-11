@@ -111,6 +111,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(testCase.mgr.configuration, 'format_id', old_format_id);
         end        
         
+        
         function testYesWorkflow(testCase)
             fprintf('\nIn testYesWorkflow() ...\n');
             
@@ -136,6 +137,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             assert(isequal(existed,1));           
         end           
+        
         
         function testRecord(testCase)
             fprintf('\nIn testRecord() ...\n');
@@ -211,7 +213,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     mkdir(runDirectory);
                 end
             end
-
+        
+            % Get a MNode matlab instance to the member node
             mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             matlab_mn_node = MemberNode(mn_base_url);
            
@@ -225,12 +228,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 end
             end
             
-            % Call MNode.get()
+            % Call MemberNode.get()
             pid = Identifier();
             pid.setValue(obj_pid);
             item = matlab_mn_node.get([], pid); 
             
-            % Verify if an object is returned 
+            % Verify if get() call is successful
             assert(~isempty(item));  
         end
         
@@ -255,7 +258,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import java.lang.Integer;
             import javax.activation.FileDataSource;
             import org.dataone.service.types.v1.Subject;
-            
+            import org.dataone.service.types.v1.NodeReference;
+              
             testCase.filename = 'src/test/resources/testData.csv';
             full_file_path = which(testCase.filename);
             if isempty(full_file_path)
@@ -263,6 +267,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 full_file_path = struc.Name;
             end
             
+            % Set the Node ID            
+            mnodeRef = NodeReference();
+            mnodeRef.setValue('urn:node:mnDevUCSB2');
+            
+            % Get a MNode matlab instance to the member node
             mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             matlab_mn_node = MemberNode(mn_base_url);
             
@@ -283,8 +292,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     mkdir(runDirectory);
                 end
             end
-            
-            % Call MNode.create()
+    
             obj_pid = Identifier();
             obj_pid.setValue(java.util.UUID.randomUUID().toString());
             
@@ -324,23 +332,156 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
                 sysmeta.setAccessPolicy(ap);
 
+                % Set the submitter (required)
                 submitter = Subject();
                 submitter.setValue('abc'); 
                 sysmeta.setSubmitter(submitter);
                 sysmeta.setRightsHolder(submitter);
                 
-                % Call MNode.create()
+                % Set the node filelds (required)
+                sysmeta.setOriginMemberNode(mnodeRef);
+                sysmeta.setAuthoritativeMemberNode(mnodeRef);
+                               
+                % Call MemberNode.create()
                 returned_pid = matlab_mn_node.create([], obj_pid, data.getInputStream(), sysmeta);
                 
-                % Verify if create call is successful
+                % Verify if create() call is successful
                 assertEqual(testCase, char(returned_pid.getValue()), char(obj_pid.getValue()));
                 
             catch Error
                 rethrow(Error);
             end
         end
+             
+               
+        function testMNodeUpdate(testCase)
+            % Certificate x509up_u501 is requried to run this unit test. Dec-11-2015
+            fprintf('\nIn test Member Node Update() ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            import java.io.File;
+            import org.dataone.service.types.v2.SystemMetadata;
+            import java.math.BigInteger;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.util.ChecksumUtil;
+            import java.io.FileInputStream;
+            import org.dataone.service.types.v1.AccessPolicy;
+            import org.dataone.service.types.v1.util.AccessUtil;
+            import java.lang.String;
+            import org.dataone.service.types.v1.Permission;
+            import org.dataone.service.types.v1.ReplicationPolicy;
+            import java.lang.Integer;
+            import javax.activation.FileDataSource;
+            import org.dataone.service.types.v1.Subject;
+            import org.dataone.service.types.v1.NodeReference;
+            
+            testCase.filename = 'src/test/resources/testData.csv';
+            full_file_path = which(testCase.filename);
+            if isempty(full_file_path)
+                [status, struc] = fileattrib(testCase.filename);
+                full_file_path = struc.Name;
+            end
+            
+            % Set the Node ID            
+            mnodeRef = NodeReference();
+            mnodeRef.setValue('urn:node:mnDevUCSB2');
+            
+            % Get a MNode matlab instance to the member node
+            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode(mn_base_url);
+            
+            % Create a faked run
+            import org.dataone.client.run.Execution;
+            run3 = Execution();
+            set(run3, 'tag', 'test_MN_Update');
+            testCase.mgr.execution = run3;
+            
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end
+            end
+            
+            obj_pid = Identifier();
+            obj_pid.setValue(java.util.UUID.randomUUID().toString());
+            
+            objectFile = File(full_file_path);
+            data = FileDataSource(objectFile);
+            
+            try
+                sysmeta = SystemMetadata();
+                
+                % Set the identifier
+                sysmeta.setIdentifier(obj_pid);
+                
+                % Add the object format id
+                fmtid = ObjectFormatIdentifier();
+                fmtid.setValue('text/csv');
+                sysmeta.setFormatId(fmtid);
+                
+                % Add the file size
+                fileInfo = dir(full_file_path);
+                fileSize = fileInfo.bytes;
+                sizeBigInt = BigInteger.valueOf(fileSize);
+                sysmeta.setSize(sizeBigInt);
+                
+                % Add the checksum
+                fileInputStream = FileInputStream(objectFile);
+                checksum = ChecksumUtil.checksum(fileInputStream, 'SHA1');
+                sysmeta.setChecksum(checksum);
+                
+                % Set the file name
+                sysmeta.setFileName(full_file_path); % Question: pass the full_file_path here because in the java call create() there is no way to get the full_file_path in systemeta. No matlab d1object is used.
+                               
+                % Set the submitter (required)
+                submitter = Subject();
+                submitter.setValue('abc');
+                sysmeta.setSubmitter(submitter);
+                sysmeta.setRightsHolder(submitter);
+                
+                % Set the access policy
+                strArray = javaArray('java.lang.String', 1);
+                permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
+                strArray(1,1) = String('public');
+                permsArray(1,1) = Permission.READ;
+                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                sysmeta.setAccessPolicy(ap);
+
+                % Set the node filelds (required)
+                sysmeta.setOriginMemberNode(mnodeRef);
+                sysmeta.setAuthoritativeMemberNode(mnodeRef);
+                
+                % Call MemberNode.create()
+                returned_pid = matlab_mn_node.create([], obj_pid, data.getInputStream(), sysmeta);
+                
+                % Call MemberNode.get()
+                obj_inputstream = matlab_mn_node.get([], obj_pid);
+                
+                % Call MultipartMNode.getSystemMetadata() by making a java call
+                sysmeta = matlab_mn_node.mnode.getSystemMetadata( [], obj_pid ); 
+                
+                % Generate a new pid
+                new_pid = Identifier();
+                new_pid.setValue(java.util.UUID.randomUUID().toString());
+            
+                returned_pid = matlab_mn_node.update([], obj_pid, obj_inputstream, new_pid, sysmeta);
+                
+                % Verify if update() call is successful
+                assertEqual(testCase, char(returned_pid.getValue()), char(new_pid.getValue()));
+                
+            catch Error
+                rethrow(Error);
+            end
+        end
         
-              
+        
         function testOverloadedCdfread(testCase)
             fprintf('\nIn testOverloadedCdfread() ...\n');            
             testCase.filename = 'src/test/resources/myScript7.m';
@@ -907,7 +1048,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                      'download your X509 certificate to /tmp/x509up_u501.\n']);
 
             %testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-             testCase.filename = 'src/test/resources/myScript2.m';
+            testCase.filename = 'src/test/resources/myScript2.m';
 
             set(testCase.mgr.configuration, 'certificate_path', '/tmp/x509up_u501');
             set(testCase.mgr.configuration, 'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJjb25zdW1lcktleSI6InRoZWNvbnN1bWVya2V5IiwiaXNzdWVkQXQiOiIyMDE1LTEwLTIxVDE0OjUzOjU1LjkzMyswMDowMCIsInVzZXJJZCI6IkNOPVlhbmcgQ2FvIEExOTQwMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiZnVsbE5hbWUiOiJZYW5nQ2FvIiwidHRsIjo2NDgwMDAwMH0.BfUC9GrK-WJyrYLr_C1vi-9Ufp9n_9ZQLRT2Yeqhv0eD0nCLB_Zgc8bfCStZdar7Hol2bl9nm-igEcM7E7rm3i-JQFS_6qrqJu5vpJID-ADH7w2pusY_R7xve-qyQ5-pmznQUZOY5mwxkmFyzF4uXTawD6MpDa7T3ulc2y6By0Q9oE1BcoG8Z4GAmmXGCYvTK7JK4lv--uRKJ95VL68_wwmoH1y6Hi3f6qcv0ObBt94BhI-ItEh0vW8LrbKKNLpvQ7ivsbiniRNtzwKXwi72BJ83xqcxN1fi2kCs1-GOqcQhHIdTwtvO3d0xSf8G6UzLsHb7denTWPitMF3RA_G5etMd6v6Qgewfl0pS-fZuaP28OpzxMvHCwDGkFehtoszEdXQLiD_dylPuvEdB4RE2uvfXtR3kWEwGl1HHdaV7Eq4zVxu2N8iq27r213W_R23NdJcU9mOFbT0Dg2AVW17hhdw8Ulp_FvB4-K_JghDlbZSPZKig8TFeZiGd0feqwVrupd48fHacG4qDrTtu_Itn0My2i8dwImc0EQtscrBPUkR-UGE4xJab79OalB7imEQRiO4C9nlrvbrabGixmn1d0FPZ5fKo9Pe00aH7GqiibS3P7roe1u7GQVSMIBH6QqkE8MOTUndyx76CXZ4xR1VnuGZwA9K-2-ZW7FsqiW_7Hcg');

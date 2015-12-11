@@ -84,16 +84,16 @@ classdef MemberNode < hgsetget
             
             % Create a local copy for the d1 object under the execution
             % directory
-            d1FileFullPath = fullfile( ...
-                runManager.configuration.provenance_storage_directory, ...
-                'runs', ...
-                runManager.execution.execution_id, ...
-                d1FileName);
+            [path, name, ext] = fileparts(char(d1FileName));
+            obj_name = [name ext];
+            d1FileFullPath = fullfile(runManager.configuration.provenance_storage_directory, 'runs', runManager.execution.execution_id, obj_name);
             fw = fopen(d1FileFullPath, 'w');
             if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
             d1ObjString = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name()); % Question: correct convert inputStream to String?
             fprintf(fw, '%s', char(d1ObjString));
             fclose(fw);
+            
+            %system(['open ' d1FileFullPath]); % for test
             
             % Identifiy the D1Object being used and add a prov:used statement
             % in the RunManager DataPackage instance            
@@ -156,9 +156,8 @@ classdef MemberNode < hgsetget
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
             if ( runManager.configuration.capture_file_writes )
-                % Record the DataONE resolve service endpoint + pid for the object of the RDF triple
-                % Decode the URL that will eventually be added to the
-                % resource map
+                % Record the full path to the local copy of the downloaded object
+                % that will eventually be added to the resource map
                 
                 import org.dataone.client.v2.D1Object;
                 
