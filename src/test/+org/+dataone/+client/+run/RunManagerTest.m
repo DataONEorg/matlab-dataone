@@ -188,6 +188,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         
         function testMNodeGet(testCase)
+            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
             fprintf('\nIn test Member Node Get() ...\n');
      
             import org.dataone.client.v2.MemberNode;
@@ -235,6 +236,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         
         function testMNodeCreate(testCase)
+            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
             fprintf('\nIn test Member Node Create() ...\n');
             
             import org.dataone.client.v2.MemberNode;
