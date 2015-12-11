@@ -19,24 +19,24 @@ warning off MATLAB:dispatcher:nameConflict;
 
 % Open the startup.m file for writing
 startup_path = fullfile(matlab_path, 'startup.m');
-mrc_fid = fopen(startup_path, 'w');
+startup_fid = fopen(startup_path, 'w');
 
 % Add a section to the file that adds all matlab-dataone files in lib/matlab and
 % src/matlab to the path
 
 lib_matlab_path = fullfile(mlt_dataone_root, 'lib', 'matlab');
-fprintf(mrc_fid, '\naddpath(genpath(''%s''));\n', lib_matlab_path);    
+fprintf(startup_fid, '\naddpath(genpath(''%s''));\n', lib_matlab_path);    
 
 src_matlab_dataone_path = fullfile(mlt_dataone_root, 'src', 'matlab');
-fprintf(mrc_fid, 'addpath(genpath(''%s''));\n', src_matlab_dataone_path);      
+fprintf(startup_fid, 'addpath(genpath(''%s''));\n', src_matlab_dataone_path);      
 
 % Add the YW libraries to the dynamic java path
-yw_library_name = 'yesworkflow-0.2-SNAPSHOT.jar';
-yw_library_path = fullfile(mlt_dataone_root, 'lib', 'java', yw_library_name);
-fprintf(mrc_fid, 'javaaddpath(''%s'');\n', yw_library_path);
+% yw_library_name = 'yesworkflow-0.2-SNAPSHOT.jar';
+% yw_library_path = fullfile(mlt_dataone_root, 'lib', 'java', yw_library_name);
+% fprintf(mrc_fid, 'javaaddpath(''%s'');\n', yw_library_path);
 
 % close the file
-fclose(mrc_fid);
+fclose(startup_fid);
 
 
 warning off MATLAB:dispatcher:nameConflict;
