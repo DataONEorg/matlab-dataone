@@ -395,6 +395,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import javax.activation.FileDataSource;
             import org.dataone.service.types.v1.Subject;
             import org.dataone.service.types.v1.NodeReference;
+            import org.apache.commons.io.IOUtils;
+            import java.nio.charset.StandardCharsets;
+            
             
             testCase.filename = 'src/test/resources/testData.csv';
             full_file_path = which(testCase.filename);
@@ -436,6 +439,19 @@ classdef RunManagerTest < matlab.unittest.TestCase
             data = FileDataSource(objectFile);
             
             try
+                % Gets a certificate
+                import org.dataone.client.auth.CertificateManager;
+                import java.security.cert.X509Certificate;
+                
+                % Get a certificate for the Root CA
+                certificate = CertificateManager.getInstance().loadCertificate();
+                if ~isempty(certificate)
+                    dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
+                    standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
+                else
+                    standardizedName = '';
+                end
+               
                 sysmeta = SystemMetadata();
                 
                 % Set the identifier
@@ -462,7 +478,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                                
                 % Set the submitter (required)
                 submitter = Subject();
-                submitter.setValue('abc');
+                submitter.setValue(standardizedName);
                 sysmeta.setSubmitter(submitter);
                 sysmeta.setRightsHolder(submitter);
                 
@@ -482,16 +498,23 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 returned_pid = matlab_mn_node.create([], obj_pid, data.getInputStream(), sysmeta);
                 
                 % Call MemberNode.get()
-                obj_inputstream = matlab_mn_node.get([], obj_pid);
+                obj_inputstream = matlab_mn_node.get([], returned_pid);
+                
+                % d2ObjString = matlab_mn_node.get([], returned_pid);
+                % d2ObjString
+                %d1ObjString = IOUtils.toString(obj_inputstream, StandardCharsets.UTF_8.name()); 
+              
+                
                 
                 % Call MultipartMNode.getSystemMetadata() by making a java call
-                sysmeta = matlab_mn_node.mnode.getSystemMetadata( [], obj_pid ); 
+                sysmeta = matlab_mn_node.mnode.getSystemMetadata( [], returned_pid ); 
                 
                 % Generate a new pid
                 new_pid = Identifier();
                 new_pid.setValue(java.util.UUID.randomUUID().toString());
             
-                returned_pid = matlab_mn_node.update([], obj_pid, obj_inputstream, new_pid, sysmeta);
+                % Call MemberNode.update()
+                returned_pid = matlab_mn_node.update([], returned_pid, obj_inputstream, new_pid, sysmeta);
                 
                 % Verify if update() call is successful
                 assertEqual(testCase, char(returned_pid.getValue()), char(new_pid.getValue()));

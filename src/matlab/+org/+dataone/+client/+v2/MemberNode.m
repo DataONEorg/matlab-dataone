@@ -52,7 +52,8 @@ classdef MemberNode < hgsetget
         end
         
         
-        function inputStream = get(memberNode, session, pid)
+        % function d1ObjString = get(memberNode, session, pid)
+        function inputStream  = get(memberNode, session, pid)
             % GET Get a D1Objet instance with the givien identifier from
             % the given member node
             
@@ -72,6 +73,7 @@ classdef MemberNode < hgsetget
             % DataONE object and get system metadata for this d1 object.
             % The formatId information is obtained from the system metadata
             inputStream = memberNode.mnode.get(session, pid);  
+            
             sysMetaData = memberNode.mnode.getSystemMetadata(session, pid);
             formatId = sysMetaData.getFormatId().getValue;
             
@@ -92,6 +94,8 @@ classdef MemberNode < hgsetget
             d1ObjString = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name()); % Question: correct convert inputStream to String?
             fprintf(fw, '%s', char(d1ObjString));
             fclose(fw);
+          
+            d1ObjString
             
             %system(['open ' d1FileFullPath]); % for test
             
@@ -211,7 +215,7 @@ classdef MemberNode < hgsetget
           
             % Get filename from d1 object system metadata; otherwise,
             % a UUID string is used as the filename of the local copy of the d1 object
-            d1FileName = sysmeta.getFileName;
+            d1FileName = sysmeta.getFileName; % ? ? ?
             if isempty(d1FileName)
                 d1FileName = char(java.util.UUID.randomUUID());
             end
@@ -222,7 +226,7 @@ classdef MemberNode < hgsetget
                 runManager.configuration.provenance_storage_directory, ...
                 'runs', ...
                 runManager.execution.execution_id, ...
-                d1FileName);
+                d1FileName); % ? ? ?
             fw = fopen(d1FileFullPath, 'w');
             if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
             d1ObjString = IOUtils.toString(objectInputStream, StandardCharsets.UTF_8.name());
@@ -241,19 +245,20 @@ classdef MemberNode < hgsetget
                 formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
                
                 existing_id = runManager.execution.getIdByFullFilePath( ...
-                    d1FileFullPath );
+                    d1FileFullPath ); % ???
                 
                 if ( isempty(existing_id) )
-                    % Add this object to the execution objects map                  
-                    d1Object = D1Object(newPid, formatId, d1FileFullPath);
+                    % Add this object to the execution objects map    
+                    new_pid = char(newPid.getValue());
+                    d1Object = D1Object(new_pid, formatId, d1FileFullPath);
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;
+                        d1Object;                   
                 else
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;
-                    d1Object = D1Object(newPid, formatId, d1FileFullPath);
+                    d1Object = D1Object(newPid, formatId, d1FileFullPath); % ???
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
