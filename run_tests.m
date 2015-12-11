@@ -80,14 +80,16 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedMultibandwrite');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedMultibandread');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedFitswrite');
- suite = TestSuite.fromMethod(testCls, 'testOverloadedFitsread');
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedFitsread');
  
 % suite = TestSuite.fromMethod(testCls, 'testPublish'); 
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewByPackageIdOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewBySequenceNumberOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
-
+% suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
+  suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
+   
 run(suite);
 
 % rmpath(genpath(pwd));
