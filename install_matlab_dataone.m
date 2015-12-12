@@ -67,6 +67,11 @@ clear p i jars home_dir;
 % Close the file
 fclose(jcls_fid);
 
+clear ans ext installFilePath javaclasspath_file_path ...
+    jcls_fid lib_matlab_path matlab_path matlabVersion ...
+    mlt_dataone_root name path src_matlab_dataone_path ...
+    startup_fid startup_path user_path userdir;
+
 % Display a message to restart Matlab so the library changes will take
 % effect
 fprintf('\n\n Please restart Matlab so the library changes will take effect ...\n');
