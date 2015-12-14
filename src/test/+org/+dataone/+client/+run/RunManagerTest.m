@@ -484,7 +484,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 
                 % Set the access policy
                 strArray = javaArray('java.lang.String', 1);
-                permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
+                permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
                 strArray(1,1) = String('public');
                 permsArray(1,1) = Permission.READ;
                 ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
