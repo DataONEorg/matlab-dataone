@@ -499,13 +499,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 
                 % Call MemberNode.get()
                 obj_inputstream = matlab_mn_node.get([], returned_pid);
-                
-                % d2ObjString = matlab_mn_node.get([], returned_pid);
+          
+                % For testing
+                % d2ObjString = IOUtils.toString(obj_inputstream, StandardCharsets.UTF_8.name()); 
                 % d2ObjString
-                %d1ObjString = IOUtils.toString(obj_inputstream, StandardCharsets.UTF_8.name()); 
-              
-                
-                
+                               
                 % Call MultipartMNode.getSystemMetadata() by making a java call
                 sysmeta = matlab_mn_node.mnode.getSystemMetadata( [], returned_pid ); 
                 
