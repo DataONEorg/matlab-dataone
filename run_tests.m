@@ -35,6 +35,8 @@ import matlab.unittest.TestSuite;
 % Use fromPackage
 % suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.configure', 'IncludingSubpackages', true);
+% suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
+% suite = TestSuite.fromPackage('org.dataone.client.v2', 'IncludingSubpackages', true);
 
 % Use fromClass
 % testCls = ?org.dataone.client.configure.ConfigurationTest;
@@ -90,7 +92,12 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
   suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate'); 
-  
+
+% testCls = ?org.dataone.client.v2.MNodeTest;
+% suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
+% suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
+% suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate');
+
 run(suite);
 
 % rmpath(genpath(pwd));
