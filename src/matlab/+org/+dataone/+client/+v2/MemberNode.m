@@ -191,12 +191,14 @@ classdef MemberNode < hgsetget
             % UPDATE Updates a D1Objet instance with a new identifier
             % at the given member node. The last three parameters have new
             % information
-                 
+            
             import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
-            
+            import java.io.File;
+            import org.apache.commons.io.FileUtils;
+              
             runManager = RunManager.getInstance();
             
             if ( runManager.configuration.debug )
@@ -216,30 +218,26 @@ classdef MemberNode < hgsetget
             
             % Create a local copy for the d1 object under the execution
             % directory
-            d1FileFullPath = fullfile( ...
+            [path, name, ext] = fileparts(char(d1FileName));
+            obj_name = [name ext];
+            d1FileFullPath = fullfile(...
                 runManager.configuration.provenance_storage_directory, ...
-                'runs', ...
-                runManager.execution.execution_id, ...
-                d1FileName); % ? ? ?
-            fw = fopen(d1FileFullPath, 'w');
-            if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
-            d1ObjString = IOUtils.toString(objectInputStream, StandardCharsets.UTF_8.name());
-            fprintf(fw, '%s', d1ObjString);
-            fclose(fw);           
-            
+                'runs', runManager.execution.execution_id, obj_name);
+            targetFile = File(d1FileFullPath);
+            FileUtils.copyInputStreamToFile(objectInputStream, targetFile);
+       
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
             if ( runManager.configuration.capture_file_writes )
-                % Record the DataONE resolve service endpoint + pid for the object of the RDF triple
-                % Decode the URL that will eventually be added to the
-                % resource map
+                % Record the full path to the local copy of the downloaded object
+                % that will eventually be added to the resource map
                 
                 import org.dataone.client.v2.D1Object;
                 
                 formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
                
                 existing_id = runManager.execution.getIdByFullFilePath( ...
-                    d1FileFullPath ); % ???
+                    d1FileFullPath ); 
                 
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map    
@@ -251,25 +249,14 @@ classdef MemberNode < hgsetget
                         d1Object;                   
                 else
                     % Update the existing map entry with a new D1Object
-                    pid = existing_id;
-                    d1Object = D1Object(newPid, formatId, d1FileFullPath); % ???
+                    new_pid = char(newPid.getValue());
+                    d1Object = D1Object(new_pid, formatId, d1FileFullPath); % ???
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object; 
-                    % Remove the d1 object with the old "pid" identifier from the exeuciton_objects map 
-                    oldKeySet = {pid};
-                    remove(runManager.execution.execution_objects, oldKeySet);
                 end
-                
-                % Replace the old "pid" with "newPid" in execution_output_ids array
-                for i=1:length(runManager.execution.execution_output_ids)
-                    value = runManager.execution.execution_output_ids{i};
-                    if strcmp(pid, value)
-                        runManager.execution.execution_output_ids{i} = newPid;
-                        break;
-                    end                    
-                end
+
             end          
         end
         
