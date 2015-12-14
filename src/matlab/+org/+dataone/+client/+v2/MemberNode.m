@@ -50,10 +50,8 @@ classdef MemberNode < hgsetget
         function getMN(memberNode, mnBaseUrl)
             % GETMN Returns a Member Node using the base service URL for the node 
         end
-        
-        
-        % function d1ObjString = get(memberNode, session, pid)
-        function inputStream  = get(memberNode, session, pid)
+  
+        function targetStream  = get(memberNode, session, pid)
             % GET Get a D1Objet instance with the givien identifier from
             % the given member node
             
@@ -61,7 +59,9 @@ classdef MemberNode < hgsetget
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
-            import java.nio.charset.StandardCharsets;
+            import java.io.File;
+            import java.io.FileInputStream;
+            import org.apache.commons.io.FileUtils;
             
             runManager = RunManager.getInstance();
             
@@ -89,16 +89,10 @@ classdef MemberNode < hgsetget
             [path, name, ext] = fileparts(char(d1FileName));
             obj_name = [name ext];
             d1FileFullPath = fullfile(runManager.configuration.provenance_storage_directory, 'runs', runManager.execution.execution_id, obj_name);
-            fw = fopen(d1FileFullPath, 'w');
-            if fw == -1, error('Cannot write "%s%".',d1FileFullPath); end
-            d1ObjString = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name()); % Question: correct convert inputStream to String?
-            fprintf(fw, '%s', char(d1ObjString));
-            fclose(fw);
-          
-            d1ObjString
-            
-            %system(['open ' d1FileFullPath]); % for test
-            
+            targetFile = File(d1FileFullPath);
+            FileUtils.copyInputStreamToFile(inputStream, targetFile);          
+            targetStream = FileInputStream(targetFile); % Return an inputStream as results
+       
             % Identifiy the D1Object being used and add a prov:used statement
             % in the RunManager DataPackage instance            
             if ( runManager.configuration.capture_file_reads )
