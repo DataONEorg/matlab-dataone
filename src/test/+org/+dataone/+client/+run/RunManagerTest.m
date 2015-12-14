@@ -397,7 +397,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.service.types.v1.NodeReference;
             import org.apache.commons.io.IOUtils;
             import java.nio.charset.StandardCharsets;
-            
+            import org.dataone.service.util.TypeMarshaller;
             
             testCase.filename = 'src/test/resources/testData.csv';
             full_file_path = which(testCase.filename);
@@ -483,12 +483,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 sysmeta.setRightsHolder(submitter);
                 
                 % Set the access policy
-                strArray = javaArray('java.lang.String', 1);
-                permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
-                strArray(1,1) = String('public');
-                permsArray(1,1) = Permission.READ;
-                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
-                sysmeta.setAccessPolicy(ap);
+                %strArray = javaArray('java.lang.String', 1);
+                %permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
+                %strArray(1,1) = String('public');
+                %permsArray(1,1) = Permission.READ;
+                %ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                %sysmeta.setAccessPolicy(ap);
 
                 % Set the node filelds (required)
                 sysmeta.setOriginMemberNode(mnodeRef);
@@ -506,11 +506,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
                                
                 % Call MultipartMNode.getSystemMetadata() by making a java call
                 sysmeta = matlab_mn_node.mnode.getSystemMetadata( [], returned_pid ); 
-                
+               
                 % Generate a new pid
                 new_pid = Identifier();
                 new_pid.setValue(java.util.UUID.randomUUID().toString());
-            
+                sysmeta.setIdentifier(new_pid);
+                
                 % Call MemberNode.update()
                 returned_pid = matlab_mn_node.update([], returned_pid, obj_inputstream, new_pid, sysmeta);
                 
