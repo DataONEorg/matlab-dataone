@@ -483,12 +483,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 sysmeta.setRightsHolder(submitter);
                 
                 % Set the access policy
-                %strArray = javaArray('java.lang.String', 1);
-                %permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
-                %strArray(1,1) = String('public');
-                %permsArray(1,1) = Permission.READ;
-                %ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
-                %sysmeta.setAccessPolicy(ap);
+                strArray = javaArray('java.lang.String', 1);
+                permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
+                strArray(1,1) = String('public');
+                permsArray(1,1) = Permission.READ;
+                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                sysmeta.setAccessPolicy(ap);
 
                 % Set the node filelds (required)
                 sysmeta.setOriginMemberNode(mnodeRef);
@@ -518,6 +518,19 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 % Verify if update() call is successful
                 assertEqual(testCase, char(returned_pid.getValue()), char(new_pid.getValue()));
                 
+                % Verify if the execution_output_ids contains two pids
+                size1 = length(testCase.mgr.execution.execution_output_ids);
+                assertEqual(testCase, size1, 2);
+                
+                % Verify if the execution_input_ids contains one pids
+                size2 = length(testCase.mgr.execution.execution_input_ids);
+                assertEqual(testCase, size2, 1);
+                                
+                % Clear runtime input/output sources
+                testCase.mgr.execution.execution_input_ids = {};
+                testCase.mgr.execution.execution_output_ids = {};
+                all_keys = keys(testCase.mgr.execution.execution_objects);
+                remove(testCase.mgr.execution.execution_objects, all_keys);
             catch Error
                 rethrow(Error);
             end

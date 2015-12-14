@@ -133,6 +133,8 @@ classdef MemberNode < hgsetget
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
+            import java.io.File;
+            import org.apache.commons.io.FileUtils;
             
             runManager = RunManager.getInstance();
             
@@ -150,7 +152,16 @@ classdef MemberNode < hgsetget
             if isempty(d1FileName)
                 d1FileName = char(java.util.UUID.randomUUID());
             end
-                                 
+            [path, name, ext] = fileparts(char(d1FileName));
+            obj_name = [name ext];
+            d1FileFullPath = fullfile(...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', ...
+                runManager.execution.execution_id, ...
+                obj_name);
+            targetFile = File(d1FileFullPath);
+            FileUtils.copyInputStreamToFile(objectInputStream, targetFile);       
+            
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
             if ( runManager.configuration.capture_file_writes )
@@ -181,9 +192,7 @@ classdef MemberNode < hgsetget
                         d1Object;
                 end    
             end
-            
-            % Todo: create a local copy for the d1 object under the execution
-            % directory
+
         end
         
         
@@ -246,17 +255,18 @@ classdef MemberNode < hgsetget
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;                   
+                        d1Object;
+                    runManager.execution.execution_output_ids{end+1} = new_pid;
                 else
                     % Update the existing map entry with a new D1Object
                     new_pid = char(newPid.getValue());
-                    d1Object = D1Object(new_pid, formatId, d1FileFullPath); % ???
+                    d1Object = D1Object(new_pid, formatId, d1FileFullPath);
                     % Set the system metadata for the current d1Object
                     set(d1Object, 'system_metadata', sysmeta);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object; 
+                        d1Object;
+                    runManager.execution.execution_output_ids{end+1} = new_pid;
                 end
-
             end          
         end
         
