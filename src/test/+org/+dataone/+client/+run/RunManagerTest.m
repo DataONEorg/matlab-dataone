@@ -240,6 +240,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             size = length(testCase.mgr.execution.execution_input_ids);
             assertEqual(testCase, size, 1);
             
+            testCase.mgr.execution.execution_input_ids(1)
+            ischar(testCase.mgr.execution.execution_input_ids(1))
+            whos testCase.mgr.execution.execution_input_ids
+            
             % Clear runtime input/output sources
             testCase.mgr.execution.execution_input_ids = {};
             testCase.mgr.execution.execution_output_ids = {};

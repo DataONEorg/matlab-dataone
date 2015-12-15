@@ -112,7 +112,7 @@ classdef MemberNode < hgsetget
                     set(d1Object, 'system_metadata', sysMetaData);
                     runManager.execution.execution_objects(d1Object.identifier) = ...
                         d1Object;
-                     runManager.execution.execution_input_ids{end+1} = pid;
+                     runManager.execution.execution_input_ids{end+1} = char(pid.getValue());
                 else
                     % Update the existing map entry with a new D1Object
                     pid = existing_id;

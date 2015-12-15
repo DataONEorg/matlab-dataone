@@ -89,9 +89,9 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testViewByPackageIdOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewBySequenceNumberOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
-% suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
+ suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
-  suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate'); 
+%  suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate'); 
 
 % testCls = ?org.dataone.client.v2.MNodeTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
