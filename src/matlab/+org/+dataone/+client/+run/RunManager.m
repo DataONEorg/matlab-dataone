@@ -1835,7 +1835,7 @@ classdef RunManager < hgsetget
                usedFileStruct(i,1).LocalName = cell(in_file_name); % Convert java string to cell so that the usedFile table can be displayed Dec-8-2015    
                fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
                usedFileStruct(i,1).Size = char(fsize); 
-               usedFileStruct(i,1).ModifiedTime = in_file_metadata.date;     
+               usedFileStruct(i,1).ModifiedTime = in_file_metadata.date; 
            end
                       
            % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
@@ -2031,8 +2031,8 @@ classdef RunManager < hgsetget
                     d1_object = d1objects{k};
                     d1_object_format = d1_object.format_id;
                     
-                    if runManager.configuration.debug
-                        fprintf('Uploading file: %s and file format: %s\n', d1_object_id, d1_object_format);
+                    if true % runManager.configuration.debug
+                        fprintf('Uploading file: %s, file format: %s, file path: %s \n', d1_object_id, d1_object_format, d1_object.full_file_path);
                     end
                     
                     % build d1 object
@@ -2042,7 +2042,7 @@ classdef RunManager < hgsetget
                     
                     % get system metadata for dataObj 
                     v2SysMeta = dataObj.getSystemMetadata(); % version 2 system metadata
-                     
+                    
                     if runManager.configuration.debug
                         fprintf('***********************************************************\n');
                         fprintf('d1Obj.size=%d (bytes)\n', v2SysMeta.getSize().longValue());                   
@@ -2176,7 +2176,12 @@ classdef RunManager < hgsetget
 
         
         function science_metadata = getMetadata(runManager, runId)
-            % GETMETADATA retrieves the metadata describing data objects of an execution
+            % GETMETADATA retrieves the metadata describing data objects of
+            % a execution. when a script or console session is recorded, a
+            % metadata object is created that describes the objets
+            % associated with the run, using the Ecological Metadata
+            % Language
+            %   runId -- The identifier for a run
             
             run_directory = fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
@@ -2192,55 +2197,99 @@ classdef RunManager < hgsetget
                     eml = EML.loadDocument( ...
                         fullfile(run_directory, ...
                         science_metadata_file));
-                    science_metadata = eml.toXML;
                     
+                    % test
+                    creatorElements = eml.document.getElementsByTagName('creator');
+                    creatorElements.getLength
+                    creatorNode = creatorElements.item(0)
+                    childNode = creatorNode.getFirstChild;
+                    childNode
+                    
+                    science_metadata = eml.toXML;
                 end
             else
                 disp(['There is no run directory with the id: ' runId]);
-                return;
-                
-            end
-            
+                return;               
+            end            
         end
 
         
         function putMetadata(runManager, runId, file)
-            % PUTMETADATA stores (or replaces) the metadata describing data objects of an execution
+            % PUTMETADATA puts a metadata document into the recordr cache
+            % for a run, replacing the existing metadata object for the
+            % specified run, if one exits.
+            %   runId -- The identifier for a run
+            %   file -- The replacement metadata, as the actual text, or as
+            %           a file name containing the metadata
             
             run_directory = fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
                 'runs', runId);
             
-            if ( ~ exist(file, 'file') )
-                error('RunManager:putMetadata:IOError', ...
-                    ['The file ' file 'does not exist.']);
-                
-            end
-            
-            % Check if the file exists
-            if ( exist(run_directory, 'dir') == 7)
-                
-                science_metadata_file = ['metadata_' runId '.xml'];
-                
-                % TODO: validate the metadata
-                
-                [status, message] = copyfile( ...
-                    file, ...
-                    fullfile(run_directory, science_metadata_file), 'f');
-                if ( status == -1 )
+            if ischar(file)
+                % file is a filename containing the metadata
+                if ( ~ exist(file, 'file') )
                     error('RunManager:putMetadata:IOError', ...
-                          message);
-                      
+                        ['The file ' file 'does not exist.']);
                 end
                 
+                % Check if the file exists
+                if ( exist(run_directory, 'dir') == 7)
+                    science_metadata_file = ['metadata_' runId '.xml'];
+                    
+                    % TODO: validate the metadata
+                    
+                    [status, message] = copyfile( ...
+                        file, ...
+                        fullfile(run_directory, science_metadata_file), 'f');
+                    if ( status == -1 )
+                        error('RunManager:putMetadata:IOError', ...
+                            message);
+                    end
+                else
+                    disp(['There is no run directory with the id: ' runId]);
+                    return;
+                end
             else
-                disp(['There is no run directory with the id: ' runId]);
-                return;
-                
+                % file is a replacement metadata object
+                if( exist(run_directory, 'dir') == 7)
+                    % Replace the replacement metadata object in the
+                    % metadata file
+                    science_metadata_file = ['metadata_' runId '.xml'];
+                    science_metadata_full_path = fullfile(run_directory, science_metadata_file);
+                    
+                    if exist(science_metadata_full_path, 'file')
+                        import org.ecoinformatics.eml.EML;
+                        
+                        eml = EML.loadDocument(science_metadata_full_path);
+                        
+                        % test
+                        % creatorElements = eml.document.getElementsByTagName('creator');
+                        % creatorElements.getLength
+                        % creatorNode = creatorElements.item(0)
+                        % childNode = creatorNode.getFirstChild;
+                        % childNode
+                        
+                        eml = eml.update( runManager.configuration, runManager.execution );
+                        % Write the science metadata to the execution directory
+                        scienceMetadataFile = ...
+                            fopen(science_metadata_full_path, 'w');
+                        if ( scienceMetadataFile == -1 )
+                            error('Could not open the science metadata file for writing.');
+                        end
+                        
+                        fprintf(scienceMetadataFile, '%s', eml.toXML());
+                        fclose(scienceMetadataFile);
+                        disp('metadata is updated');
+                    else
+                        disp(['There is no science metadata file with the name: ', science_metadata_file]);
+                        return;
+                    end
+                    
+                end
             end
         end
 
     end
 
 end
-
