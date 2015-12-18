@@ -18,7 +18,7 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef D1ClientTest < matlab.unittest.TestCase
+classdef DataONEClientTest < matlab.unittest.TestCase
     
     properties
     end
