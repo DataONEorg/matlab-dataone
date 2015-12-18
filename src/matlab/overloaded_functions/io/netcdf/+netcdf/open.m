@@ -49,7 +49,7 @@ function varargout = open(source, varargin)
 % limitations under the License.
 
     import org.dataone.client.run.RunManager;
-    import org.dataone.client.v2.D1Object;
+    import org.dataone.client.v2.DataObject;
 
     runManager = RunManager.getInstance(); 
     
@@ -109,16 +109,16 @@ function varargout = open(source, varargin)
                     if ( isempty(existing_id) )
                         % Add this object to the execution objects map
                         pid = char(java.util.UUID.randomUUID()); % generate an id
-                        d1Object = D1Object(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(d1Object.identifier) = ...
-                            d1Object;
+                        dataObject = DataObject(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(dataObject.identifier) = ...
+                            dataObject;
                     else
-                        d1Object = ...
+                        dataObject = ...
                             runManager.execution.execution_objects(existing_id);
                     end
                     runManager.execution.execution_input_ids{ ...
                         end + 1} = ...
-                        d1Object.identifier;
+                        dataObject.identifier;
 
                 end
             else
@@ -129,13 +129,13 @@ function varargout = open(source, varargin)
                 
                 if ( runManager.configuration.capture_file_reads )
                     % TODO: download the URL contents, cache in the execution
-                    % directory, and then create a D1Object from that file and add
+                    % directory, and then create a DataObject from that file and add
                     % it to the execution objects map:
                     % pid = char(java.util.UUID.randomUUID()); % generate an id
-                    % d1Object = D1Object(pid, formatId, source);
-                    % runManager.execution.execution_objects(d1Object.identifier) = ...
-                    %     d1Object;
-                    %    d1Object.identifier) = d1Object;
+                    % dataObject = DataObject(pid, formatId, source);
+                    % runManager.execution.execution_objects(dataObject.identifier) = ...
+                    %     dataObject;
+                    %    dataObject.identifier) = dataObject;
 
                     runManager.execution.execution_input_ids{ ...
                         end + 1} = ...
@@ -163,34 +163,34 @@ function varargout = open(source, varargin)
                     if ( isempty(existing_id) )
                         % Add this object to the execution objects map
                         pid = char(java.util.UUID.randomUUID()); % generate an id
-                        d1Object = D1Object(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(d1Object.identifier) = ...
-                            d1Object;
+                        dataObject = DataObject(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(dataObject.identifier) = ...
+                            dataObject;
                     else
-                        d1Object = ...
+                        dataObject = ...
                             runManager.execution.execution_objects(existing_id);
                     end
 
                     runManager.execution.execution_input_ids{ ...
-                        end + 1} = d1Object.identifier;
+                        end + 1} = dataObject.identifier;
                 end
                 
                 if ( runManager.configuration.capture_file_writes )
                     if ( isempty(existing_id) )
                         % Add this object to the execution objects map
                         pid = char(java.util.UUID.randomUUID()); % generate an id
-                        d1Object = D1Object(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(d1Object.identifier) = ...
-                            d1Object;
+                        dataObject = DataObject(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(dataObject.identifier) = ...
+                            dataObject;
                     else
-                        % Update the existing map entry with a new D1Object
+                        % Update the existing map entry with a new DataObject
                         pid = existing_id;
-                        d1Object = D1Object(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(d1Object.identifier) = ...
-                            d1Object;
+                        dataObject = DataObject(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(dataObject.identifier) = ...
+                            dataObject;
                     end
                     runManager.execution.execution_output_ids{ ...
-                        end + 1} = d1Object.identifier;
+                        end + 1} = dataObject.identifier;
                 end
                 
             elseif any(strcmp(varargin{1}, {'NOWRITE', 'NC_NOWRITE'})) ~= 0
@@ -211,16 +211,16 @@ function varargout = open(source, varargin)
                     if ( isempty(existing_id) )
                         % Add this object to the execution objects map
                         pid = char(java.util.UUID.randomUUID()); % generate an id
-                        d1Object = D1Object(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(d1Object.identifier) = ...
-                            d1Object;
+                        dataObject = DataObject(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(dataObject.identifier) = ...
+                            dataObject;
                     else
-                        d1Object = ...
+                        dataObject = ...
                             runManager.execution.execution_objects(existing_id);
                     end
                     
                     runManager.execution.execution_input_ids{ ...
-                        end + 1} = d1Object.identifier;
+                        end + 1} = dataObject.identifier;
                 end
             else
                 % 'SHARE' Synchronous file updates

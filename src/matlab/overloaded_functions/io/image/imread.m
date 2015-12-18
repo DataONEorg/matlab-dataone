@@ -379,7 +379,7 @@ function [X, map, alpha] = imread(varargin)
             url = true;
         end
         
-        import org.dataone.client.v2.D1Object;
+        import org.dataone.client.v2.DataObject;
 
         % Handle local file (Todo: to handle url file which requires to download the file first)
         if ~url          
@@ -413,15 +413,15 @@ function [X, map, alpha] = imread(varargin)
            if ( isempty(existing_id) )
                % Add this object to the execution objects map
                pid = char(java.util.UUID.randomUUID()); % generate an id
-               d1Object = D1Object(pid, formatId, fullSourcePath);
-               runManager.execution.execution_objects(d1Object.identifier) = ...
-                   d1Object;
+               dataObject = DataObject(pid, formatId, fullSourcePath);
+               runManager.execution.execution_objects(dataObject.identifier) = ...
+                   dataObject;
            else
-               % Update the existing map entry with a new D1Object
+               % Update the existing map entry with a new DataObject
                pid = existing_id;
-               d1Object = D1Object(pid, formatId, fullSourcePath);
-               runManager.execution.execution_objects(d1Object.identifier) = ...
-                   d1Object;
+               dataObject = DataObject(pid, formatId, fullSourcePath);
+               runManager.execution.execution_objects(dataObject.identifier) = ...
+                   dataObject;
            end
            
            runManager.execution.execution_input_ids{end+1} = pid;

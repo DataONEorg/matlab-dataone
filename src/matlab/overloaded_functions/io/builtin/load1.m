@@ -96,7 +96,7 @@ function S = load( source, varargin )
     % in the RunManager DataPackage instance    
     if ( runManager.configuration.capture_file_reads )
         formatId = 'application/octet-stream';
-        import org.dataone.client.v2.D1Object;
+        import org.dataone.client.v2.DataObject;
     
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
@@ -111,17 +111,17 @@ function S = load( source, varargin )
         if ( isempty(existing_id) )
             % Add this object to the execution objects map
             pid = char(java.util.UUID.randomUUID()); % generate an id
-            d1Object = D1Object(pid, formatId, fullSourcePath);
-            runManager.execution.execution_objects(d1Object.identifier) = ...
-                d1Object;
+            dataObject = DataObject(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(dataObject.identifier) = ...
+                dataObject;
         else
-            d1Object = ...
+            dataObject = ...
                 runManager.execution.execution_objects(existing_id);
         end
         
         if ~isempty(fullSourcePath)
             runManager.execution.execution_input_ids{ ...
-                end + 1} = d1Object.identifier;
+                end + 1} = dataObject.identifier;
         end
     end
 end
