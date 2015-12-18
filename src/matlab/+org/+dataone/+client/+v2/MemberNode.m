@@ -315,5 +315,50 @@ classdef MemberNode < DataONENode
         %
         % end
 
+            function updated = updateSystemMetadata(session, pid, sysmeta)
+        % UPDATESYSTEMMETADATA updates the object's system metadata
+        %   Given the object identified by the pid, update the object's
+        %   system metadata stored on the Member Node.
+        
+            updated = false;
+            
+            % Convert the Java boolean response to a logical true/false
+            
+        end
+        
+        % function identifier = delete(session, id)
+        % DELETE removes the object from the Member Node
+        %
+        % TODO: Won't implement administrative method? (use archive)
+        %
+        % end
+        
+        function identifier = archive(session, id)
+        % ARCHIVE Renders the object undiscoverable but available given the id
+        %   An archived object is not deleted from the Member Node, but
+        %   is rather 'hidden' from searches. It remains available through
+        %   get() for archival purposes (for instance, when cited in a
+        %   journal article), but only with the object id itself
+        %
+        %   See https://purl.dataone.org/architecturev2/apis/MN_APIs.html#MNStorage.archive
+        
+            identifier = '';
+            
+            % Convert the Java returned identifier to a string
+            
+        end
+        
+        function identifier = generateIdentifier(session, scheme, fragment)
+        % GENERATEIDENTIFIER Generates a unique identifier given the scheme and fragment
+        %
+        %   See MN_APIs.html#MNStorage.generateIdentifier
+        
+            identifier = '';
+            
+            % Convert the returned Java identifier to a string
+            
+        end
+
+
     end
 end
