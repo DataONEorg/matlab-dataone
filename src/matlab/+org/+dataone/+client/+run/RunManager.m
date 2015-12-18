@@ -2175,13 +2175,48 @@ classdef RunManager < hgsetget
         end
 
         
-        function science_metadata = getMetadata(runManager, runId)
+        function science_metadata = getMetadata(runManager, varargin)
             % GETMETADATA retrieves the metadata describing data objects of
             % a execution. when a script or console session is recorded, a
             % metadata object is created that describes the objets
             % associated with the run, using the Ecological Metadata
             % Language
-            %   runId -- The identifier for a run
+            %   packageId -- The package identifier for a run
+            %   runNumber -- The run number for a run 
+            
+            persistent getMetadataParser
+            if isempty(getMetadataParser)
+                getMetadataParser = inputParser;
+                addParameter(getMetadataParser,'packageId', '', @ischar);
+                checkRunNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+                addParameter(getMetadataParser,'runNumber', '', checkRunNumber);
+            end
+            
+            parse(getMetadataParser, varargin{:})
+            
+            runId = getMetadataParser.Results.packageId;
+            runNumber = getMetadataParser.Results.runNumber;
+            
+            if runManager.configuration.debug
+                getMetadataParser.Results
+            end
+            
+            if ~isempty(runNumber)
+                snValue = num2str(runNumber);
+                % Read the exeuction metadata summary from the exeuction metadata database
+                [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+                
+                % Initialize the logical cell arrays for the next call for listRuns()
+                runNumberCondition = false(size(execMetaMatrix, 1), 1);
+                
+                % Extract one row from a matrix satisfying the runNumberCondition
+                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+                selectedRun = execMetaMatrix(runNumberCondition, :);
+                if isempty(selectedRun)
+                    error('No runs can be found as a match.');
+                end
+                runId = selectedRun{1, 6};
+            end
             
             run_directory = fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
@@ -2282,7 +2317,7 @@ classdef RunManager < hgsetget
                 end
             else
                 % file is a replacement metadata object
-                if( exist(run_directory, 'dir') == 7)
+                if( exist(run_directory, 'dir') == 7 )
                     % Replace the replacement metadata object in the
                     % metadata file
                     science_metadata_file = ['metadata_' runId '.xml'];
