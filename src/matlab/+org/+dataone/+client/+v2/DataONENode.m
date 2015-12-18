@@ -24,7 +24,7 @@ classdef DataONENode < hgsetget
         
         % The DataONE base url with version, used to construct REST endpoints for the node
         node_base_service_url;
-        
+
         % The DataONE identifier for the node 
         node_id;
         
@@ -40,7 +40,17 @@ classdef DataONENode < hgsetget
     end
     
     methods
+        
+        function date = ping()
+        % PING Determines if the DataONE Node is reachable
+        %   The ping() function sends an HTTP request to the Node.
+        %   A successful respone will return a date timestamp as a string.
+        %   A failure returns an empty string    
+            date = '';
             
+        end
+        
+
     end
     
     methods (Access = 'private')
