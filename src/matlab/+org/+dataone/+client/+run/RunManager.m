@@ -543,9 +543,13 @@ classdef RunManager < hgsetget
             scienceMetadataId = Identifier();
             scienceMetadataId.setValue(scienceMetadataIdStr);
             
+            eml.toXML
+            
             % Update the science metadata with configured fields
             eml.update(runManager.configuration, runManager.execution);
 
+            eml.toXML
+            
             % Process execution_output_ids
             for i=1:length(runManager.execution.execution_output_ids)
                 outputId = runManager.execution.execution_output_ids{i};
@@ -2315,39 +2319,7 @@ classdef RunManager < hgsetget
                     disp(['There is no run directory with the id: ' runId]);
                     return;
                 end
-            else
-                % file is a replacement metadata object
-                if( exist(run_directory, 'dir') == 7 )
-                    % Replace the replacement metadata object in the
-                    % metadata file
-                    science_metadata_file = ['metadata_' runId '.xml'];
-                    science_metadata_full_path = fullfile(run_directory, science_metadata_file);
-                    
-                    if exist(science_metadata_full_path, 'file')
-                        import org.ecoinformatics.eml.EML;
-                        
-                        eml = EML.loadDocument(science_metadata_full_path);
-                 
-                        eml = eml.update( runManager.configuration, runManager.execution );
-                        % Write the science metadata to the execution directory
-                        scienceMetadataFile = ...
-                            fopen(science_metadata_full_path, 'w');
-                        if ( scienceMetadataFile == -1 )
-                            error('Could not open the science metadata file for writing.');
-                        end
-                        
-                        fprintf(scienceMetadataFile, '%s', eml.toXML());
-                        fclose(scienceMetadataFile);
-                        
-                        if runManager.configuration.debug
-                            disp('metadata is updated');
-                        end
-                    else
-                        disp(['There is no science metadata file with the name: ', science_metadata_file]);
-                        return;
-                    end
-                    
-                end
+           
             end
         end
         

@@ -83,11 +83,14 @@ classdef EML
             % Update the primary creator
             creatorElements = eml.document.getElementsByTagName('creator');
             creatorNode = creatorElements.item(0);
-            individualNode = creatorNode.getFirstChild().getNextSibling();
+            %individualNode = creatorNode.getFirstChild().getNextSibling();
+            individualNode = creatorNode.getFirstChild();
+            
             %salutationNode = individualNode.getFirstChild().getNextSibling();           
             %salutationTextNode = salutationNode.getFirstChild();
             
-            nextNode = individualNode.getFirstChild().getNextSibling();
+            % nextNode = individualNode.getFirstChild().getNextSibling();
+            nextNode = individualNode.getFirstChild();
             if ( strcmp( nextNode.getTagName(),'surName') )
                 
                 salutationElement = eml.document.createElement('salutation');
@@ -116,7 +119,8 @@ classdef EML
                     
                 end
             else
-                individualNode.removeChild(salutationTextNode);
+                % individualNode.removeChild(salutationTextNode);
+                individualNode.removeChild(salutationNode);
             end
             
             % Update or remove the givenname
@@ -226,7 +230,8 @@ classdef EML
                        
             % Update abstract
             abstractElement = eml.document.getElementsByTagName('abstract').item(0);
-            paraElement = abstractElement.getFirstChild().getNextSibling();
+            % paraElement = abstractElement.getFirstChild().getNextSibling();
+            paraElement = abstractElement.getFirstChild();
             paraElementTextNode = paraElement.getFirstChild();
             paraElementText = char(paraElementTextNode.getNodeValue());
             
