@@ -121,7 +121,6 @@ classdef DataONENode < hgsetget
         %
         % end
         
-        
         function description = describe(session, id)
         % DESCRIBE Returns a limited description of the object 
         %   Given the identifier, return a struct with minimal metadata
@@ -144,6 +143,18 @@ classdef DataONENode < hgsetget
             % Convert the Java DescribeResponse into the structured aray
             
         end
+    
+        function authorized = isAuthorized(session, id, action)
+        % ISAUTHORIZED Returns whether the action is pemissible for the object
+        %   Given the session credentials and the object id, determine 
+        %   if the action (permission) on the object is allowed
+        
+            authorized = false;
+            
+            %Convert the Java response to logical true or false
+    
+        end
+
     end
     
     methods (Access = 'private')
