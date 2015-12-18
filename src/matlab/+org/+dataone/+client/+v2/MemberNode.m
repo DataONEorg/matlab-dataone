@@ -25,14 +25,7 @@
 classdef MemberNode < DataONENode
     
     properties
-        
-    end
-    
-    properties (Access = 'private')
-        
-        % The Java object representing a member node
-        mnode;
-        
+                
     end
     
     methods % class methods (function and operator definitions)    
@@ -44,12 +37,11 @@ classdef MemberNode < DataONENode
             
             if ~isempty(mnBaseUrl)
                 memberNode.node_base_service_url = [mnBaseUrl '/v2'];
-                memberNode.mnode = D1Client.getMN(mnBaseUrl);
+                memberNode.node = D1Client.getMN(mnBaseUrl);
                 
             end
         end
-        
-        
+               
         function getMN(memberNode, mnBaseUrl)
             % GETMN Returns a Member Node using the base service URL for the node 
         end
@@ -75,9 +67,9 @@ classdef MemberNode < DataONENode
             % Call the Java function with the same name to retrieve the
             % DataONE object and get system metadata for this d1 object.
             % The formatId information is obtained from the system metadata
-            inputStream = memberNode.mnode.get(session, pid);  
+            inputStream = memberNode.node.get(session, pid);  
             
-            sysMetaData = memberNode.mnode.getSystemMetadata(session, pid);
+            sysMetaData = memberNode.node.getSystemMetadata(session, pid);
             formatId = sysMetaData.getFormatId().getValue;
             
             % Get filename from d1 object system metadata; otherwise, 
@@ -126,8 +118,7 @@ classdef MemberNode < DataONENode
             end
             
         end
- 
-        
+         
         function identifier = create(memberNode, session, pid_obj, objectInputStream, sysmeta)
             % CREATE Creates a D1Objet instance with the given identifier
             % at the given member node
@@ -147,7 +138,7 @@ classdef MemberNode < DataONENode
             
             % Call the Java function with the same name to create the
             % DataONE object 
-            identifier = memberNode.mnode.create(session, pid_obj, objectInputStream, sysmeta);
+            identifier = memberNode.node.create(session, pid_obj, objectInputStream, sysmeta);
           
             % Get filename from d1 object system metadata; otherwise,
             % a UUID string is used as the filename of the local copy of the d1 object
@@ -197,8 +188,7 @@ classdef MemberNode < DataONENode
             end
 
         end
-        
-        
+                
         function identifier = update(memberNode, session, pid, objectInputStream, newPid, sysmeta)
             % UPDATE Updates a D1Objet instance with a new identifier
             % at the given member node. The last three parameters have new
@@ -219,7 +209,7 @@ classdef MemberNode < DataONENode
             
             % Call the Java function with the same name to update a
             % DataONE object 
-            identifier = memberNode.mnode.update(session, pid, objectInputStream, newPid, sysmeta);
+            identifier = memberNode.node.update(session, pid, objectInputStream, newPid, sysmeta);
           
             % Get filename from d1 object system metadata; otherwise,
             % a UUID string is used as the filename of the local copy of the d1 object
@@ -272,6 +262,18 @@ classdef MemberNode < DataONENode
                 end
             end          
         end
-        
-    end   
+    
+        % function failed = synchronizationFailed(session, message)
+        %
+        %   TODO: Won't implement
+        %
+        % end
+
+        % function object = getReplica(session, pid)
+        %
+        %   TODO: Won't implement
+        %
+        % end
+
+    end
 end
