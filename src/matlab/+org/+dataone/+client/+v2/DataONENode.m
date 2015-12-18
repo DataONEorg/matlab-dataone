@@ -93,7 +93,57 @@ classdef DataONENode < hgsetget
         
             % Serialize the Java Node return type to XML and return it
         end
+        
+        function object = get(session, id)
+        % GET Returns the bytes of the object as a uint8 array
+        
+            object = zeros(1,1, 'uint8');
+            
+            % Convert the bytes from the Java InputStream and add them to
+            % the object array
+            
+        end
 
+        function system_metadata = getSystemMetadata(session, id)
+        % GETSYSTEMMETADATA Returns the DataONE system metadata for the
+        % given object identifier as an XML string
+        
+            system_metadata = '';
+            
+            % Serialize the Java SystemMetadata object to XML and return it
+            
+        end
+
+        % function changed = systemMetadataChanged(session, id, ...
+        %   serialVersion, dateSystemMetadataLastModified)
+        %
+        %   TODO: Implement later?
+        %
+        % end
+        
+        
+        function description = describe(session, id)
+        % DESCRIBE Returns a limited description of the object 
+        %   Given the identifier, return a struct with minimal metadata
+        %   about the object, including:
+        %   description.formatId
+        %   description.contentLength
+        %   description.lastModified
+        %   description.checksum
+        %   description.serialVersion
+        %
+        % See https://purl.dataone.org/architecturev2/apis/Types.html#Types.DescribeResponse
+        
+            description(1).formatId = '';
+            description(1).contentLength = NaN;
+            description(1).lastModified = '';
+            description(1).checksum = '';
+            description(1).checksumAlgorithm = '';
+            description(1).serialVersion = NaN;
+        
+            % Convert the Java DescribeResponse into the structured aray
+            
+        end
     end
     
     methods (Access = 'private')
