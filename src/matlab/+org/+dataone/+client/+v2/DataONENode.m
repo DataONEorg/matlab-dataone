@@ -31,7 +31,8 @@ classdef DataONENode < hgsetget
         % The DataONE node type (either 'cn' of 'mn')
         node_type;
         
-        
+        % The underlying java Node instance
+        node;
     end
     
     properties (Access = 'private')
