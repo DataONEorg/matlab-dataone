@@ -264,13 +264,14 @@ To see the metadata that are generated for a run, **pass the packageId to the ge
 .. code:: matlab
 
   metadata = mgr.getMetadata('packageId', '86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % Replace the packageId here
+  metadata = mgr.getMetadata('runNumber', 1); % Replace the run number here
 
 You can edit the medata in an external XML editor, or an editor that is aware of the syntax of your metadata standard (by default we generate Ecological Metadata Language files).  Once you've edited the file, you can replace the generated file with:
 
 .. code:: matlab
   
   mgr.putMetadata('packageId', '86ac27de-f45c-4bc2-ba09-d4bedcec9546', 'file', 'path/to/file') % Replace packageId and file path here
-
+  mgr.putMetadata('runNumber', 1, 'file', 'path/to/file') % Replace run number and file path here
   
 Publish a selected run
 ~~~~~~~~~~~~~~~~~~~~~~
