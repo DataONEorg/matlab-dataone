@@ -22,16 +22,18 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef MemberNode < hgsetget
+classdef MemberNode < DataONENode
     
     properties
-        % A base url for a member node
-        mn_base_url = '';
         
-        % A Java object representing a member node
-        mnode;
     end
     
+    properties (Access = 'private')
+        
+        % The Java object representing a member node
+        mnode;
+        
+    end
     
     methods % class methods (function and operator definitions)    
         
@@ -41,8 +43,9 @@ classdef MemberNode < hgsetget
             import org.dataone.client.v2.itk.D1Client;
             
             if ~isempty(mnBaseUrl)
-                memberNode.mn_base_url = mnBaseUrl;
+                memberNode.node_base_service_url = [mnBaseUrl '/v2'];
                 memberNode.mnode = D1Client.getMN(mnBaseUrl);
+                
             end
         end
         
@@ -93,32 +96,32 @@ classdef MemberNode < hgsetget
             FileUtils.copyInputStreamToFile(inputStream, targetFile);          
             targetStream = FileInputStream(targetFile); % Return an inputStream as results
        
-            % Identifiy the D1Object being used and add a prov:used statement
+            % Identifiy the DataObject being used and add a prov:used statement
             % in the RunManager DataPackage instance            
             if ( runManager.configuration.capture_file_reads )
                 % Record the full path to the local copy of the downloaded object
                 % that will eventually be added to the resource map
                 
-                import org.dataone.client.v2.D1Object;
+                import org.dataone.client.v2.DataObject;
   
                 existing_id = runManager.execution.getIdByFullFilePath( ...
                      d1FileFullPath );
                                 
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map
-                    d1Object = D1Object(char(pid.getValue()), formatId, d1FileFullPath);
+                    dataObject = DataObject(char(pid.getValue()), formatId, d1FileFullPath);
                     % Set the system metadata downloaded from the given
-                    % mnode for the current d1Object
-                    set(d1Object, 'system_metadata', sysMetaData);
-                    runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;
+                    % mnode for the current dataObject
+                    set(dataObject, 'system_metadata', sysMetaData);
+                    runManager.execution.execution_objects(dataObject.identifier) = ...
+                        dataObject;
                      runManager.execution.execution_input_ids{end+1} = char(pid.getValue());
                 else
-                    % Update the existing map entry with a new D1Object
+                    % Update the existing map entry with a new DataObject
                     pid = existing_id;
-                    d1Object = D1Object(pid, formatId, d1FileFullPath);
-                    runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;
+                    dataObject = DataObject(pid, formatId, d1FileFullPath);
+                    runManager.execution.execution_objects(dataObject.identifier) = ...
+                        dataObject;
                 end               
             end
             
@@ -168,7 +171,7 @@ classdef MemberNode < hgsetget
                 % Record the full path to the local copy of the downloaded object
                 % that will eventually be added to the resource map
                 
-                import org.dataone.client.v2.D1Object;
+                import org.dataone.client.v2.DataObject;
                 
                 formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
                
@@ -178,18 +181,18 @@ classdef MemberNode < hgsetget
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map 
                     pid = char(pid_obj.getValue());
-                    d1Object = D1Object(pid, formatId, d1FileName);
-                    % Set the system metadata for the current d1Object
-                    set(d1Object, 'system_metadata', sysmeta);
-                    runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;
+                    dataObject = DataObject(pid, formatId, d1FileName);
+                    % Set the system metadata for the current dataObject
+                    set(dataObject, 'system_metadata', sysmeta);
+                    runManager.execution.execution_objects(dataObject.identifier) = ...
+                        dataObject;
                      runManager.execution.execution_output_ids{end+1} = pid; 
                 else
-                    % Update the existing map entry with a new D1Object
+                    % Update the existing map entry with a new DataObject
                     pid = existing_id;
-                    d1Object = D1Object(pid, formatId, d1FileName);
-                    runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;
+                    dataObject = DataObject(pid, formatId, d1FileName);
+                    runManager.execution.execution_objects(dataObject.identifier) = ...
+                        dataObject;
                 end    
             end
 
@@ -241,7 +244,7 @@ classdef MemberNode < hgsetget
                 % Record the full path to the local copy of the downloaded object
                 % that will eventually be added to the resource map
                 
-                import org.dataone.client.v2.D1Object;
+                import org.dataone.client.v2.DataObject;
                 
                 formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
                
@@ -251,20 +254,20 @@ classdef MemberNode < hgsetget
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map    
                     new_pid = char(newPid.getValue());
-                    d1Object = D1Object(new_pid, formatId, d1FileFullPath);
-                    % Set the system metadata for the current d1Object
-                    set(d1Object, 'system_metadata', sysmeta);
-                    runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;
+                    dataObject = DataObject(new_pid, formatId, d1FileFullPath);
+                    % Set the system metadata for the current dataObject
+                    set(dataObject, 'system_metadata', sysmeta);
+                    runManager.execution.execution_objects(dataObject.identifier) = ...
+                        dataObject;
                     runManager.execution.execution_output_ids{end+1} = new_pid;
                 else
-                    % Update the existing map entry with a new D1Object
+                    % Update the existing map entry with a new DataObject
                     new_pid = char(newPid.getValue());
-                    d1Object = D1Object(new_pid, formatId, d1FileFullPath);
-                    % Set the system metadata for the current d1Object
-                    set(d1Object, 'system_metadata', sysmeta);
-                    runManager.execution.execution_objects(d1Object.identifier) = ...
-                        d1Object;
+                    dataObject = DataObject(new_pid, formatId, d1FileFullPath);
+                    % Set the system metadata for the current dataObject
+                    set(dataObject, 'system_metadata', sysmeta);
+                    runManager.execution.execution_objects(dataObject.identifier) = ...
+                        dataObject;
                     runManager.execution.execution_output_ids{end+1} = new_pid;
                 end
             end          
