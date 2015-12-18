@@ -1,4 +1,4 @@
-% MNODETEST A class used to test the org.dataone.client.v2.MemberNode class functionality
+% MEMBERNODETEST A class used to test the org.dataone.client.v2.MemberNode class functionality
 %
 % This work was created by participants in the DataONE project, and is
 % jointly copyrighted by participating institutions in DataONE. For
@@ -18,7 +18,7 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef MNodeTest < matlab.unittest.TestCase
+classdef MemberNodeTest < matlab.unittest.TestCase
     
     
     properties
