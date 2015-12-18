@@ -84,6 +84,16 @@ classdef DataONENode < hgsetget
             
         end
 
+        function node = getCapabilities() 
+        % GETCAPABILITIES Returns the capabilities of the DataONE Node
+        %   The Node document that describes the DataONE node is returned
+        %   as an XML string.
+        
+            node = ''; 
+        
+            % Serialize the Java Node return type to XML and return it
+        end
+
     end
     
     methods (Access = 'private')
