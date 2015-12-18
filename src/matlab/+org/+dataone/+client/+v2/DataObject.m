@@ -1,5 +1,5 @@
-% D1OBJECT A class that represents a data object with DataONE properties
-%   The D1Object class provides properties about a data object including
+% DATAOBJECT A class that represents a data object with DataONE properties
+%   The DataObject class provides properties about a data object including
 %   its storage location, as well as DataONE-specific properties like the
 %   SystemMetadata associated with the object.
 %
@@ -21,9 +21,9 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef D1Object < hgsetget
-% D1OBJECT A class that represents a data object with DataONE properties
-%   The D1Object class provides properties about a data object including
+classdef DataObject < hgsetget
+% DATAOBJECT A class that represents a data object with DataONE properties
+%   The DataObject class provides properties about a data object including
 %   its storage location, as well as DataONE-specific properties like the
 %   SystemMetadata associated with the object.
     
@@ -45,12 +45,12 @@ classdef D1Object < hgsetget
     
     methods
         
-        function d1Object = D1Object(identifier, format_id, full_file_path) 
-        % D1Object constructs an D1Object instance with the given identifier
+        function dataObject = DataObject(identifier, format_id, full_file_path) 
+        % DataObject constructs an DataObject instance with the given identifier
             
-            d1Object.identifier = identifier;
-            d1Object.format_id = format_id;
-            d1Object.full_file_path = full_file_path;
+            dataObject.identifier = identifier;
+            dataObject.format_id = format_id;
+            dataObject.full_file_path = full_file_path;
             
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.service.types.v1.ObjectFormatIdentifier;
@@ -67,12 +67,12 @@ classdef D1Object < hgsetget
                 
                 % Set the identifier
                 pid = Identifier();
-                pid.setValue(d1Object.identifier);
+                pid.setValue(dataObject.identifier);
                 sysmeta.setIdentifier(pid);
 
                 % Add the object format id
                 fmtid = ObjectFormatIdentifier();
-                fmtid.setValue(d1Object.format_id);
+                fmtid.setValue(dataObject.format_id);
                 sysmeta.setFormatId(fmtid);
             
                 % Add the file size
@@ -88,7 +88,7 @@ classdef D1Object < hgsetget
                 sysmeta.setChecksum(checksum);
 
                 % Set the file name
-                [path, name, ext] = fileparts(d1Object.full_file_path);
+                [path, name, ext] = fileparts(dataObject.full_file_path);
                 sysmeta.setFileName([name ext]);
                 
             catch Error
@@ -97,7 +97,7 @@ classdef D1Object < hgsetget
 
             end
             
-            d1Object.system_metadata = sysmeta;
+            dataObject.system_metadata = sysmeta;
 
         end
     end
