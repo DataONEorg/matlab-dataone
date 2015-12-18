@@ -36,11 +36,13 @@ classdef DataONEClient < hgsetget
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
             
-            if ( ~ strcmp(node_id, 'urn:node:') )
+            if ( ~ strfind(node_id, 'urn:node:') )
                 error('The node_id must begin with "urn:node:"');
                 
             end
             
+            import org.dataone.configuration.Settings;
+            Settings.getConfiguration().getString('D1Client.CN_URL')
             node_ref = NodeReference();
             node_ref.setValue(node_id);
             
@@ -49,7 +51,7 @@ classdef DataONEClient < hgsetget
             import org.dataone.client.v2.MemberNode;
             url = str(mn.getNodeBaseServiceURL());
             memberNode = MemberNode(url);
-            memberNode.mnode = mn;
+            memberNode.node = mn;
             
         end
         
@@ -62,7 +64,7 @@ classdef DataONEClient < hgsetget
             import org.dataone.client.v2.CoordinatingNode;
             coordinating_node = CoordinatingNode();
             import org.dataone.client.configure.Configuration;
-            config = Configuration(); % Use client's saved configuration
+            config = Configuration.loadConfig(''); % Use client's saved configuration
             
             % The list of known coordinating nodes
             coordinating_nodes = { ...
@@ -85,17 +87,24 @@ classdef DataONEClient < hgsetget
                         coordinating_nodes) )
                     
                     cn = D1Client.getCN(config.coordinating_node_base_url);
-                    set(coordinating_node, 'cnode', cn);
+                    set(coordinating_node, 'node', cn);
                     set(coordinating_node, 'node_id', char(cn.getNodeId()));
                     set(coordinating_node, 'node_type', 'cn');
                     set(coordinating_node, 'node_base_service_url', char(cn.getNodeBaseServiceUrl()));
                     
                 else
-                    error(['The Coordinating Node base URL: ' ...
-                        config.coordinating_node_base_url ...
-                        ' is not valid. Please set the ' ...
-                        'Configuration.coordinating_node_base_url ' ...
-                        'property to one of: ' coordinating_nodes]);
+                    cns = '';
+                    for i = 1:length(coordinating_nodes) - 1
+                        cns = [cns coordinating_nodes{i} ',' char(10)]; 
+                    end
+                    cns = [cns coordinating_nodes{end}];
+                        
+                    msg = ['The Coordinating Node base URL: ' ...
+                           '"' config.coordinating_node_base_url '"'...
+                           ' is not valid. ' char(10) 'Please set the ' ...
+                           'Configuration.coordinating_node_base_url ' ...
+                           char(10) 'property to one of:' char(10) cns];
+                    error(msg);
                 end
             end
             
