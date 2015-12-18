@@ -2207,13 +2207,50 @@ classdef RunManager < hgsetget
         end
 
         
-        function putMetadata(runManager, runId, file)
+        function putMetadata(runManager, varargin)
             % PUTMETADATA puts a metadata document into the recordr cache
             % for a run, replacing the existing metadata object for the
             % specified run, if one exits.
-            %   runId -- The identifier for a run
             %   file -- The replacement metadata, as the actual text, or as
-            %           a file name containing the metadata
+            %           a file name containing the metadata           
+            %   packageId -- The identifier for a run
+            %   runNumber -- The run number for a run
+           
+            persistent putMetadataParser
+            if isempty(putMetadataParser)
+                putMetadataParser = inputParser;              
+                addParameter(putMetadataParser,'packageId', '', @ischar);
+                checkRunNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+                addParameter(putMetadataParser,'runNumber', '', checkRunNumber);  
+                addParameter(putMetadataParser,'file','', @(x)any(~isempty(x)));
+            end
+            
+            parse(putMetadataParser, varargin{:})
+            
+            runId = putMetadataParser.Results.packageId;
+            runNumber = putMetadataParser.Results.runNumber;
+            file = putMetadataParser.Results.file;
+            
+            if runManager.configuration.debug
+                putMetadataParser.Results
+            end
+           
+            if ~isempty(runNumber)
+                snValue = num2str(runNumber);
+                % Read the exeuction metadata summary from the exeuction metadata database
+                [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+                
+                % Initialize the logical cell arrays for the next call for listRuns()
+                runNumberCondition = false(size(execMetaMatrix, 1), 1);
+                
+                % Extract one row from a matrix satisfying the runNumberCondition
+                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                
+                selectedRun = execMetaMatrix(runNumberCondition, :);
+                if isempty(selectedRun)
+                    error('No runs can be found as a match.');
+                end
+                runId = selectedRun{1, 6};
+            end
             
             run_directory = fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
@@ -2266,7 +2303,10 @@ classdef RunManager < hgsetget
                         
                         fprintf(scienceMetadataFile, '%s', eml.toXML());
                         fclose(scienceMetadataFile);
-                        disp('metadata is updated');
+                        
+                        if runManager.configuration.debug
+                            disp('metadata is updated');
+                        end
                     else
                         disp(['There is no science metadata file with the name: ', science_metadata_file]);
                         return;
@@ -2275,7 +2315,7 @@ classdef RunManager < hgsetget
                 end
             end
         end
-
+        
     end
 
 end
