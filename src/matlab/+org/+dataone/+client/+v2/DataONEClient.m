@@ -1,5 +1,5 @@
-% D1CLIENT A class used to communicate with nodes in the DataONE network
-%   The D1Client class provides functions to communicate with nodes in the
+% DATAONECLIENT A class used to communicate with nodes in the DataONE network
+%   The DataONEClient class provides functions to communicate with nodes in the
 %   DataONE network, particularly Member Nodes and Coordinating Nodes, using
 %   the DataONE Service API
 %
