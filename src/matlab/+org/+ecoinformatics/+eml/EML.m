@@ -34,7 +34,7 @@ classdef EML
 
     methods
         function eml = EML()
-        % EML Creates a new, empty instance of the EML class
+            % EML Creates a new, empty instance of the EML class
             eml.document = eml.buildValidEmptyEMLDocument();
         
         end
@@ -83,21 +83,40 @@ classdef EML
             % Update the primary creator
             creatorElements = eml.document.getElementsByTagName('creator');
             creatorNode = creatorElements.item(0);
-            individualNode = creatorNode.getFirstChild();
-            salutationNode = individualNode.getFirstChild();
-            salutationTextNode = salutationNode.getFirstChild();
+            individualNode = creatorNode.getFirstChild().getNextSibling();
+            %salutationNode = individualNode.getFirstChild().getNextSibling();           
+            %salutationTextNode = salutationNode.getFirstChild();
             
-            % Update or remove the salutation
-            if ( ~ isempty(cfg.science_metadata_config.primary_creator_salutation) ) 
+            nextNode = individualNode.getFirstChild().getNextSibling();
+            if ( strcmp( nextNode.getTagName(),'surName') )
                 
+                salutationElement = eml.document.createElement('salutation');
+                salutationElement.appendChild(eml.document.createTextNode('YOUR_SALUTATION'));
+                individualNode.appendChild(salutationElement);
+                
+                givenNameElement = eml.document.createElement('givenName');
+                givenNameElement.appendChild(eml.document.createTextNode('YOUR_GIVEN_NAME'));
+                individualNode.appendChild(givenNameElement);
+            elseif ( strcmp( nextNode.getTagName(),'givenName') )   
+                
+                salutationElement = eml.document.createElement('salutation');
+                salutationElement.appendChild(eml.document.createTextNode('YOUR_SALUTATION'));
+                individualNode.appendChild(salutationElement);    
+            end
+                     
+            % Update or remove the salutation
+            salutationNode = eml.document.getElementsByTagName('givenName').item(0);
+            salutationTextNode = salutationNode.getFirstChild();
+            if ( ~ isempty(cfg.science_metadata_config.primary_creator_salutation) )
+               
                 if ( strcmp(char(salutationTextNode.getNodeValue()), 'YOUR_SALUTATION') )
+                                    
                     salutationTextNode.setNodeValue( ...
                         cfg.science_metadata_config.primary_creator_salutation);
                     
                 end
-                
             else
-                individualNode.removeChild(salutationNode);
+                individualNode.removeChild(salutationTextNode);
             end
             
             % Update or remove the givenname
@@ -207,7 +226,7 @@ classdef EML
                        
             % Update abstract
             abstractElement = eml.document.getElementsByTagName('abstract').item(0);
-            paraElement = abstractElement.getFirstChild();
+            paraElement = abstractElement.getFirstChild().getNextSibling();
             paraElementTextNode = paraElement.getFirstChild();
             paraElementText = char(paraElementTextNode.getNodeValue());
             
@@ -386,7 +405,7 @@ classdef EML
             creatorElement.appendChild(individualElement);
 
             datasetElement.appendChild(creatorElement);
-            
+
             % Create and add the abstract
             abstractElement = documentNode.createElement('abstract');
             paraElement = documentNode.createElement('para');

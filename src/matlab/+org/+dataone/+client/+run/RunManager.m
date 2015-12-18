@@ -2197,14 +2197,7 @@ classdef RunManager < hgsetget
                     eml = EML.loadDocument( ...
                         fullfile(run_directory, ...
                         science_metadata_file));
-                    
-                    % test
-                    creatorElements = eml.document.getElementsByTagName('creator');
-                    creatorElements.getLength
-                    creatorNode = creatorElements.item(0)
-                    childNode = creatorNode.getFirstChild;
-                    childNode
-                    
+                  
                     science_metadata = eml.toXML;
                 end
             else
@@ -2262,14 +2255,7 @@ classdef RunManager < hgsetget
                         import org.ecoinformatics.eml.EML;
                         
                         eml = EML.loadDocument(science_metadata_full_path);
-                        
-                        % test
-                        % creatorElements = eml.document.getElementsByTagName('creator');
-                        % creatorElements.getLength
-                        % creatorNode = creatorElements.item(0)
-                        % childNode = creatorNode.getFirstChild;
-                        % childNode
-                        
+                 
                         eml = eml.update( runManager.configuration, runManager.execution );
                         % Write the science metadata to the execution directory
                         scienceMetadataFile = ...
