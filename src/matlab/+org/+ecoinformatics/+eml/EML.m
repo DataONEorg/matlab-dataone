@@ -105,7 +105,7 @@ classdef EML
             end
                      
             % Update or remove the salutation
-            salutationNode = eml.document.getElementsByTagName('givenName').item(0);
+            salutationNode = eml.document.getElementsByTagName('salutation').item(0);
             salutationTextNode = salutationNode.getFirstChild();
             if ( ~ isempty(cfg.science_metadata_config.primary_creator_salutation) )
                
