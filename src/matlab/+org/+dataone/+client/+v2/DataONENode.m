@@ -50,6 +50,39 @@ classdef DataONENode < hgsetget
             
         end
         
+        function log = getLogRecords(session, fromDate, toDate, ...
+            event, pidFilter, start, count) 
+        % GETLOGRECORDS Retrieves log records from the Member Node
+        %   Using the fromDate, toDate, event, and pidFilter filter 
+        %   parameters, get a subset or all of the log
+        %   records available from the Node based on the credentials
+        %   provided in the session object.  Use the start and count
+        %   parameters to page through the log records of a node.
+        %   Returns the following log structured array
+        %   log.entryId
+        %   log.identifier
+        %   log.ipAddress
+        %   log.userAgent
+        %   log.subject
+        %   log.event
+        %   log.dateLogged
+        %   log.nodeIdentifier
+        %
+        % See https://purl.dataone.org/architecturev2/apis/Types.html#Types.LogEntry
+        
+            log(1).entryId = NaN;
+            log(1).identifier = '';
+            log(1).ipAddress = '';
+            log(1).userAgent = '';
+            log(1).subject = '';
+            log(1).event = '';
+            log(1).dateLogged = '';
+            log(1).nodeIdentifier = '';
+            
+            % Iterate throught the Log object returned from the Java call
+            % and poulate the log struct
+            
+        end
 
     end
     
