@@ -82,7 +82,7 @@ classdef Execution < hgsetget
         % The output id list for an execution
         execution_output_ids;
         
-        % a map of {id, D1Object} pairs that are part of the execution
+        % a map of {id, DataObject} pairs that are part of the execution
         execution_objects = containers.Map('keyType', 'char', 'valueType', 'any');
     end
 
@@ -188,7 +188,7 @@ classdef Execution < hgsetget
         %       identifier = getIdByFullFilePath(full_file_path) will
         %       return an identifier string if the given full_file_path 
         %       argument value matches the full_file_path property of a 
-        %       D1Object instance already stored in the 
+        %       DataObject instance already stored in the 
         %       Execuition.execution_objects map. Otherwise, it will return
         %       an empty string.
             identifier = '';
