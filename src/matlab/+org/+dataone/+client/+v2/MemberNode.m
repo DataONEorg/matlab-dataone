@@ -262,7 +262,47 @@ classdef MemberNode < DataONENode
                 end
             end          
         end
-    
+
+        function [checksum, checksumAlgorithm] = getChecksum(session, ...
+            pid, checksumAlgorithm)
+        % GETCHECKSUM Returns the checksum of the object given the algorithm
+        
+            checksum = '';
+            checksumAlgorithm = '';
+            
+            % Convert the Java Checksum object returned into the above
+            % array
+            
+        end
+        
+        function objects = listObjects(session, fromDate, toDate, ...
+            formatid, identifier, replicaStatus, start, count)
+        % LISTOBJECTS Returns the list of objects from the node
+        %   Filter the returned list with the fromDate, toDate, formatId,
+        %   identifier, or replicaStatus parameters.  Use the start and 
+        %   count parameters to page through the results
+        %   Returns the following objects structured array:
+        %
+        %   objects.identifier
+        %   objects.formatId
+        %   objects.checksum
+        %   objects.checksumAlgorithm
+        %   objects.dateSysMetadataModified
+        %   objects.size
+        %
+        %   See https://purl.dataone.org/architecturev2/apis/Types.html#Types.ObjectList
+        
+            objects(1).identifier = '';
+            objects(1).formatId = '';
+            objects(1).checksum = '';
+            objects(1).checksumAlgorithm = '';
+            objects(1).dateSysMetadataModified = '';
+            objects(1).size = NaN;
+            
+            % Covert the Java ObjectList into the above structured array
+            
+        end
+        
         % function failed = synchronizationFailed(session, message)
         %
         %   TODO: Won't implement
