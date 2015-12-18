@@ -257,7 +257,7 @@ classdef RunManager < hgsetget
                     import org.yesworkflow.model.ModelFacts;
                     import org.yesworkflow.extract.ExtractFacts;
                     
-                    import org.dataone.client.v2.D1Object;
+                    import org.dataone.client.v2.DataObject;
                     
                     prologDumpFormatId = 'text/plain';
                     
@@ -273,9 +273,9 @@ classdef RunManager < hgsetget
                     % Create D1 object for yesworkflow model facts dump file and put
                     % its id into execution_output_ids array
                     mf_pid = char(java.util.UUID.randomUUID());
-                    mf_d1Object = D1Object(mf_pid, prologDumpFormatId, mf_fullFilePath); 
-                    runManager.execution.execution_objects(mf_d1Object.identifier) = ...
-                        mf_d1Object;
+                    mf_dataObject = DataObject(mf_pid, prologDumpFormatId, mf_fullFilePath); 
+                    runManager.execution.execution_objects(mf_dataObject.identifier) = ...
+                        mf_dataObject;
                     runManager.execution.execution_output_ids{end+1} = mf_pid;
                     
                     % Create yesWorkflow extractFacts prolog dump
@@ -291,9 +291,9 @@ classdef RunManager < hgsetget
                     % Create D1 object for yesworkflow extract facts dump file and put
                     % its id into execution_output_ids array
                     ef_pid = char(java.util.UUID.randomUUID());
-                    ef_d1Object = D1Object(ef_pid, prologDumpFormatId, ef_fullFilePath);
-                    runManager.execution.execution_objects(ef_d1Object.identifier) = ...
-                        ef_d1Object;
+                    ef_dataObject = DataObject(ef_pid, prologDumpFormatId, ef_fullFilePath);
+                    runManager.execution.execution_objects(ef_dataObject.identifier) = ...
+                        ef_dataObject;
                     runManager.execution.execution_output_ids{end+1} = ef_pid;
                            
                 end  
@@ -307,7 +307,7 @@ classdef RunManager < hgsetget
         function generateYesWorkflowGraphic(runManager, runDirectory)
             % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format    
             
-            import org.dataone.client.v2.D1Object;
+            import org.dataone.client.v2.DataObject;
             
             position = strfind(runManager.processViewDotFileName, '.gv'); % get the index of '.gv'            
             processViewDotName = strtrim(runManager.processViewDotFileName(1:(position-1)));
@@ -347,27 +347,27 @@ classdef RunManager < hgsetget
                 % Create D1 object for three yesworkflow images and put
                 % them into execution_output_ids array
                 comb_image_pid = char(java.util.UUID.randomUUID());
-                comb_image_d1Object = D1Object(comb_image_pid, imageFormatId, fullPathCombinedViewPdfFileName);
-                runManager.execution.execution_objects(comb_image_d1Object.identifier) = ...
-                        comb_image_d1Object;
+                comb_image_dataObject = DataObject(comb_image_pid, imageFormatId, fullPathCombinedViewPdfFileName);
+                runManager.execution.execution_objects(comb_image_dataObject.identifier) = ...
+                        comb_image_dataObject;
                 runManager.execution.execution_output_ids{end+1} = comb_image_pid;
                 
                 process_image_pid = char(java.util.UUID.randomUUID());
-                process_image_d1Object = D1Object(process_image_pid, imageFormatId, fullPathProcessViewPdfFileName);
-                runManager.execution.execution_objects(process_image_d1Object.identifier) = ...
-                        process_image_d1Object;
+                process_image_dataObject = DataObject(process_image_pid, imageFormatId, fullPathProcessViewPdfFileName);
+                runManager.execution.execution_objects(process_image_dataObject.identifier) = ...
+                        process_image_dataObject;
                 runManager.execution.execution_output_ids{end+1} = process_image_pid;
                 
                 data_image_pid = char(java.util.UUID.randomUUID());
-                data_image_d1Object = D1Object(data_image_pid, imageFormatId, fullPathDataViewPdfFileName);
-                runManager.execution.execution_objects(data_image_d1Object.identifier) = ...
-                        data_image_d1Object;
+                data_image_dataObject = DataObject(data_image_pid, imageFormatId, fullPathDataViewPdfFileName);
+                runManager.execution.execution_objects(data_image_dataObject.identifier) = ...
+                        data_image_dataObject;
                 runManager.execution.execution_output_ids{end+1} = data_image_pid;
             end
         end
         
         
-        function d1Obj = buildD1Object(runManager, fileName, fileFmt, idValue, submitter, mnNodeId)
+        function d1Obj = buildDataObject(runManager, fileName, fileFmt, idValue, submitter, mnNodeId)
             % BUILDD1OBJECT build a d1 object for a file on disk.
             %   fileName - the absolute path for a file
             %   fileFmt - the file format defiend in D1
@@ -403,7 +403,7 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.DC_TERMS;
             import java.math.BigInteger;
             
-            import org.dataone.client.v2.D1Object;
+            import org.dataone.client.v2.DataObject;
                        
             if runManager.configuration.debug
                 disp('====== buildPackage ======');
@@ -460,8 +460,8 @@ classdef RunManager < hgsetget
                 'a_' char(java.util.UUID.randomUUID())]);
             usedPredicate = PROV.predicate('used');
             
-            % Create a D1Object for the program that we are running and
-            %    update the resulting sysmeta in the stored exucution matlab D1Object
+            % Create a DataObject for the program that we are running and
+            %    update the resulting sysmeta in the stored exucution matlab DataObject
             scriptD1Obj = runManager.execution.execution_objects(scriptIdentifier);
             programD1JavaObj = runManager.buildD1Object( ...
                 scriptD1Obj.full_file_path, scriptD1Obj.format_id, ...
@@ -633,8 +633,8 @@ classdef RunManager < hgsetget
             fprintf(scienceMetadataFile, '%s', eml.toXML());
             fclose(scienceMetadataFile);            
 
-            % Create the science metadata D1Object
-            scienceMetadataD1Object = org.dataone.client.v2.D1Object( ...
+            % Create the science metadata DataObject
+            scienceMetadataDataObject = org.dataone.client.v2.DataObject( ...
                 scienceMetadataIdStr, ...
                 'eml://ecoinformatics.org/eml-2.1.1', ...
                 fullfile( ...
@@ -643,28 +643,28 @@ classdef RunManager < hgsetget
             
             % Add the science metadata to the Java DataPackage
             scienceMetadataD1JavaObject = runManager.buildD1Object( ...
-                scienceMetadataD1Object.full_file_path, ...
-                scienceMetadataD1Object.format_id, ...
-                scienceMetadataD1Object.identifier, submitter, mnNodeId);
+                scienceMetadataDataObject.full_file_path, ...
+                scienceMetadataDataObject.format_id, ...
+                scienceMetadataDataObject.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(scienceMetadataD1JavaObject);
             
             % Update the property "fileName" for the java system metadata.
             % Then, update the matlab system metadata using the java system
             % metadata Dec-4-2015
             scienceMetadata_metadata = scienceMetadataD1JavaObject.getSystemMetadata();
-            scienceMetadata_metadata.setFileName(scienceMetadataD1Object.full_file_path);
-            set(scienceMetadataD1Object, 'system_metadata', ...
+            scienceMetadata_metadata.setFileName(scienceMetadataDataObject.full_file_path);
+            set(scienceMetadataDataObject, 'system_metadata', ...
                 scienceMetadata_metadata);            
-            % set(scienceMetadataD1Object, 'system_metadata', ...
+            % set(scienceMetadataDataObject, 'system_metadata', ...
             %    scienceMetadataD1JavaObject.getSystemMetadata());
                         
-            % Add the science metadata D1Object to the execution_objects map
+            % Add the science metadata DataObject to the execution_objects map
             runManager.execution.execution_objects( ...
-                scienceMetadataD1Object.identifier) = scienceMetadataD1Object;
+                scienceMetadataDataObject.identifier) = scienceMetadataDataObject;
             
             % Add the science metadata to the execution outputs list
             runManager.execution.execution_output_ids{end + 1} = ...
-                scienceMetadataD1Object.identifier;
+                scienceMetadataDataObject.identifier;
             
             % Associate science metadata with the data objects of the
             % package
@@ -1254,15 +1254,15 @@ classdef RunManager < hgsetget
             addpath(runManager.execution.execution_directory);
             warning on MATLAB:dispatcher:nameConflict;
             
-            % Add a D1Object to the execution objects map for the script
+            % Add a DataObject to the execution objects map for the script
             % itself
             if (runManager.console ~= 1) % (Non-interactive mode) (Dec-7-2015)
-                import org.dataone.client.v2.D1Object;
+                import org.dataone.client.v2.DataObject;
                 pid = char(java.util.UUID.randomUUID());
-                d1Object = D1Object(pid, 'text/plain', ...
+                dataObject = DataObject(pid, 'text/plain', ...
                     runManager.execution.software_application);
-                runManager.execution.execution_objects(d1Object.identifier) = ...
-                    d1Object;
+                runManager.execution.execution_objects(dataObject.identifier) = ...
+                    dataObject;
                 
                 % Run the script and collect provenance information
                 runManager.prov_capture_enabled = true;
@@ -1330,7 +1330,7 @@ classdef RunManager < hgsetget
             if ( runManager.console == 1 ) % (Interactive mode) (Dec-7-2015)
                 % Get the commands entered by the user
                 
-                import org.dataone.client.v2.D1Object;   
+                import org.dataone.client.v2.DataObject;   
                 
                 % Access the command history using matlab java internal
                 % classes
@@ -1363,11 +1363,11 @@ classdef RunManager < hgsetget
                 % Create a file for the collected commands and put the script
                 % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)                         
                 pid = char(java.util.UUID.randomUUID());                 
-                d1Object = D1Object( pid, ...
+                dataObject = DataObject( pid, ...
                     'text/plain', ...
                     runManager.execution.software_application );
-                runManager.execution.execution_objects(d1Object.identifier) = ...
-                    d1Object;
+                runManager.execution.execution_objects(dataObject.identifier) = ...
+                    dataObject;
             end
             
             % Save the metadata for the current execution
@@ -1826,11 +1826,11 @@ classdef RunManager < hgsetget
            for i=1:length(runManager.execution.execution_input_ids)
                inId = runManager.execution.execution_input_ids{i};
                
-               inD1Object = runManager.execution.execution_objects(inId);
-               in_d1_sysmeta = inD1Object.system_metadata;
+               inDataObject = runManager.execution.execution_objects(inId);
+               in_d1_sysmeta = inDataObject.system_metadata;
                in_file_size = in_d1_sysmeta.getSize;
                in_file_name = in_d1_sysmeta.getFileName;
-               in_file_metadata = dir(inD1Object.full_file_path);
+               in_file_metadata = dir(inDataObject.full_file_path);
                
                usedFileStruct(i,1).LocalName = cell(in_file_name); % Convert java string to cell so that the usedFile table can be displayed Dec-8-2015    
                fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
@@ -1842,11 +1842,11 @@ classdef RunManager < hgsetget
            generatedFileStruct = struct;
            for j=1:length(runManager.execution.execution_output_ids)
                outId = runManager.execution.execution_output_ids{j};              
-               outD1Object = runManager.execution.execution_objects(outId);
-               out_d1_sysmeta = outD1Object.system_metadata;
+               outDataObject = runManager.execution.execution_objects(outId);
+               out_d1_sysmeta = outDataObject.system_metadata;
                out_file_size = out_d1_sysmeta.getSize;
                out_file_name = out_d1_sysmeta.getFileName;
-               out_file_metadata = dir(outD1Object.full_file_path);
+               out_file_metadata = dir(outDataObject.full_file_path);
    
                generatedFileStruct(j,1).LocalName = cell(out_file_name); % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
                fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
