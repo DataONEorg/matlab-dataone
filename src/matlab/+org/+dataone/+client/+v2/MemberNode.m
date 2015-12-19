@@ -41,7 +41,7 @@ classdef MemberNode < DataONENode
                 
             end
         end
-               
+        
         function getMN(memberNode, mnBaseUrl)
             % GETMN Returns a Member Node using the base service URL for the node 
         end
@@ -118,7 +118,7 @@ classdef MemberNode < DataONENode
             end
             
         end
-         
+        
         function identifier = create(memberNode, session, pid_obj, objectInputStream, sysmeta)
             % CREATE Creates a D1Objet instance with the given identifier
             % at the given member node
@@ -188,7 +188,7 @@ classdef MemberNode < DataONENode
             end
 
         end
-                
+        
         function identifier = update(memberNode, session, pid, objectInputStream, newPid, sysmeta)
             % UPDATE Updates a D1Objet instance with a new identifier
             % at the given member node. The last three parameters have new
