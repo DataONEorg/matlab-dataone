@@ -54,7 +54,7 @@ classdef Configuration < hgsetget & dynamicprops
         blocked_replica_node_list = '';
         
         % The base URL of the DataONE coordinating node server
-        coordinating_node_base_url = 'https://cn-dev.test.dataone.org/cn';
+        coordinating_node_base_url;
         
         % The researcher's ORCID
         orcid_identifier = '';
@@ -130,7 +130,12 @@ classdef Configuration < hgsetget & dynamicprops
     methods (Static)
         
         function configuration = loadConfig(filename)
-            % LOADCONFIG  
+            % LOADCONFIG  Loads the DataONE Client configuration from a file
+            
+            narginchk(1,1); 
+            
+            import org.dataone.client.configure.Configuration;
+            configuration = Configuration();
             
             % Get persistent configuration file path
             if strcmp(filename, '')
@@ -252,7 +257,7 @@ classdef Configuration < hgsetget & dynamicprops
                     setMatlabDataONEToolboxDirectory(configuration);
                     setMetadataTemplateFile(configuration);
                     setYesWorkflowConfig(configuration);
-
+                    setScienceMetadataConfig(configuration);
                 end
                 
                 % Set properties provided in the constructor call
@@ -275,16 +280,18 @@ classdef Configuration < hgsetget & dynamicprops
                             'class. Skipping it.']);
                     end                    
                 end
+                
+            else
+                createConfigurationDirectory(configuration);
+                createProvStorageDirectory(configuration);
+                createExecutionsDatabase(configuration);
+                setMatlabDataONEToolboxDirectory(configuration);
+                setCoordinatingNodeURL(configuration);
+                setPersistentConfigFile(configuration);
+                setMetadataTemplateFile(configuration);
+                setYesWorkflowConfig(configuration);
+                setScienceMetadataConfig(configuration);
             end
-            createConfigurationDirectory(configuration);
-            createProvStorageDirectory(configuration);
-            createExecutionsDatabase(configuration);
-            setMatlabDataONEToolboxDirectory(configuration);
-            setCoordinatingNodeURL(configuration);
-            setPersistentConfigFile(configuration);
-            setMetadataTemplateFile(configuration);
-            setYesWorkflowConfig(configuration);
-            setScienceMetadataConfig(configuration);
         end        
 
         function configuration = set(configuration, name, value)
@@ -440,7 +447,7 @@ classdef Configuration < hgsetget & dynamicprops
                          'configuration.json');
             
             % Save the configuration passed in first
-            saveConfig(configuration);
+            % saveConfig(configuration);
             
             % Call loadConfig() with the default path location to the
             % configuration file on disk
