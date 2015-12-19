@@ -359,6 +359,11 @@ classdef MemberNode < DataONENode
             
         end
 
+        % function replicated = replicate(session, sysmeta, sourceNode)
+        % 
+        % TODO: Won't implement (is a CN admin function)
+        %
+        % end
 
     end
 end
