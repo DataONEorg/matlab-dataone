@@ -55,7 +55,7 @@ classdef DataONEClient < hgsetget
             
         end
         
-        function coordinating_node = getCN(d1_client)
+        function coordinating_node = getCN()
         % GETCN Returns a CoordinatingNode instance for the environment
         
             import org.dataone.client.v2.CNode;
