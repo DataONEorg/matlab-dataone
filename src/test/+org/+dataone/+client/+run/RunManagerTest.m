@@ -562,7 +562,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 end
             end
            
-            % Check if the file exists
+            % Create a faked science metadata in a faked run directory
             if ( exist(runDirectory, 'dir') == 7)
                 science_metadata_file = ['metadata_' testCase.mgr.execution.execution_id '.xml'];
                 
@@ -624,7 +624,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 end
             end
            
-            % Check if the file exists
+            % Create a faked science metadata in a faked run directory
             if ( exist(runDirectory, 'dir') == 7)
                 science_metadata_file = ['metadata_' testCase.mgr.execution.execution_id '.xml'];
                 
@@ -683,7 +683,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 end
             end
             
-            % Check if the file exists
+            % Create a faked science metadata in a faked run directory
             if ( exist(runDirectory, 'dir') == 7)
                 science_metadata_file = ['metadata_' testCase.mgr.execution.execution_id '.xml'];
                 
@@ -742,7 +742,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 end
             end
             
-            % Check if the file exists
+            % Create a faked science metadata in a faked run directory
             if ( exist(runDirectory, 'dir') == 7)
                 science_metadata_file = ['metadata_' testCase.mgr.execution.execution_id '.xml'];
                 
@@ -798,7 +798,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 end
             end
             
-            % Check if the file exists
+            % Create a faked science metadata in a faked run directory
             if ( exist(runDirectory, 'dir') == 7)
                 science_metadata_file = ['metadata_' testCase.mgr.execution.execution_id '.xml'];
                 
