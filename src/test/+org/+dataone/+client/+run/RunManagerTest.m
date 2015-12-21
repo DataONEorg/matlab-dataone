@@ -537,7 +537,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
-        function testPutMetadataWithSalutationDomElement(testCase)
+        function testPutMetadataWithSalutationConfigAndDomElement(testCase)
             % The Saluation element is present in the dom object
             
             fprintf('\nIn test Put Metadata With Salutation Config Element Exists ...\n');
@@ -599,7 +599,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
-        function testPutMetadataWithSalutationDomNoElement(testCase)
+        function testPutMetadataWithSalutationNoDomElement(testCase)
             % The Saluation element is not present in the dom object
         
             fprintf('\nIn test Put Metadata No Salutation Config Element Exists ...\n');
@@ -660,7 +660,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
-        function testPutMetadataWithoutSalutationConfigElement(testCase)
+        function testPutMetadataWithoutSalutationConfigWithDomElement(testCase)
             fprintf('\nIn test Put Metadata Without Salutation Config Element Exists but Saluation dom element exists ...\n');
             
             testCase.filename = 'src/test/resources/testMetadataWithSaluation.xml';
