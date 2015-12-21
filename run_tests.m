@@ -92,8 +92,10 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate'); 
-% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationConfigElementExists'); 
-suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationConfigNoElementExists'); 
+% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationDomElement'); 
+% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationDomNoElement'); 
+% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigElement'); 
+suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigNoDomElement');
 
 % testCls = ?org.dataone.client.v2.MNodeTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');

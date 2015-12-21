@@ -2250,8 +2250,8 @@ classdef RunManager < hgsetget
             % PUTMETADATA puts a metadata document into the recordr cache
             % for a run, replacing the existing metadata object for the
             % specified run, if one exits.
-            %   file -- The replacement metadata, as the actual text, or as
-            %           a file name containing the metadata           
+            %   file -- The replacement metadata as a file name
+            %           containing the metadata           
             %   packageId -- The identifier for a run
             %   runNumber -- The run number for a run
            
