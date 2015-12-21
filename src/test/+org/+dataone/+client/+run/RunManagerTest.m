@@ -65,7 +65,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function tearDown(testCase)
             
             % Reset the Matlab DataONE Toolbox environment
-            % resetEnvironment(testCase);
+            resetEnvironment(testCase);
         end
     end
     
@@ -602,7 +602,63 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testPutMetadataWithSalutationConfigNoElementExists(testCase)
             % The Saluation element is not present in the dom object
+        
+            fprintf('\nIn test Put Metadata No Salutation Config Element Exists ...\n');
             
+            testCase.filename = 'src/test/resources/testMetadataNoSaluation.xml';
+            newScienceMetaFileName = 'src/test/resources/testReplaceMetadata.xml';
+            
+            % Create a faked run
+            import org.dataone.client.run.Execution;
+            run = Execution();
+            set(run, 'tag', 'test_MN_Update');
+            testCase.mgr.execution = run;
+            
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end
+            end
+           
+            % Check if the file exists
+            if ( exist(runDirectory, 'dir') == 7)
+                science_metadata_file = ['metadata_' testCase.mgr.execution.execution_id '.xml'];
+                
+                [status, message] = copyfile( ...
+                    testCase.filename, ...
+                    fullfile(runDirectory, science_metadata_file), 'f');
+                
+                if ( status == -1 )
+                    error('RunManager:putMetadata:IOError', ...
+                        message);
+                end
+                
+            end
+            
+            % Check if the Saluation element is present in the dom object
+            import org.ecoinformatics.eml.EML;
+            eml1 = EML.loadDocument( ...
+                fullfile(runDirectory, ...
+                science_metadata_file));
+            salutationNode1 = eml1.document.getElementsByTagName('salutation').item(0);
+            assert(isempty(salutationNode1));
+            
+            testCase.mgr.putMetadata('packageId', testCase.mgr.execution.execution_id, 'file', newScienceMetaFileName);
+            
+            eml2 = EML.loadDocument( ...
+                fullfile(runDirectory, ...
+                science_metadata_file));
+            salutationNode2 = eml2.document.getElementsByTagName('salutation').item(0);
+            salutationTextNode2 = salutationNode2.getFirstChild();
+            saluationText2 = char(salutationTextNode2.getNodeValue());
+            
+            assert(~isempty(saluationText2));
         end
         
         
