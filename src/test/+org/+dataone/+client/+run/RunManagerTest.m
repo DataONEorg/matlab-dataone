@@ -776,6 +776,47 @@ classdef RunManagerTest < matlab.unittest.TestCase
         end
         
         
+        function testGetMetadata(testCase)
+            fprintf('\nIn test Get Metadata ...\n');
+            
+            testCase.filename = 'src/test/resources/testMetadataWithSaluation.xml';
+         
+            % Create a faked run
+            import org.dataone.client.run.Execution;
+            run = Execution();
+            testCase.mgr.execution = run;
+            
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end
+            end
+            
+            % Check if the file exists
+            if ( exist(runDirectory, 'dir') == 7)
+                science_metadata_file = ['metadata_' testCase.mgr.execution.execution_id '.xml'];
+                
+                [status, message] = copyfile( ...
+                    testCase.filename, ...
+                    fullfile(runDirectory, science_metadata_file), 'f');
+                
+                if ( status == -1 )
+                    error('RunManager:putMetadata:IOError', ...
+                        message);
+                end
+                
+            end
+            
+            eml_string = testCase.mgr.getMetadata('packageId', testCase.mgr.execution.execution_id);     
+            assert(~isempty(eml_string));
+        end
+        
         
         function testOverloadedCdfread(testCase)
             fprintf('\nIn testOverloadedCdfread() ...\n');            

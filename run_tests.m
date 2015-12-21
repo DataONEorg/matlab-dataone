@@ -95,7 +95,8 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationConfigAndDomElement'); 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationNoDomElement'); 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigWithDomElement'); 
-suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigNoDomElement');
+% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigNoDomElement');
+suite = TestSuite.fromMethod(testCls, 'testGetMetadata');
 
 % testCls = ?org.dataone.client.v2.MNodeTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
