@@ -463,7 +463,7 @@ classdef RunManager < hgsetget
             % Create a DataObject for the program that we are running and
             %    update the resulting sysmeta in the stored exucution matlab DataObject
             scriptD1Obj = runManager.execution.execution_objects(scriptIdentifier);
-            programD1JavaObj = runManager.buildD1Object( ...
+            programD1JavaObj = runManager.buildDataObject( ...
                 scriptD1Obj.full_file_path, scriptD1Obj.format_id, ...
                 scriptD1Obj.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(programD1JavaObj);
@@ -563,7 +563,7 @@ classdef RunManager < hgsetget
                     outputD1Obj.full_file_path
                 end
                 
-                outputD1JavaObj = runManager.buildD1Object( ...
+                outputD1JavaObj = runManager.buildDataObject( ...
                         outputD1Obj.full_file_path, outputD1Obj.format_id, ...
                         outputD1Obj.identifier, submitter, mnNodeId);
                     
@@ -600,7 +600,7 @@ classdef RunManager < hgsetget
                     submitter = runManager.execution.account_name;
                     mnNodeId = runManager.configuration.target_member_node_id;
                     
-                    inputD1JavaObj = runManager.buildD1Object( ...
+                    inputD1JavaObj = runManager.buildDataObject( ...
                         inputD1Obj.full_file_path, inputD1Obj.format_id, ...
                         inputD1Obj.identifier, submitter, mnNodeId);
                 
@@ -646,7 +646,7 @@ classdef RunManager < hgsetget
                 scienceMetadataIdStr));
             
             % Add the science metadata to the Java DataPackage
-            scienceMetadataD1JavaObject = runManager.buildD1Object( ...
+            scienceMetadataD1JavaObject = runManager.buildDataObject( ...
                 scienceMetadataDataObject.full_file_path, ...
                 scienceMetadataDataObject.format_id, ...
                 scienceMetadataDataObject.identifier, submitter, mnNodeId);
@@ -705,7 +705,7 @@ classdef RunManager < hgsetget
 
             % Add resourceMap D1Object to the DataPackage                      
             resMapFmt = 'http://www.openarchives.org/ore/terms'; 
-            resMapD1JavaObj = runManager.buildD1Object(resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
+            resMapD1JavaObj = runManager.buildDataObject(resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
             runManager.dataPackage.addData(resMapD1JavaObj);     
            
             data_package = runManager.dataPackage;
@@ -2040,7 +2040,7 @@ classdef RunManager < hgsetget
                     end
                     
                     % build d1 object
-                    dataObj = runManager.buildD1Object(d1_object.full_file_path, ...
+                    dataObj = runManager.buildDataObject(d1_object.full_file_path, ...
                         d1_object_format, d1_object_id, submitter.getValue(), targetMNodeStr);
                     dataSource = dataObj.getDataSource();
                     
