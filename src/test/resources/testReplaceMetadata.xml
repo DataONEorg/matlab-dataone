@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.0.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packageId="47c09420-f3c4-4f46-8abf-9f9aa07ddd4c" scope="system" system="knb" xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 eml.xsd">
+   <dataset>
+      <title>MsTMIP: C3 C4 soil map processing: Run of C3_C4_map_present_NA_with_comments.m on 20151218T145847</title>
+      <creator id="creator">
+         <individualName>
+            <salutation>Dr.</salutation>
+            <givenName>Yaxing</givenName>
+            <surName>Wei</surName>
+         </individualName>
+         <address>
+            <deliveryPoint>Environmental Sciences Division</deliveryPoint>
+            <deliveryPoint>Oak Ridge National Laboratory</deliveryPoint>
+            <city>Oak Ridge</city>
+            <administrativeArea>TN</administrativeArea>
+            <postalCode>37831-6290</postalCode>
+            <country>USA</country>
+         </address>
+         <electronicMailAddress>weiy@ornl.gov</electronicMailAddress>
+      </creator>
+      <language>English</language>
+      <abstract>
+         <para>Global land surfaces are classified by their relative fraction of Carbon 3 or Carbon 4 grasses, ...</para>
+      </abstract>
+      <keywordSet>
+         <keyword>Carbon 3</keyword>
+         <keyword>Carbon 4</keyword>
+         <keyword>soil</keyword>
+         <keyword>mapping</keyword>
+         <keyword>global</keyword>
+      </keywordSet>
+      <intellectualRights>
+         <para>When using these data, please cite the originators as ...</para>
+      </intellectualRights>
+      <contact>
+         <references>creator</references>
+      </contact>
+   </dataset>
+</eml:eml>
