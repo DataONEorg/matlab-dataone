@@ -282,20 +282,25 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             checksumAlgorithm = char(objCheckSum.getAlgorithm());
         end
         
-        function objects = listObjects(memberNode, session, fromDate, toDate, ...
+        function [objects, start, count, total] = listObjects(memberNode, session, fromDate, toDate, ...
                 formatid, identifier, replicaStatus, start, count)
             % LISTOBJECTS Returns the list of objects from the node
             %   Filter the returned list with the fromDate, toDate, formatId,
             %   identifier, or replicaStatus parameters.  Use the start and
             %   count parameters to page through the results
-            %   Returns the following objects structured array:
+            %   [objects, start, count, total] = listObjects() returns:
             %
+            %   objects - the list of objects as a struct, with:
             %   objects.identifier
             %   objects.formatId
             %   objects.checksum
             %   objects.checksumAlgorithm
             %   objects.dateSysMetadataModified
             %   objects.size
+            %
+            %   start - the starting index requested (start at nth object)
+            %   count - the number of returned objects requested
+            %   total - the total number of objects on the Node
             %
             %   See https://purl.dataone.org/architecturev2/apis/Types.html#Types.ObjectList
             
@@ -306,6 +311,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             objects(1).dateSysMetadataModified = '';
             objects(1).size = NaN;
             
+            '2015-12-31T02:00:00.000';
             objectList = memberNode.node.listObjects(session, fromDate, toDate, ...
                 formatid, identifier, replicaStatus, start, count);
             
