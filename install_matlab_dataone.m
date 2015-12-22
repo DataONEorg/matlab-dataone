@@ -57,7 +57,7 @@ fprintf(jcls_fid, '%s\n', '<before>');
 % For each library file, add a line to the file
 jars = dir(fullfile('lib', 'java'));
 for i=1:length(jars)
-    if ~ismember(jars(i).name, {'.', '..', '.DS_Store'})
+    if ~ismember(jars(i).name, {'.', '..', '.DS_Store', 'lucene-core-2.2.0.jar'})        
         path = [pwd '/lib/java/' jars(i).name];
         fprintf(jcls_fid, '%s\n', path);
     end
