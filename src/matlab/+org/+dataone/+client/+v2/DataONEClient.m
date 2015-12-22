@@ -41,15 +41,18 @@ classdef DataONEClient < hgsetget
                 
             end
             
+            import org.dataone.client.configure.Configuration;
+            config = Configuration.loadConfig('');
             import org.dataone.configuration.Settings;
-            Settings.getConfiguration().getString('D1Client.CN_URL')
+            Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                config.coordinating_node_base_url)
             node_ref = NodeReference();
             node_ref.setValue(node_id);
             
             mn = D1Client.getMN(node_ref);
             
             import org.dataone.client.v2.MemberNode;
-            url = str(mn.getNodeBaseServiceURL());
+            url = char(mn.getNodeBaseServiceUrl());
             memberNode = MemberNode(url);
             memberNode.node = mn;
             
