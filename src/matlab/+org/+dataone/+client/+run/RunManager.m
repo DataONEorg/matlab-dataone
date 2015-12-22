@@ -227,30 +227,27 @@ classdef RunManager < hgsetget
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
 
                     % Generate YW.Process_View dot file  
-                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties
-                    gconfig = config.getSection('graph');
-                    runManager.processViewDotFileName = gconfig.get('dotfile');                  
-                    full_path_processViewDotFileName = [runDirectory filesep runManager.processViewDotFileName];
-                    gconfig.put('dotfile', full_path_processViewDotFileName);                    
-                    runManager.grapher.configure(gconfig);
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties                                               
+                    runManager.processViewDotFileName = config.get('graph.dotfile');  
+                    full_path_processViewDotFileName = [runDirectory filesep runManager.processViewDotFileName];                                              
+                    config.set('graph.dotfile', full_path_processViewDotFileName); 
+                    runManager.grapher.configure(config.getSection('graph'));
                     runManager.grapher = runManager.grapher.graph();           
                                                          
                     % Generate YW.Data_View dot file                  
-                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.data_view_property_file_name); % Read from data_view_yw.properties 
-                    gconfig = config.getSection('graph');
-                    runManager.dataViewDotFileName = gconfig.get('dotfile');
-                    full_path_dataViewDotFileName = [runDirectory filesep runManager.dataViewDotFileName];
-                    gconfig.put('dotfile', full_path_dataViewDotFileName);                      
-                    runManager.grapher.configure(gconfig);
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.data_view_property_file_name); % Read from data_view_yw.properties                   
+                    runManager.dataViewDotFileName = config.get('graph.dotfile');
+                    full_path_dataViewDotFileName = [runDirectory filesep runManager.dataViewDotFileName]; 
+                    config.set('graph.dotfile', full_path_dataViewDotFileName);
+                    runManager.grapher.configure(config.getSection('graph'));
                     runManager.grapher = runManager.grapher.graph();
                    
                     % Generate YW.Combined_View dot file                   
-                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.combined_view_property_file_name); % Read from comb_view_yw.properties
-                    gconfig = config.getSection('graph');
-                    runManager.combinedViewDotFileName = gconfig.get('dotfile');
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.combined_view_property_file_name); % Read from comb_view_yw.properties                    
+                    runManager.combinedViewDotFileName = config.get('graph.dotfile');
                     full_path_combinedViewDotFileName = [runDirectory filesep runManager.combinedViewDotFileName];
-                    gconfig.put('dotfile', full_path_combinedViewDotFileName);
-                    runManager.grapher.configure(gconfig);
+                    config.set('graph.dotfile', full_path_combinedViewDotFileName);
+                    runManager.grapher.configure(config.getSection('graph'));
                     runManager.grapher = runManager.grapher.graph();
                    
                     % Create yesWorkflow modelFacts prolog dump 
@@ -262,8 +259,9 @@ classdef RunManager < hgsetget
                     prologDumpFormatId = 'text/plain';
                     
                     modelFacts = runManager.modeler.getFacts();  
-                    gconfig = config.getSection('model');
-                    runManager.mfilename = gconfig.get('factsfile');
+                    %gconfig = config.getSection('model');
+                    %runManager.mfilename = gconfig.get('factsfile');
+                    runManager.mfilename = config.get('model.factsfile');
                     mf_fullFilePath = [runDirectory filesep runManager.mfilename];
                     fw = fopen(mf_fullFilePath, 'w'); 
                     if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
@@ -279,9 +277,11 @@ classdef RunManager < hgsetget
                     runManager.execution.execution_output_ids{end+1} = mf_pid;
                     
                     % Create yesWorkflow extractFacts prolog dump
-                    extractFacts = runManager.extractor.getFacts(); 
-                    gconfig = config.getSection('extract');
-                    runManager.efilename = gconfig.get('factsfile');
+                    %extractFacts = runManager.extractor.getFacts(); 
+                    extractFacts = runManager.extractor.getSkeleton(); 
+                    %gconfig = config.getSection('extract');
+                    %runManager.efilename = gconfig.get('factsfile');
+                    runManager.efilename = config.get('extract.factsfile');
                     ef_fullFilePath = [runDirectory filesep runManager.efilename];
                     fw = fopen(ef_fullFilePath, 'w');    
                     if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
@@ -440,6 +440,7 @@ classdef RunManager < hgsetget
             % Get the base URL of the DataONE coordinating node server
             runManager.D1_CN_Resolve_Endpoint = ...
                 [char(runManager.configuration.coordinating_node_base_url) '/v1/resolve/'];
+            runManager.D1_CN_Resolve_Endpoint
             
             runManager.provONEdataURI = URI(ProvONE.Data.getURI());
             runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
@@ -483,6 +484,7 @@ classdef RunManager < hgsetget
             % Describe the workflow identifier with resovlable URI 
             wfSubjectURI = URI([runManager.D1_CN_Resolve_Endpoint ...
                 char(runManager.wfIdentifier.getValue())]);
+         
             runManager.dataPackage.insertRelationship( ...
                 wfSubjectURI, ...
                 runManager.aTypePredicate, ...
@@ -543,13 +545,9 @@ classdef RunManager < hgsetget
             scienceMetadataId = Identifier();
             scienceMetadataId.setValue(scienceMetadataIdStr);
             
-            eml.toXML
-            
             % Update the science metadata with configured fields
             eml.update(runManager.configuration, runManager.execution);
 
-            eml.toXML
-            
             % Process execution_output_ids
             for i=1:length(runManager.execution.execution_output_ids)
                 outputId = runManager.execution.execution_output_ids{i};
