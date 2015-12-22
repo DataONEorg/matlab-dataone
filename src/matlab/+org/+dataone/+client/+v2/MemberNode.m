@@ -37,7 +37,9 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             
             if ~isempty(mnBaseUrl)
                 memberNode.node_base_service_url = mnBaseUrl;
+                memberNode.node_type = 'mn';
                 memberNode.node = D1Client.getMN(mnBaseUrl);
+                memberNode.node_id = char(memberNode.node.getNodeId().getValue());
                 
             end
         end
