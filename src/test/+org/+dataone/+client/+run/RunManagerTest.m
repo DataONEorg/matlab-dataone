@@ -505,7 +505,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 % d2ObjString
                                
                 % Call MultipartMNode.getSystemMetadata() by making a java call
-                sysmeta = matlab_mn_node.mnode.getSystemMetadata( [], returned_pid ); 
+                sysmeta = matlab_mn_node.node.getSystemMetadata( [], returned_pid ); 
                
                 % Generate a new pid
                 new_pid = Identifier();
