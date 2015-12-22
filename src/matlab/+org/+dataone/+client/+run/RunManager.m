@@ -259,8 +259,6 @@ classdef RunManager < hgsetget
                     prologDumpFormatId = 'text/plain';
                     
                     modelFacts = runManager.modeler.getFacts();  
-                    %gconfig = config.getSection('model');
-                    %runManager.mfilename = gconfig.get('factsfile');
                     runManager.mfilename = config.get('model.factsfile');
                     mf_fullFilePath = [runDirectory filesep runManager.mfilename];
                     fw = fopen(mf_fullFilePath, 'w'); 
@@ -277,10 +275,8 @@ classdef RunManager < hgsetget
                     runManager.execution.execution_output_ids{end+1} = mf_pid;
                     
                     % Create yesWorkflow extractFacts prolog dump
-                    %extractFacts = runManager.extractor.getFacts(); 
+                  % extractFacts = runManager.extractor.getFacts(); 
                     extractFacts = runManager.extractor.getSkeleton(); 
-                    %gconfig = config.getSection('extract');
-                    %runManager.efilename = gconfig.get('factsfile');
                     runManager.efilename = config.get('extract.factsfile');
                     ef_fullFilePath = [runDirectory filesep runManager.efilename];
                     fw = fopen(ef_fullFilePath, 'w');    
