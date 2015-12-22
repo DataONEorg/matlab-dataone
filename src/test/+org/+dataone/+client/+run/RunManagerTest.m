@@ -219,7 +219,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             matlab_mn_node = MemberNode(mn_base_url);
            
             % Download a single D1 object
-            object_list = matlab_mn_node.mnode.listObjects([], [], [], [], [], [], [], []);
+            object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);
             objList = object_list.getObjectInfoList();
             for i=1:length(objList)
                 obj_pid = objList.get(i).getIdentifier().getValue();

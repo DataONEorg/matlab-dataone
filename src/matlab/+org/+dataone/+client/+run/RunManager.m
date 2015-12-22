@@ -99,6 +99,7 @@ classdef RunManager < hgsetget
             import org.dataone.client.configure.Configuration;
             
             warning('off','backtrace');
+            
             manager.configuration = configuration;
             configuration.saveConfig();            
             manager.init();  
@@ -436,7 +437,6 @@ classdef RunManager < hgsetget
             % Get the base URL of the DataONE coordinating node server
             runManager.D1_CN_Resolve_Endpoint = ...
                 [char(runManager.configuration.coordinating_node_base_url) '/v1/resolve/'];
-            runManager.D1_CN_Resolve_Endpoint
             
             runManager.provONEdataURI = URI(ProvONE.Data.getURI());
             runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
@@ -911,7 +911,8 @@ classdef RunManager < hgsetget
             % RunManager.setJavaClassPath();
                        
             warning off MATLAB:dispatcher:nameConflict;
-            
+            java.util.logging.LogManager.getLogManager().reset();
+             
             % Set the java class path
             RunManager.setMatlabPath();
             
