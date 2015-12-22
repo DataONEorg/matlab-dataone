@@ -54,8 +54,8 @@ classdef RunManager < hgsetget
         combinedViewPdfFileName = '';
         
         wfMetaFileName = '';
-        mfilename = '';
-        efilename = '';
+%         mfilename = '';
+%         efilename = '';
         
         % DataONE CN URI resolve endpoint 
         D1_CN_Resolve_Endpoint;
@@ -205,13 +205,13 @@ classdef RunManager < hgsetget
                 in = FileInputStream(runManager.execution.software_application);
                 reader = BufferedReader(InputStreamReader(in));
                 
-                % Use yw.properties for configuration                                     
+                % Use yw.properties for configuration
                 config = YWConfiguration();
                 
                 % Call YW-Extract module
-                runManager.extractor = runManager.extractor.reader(reader); 
+                runManager.extractor = runManager.extractor.reader(reader);
                 annotations = runManager.extractor.extract().getAnnotations();
-               
+                
                 % Call YW-Model module
                 runManager.modeler = runManager.modeler.annotations(annotations);
                 runManager.modeler = runManager.modeler.model();
@@ -250,47 +250,47 @@ classdef RunManager < hgsetget
                     runManager.grapher.configure(config.getSection('graph'));
                     runManager.grapher = runManager.grapher.graph();
                    
-                    % Create yesWorkflow modelFacts prolog dump 
-                    import org.yesworkflow.model.ModelFacts;
-                    import org.yesworkflow.extract.ExtractFacts;
-                    
-                    import org.dataone.client.v2.DataObject;
-                    
-                    prologDumpFormatId = 'text/plain';
-                    
-                    modelFacts = runManager.modeler.getFacts();  
-                    runManager.mfilename = config.get('model.factsfile');
-                    mf_fullFilePath = [runDirectory filesep runManager.mfilename];
-                    fw = fopen(mf_fullFilePath, 'w'); 
-                    if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
-                    fprintf(fw, '%s', char(modelFacts));
-                    fclose(fw);
-                    
-                    % Create D1 object for yesworkflow model facts dump file and put
-                    % its id into execution_output_ids array
-                    mf_pid = char(java.util.UUID.randomUUID());
-                    mf_dataObject = DataObject(mf_pid, prologDumpFormatId, mf_fullFilePath); 
-                    runManager.execution.execution_objects(mf_dataObject.identifier) = ...
-                        mf_dataObject;
-                    runManager.execution.execution_output_ids{end+1} = mf_pid;
-                    
-                    % Create yesWorkflow extractFacts prolog dump
-                  % extractFacts = runManager.extractor.getFacts(); 
-                    extractFacts = runManager.extractor.getSkeleton(); 
-                    runManager.efilename = config.get('extract.factsfile');
-                    ef_fullFilePath = [runDirectory filesep runManager.efilename];
-                    fw = fopen(ef_fullFilePath, 'w');    
-                    if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
-                    fprintf(fw, '%s', char(extractFacts));
-                    fclose(fw);
-                   
-                    % Create D1 object for yesworkflow extract facts dump file and put
-                    % its id into execution_output_ids array
-                    ef_pid = char(java.util.UUID.randomUUID());
-                    ef_dataObject = DataObject(ef_pid, prologDumpFormatId, ef_fullFilePath);
-                    runManager.execution.execution_objects(ef_dataObject.identifier) = ...
-                        ef_dataObject;
-                    runManager.execution.execution_output_ids{end+1} = ef_pid;
+%                     % Create yesWorkflow modelFacts prolog dump 
+%                     import org.yesworkflow.model.ModelFacts;
+%                     import org.yesworkflow.extract.ExtractFacts;
+%                     
+%                     import org.dataone.client.v2.DataObject;
+%                     
+%                     prologDumpFormatId = 'text/plain';
+%                     
+%                     modelFacts = runManager.modeler.getFacts();  
+%                     runManager.mfilename = config.get('model.factsfile');
+%                     mf_fullFilePath = [runDirectory filesep runManager.mfilename];
+%                     fw = fopen(mf_fullFilePath, 'w'); 
+%                     if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
+%                     fprintf(fw, '%s', char(modelFacts));
+%                     fclose(fw);
+%                     
+%                     % Create D1 object for yesworkflow model facts dump file and put
+%                     % its id into execution_output_ids array
+%                     mf_pid = char(java.util.UUID.randomUUID());
+%                     mf_dataObject = DataObject(mf_pid, prologDumpFormatId, mf_fullFilePath); 
+%                     runManager.execution.execution_objects(mf_dataObject.identifier) = ...
+%                         mf_dataObject;
+%                     runManager.execution.execution_output_ids{end+1} = mf_pid;
+%                     
+%                     % Create yesWorkflow extractFacts prolog dump
+%                   % extractFacts = runManager.extractor.getFacts(); 
+%                     extractFacts = runManager.extractor.getSkeleton(); 
+%                     runManager.efilename = config.get('extract.factsfile');
+%                     ef_fullFilePath = [runDirectory filesep runManager.efilename];
+%                     fw = fopen(ef_fullFilePath, 'w');    
+%                     if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
+%                     fprintf(fw, '%s', char(extractFacts));
+%                     fclose(fw);
+%                    
+%                     % Create D1 object for yesworkflow extract facts dump file and put
+%                     % its id into execution_output_ids array
+%                     ef_pid = char(java.util.UUID.randomUUID());
+%                     ef_dataObject = DataObject(ef_pid, prologDumpFormatId, ef_fullFilePath);
+%                     runManager.execution.execution_objects(ef_dataObject.identifier) = ...
+%                         ef_dataObject;
+%                     runManager.execution.execution_output_ids{end+1} = ef_pid;
                            
                 end  
                 

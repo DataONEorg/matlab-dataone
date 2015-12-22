@@ -8,7 +8,8 @@ else
     userdir= getenv('HOME');
 end
 
-user_path = strsplit(userpath, ':');
+% user_path = strsplit(userpath, ':');
+user_path = strsplit(userdir, ':');
 matlab_path = char(user_path{1});
 
 % Add to Matlab path
