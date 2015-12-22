@@ -220,11 +220,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
            
             % Download a single D1 object
             object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);
-            
-            % Use matlab wrapper function Dec-22-2015
-            ol2 = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
-            ol2
-            
+                        
             objList = object_list.getObjectInfoList();
             for i=1:length(objList)
                 obj_pid = objList.get(i).getIdentifier().getValue();
@@ -541,7 +537,39 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
         end
         
+        function testMNodeListObjects(testCase)
+            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
+            fprintf('\nIn test Member Node listObjects ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            
+            % Get a MNode matlab instance to the member node
+            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode(mn_base_url);
+            
+            % Use matlab wrapper function Dec-22-2015
+            ol2 = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
+            ol2
+            
+        end
         
+        
+        function testMNodeGetChecksum(testCase)
+            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
+            fprintf('\nIn test Member Node getChecksum ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            
+            % Get a MNode matlab instance to the member node
+            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode(mn_base_url);
+            
+            [checksum, checksumAlgorithm] = matlab_mn_node.getChecksum([], pid, checkAlg);
+        end
+        
+             
         function testPutMetadataWithSalutationConfigAndDomElement(testCase)
             % The Saluation element is present in the dom object
             

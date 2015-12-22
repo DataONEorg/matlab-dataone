@@ -265,19 +265,25 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             end          
         end
 
-        function [checksum, checksumAlgorithm] = getChecksum(session, ...
+        function [checksum, checksumAlgorithm] = getChecksum(memberNode, session, ...
                 pid, checksumAlgorithm)
             % GETCHECKSUM Returns the checksum of the object given the algorithm
             
             checksum = '';
             checksumAlgorithm = '';
             
+            %import org.dataone.service.types.v1.CheckSum;
+            
+            objCheckSum = memberNode.node.getChecksum(session, pid, checksumAlgorithm);
+            
             % Convert the Java Checksum object returned into the above
             % array
-            
+            checksum = char(objCheckSum.getValue());
+            checksumAlgorithm = char(objCheckSum.getAlgorithm());
         end
         
-        function objects = listObjects(memberNode, session, fromDate, toDate, formatid, identifier, replicaStatus, start, count)
+        function objects = listObjects(memberNode, session, fromDate, toDate, ...
+                formatid, identifier, replicaStatus, start, count)
             % LISTOBJECTS Returns the list of objects from the node
             %   Filter the returned list with the fromDate, toDate, formatId,
             %   identifier, or replicaStatus parameters.  Use the start and
