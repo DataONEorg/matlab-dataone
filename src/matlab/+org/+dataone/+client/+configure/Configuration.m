@@ -258,8 +258,15 @@ classdef Configuration < hgsetget & dynamicprops
                     setMetadataTemplateFile(configuration);
                     setYesWorkflowConfig(configuration);
                     setScienceMetadataConfig(configuration);
+                    saveConfig(configuration);
                 end
-                
+
+                createConfigurationDirectory(configuration);
+                createProvStorageDirectory(configuration);
+                createExecutionsDatabase(configuration);
+                setPersistentConfigFile(configuration);
+                setMatlabDataONEToolboxDirectory(configuration);
+
                 % Set properties provided in the constructor call
                 for ( i = 1:2:length(varargin) )
                     propertyName = varargin{i};
@@ -291,6 +298,7 @@ classdef Configuration < hgsetget & dynamicprops
                 setMetadataTemplateFile(configuration);
                 setYesWorkflowConfig(configuration);
                 setScienceMetadataConfig(configuration);
+
             end
         end        
 
