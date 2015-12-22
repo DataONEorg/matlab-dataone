@@ -36,7 +36,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             import org.dataone.client.v2.itk.D1Client;
             
             if ~isempty(mnBaseUrl)
-                memberNode.node_base_service_url = [mnBaseUrl '/v2'];
+                memberNode.node_base_service_url = mnBaseUrl;
                 memberNode.node = D1Client.getMN(mnBaseUrl);
                 
             end
