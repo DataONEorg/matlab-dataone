@@ -220,6 +220,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
            
             % Download a single D1 object
             object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);
+            
+            % Use matlab wrapper function Dec-22-2015
+            ol2 = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
+            ol2
+            
             objList = object_list.getObjectInfoList();
             for i=1:length(objList)
                 obj_pid = objList.get(i).getIdentifier().getValue();

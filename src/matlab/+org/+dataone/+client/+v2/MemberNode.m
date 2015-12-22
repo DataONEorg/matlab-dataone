@@ -34,13 +34,13 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             % MNODE Constructs an MNode object instance with the given
             % member node base url
             import org.dataone.client.v2.itk.D1Client;
+            import org.dataone.client.rest.MultipartD1Node;
             
             if ~isempty(mnBaseUrl)
                 memberNode.node_base_service_url = mnBaseUrl;
                 memberNode.node_type = 'mn';
                 memberNode.node = D1Client.getMN(mnBaseUrl);
-                memberNode.node_id = char(memberNode.node.getNodeId().getValue());
-                
+                % memberNode.node_id = char(memberNode.node.getNodeId().getValue());            
             end
         end
         
@@ -266,9 +266,9 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         end
 
         function [checksum, checksumAlgorithm] = getChecksum(session, ...
-            pid, checksumAlgorithm)
-        % GETCHECKSUM Returns the checksum of the object given the algorithm
-        
+                pid, checksumAlgorithm)
+            % GETCHECKSUM Returns the checksum of the object given the algorithm
+            
             checksum = '';
             checksumAlgorithm = '';
             
@@ -277,23 +277,22 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             
         end
         
-        function objects = listObjects(session, fromDate, toDate, ...
-            formatid, identifier, replicaStatus, start, count)
-        % LISTOBJECTS Returns the list of objects from the node
-        %   Filter the returned list with the fromDate, toDate, formatId,
-        %   identifier, or replicaStatus parameters.  Use the start and 
-        %   count parameters to page through the results
-        %   Returns the following objects structured array:
-        %
-        %   objects.identifier
-        %   objects.formatId
-        %   objects.checksum
-        %   objects.checksumAlgorithm
-        %   objects.dateSysMetadataModified
-        %   objects.size
-        %
-        %   See https://purl.dataone.org/architecturev2/apis/Types.html#Types.ObjectList
-        
+        function objects = listObjects(memberNode, session, fromDate, toDate, formatid, identifier, replicaStatus, start, count)
+            % LISTOBJECTS Returns the list of objects from the node
+            %   Filter the returned list with the fromDate, toDate, formatId,
+            %   identifier, or replicaStatus parameters.  Use the start and
+            %   count parameters to page through the results
+            %   Returns the following objects structured array:
+            %
+            %   objects.identifier
+            %   objects.formatId
+            %   objects.checksum
+            %   objects.checksumAlgorithm
+            %   objects.dateSysMetadataModified
+            %   objects.size
+            %
+            %   See https://purl.dataone.org/architecturev2/apis/Types.html#Types.ObjectList
+            
             objects(1).identifier = '';
             objects(1).formatId = '';
             objects(1).checksum = '';
@@ -301,8 +300,20 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             objects(1).dateSysMetadataModified = '';
             objects(1).size = NaN;
             
-            % Covert the Java ObjectList into the above structured array
+            objectList = memberNode.node.listObjects(session, fromDate, toDate, ...
+                formatid, identifier, replicaStatus, start, count);
             
+            % Covert the Java ObjectList into the above structured array
+            objectInfoList = objectList.getObjectInfoList();
+            for i = 1:size(objectInfoList)
+               anObj = objectInfoList.get(i-1);
+               objects(i).identifier = char(anObj.getIdentifier().getValue());
+               objects(i).formatId = char(anObj.getFormatId().getValue());
+               objects(i).checksum = char(anObj.getChecksum().getValue());
+               objects(i).checksumAlgorithm = char(anObj.getChecksum().getAlgorithm());
+               objects(i).dateSysMetadataModified = char(anObj.getDateSysMetadataModified().toString());
+               objects(i).size = char(anObj.getSize().toString());
+            end
         end
         
         % function failed = synchronizationFailed(session, message)
@@ -317,11 +328,11 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         %
         % end
 
-            function updated = updateSystemMetadata(session, pid, sysmeta)
-        % UPDATESYSTEMMETADATA updates the object's system metadata
-        %   Given the object identified by the pid, update the object's
-        %   system metadata stored on the Member Node.
-        
+        function updated = updateSystemMetadata(session, pid, sysmeta)
+            % UPDATESYSTEMMETADATA updates the object's system metadata
+            %   Given the object identified by the pid, update the object's
+            %   system metadata stored on the Member Node.
+            
             updated = false;
             
             % Convert the Java boolean response to a logical true/false
@@ -336,14 +347,14 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         % end
         
         function identifier = archive(session, id)
-        % ARCHIVE Renders the object undiscoverable but available given the id
-        %   An archived object is not deleted from the Member Node, but
-        %   is rather 'hidden' from searches. It remains available through
-        %   get() for archival purposes (for instance, when cited in a
-        %   journal article), but only with the object id itself
-        %
-        %   See https://purl.dataone.org/architecturev2/apis/MN_APIs.html#MNStorage.archive
-        
+            % ARCHIVE Renders the object undiscoverable but available given the id
+            %   An archived object is not deleted from the Member Node, but
+            %   is rather 'hidden' from searches. It remains available through
+            %   get() for archival purposes (for instance, when cited in a
+            %   journal article), but only with the object id itself
+            %
+            %   See https://purl.dataone.org/architecturev2/apis/MN_APIs.html#MNStorage.archive
+            
             identifier = '';
             
             % Convert the Java returned identifier to a string
