@@ -33,7 +33,7 @@ warning('off','backtrace');
 import matlab.unittest.TestSuite;
 
 % Use fromPackage
-% suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.configure', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.v2', 'IncludingSubpackages', true);
@@ -42,10 +42,11 @@ import matlab.unittest.TestSuite;
 % testCls = ?org.dataone.client.configure.ConfigurationTest;
 % testCls = ?org.dataone.client.run.ExecutionTest;
 % testCls = ?org.dataone.client.run.RunManagerTest;
+% testCls = ?org.dataone.client.v2.SystemMetadataTest;
 % suite = TestSuite.fromClass(testCls);
 
 % Use fromMethod
-testCls = ?org.dataone.client.run.RunManagerTest;
+% testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testGetInstanceNoConfiguration');
 % suite = TestSuite.fromMethod(testCls, 'testGetInstanceWithConfiguration'); 
 % suite = TestSuite.fromMethod(testCls, 'testListRunsNoParams'); 
@@ -94,7 +95,7 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate'); 
 % suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
-suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum'); 
+% suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum'); 
 
 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationConfigAndDomElement'); 
