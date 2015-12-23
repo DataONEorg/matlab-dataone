@@ -569,8 +569,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.service.types.v1.Identifier;
             
             % Get a MNode matlab instance to the member node
-            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode(mn_base_url);
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
             
             % Get an identifier of a D1 object from the member node
             object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);     
