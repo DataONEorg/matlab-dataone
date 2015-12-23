@@ -279,7 +279,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             obj_pid = Identifier();
             obj_pid.setValue(pid);
                     
-            objCheckSum = memberNode.node.getChecksum(session, obj_pid, checksumAlgorithm);
+            objCheckSum = memberNode.node.getChecksum(session, obj_pid, checksumAlgorithm); % Make a Java call
             
             % Convert the Java Checksum object returned into the above
             % array
@@ -310,6 +310,11 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             %
             %   See https://purl.dataone.org/architecturev2/apis/Types.html#Types.ObjectList
             
+            import java.util.Date;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.Identifier;
+            import java.lang.Integer;
+            
             objects(1).identifier = '';
             objects(1).formatId = '';
             objects(1).checksum = '';
@@ -317,9 +322,42 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             objects(1).dateSysMetadataModified = '';
             objects(1).size = NaN;
             
-            '2015-12-31T02:00:00.000';
-            objectList = memberNode.node.listObjects(session, fromDate, toDate, ...
-                formatid, identifier, replicaStatus, start, count);
+            % Todo: do the pattern matching for date string
+            
+            % Eg: '2015-12-31T02:00:00.000';
+            
+            if (~isempty(fromDate))
+                fromDateObj = Date(fromDate);
+            else
+                fromDateObj = [];
+            end
+            
+            if (~isempty(toDate))
+                toDateObj = Date(toDate);
+            else
+                toDateObj = []; 
+            end
+            
+            formatidObj = ObjectFormatIdentifier();
+            formatidObj.setValue(formatid);
+         
+            identifierObj = Identifier();
+            identifierObj.setValue(identifier);
+            
+            if (~isempty(start))
+                startObj = Integer(start);
+            else
+                startObj = [];
+            end
+            
+            if(~isempty(count))
+                countObj = Integer(count);
+            else
+                countObj = [];
+            end
+            
+            objectList = memberNode.node.listObjects(session, fromDateObj, toDateObj, ...
+                formatidObj, identifierObj, replicaStatus, startObj, countObj); % Make a Java call
             
             % Covert the Java ObjectList into the above structured array
             objectInfoList = objectList.getObjectInfoList();
@@ -332,7 +370,21 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                objects(i).dateSysMetadataModified = char(anObj.getDateSysMetadataModified().toString());
                objects(i).size = char(anObj.getSize().toString());
             end
+    
+            % Get the 'start' value
+            if (~isempty(startObj))
+                start = startObj.intValue();
+            else
+                start = 0;
+            end
+            
+            % Get the 'count' attribute value. The number of entries in the slice.
+            count = objectList.getCount(); 
+            
+            % Todo: Get the 'total' attribute value
+            total = 0;
         end
+        
         
         % function failed = synchronizationFailed(session, message)
         %

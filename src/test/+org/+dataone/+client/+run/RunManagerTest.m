@@ -549,8 +549,18 @@ classdef RunManagerTest < matlab.unittest.TestCase
             matlab_mn_node = MemberNode(mn_base_url);
             
             % Use matlab wrapper function Dec-22-2015
-            ol2 = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
+            [ol1, start1, count1, total1] = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
+            ol1
+            start1
+            count1
+            total1
+            
+             % Use matlab wrapper function Dec-23-2015
+            [ol2, start2, count2, total2] = matlab_mn_node.listObjects([], [], [], [], [], [], '100', '50');
             ol2
+            start2
+            count2
+            total2
             
         end
         

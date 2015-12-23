@@ -93,8 +93,8 @@ testCls = ?org.dataone.client.run.RunManagerTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate'); 
-% suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
-suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum'); 
+ suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
+% suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum'); 
 
 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationConfigAndDomElement'); 
