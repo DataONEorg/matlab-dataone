@@ -25,7 +25,7 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         % The RunManager instance used in the tests
         mgr;
         
-        
+        filename
     end
     
     methods (TestMethodSetup)
@@ -73,18 +73,355 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         function testMNodeGet(testCase)
         % TESTMNODEGET Tests the DataONE get() API call to a Member Node
         
+            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
+            fprintf('\nIn test Member Node Get() ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            
+            % Create a faked run
+            import org.dataone.client.run.Execution;
+            run1 = Execution();
+            set(run1, 'tag', 'test_MN_Get');
+            testCase.mgr.execution = run1;
+            
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end
+            end
+            
+            % Get a MNode matlab instance to the member node
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            
+            % Download a single D1 object
+            object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);
+            
+            objList = object_list.getObjectInfoList();
+            for i=1:length(objList)
+                obj_pid = objList.get(i).getIdentifier().getValue();
+                if ~isempty(obj_pid)
+                    break;
+                end
+            end
+            
+            % Call MemberNode.get()
+            pid = Identifier();
+            pid.setValue(obj_pid);
+            item = matlab_mn_node.get([], pid);
+            
+            % Verify if get() call is successful
+            assert(~isempty(item));
+            
+            % Verify if the execution_input_ids contains one pid
+            size = length(testCase.mgr.execution.execution_input_ids);
+            assertEqual(testCase, size, 1);
+            
+            % Clear runtime input/output sources
+            testCase.mgr.execution.execution_input_ids = {};
+            testCase.mgr.execution.execution_output_ids = {};
+            all_keys = keys(testCase.mgr.execution.execution_objects);
+            remove(testCase.mgr.execution.execution_objects, all_keys);
         end
         
         function testMNodeCreate(testCase)
         % TESTMNODECREATE Tests the DataONE create() API call to a Member Node
         
+            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
+            fprintf('\nIn test Member Node Create() ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            import java.io.File;
+            import org.dataone.service.types.v2.SystemMetadata;
+            import java.math.BigInteger;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.util.ChecksumUtil;
+            import java.io.FileInputStream;
+            import org.dataone.service.types.v1.AccessPolicy;
+            import org.dataone.service.types.v1.util.AccessUtil;
+            import java.lang.String;
+            import org.dataone.service.types.v1.Permission;
+            import org.dataone.service.types.v1.ReplicationPolicy;
+            import java.lang.Integer;
+            import javax.activation.FileDataSource;
+            import org.dataone.service.types.v1.Subject;
+            import org.dataone.service.types.v1.NodeReference;
+            
+            testCase.filename = 'src/test/resources/testData.csv';
+            full_file_path = which(testCase.filename);
+            if isempty(full_file_path)
+                [status, struc] = fileattrib(testCase.filename);
+                full_file_path = struc.Name;
+            end
+            
+            % Set the Node ID
+            mnodeRef = NodeReference();
+            mnodeRef.setValue('urn:node:mnDevUCSB2');
+            
+            % Get a MNode matlab instance to the member node
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            
+            % Create a faked run
+            import org.dataone.client.run.Execution;
+            run2 = Execution();
+            set(run2, 'tag', 'test_MN_Create');
+            testCase.mgr.execution = run2;
+            
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end
+            end
+            
+            obj_pid = Identifier();
+            obj_pid.setValue(java.util.UUID.randomUUID().toString());
+            
+            objectFile = File(full_file_path);
+            data = FileDataSource(objectFile);
+            
+            try
+                sysmeta = SystemMetadata();
+                
+                % Set the identifier
+                sysmeta.setIdentifier(obj_pid);
+                
+                % Add the object format id
+                fmtid = ObjectFormatIdentifier();
+                fmtid.setValue('text/csv');
+                sysmeta.setFormatId(fmtid);
+                
+                % Add the file size
+                fileInfo = dir(full_file_path);
+                fileSize = fileInfo.bytes;
+                sizeBigInt = BigInteger.valueOf(fileSize);
+                sysmeta.setSize(sizeBigInt);
+                
+                % Add the checksum
+                fileInputStream = FileInputStream(objectFile);
+                checksum = ChecksumUtil.checksum(fileInputStream, 'SHA1');
+                sysmeta.setChecksum(checksum);
+                
+                % Set the file name
+                sysmeta.setFileName(full_file_path); % Question: pass the full_file_path here because in the java call create() there is no way to get the full_file_path in systemeta. No matlab d1object is used.
+                
+                % Set the access policy
+                strArray = javaArray('java.lang.String', 1);
+                permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
+                strArray(1,1) = String('public');
+                permsArray(1,1) = Permission.READ;
+                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                sysmeta.setAccessPolicy(ap);
+                
+                % Set the submitter (required)
+                submitter = Subject();
+                submitter.setValue('abc');
+                sysmeta.setSubmitter(submitter);
+                sysmeta.setRightsHolder(submitter);
+                
+                % Set the node filelds (required)
+                sysmeta.setOriginMemberNode(mnodeRef);
+                sysmeta.setAuthoritativeMemberNode(mnodeRef);
+                
+                % Call MemberNode.create()
+                returned_pid = matlab_mn_node.create([], obj_pid, data.getInputStream(), sysmeta);
+                
+                % Verify if create() call is successful
+                assertEqual(testCase, char(returned_pid.getValue()), char(obj_pid.getValue()));
+                
+                % Verify if the execution_output_ids contains one pid
+                size = length(testCase.mgr.execution.execution_output_ids);
+                assertEqual(testCase, size, 1);
+                
+                % Clear runtime input/output sources
+                testCase.mgr.execution.execution_input_ids = {};
+                testCase.mgr.execution.execution_output_ids = {};
+                all_keys = keys(testCase.mgr.execution.execution_objects);
+                remove(testCase.mgr.execution.execution_objects, all_keys);
+                
+            catch Error
+                rethrow(Error);
+            end
         end
-
+        
         function testMNodeUpdate(testCase)
         % TESTMNODEGET Tests the DataONE update() API call to a Member Node
         
+            % Certificate x509up_u501 is requried to run this unit test. Dec-11-2015
+            fprintf('\nIn test Member Node Update() ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            import java.io.File;
+            import org.dataone.service.types.v2.SystemMetadata;
+            import java.math.BigInteger;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.util.ChecksumUtil;
+            import java.io.FileInputStream;
+            import org.dataone.service.types.v1.AccessPolicy;
+            import org.dataone.service.types.v1.util.AccessUtil;
+            import java.lang.String;
+            import org.dataone.service.types.v1.Permission;
+            import org.dataone.service.types.v1.ReplicationPolicy;
+            import java.lang.Integer;
+            import javax.activation.FileDataSource;
+            import org.dataone.service.types.v1.Subject;
+            import org.dataone.service.types.v1.NodeReference;
+            import org.apache.commons.io.IOUtils;
+            import java.nio.charset.StandardCharsets;
+            import org.dataone.service.util.TypeMarshaller;
+            
+            testCase.filename = 'src/test/resources/testData.csv';
+            full_file_path = which(testCase.filename);
+            if isempty(full_file_path)
+                [status, struc] = fileattrib(testCase.filename);
+                full_file_path = struc.Name;
+            end
+            
+            % Set the Node ID
+            mnodeRef = NodeReference();
+            mnodeRef.setValue('urn:node:mnDevUCSB2');
+            
+            % Get a MNode matlab instance to the member node
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            
+            % Create a faked run
+            import org.dataone.client.run.Execution;
+            run3 = Execution();
+            set(run3, 'tag', 'test_MN_Update');
+            testCase.mgr.execution = run3;
+            
+            % Then create the run directory for the given run
+            runDirectory = fullfile(...
+                testCase.mgr.configuration.provenance_storage_directory, ...
+                'runs', ...
+                testCase.mgr.execution.execution_id);
+            
+            if ( isprop(testCase.mgr.execution, 'execution_id') )
+                if ( exist(runDirectory, 'dir') ~= 7 )
+                    mkdir(runDirectory);
+                end
+            end
+            
+            obj_pid = Identifier();
+            obj_pid.setValue(java.util.UUID.randomUUID().toString());
+            
+            objectFile = File(full_file_path);
+            data = FileDataSource(objectFile);
+            
+            try
+                % Gets a certificate
+                import org.dataone.client.auth.CertificateManager;
+                import java.security.cert.X509Certificate;
+                
+                % Get a certificate for the Root CA
+                certificate = CertificateManager.getInstance().loadCertificate();
+                if ~isempty(certificate)
+                    dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
+                    standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
+                else
+                    standardizedName = '';
+                end
+                
+                sysmeta = SystemMetadata();
+                
+                % Set the identifier
+                sysmeta.setIdentifier(obj_pid);
+                
+                % Add the object format id
+                fmtid = ObjectFormatIdentifier();
+                fmtid.setValue('text/csv');
+                sysmeta.setFormatId(fmtid);
+                
+                % Add the file size
+                fileInfo = dir(full_file_path);
+                fileSize = fileInfo.bytes;
+                sizeBigInt = BigInteger.valueOf(fileSize);
+                sysmeta.setSize(sizeBigInt);
+                
+                % Add the checksum
+                fileInputStream = FileInputStream(objectFile);
+                checksum = ChecksumUtil.checksum(fileInputStream, 'SHA1');
+                sysmeta.setChecksum(checksum);
+                
+                % Set the file name
+                sysmeta.setFileName(full_file_path); % Question: pass the full_file_path here because in the java call create() there is no way to get the full_file_path in systemeta. No matlab d1object is used.
+                
+                % Set the submitter (required)
+                submitter = Subject();
+                submitter.setValue(standardizedName);
+                sysmeta.setSubmitter(submitter);
+                sysmeta.setRightsHolder(submitter);
+                
+                % Set the access policy
+                strArray = javaArray('java.lang.String', 1);
+                permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
+                strArray(1,1) = String('public');
+                permsArray(1,1) = Permission.READ;
+                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                sysmeta.setAccessPolicy(ap);
+                
+                % Set the node filelds (required)
+                sysmeta.setOriginMemberNode(mnodeRef);
+                sysmeta.setAuthoritativeMemberNode(mnodeRef);
+                
+                % Call MemberNode.create()
+                returned_pid = matlab_mn_node.create([], obj_pid, data.getInputStream(), sysmeta);
+                
+                % Call MemberNode.get()
+                obj_inputstream = matlab_mn_node.get([], returned_pid);
+                
+                % For testing
+                % d2ObjString = IOUtils.toString(obj_inputstream, StandardCharsets.UTF_8.name());
+                % d2ObjString
+                
+                % Call MultipartMNode.getSystemMetadata() by making a java call
+                sysmeta = matlab_mn_node.node.getSystemMetadata( [], returned_pid );
+                
+                % Generate a new pid
+                new_pid = Identifier();
+                new_pid.setValue(java.util.UUID.randomUUID().toString());
+                sysmeta.setIdentifier(new_pid);
+                
+                % Call MemberNode.update()
+                returned_pid = matlab_mn_node.update([], returned_pid, obj_inputstream, new_pid, sysmeta);
+                
+                % Verify if update() call is successful
+                assertEqual(testCase, char(returned_pid.getValue()), char(new_pid.getValue()));
+                
+                % Verify if the execution_output_ids contains two pids
+                size1 = length(testCase.mgr.execution.execution_output_ids);
+                assertEqual(testCase, size1, 2);
+                
+                % Verify if the execution_input_ids contains one pids
+                size2 = length(testCase.mgr.execution.execution_input_ids);
+                assertEqual(testCase, size2, 1);
+                
+                % Clear runtime input/output sources
+                testCase.mgr.execution.execution_input_ids = {};
+                testCase.mgr.execution.execution_output_ids = {};
+                all_keys = keys(testCase.mgr.execution.execution_objects);
+                remove(testCase.mgr.execution.execution_objects, all_keys);
+            catch Error
+                rethrow(Error);
+            end
         end
-
+        
         function testMNodeListObjects(testCase)
             % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
             fprintf('\nIn test Member Node listObjects ...\n');
