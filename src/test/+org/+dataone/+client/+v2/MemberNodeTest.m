@@ -443,6 +443,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             assertEqual(testCase, count2, 50);
             
             assertEqual(testCase, total1, total2);
+            
+            [ol3, start3, count3, total3] = matlab_mn_node.listObjects([], [], [], [], [], [], '0', 50000);
+            assertEqual(testCase, count3, length(ol3));
+            
         end
         
         function testMNodeGetChecksum(testCase)
