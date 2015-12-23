@@ -94,20 +94,19 @@ import matlab.unittest.TestSuite;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate'); 
-% suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
-% suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum'); 
-
-
+ 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationConfigAndDomElement'); 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationNoDomElement'); 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigWithDomElement'); 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigNoDomElement');
 % suite = TestSuite.fromMethod(testCls, 'testGetMetadata');
 
-% testCls = ?org.dataone.client.v2.MNodeTest;
+% testCls = ?org.dataone.client.v2.MemberNodeTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate');
+% suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
+% suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum');
 
 run(suite);
 

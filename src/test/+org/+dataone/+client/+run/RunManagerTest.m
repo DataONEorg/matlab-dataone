@@ -536,60 +536,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 rethrow(Error);
             end
         end
-        
-        function testMNodeListObjects(testCase)
-            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
-            fprintf('\nIn test Member Node listObjects ...\n');
-            
-            import org.dataone.client.v2.MemberNode;
-            import org.dataone.service.types.v1.Identifier;
-            
-            % Get a MNode matlab instance to the member node
-            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
-            
-            % Use matlab wrapper function Dec-22-2015
-            [ol1, start1, count1, total1] = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
-            assertEqual(testCase, start1, 0);
-            
-             % Use matlab wrapper function Dec-23-2015
-            [ol2, start2, count2, total2] = matlab_mn_node.listObjects([], [], [], [], [], [], '100', '50');
-            assertEqual(testCase, start2, 100);
-            assertEqual(testCase, count2, 50);
-            
-            assertEqual(testCase, total1, total2);
-        end
-        
-        
-        function testMNodeGetChecksum(testCase)
-            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
-            fprintf('\nIn test Member Node getChecksum ...\n');
-            
-            import org.dataone.client.v2.MemberNode;
-            import org.dataone.service.types.v1.Identifier;
-            
-            % Get a MNode matlab instance to the member node
-            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
-            
-            % Get an identifier of a D1 object from the member node
-            object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);     
-            objList = object_list.getObjectInfoList();
-            for i=1:length(objList)
-                pid_value = objList.get(i-1).getIdentifier().getValue();
-                if ~isempty(pid_value)
-                    break;
-                end
-            end
-     
-            checkAlg = 'SHA-1';
-            [checksum, checksumAlgorithm] = matlab_mn_node.getChecksum([], pid_value, checkAlg);
-            
-            assert(~isempty(checksum));
-            assert(~isempty(checksumAlgorithm));
-        end
-        
-             
+                           
         function testPutMetadataWithSalutationConfigAndDomElement(testCase)
             % The Saluation element is present in the dom object
             
