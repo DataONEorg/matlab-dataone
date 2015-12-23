@@ -215,8 +215,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
         
             % Get a MNode matlab instance to the member node
-            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode(mn_base_url);
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
            
             % Download a single D1 object
             object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);
@@ -283,8 +283,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             mnodeRef.setValue('urn:node:mnDevUCSB2');
             
             % Get a MNode matlab instance to the member node
-            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode(mn_base_url);
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
             
             % Create a faked run
             import org.dataone.client.run.Execution;
@@ -412,8 +412,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             mnodeRef.setValue('urn:node:mnDevUCSB2');
             
             % Get a MNode matlab instance to the member node
-            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode(mn_base_url);
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
             
             % Create a faked run
             import org.dataone.client.run.Execution;
@@ -545,23 +545,19 @@ classdef RunManagerTest < matlab.unittest.TestCase
             import org.dataone.service.types.v1.Identifier;
             
             % Get a MNode matlab instance to the member node
-            mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode(mn_base_url);
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
             
             % Use matlab wrapper function Dec-22-2015
             [ol1, start1, count1, total1] = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
-            ol1
-            start1
-            count1
-            total1
+            assertEqual(testCase, start1, 0);
             
              % Use matlab wrapper function Dec-23-2015
             [ol2, start2, count2, total2] = matlab_mn_node.listObjects([], [], [], [], [], [], '100', '50');
-            ol2
-            start2
-            count2
-            total2
+            assertEqual(testCase, start2, 100);
+            assertEqual(testCase, count2, 50);
             
+            assertEqual(testCase, total1, total2);
         end
         
         
@@ -580,7 +576,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);     
             objList = object_list.getObjectInfoList();
             for i=1:length(objList)
-                pid_value = objList.get(i).getIdentifier().getValue();
+                pid_value = objList.get(i-1).getIdentifier().getValue();
                 if ~isempty(pid_value)
                     break;
                 end

@@ -30,17 +30,32 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
     
     methods % class methods (function and operator definitions)    
         
-        function memberNode = MemberNode(mnBaseUrl) % class constructor method
+        function memberNode = MemberNode(mnode_id) % class constructor method
             % MNODE Constructs an MNode object instance with the given
             % member node base url
+            
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.client.rest.MultipartD1Node;
+            import org.dataone.service.types.v1.NodeReference;
             
-            if ~isempty(mnBaseUrl)
-                memberNode.node_base_service_url = mnBaseUrl;
+            if ~isempty(mnode_id)
+                
+                import org.dataone.client.configure.Configuration;
+                config = Configuration.loadConfig('');
+                set(config, 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn');
+                
+                import org.dataone.configuration.Settings;
+                Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                    config.coordinating_node_base_url);
+                
+                node_ref = NodeReference();
+                node_ref.setValue(mnode_id);
+                          
+                memberNode.node = D1Client.getMN(node_ref);
+                
+                memberNode.node_base_service_url = char(memberNode.node.getNodeBaseServiceUrl());
                 memberNode.node_type = 'mn';
-                memberNode.node = D1Client.getMN(mnBaseUrl);
-                % memberNode.node_id = char(memberNode.node.getNodeId().getValue());            
+                memberNode.node_id = mnode_id;
             end
         end
         
@@ -322,8 +337,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             objects(1).dateSysMetadataModified = '';
             objects(1).size = NaN;
             
-            % Todo: do the pattern matching for date string
-            
+            % Todo: do the pattern matching for date string         
             % Eg: '2015-12-31T02:00:00.000';
             
             if (~isempty(fromDate))
@@ -372,17 +386,13 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             end
     
             % Get the 'start' value
-            if (~isempty(startObj))
-                start = startObj.intValue();
-            else
-                start = 0;
-            end
+            start = objectList.getStart();
             
             % Get the 'count' attribute value. The number of entries in the slice.
             count = objectList.getCount(); 
             
             % Todo: Get the 'total' attribute value
-            total = 0;
+            total = objectList.getTotal();
         end
         
         

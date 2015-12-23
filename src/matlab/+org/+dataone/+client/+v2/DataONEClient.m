@@ -45,7 +45,7 @@ classdef DataONEClient < hgsetget
             config = Configuration.loadConfig('');
             import org.dataone.configuration.Settings;
             Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
-                config.coordinating_node_base_url)
+                config.coordinating_node_base_url);
             node_ref = NodeReference();
             node_ref.setValue(node_id);
             

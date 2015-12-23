@@ -33,7 +33,7 @@ warning('off','backtrace');
 import matlab.unittest.TestSuite;
 
 % Use fromPackage
-suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+ suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.configure', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.v2', 'IncludingSubpackages', true);
