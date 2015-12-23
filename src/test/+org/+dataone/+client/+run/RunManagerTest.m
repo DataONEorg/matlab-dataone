@@ -549,8 +549,18 @@ classdef RunManagerTest < matlab.unittest.TestCase
             matlab_mn_node = MemberNode(mn_base_url);
             
             % Use matlab wrapper function Dec-22-2015
-            ol2 = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
+            [ol1, start1, count1, total1] = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
+            ol1
+            start1
+            count1
+            total1
+            
+             % Use matlab wrapper function Dec-23-2015
+            [ol2, start2, count2, total2] = matlab_mn_node.listObjects([], [], [], [], [], [], '100', '50');
             ol2
+            start2
+            count2
+            total2
             
         end
         
@@ -566,7 +576,21 @@ classdef RunManagerTest < matlab.unittest.TestCase
             mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             matlab_mn_node = MemberNode(mn_base_url);
             
-            [checksum, checksumAlgorithm] = matlab_mn_node.getChecksum([], pid, checkAlg);
+            % Get an identifier of a D1 object from the member node
+            object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);     
+            objList = object_list.getObjectInfoList();
+            for i=1:length(objList)
+                pid_value = objList.get(i).getIdentifier().getValue();
+                if ~isempty(pid_value)
+                    break;
+                end
+            end
+     
+            checkAlg = 'SHA-1';
+            [checksum, checksumAlgorithm] = matlab_mn_node.getChecksum([], pid_value, checkAlg);
+            
+            assert(~isempty(checksum));
+            assert(~isempty(checksumAlgorithm));
         end
         
              
