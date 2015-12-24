@@ -35,7 +35,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             % member node base url
             
             import org.dataone.client.v2.itk.D1Client;
-            import org.dataone.client.rest.MultipartD1Node;
+            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.service.types.v1.NodeReference;
             
             if ~isempty(mnode_id)
