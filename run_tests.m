@@ -109,7 +109,8 @@ import matlab.unittest.TestSuite;
 
  testCls = ?org.dataone.client.v2.CoordinatingNodeTest;
 % suite = TestSuite.fromMethod(testCls, 'testGetCapabilities');
- suite = TestSuite.fromMethod(testCls, 'testPing');
+% suite = TestSuite.fromMethod(testCls, 'testPing');
+suite = TestSuite.fromMethod(testCls, 'testListObjects');
 
 run(suite);
 

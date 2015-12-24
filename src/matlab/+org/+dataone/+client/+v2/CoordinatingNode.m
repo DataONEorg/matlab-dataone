@@ -16,10 +16,13 @@ classdef CoordinatingNode < org.dataone.client.v2.DataONENode
                       
             if ~isempty(cnode_base_service_url)
                 
+                % Question: do we need to set the property of configuration
+                % instance here?
                 import org.dataone.client.configure.Configuration;
                 config = Configuration.loadConfig('');
                 set(config, 'coordinating_node_base_url', cnode_base_service_url);
                 
+                % Question: same question as above
                 import org.dataone.configuration.Settings;
                 Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
                     config.coordinating_node_base_url);
@@ -28,7 +31,8 @@ classdef CoordinatingNode < org.dataone.client.v2.DataONENode
                 
                 coordinatingNode.node_base_service_url = char(cnode_base_service_url);
                 coordinatingNode.node_type = 'cn';
-                coordinatingNode.node_id = '';
+                coordinatingNode.node_id = char(coordinatingNode.node.getNodeId()); % value is ''?
+             
             end
         end
          
@@ -65,11 +69,17 @@ classdef CoordinatingNode < org.dataone.client.v2.DataONENode
         end
         
         
-        function objects = listObjects(coordinatingNode, session, fromDate, ...
-                toDate, formatid, identifier, start, count, nodeid)
+        function [objects, start, count, total] = listObjects(coordinatingNode, session, fromDate, ...
+                toDate, formatid, nodeid, identifier, start, count)
             % ListObjects Retrieves the list of objects present on the CN that
             % match the calling parameters. At a minimum, this method should be
             % able to return a list of objects that match:
+            
+            import java.util.Date;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.Identifier;
+            import java.lang.Integer;
+            import org.dataone.service.types.v1.NodeReference;
             
             objects(1).identifier = '';
             objects(1).formatId = '';
@@ -79,6 +89,62 @@ classdef CoordinatingNode < org.dataone.client.v2.DataONENode
             objects(1).size = NaN;
             
             
+            if (~isempty(fromDate))
+                fromDateObj = Date(fromDate);
+            else
+                fromDateObj = [];
+            end
+            
+            if (~isempty(toDate))
+                toDateObj = Date(toDate);
+            else
+                toDateObj = [];
+            end
+            
+            formatidObj = ObjectFormatIdentifier();
+            formatidObj.setValue(formatid);
+            
+            mnodeRef = NodeReference();
+            mnodeRef.setValue(nodeid);
+            
+            identifierObj = Identifier();
+            identifierObj.setValue(identifier);
+            
+            if (~isempty(start))
+                startObj = Integer(start);
+            else
+                startObj = [];
+            end
+            
+            if(~isempty(count))
+                countObj = Integer(count);
+            else
+                countObj = [];
+            end
+            
+            objectList = coordinatingNode.node.listObjects(session, fromDateObj, toDateObj, formatidObj, ...
+                mnodeRef, identifierObj, startObj, countObj);
+            
+            % Covert the Java ObjectList into the above structured array
+            objectInfoList = objectList.getObjectInfoList();
+            for i = 1:size(objectInfoList)
+                anObj = objectInfoList.get(i-1);
+                objects(i).identifier = char(anObj.getIdentifier().getValue());
+                objects(i).formatId = char(anObj.getFormatId().getValue());
+                objects(i).checksum = char(anObj.getChecksum().getValue());
+                objects(i).checksumAlgorithm = char(anObj.getChecksum().getAlgorithm());
+                objects(i).dateSysMetadataModified = char(anObj.getDateSysMetadataModified().toString());
+                objects(i).size = char(anObj.getSize().toString());
+            end
+            
+            % Get the 'start' value
+            start = objectList.getStart();
+            
+            % Get the 'count' attribute value. The number of entries in the slice.
+            count = objectList.getCount();
+            
+            % Get the 'total' attribute value
+            total = objectList.getTotal();
         end
         
     end

@@ -444,11 +444,11 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
             
-            % Use matlab wrapper function Dec-22-2015
+            % Use matlab wrapper function 
             [ol1, start1, count1, total1] = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
             assertEqual(testCase, start1, 0);
             
-            % Use matlab wrapper function Dec-23-2015
+            % Use matlab wrapper function
             [ol2, start2, count2, total2] = matlab_mn_node.listObjects([], [], [], [], [], [], '100', '50');
             assertEqual(testCase, start2, 100);
             assertEqual(testCase, count2, 50);
