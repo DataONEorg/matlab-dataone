@@ -96,6 +96,242 @@ classdef SystemMetadata < hgsetget
     
     methods
         
+        function sysmeta = set(sysmeta, name, value)
+            % Overload the hgsetget set() function to customize setting properties
+            
+            property = strtrim(name);
+            
+            if strcmp(property, 'serialVersion')
+                % Validate the serialVersion as an integer
+                if mod(value, 1) == 0
+                    sysmeta.serialVersion = value;
+                else
+                    error(['The SystemMetadata.serialVersion property ' ...
+                           'must be 0 or a whole positive number.']);
+                       
+                end
+                
+            end
+
+            if strcmp(property, 'identifier')
+                % Validate the identifier string
+                if ( any(isspace(value)) )
+                    error(['The SystemMetadata.identifier property ' ...
+                           'can not contain whitespace characters.']);
+                end
+                
+                if ( length(value) > 800 )
+                    error(['The SystemMetadata.identifier property ' ...
+                           'must be less than 800 characters.']);
+                       
+                end
+                
+                if ( value == '' || isempty(value) || isnan(value))
+                    error(['The SystemMetadata.identifier property ' ...
+                           'must an 800 character or less string.']);
+                    
+                end
+                sysmeta.identifier = value;
+                
+            end
+
+            if strcmp(property, 'formatId')
+                % Validate the formatId
+                if ( ~ ischar(value) )
+                    error(['The SystemMetadata.formatId property ' ...
+                           'must a recognized Object Format Identifer ' ...
+                           char(10) ...
+                           'in the DataONE Format Registry. ' ...
+                           'The format ids can be seen at ' ...
+                           char(10) ...
+                           'https://cn/dataone.org/cn/v2/formats.']);
+                    
+                end
+                sysmeta.formatId = value;
+                
+            end
+
+            if strcmp(property, 'size')
+                % Validate the size
+                if ( mod(value, 1) ~= 0 )
+                    error(['The SystemMetadata.size property ' ...
+                           'must be a whole positive number ']);
+                    
+                end
+                sysmeta.size = value;
+                
+            end
+
+            if strcmp(property, 'checksum')
+                % Validate the checksum structure
+                if ( ~ isstruct(value) )
+                    error(['The SystemMetadata.checksum property ' ...
+                           'must be a struct with two fields: ' ...
+                           char(10) ...
+                           'value and algorithm.']);
+                end
+                
+                if ( ~ strcmp(value.algorithm, 'MD5') || ...
+                     ~ strcmp(value.algorithm, 'SHA-1') )
+                    error(['The SystemMetadata.checksum.algorithm ' ...
+                           'must be either "MD5" or "SHA-1".']);
+                       
+                end
+                chksum = value;
+                if ( ~ ischar(chksum.value) )
+                    error(['The SystemMetadata.checksum.value ' ...
+                        'must be a valid SHA-1 or MD5 checsum value.']);
+                end
+                sysmeta.checksum = value;
+                
+            end
+
+            if strcmp(property, 'submitter')
+                % Validate the submitter
+                if ( ~ ischar(value) || isempty(value))
+                    error(['The SystemMetadata.submitter property ' ...
+                        'must be a string.']);
+                    
+                end
+                sysmeta.submitter = value;
+                
+            end
+
+            if strcmp(property, 'rightsHolder')
+                % Validate the rightsHolder
+                if ( ~ ischar(value) || isempty(value))
+                    error(['The SystemMetadata.rightsHolder property ' ...
+                        'must be a string.']);
+                    
+                end
+                sysmeta.submitter = value;
+            end
+
+            % if strcmp(property, 'accessPolicy')
+            %     
+            % end
+
+            %if strcmp(property, 'replicationPolicy')
+            %     
+            %end
+
+            % if strcmp(property, 'obsoletes')
+            %
+            % end
+
+            % if strcmp(property, 'obsoletedBy')
+            %
+            % end
+
+            if strcmp(property, 'archived')
+                % Validate the archived flag
+                if ( ~ islogical(value) )
+                    error(['The SystemMetadata.archived property ' ...
+                        'must be a logical true or false value.']);
+                    
+                end
+                sysmeta.archived = value;
+                
+            end
+
+            if strcmp(property, 'dateUploaded')
+                % Validate the dateUploaded date
+                if ( ~ isa(value, 'datetime') )
+                    error(['The SystemMetadata.dateUploaded property ' ...
+                        'must be a Matlab datetime type.']);
+                    
+                end
+                sysmeta.dateUploaded = value;
+                
+            end
+
+            if strcmp(property, 'dateSysMetadataModified')
+                % Validate the dateSysMetadataModified date
+                if ( ~ isa(value, 'datetime') )
+                    error(['The SystemMetadata.dateSysMetadataModified property ' ...
+                        'must be a Matlab datetime type.']);
+                    
+                end
+                sysmeta.dateSysMetadataModified = value;
+            end
+
+            if strcmp(property, 'originMemberNode')
+                % Validate the origin member node string
+                if ( isempty(value) || ...
+                     strcmp(value, 'urn:node:XXXX') || ...
+                     length(value) > 25 || ...
+                     strfind(value, 'urn:node:') ~= 1 )
+                    error(['The SystemMetadata.originMemberNode property ' ...
+                        'must be a 25 character or less string ' ...
+                        char(10) ...
+                        'starting with ''' 'urn:node:' '''']);
+                    
+                end
+                sysmeta.originMemberNode = value;
+                
+            end
+
+            if strcmp(property, 'authoritativeMemberNode')
+                % Validate the authoritative member node string
+                if ( isempty(value) || ...
+                     strcmp(value, 'urn:node:XXXX') || ...
+                     length(value) > 25 || ...
+                     strfind(value, 'urn:node:') ~= 1 )
+                    error(['The SystemMetadata.authoritativeMemberNode property ' ...
+                        'must be a 25 character or less string ' ...
+                        char(10) ...
+                        'starting with ''' 'urn:node:' '''']);
+                    
+                end
+                sysmeta.authoritativeMemberNode = value;
+                
+            end
+
+            % if strcmp(property, 'replica')
+            %
+            % end
+
+            if strcmp(property, 'seriesId')
+                % Validate the seriesId string
+                if ( ~ ischar(value) || isempty(value))
+                    error(['The SystemMetadata.seriesId property ' ...
+                        'must be a string.']);
+                end
+                sysmeta.seriesId = value;
+                
+            end
+
+            if strcmp(property, 'mediaType')
+                % Validate the mediaType property
+                if ( ~ isa(value, 'containers.Map') )
+                    error(['The SystemMetadata.mediaType property ' ...
+                        'must be a containers.Map data type.']);
+                    
+                else
+                    if ( strcmp(value.KeyType, 'char') || ...
+                         strcmp(value.ValueType, 'char') )
+                        error(['The SystemMetadata.mediaType property ' ...
+                            char(10) ...
+                            'must have both a KeyType and ValueType of ' ...
+                            '''char''']);
+                    end
+                    sysmeta.mediaType = value;
+                    
+                end
+            end
+
+            if strcmp(property, 'fileName')
+                % Validate the fileName string
+                if ( ~ ischar(value) || isempty(value))
+                    error(['The SystemMetadata.fileName property ' ...
+                        'must be a string.']);
+                end
+                sysmeta.fileName = value;
+            end
+
+            
+        end
+        
         function sysmeta = SystemMetadata()
         % SYSTEMMETADATA Constructs a new SystemMetadata object
         
