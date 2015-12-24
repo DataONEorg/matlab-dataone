@@ -606,6 +606,33 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             % Todo: need to implement
         end
+        
+        
+        function testGetCapabilities(testCase)
+            
+            fprintf('\nIn test Member Node getCapabilities() ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            
+            % Get a MNode matlab instance to the member node
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            
+            matlab_mn_node.getCapabilities();
+        end
+        
+        function testPing(testCase)
+            
+            fprintf('\nIn test Member Node ping() ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            
+            % Get a MNode matlab instance to the member node
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            
+            date = matlab_mn_node.ping();
+            
+            assert(~isempty(date));
+        end
     end
     
     methods (Access = 'private')

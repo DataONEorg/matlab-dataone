@@ -28,7 +28,7 @@ classdef DataONENode < hgsetget
         % The DataONE identifier for the node 
         node_id;
         
-        % The DataONE node type (either 'cn' of 'mn')
+        % The DataONE node type (either 'cn' or 'mn')
         node_type;
         
         % The underlying java Node instance
@@ -41,13 +41,17 @@ classdef DataONENode < hgsetget
     
     methods
         
-        function date = ping()
+        function date = ping(self)
         % PING Determines if the DataONE Node is reachable
         %   The ping() function sends an HTTP request to the Node.
         %   A successful respone will return a date timestamp as a string.
         %   A failure returns an empty string    
             date = '';
             
+            date_obj = self.node.ping(); % make a Java call
+            
+            % Convert Java Date type to matlab char type
+            date = char(date_obj.toString());
         end
         
         function log = getLogRecords(session, fromDate, toDate, ...
@@ -84,14 +88,18 @@ classdef DataONENode < hgsetget
             
         end
 
-        function node = getCapabilities() 
+        function node = getCapabilities(self) 
         % GETCAPABILITIES Returns the capabilities of the DataONE Node
         %   The Node document that describes the DataONE node is returned
         %   as an XML string.
         
             node = ''; 
         
-            % Serialize the Java Node return type to XML and return it
+            node_obj = self.node.getCapabilities(); % Make a Java Call
+            node_obj
+            
+            % Todo: Serialize the Java Node return type to XML and return it
+            
         end
         
         function object = get(session, id)
