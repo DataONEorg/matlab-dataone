@@ -617,8 +617,11 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             % Get a MNode matlab instance to the member node
             matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
             
-            matlab_mn_node.getCapabilities();
+            node_description = matlab_mn_node.getCapabilities();
+            
+            assert(~isempty(node_description));
         end
+        
         
         function testPing(testCase)
             

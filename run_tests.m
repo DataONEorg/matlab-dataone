@@ -104,7 +104,8 @@ import matlab.unittest.TestSuite;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeArchive');
-suite = TestSuite.fromMethod(testCls, 'testPing');
+suite = TestSuite.fromMethod(testCls, 'testGetCapabilities');
+% suite = TestSuite.fromMethod(testCls, 'testPing');
 
 run(suite);
 

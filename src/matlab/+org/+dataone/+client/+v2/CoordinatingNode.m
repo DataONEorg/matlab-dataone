@@ -31,15 +31,15 @@ classdef CoordinatingNode < org.dataone.client.v2.DataONENode
                 coordinatingNode.node_id = '';
             end
         end
-        
-        function ping(coordinatingNode)
-        % PING Determines if the DataONE Node is reachable
-        %   The ping() function sends an HTTP request to the Node. A
-        %   successful respone will return a date timestamp as a string. A
-        %   failure returns an empty string
-        
-        
-        end
+         
+%         function ping(coordinatingNode)
+%         % PING Determines if the DataONE Node is reachable
+%         %   The ping() function sends an HTTP request to the Node. A
+%         %   successful respone will return a date timestamp as a string. A
+%         %   failure returns an empty string
+%         
+%         
+%         end
         
         function objectFormatList = listFormats(coordinatingNode)
         % ListFormats Returns a list of all object formats registered in

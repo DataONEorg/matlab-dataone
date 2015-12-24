@@ -93,13 +93,17 @@ classdef DataONENode < hgsetget
         %   The Node document that describes the DataONE node is returned
         %   as an XML string.
         
+            import org.dataone.service.util.TypeMarshaller;
+            import java.io.ByteArrayOutputStream;
+            
             node = ''; 
         
             node_obj = self.node.getCapabilities(); % Make a Java Call
-            node_obj
             
-            % Todo: Serialize the Java Node return type to XML and return it
-            
+            % Serialize the Java Node return type to XML and return it
+            baos = ByteArrayOutputStream();
+            TypeMarshaller.marshalTypeToOutputStream(node_obj, baos); 
+            node = char(baos.toString());
         end
         
         function object = get(session, id)
