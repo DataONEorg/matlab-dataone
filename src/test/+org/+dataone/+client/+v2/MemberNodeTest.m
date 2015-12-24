@@ -154,7 +154,9 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import javax.activation.FileDataSource;
             import org.dataone.service.types.v1.Subject;
             import org.dataone.service.types.v1.NodeReference;
-            
+            import org.dataone.client.auth.CertificateManager;
+            import java.security.cert.X509Certificate;
+                
             testCase.filename = 'src/test/resources/testData.csv';
             full_file_path = which(testCase.filename);
             if isempty(full_file_path)
@@ -227,9 +229,18 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
                 sysmeta.setAccessPolicy(ap);
                 
+                % Get a certificate for the Root CA
+                certificate = CertificateManager.getInstance().loadCertificate();
+                if ~isempty(certificate)
+                    dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
+                    standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
+                else
+                    standardizedName = '';
+                end
+                
                 % Set the submitter (required)
                 submitter = Subject();
-                submitter.setValue('abc');
+                submitter.setValue(standardizedName);
                 sysmeta.setSubmitter(submitter);
                 sysmeta.setRightsHolder(submitter);
                 
@@ -475,6 +486,125 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             assert(~isempty(checksum));
             assert(~isempty(checksumAlgorithm));
+        end
+        
+        function testMNodeArchive(testCase)
+           
+            % Certificate x509up_u501 is requried to run this unit test. 
+            fprintf('\nIn test Member Node archive() ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            import java.io.File;
+            import org.dataone.service.types.v2.SystemMetadata;
+            import java.math.BigInteger;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.util.ChecksumUtil;
+            import java.io.FileInputStream;
+            import org.dataone.service.types.v1.AccessPolicy;
+            import org.dataone.service.types.v1.util.AccessUtil;
+            import java.lang.String;
+            import org.dataone.service.types.v1.Permission;
+            import org.dataone.service.types.v1.ReplicationPolicy;
+            import java.lang.Integer;
+            import javax.activation.FileDataSource;
+            import org.dataone.service.types.v1.Subject;
+            import org.dataone.service.types.v1.NodeReference;
+            import org.dataone.client.auth.CertificateManager;
+            import java.security.cert.X509Certificate;
+                
+            testCase.filename = 'src/test/resources/testData.csv';
+            full_file_path = which(testCase.filename);
+            if isempty(full_file_path)
+                [status, struc] = fileattrib(testCase.filename);
+                full_file_path = struc.Name;
+            end
+            
+            % Set the Node ID
+            mnodeRef = NodeReference();
+            mnodeRef.setValue('urn:node:mnDevUCSB2');
+            
+            % Get a MNode matlab instance to the member node
+            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            
+            obj_pid = Identifier();
+            obj_pid.setValue(java.util.UUID.randomUUID().toString());
+            
+            objectFile = File(full_file_path);
+            data = FileDataSource(objectFile);
+            
+            try
+                sysmeta = SystemMetadata();
+                
+                % Set the identifier
+                sysmeta.setIdentifier(obj_pid);
+                
+                % Add the object format id
+                fmtid = ObjectFormatIdentifier();
+                fmtid.setValue('text/csv');
+                sysmeta.setFormatId(fmtid);
+                
+                % Add the file size
+                fileInfo = dir(full_file_path);
+                fileSize = fileInfo.bytes;
+                sizeBigInt = BigInteger.valueOf(fileSize);
+                sysmeta.setSize(sizeBigInt);
+                
+                % Add the checksum
+                fileInputStream = FileInputStream(objectFile);
+                checksum = ChecksumUtil.checksum(fileInputStream, 'SHA1');
+                sysmeta.setChecksum(checksum);
+                
+                % Set the file name
+                sysmeta.setFileName(full_file_path); 
+                
+                % Set the access policy
+                strArray = javaArray('java.lang.String', 1);
+                permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
+                strArray(1,1) = String('public');
+                permsArray(1,1) = Permission.READ;
+                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                sysmeta.setAccessPolicy(ap);
+                
+                % Get a certificate for the Root CA
+                certificate = CertificateManager.getInstance().loadCertificate();
+                if ~isempty(certificate)
+                    dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
+                    standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
+                else
+                    standardizedName = '';
+                end
+                
+                % Set the submitter (required)
+                submitter = Subject();
+                submitter.setValue(standardizedName);
+                sysmeta.setSubmitter(submitter);
+                sysmeta.setRightsHolder(submitter);
+                
+                % Set the node filelds (required)
+                sysmeta.setOriginMemberNode(mnodeRef);
+                sysmeta.setAuthoritativeMemberNode(mnodeRef);
+                
+                % Make a Java create() call
+                pid = matlab_mn_node.node.create([], obj_pid, data.getInputStream(), sysmeta);
+                
+                % Make a Matlab archive() call
+                pid_value = char(pid.getValue());
+                pid2 = matlab_mn_node.archive([], pid_value);
+                
+                assertEqual(testCase, pid2, pid_value);
+                
+            catch Error
+                rethrow(Error);
+            end
+        end
+        
+        
+        function testGenerateIdentifier(testCase)
+            
+            fprintf('\nIn test Member Node generateIdentifier() ...\n');
+            
+            % Todo: need to implement
         end
     end
     
