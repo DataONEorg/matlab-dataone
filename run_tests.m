@@ -97,15 +97,19 @@ import matlab.unittest.TestSuite;
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigNoDomElement');
 % suite = TestSuite.fromMethod(testCls, 'testGetMetadata');
 
- testCls = ?org.dataone.client.v2.MemberNodeTest;
+% testCls = ?org.dataone.client.v2.MemberNodeTest;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeArchive');
-suite = TestSuite.fromMethod(testCls, 'testGetCapabilities');
+% suite = TestSuite.fromMethod(testCls, 'testGetCapabilities');
 % suite = TestSuite.fromMethod(testCls, 'testPing');
+
+ testCls = ?org.dataone.client.v2.CoordinatingNodeTest;
+% suite = TestSuite.fromMethod(testCls, 'testGetCapabilities');
+ suite = TestSuite.fromMethod(testCls, 'testPing');
 
 run(suite);
 
