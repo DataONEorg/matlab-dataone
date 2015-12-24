@@ -277,7 +277,8 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                         dataObject;
                     runManager.execution.execution_output_ids{end+1} = new_pid;
                 end
-            end          
+            end 
+   
         end
 
         
@@ -391,7 +392,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             % Get the 'count' attribute value. The number of entries in the slice.
             count = objectList.getCount(); 
             
-            % Todo: Get the 'total' attribute value
+            % Get the 'total' attribute value
             total = objectList.getTotal();
         end
         
@@ -426,7 +427,8 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         %
         % end
         
-        function identifier = archive(session, id)
+        
+        function identifier = archive(memberNode, session, id)
             % ARCHIVE Renders the object undiscoverable but available given the id
             %   An archived object is not deleted from the Member Node, but
             %   is rather 'hidden' from searches. It remains available through
@@ -435,21 +437,31 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             %
             %   See https://purl.dataone.org/architecturev2/apis/MN_APIs.html#MNStorage.archive
             
+            import org.dataone.service.types.v1.Identifier;
+            
             identifier = '';
+            
+            obj_pid = Identifier();
+            obj_pid.setValue(id);
+                      
+            returned_identifier = memberNode.node.archive(session, obj_pid); % Make a Java call
             
             % Convert the Java returned identifier to a string
-            
+            identifier = char(returned_identifier.getValue());
         end
         
-        function identifier = generateIdentifier(session, scheme, fragment)
-        % GENERATEIDENTIFIER Generates a unique identifier given the scheme and fragment
-        %
-        %   See MN_APIs.html#MNStorage.generateIdentifier
         
+        function identifier = generateIdentifier(memberNode, session, scheme, fragment)
+            % GENERATEIDENTIFIER Generates a unique identifier given the scheme and fragment
+            %
+            %   See MN_APIs.html#MNStorage.generateIdentifier
+            
             identifier = '';
             
-            % Convert the returned Java identifier to a string
+            returned_identifier = memberNode.node.generateIdentifier(session, scheme, fragment); % Make a Java call
             
+            % Convert the returned Java identifier to a string
+            identifier = char(returned_identifier.getValue());
         end
 
         % function replicated = replicate(session, sysmeta, sourceNode)
