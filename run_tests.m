@@ -33,7 +33,7 @@ warning('off','backtrace');
 import matlab.unittest.TestSuite;
 
 % Use fromPackage
- suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+% suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.configure', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.v2', 'IncludingSubpackages', true);
@@ -103,6 +103,14 @@ import matlab.unittest.TestSuite;
 % suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate');
 % suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
 % suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum');
+% suite = TestSuite.fromMethod(testCls, 'testMNodeArchive');
+% suite = TestSuite.fromMethod(testCls, 'testGetCapabilities');
+% suite = TestSuite.fromMethod(testCls, 'testPing');
+
+ testCls = ?org.dataone.client.v2.CoordinatingNodeTest;
+% suite = TestSuite.fromMethod(testCls, 'testGetCapabilities');
+% suite = TestSuite.fromMethod(testCls, 'testPing');
+suite = TestSuite.fromMethod(testCls, 'testListObjects');
 
 run(suite);
 
