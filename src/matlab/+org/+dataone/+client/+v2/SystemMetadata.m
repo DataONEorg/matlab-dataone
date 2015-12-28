@@ -23,7 +23,7 @@ classdef SystemMetadata < hgsetget
     % SYSTEMMETADATA A class representing DataONE sytem metadata associated
     % with an object.
     
-    properties
+    properties (SetAccess = 'private')
        
         % A serial number maintained by the coordinating node to indicate when changes have occurred
         serialVersion;
@@ -92,9 +92,21 @@ classdef SystemMetadata < hgsetget
         % The backing Java system metadata object
         systemMetadata;
         
+        % The configuration set by the user
+        config;
     end
     
     methods
+        
+        function sysmeta = SystemMetadata()
+        % SYSTEMMETADATA Constructs a new SystemMetadata object
+        
+            % Pull in user-defined configuration options
+            import org.dataone.client.configure.Configuration;
+            sysmeta.config = Configuration.loadConfig('');
+            sysmeta.systemMetadata = org.dataone.service.types.v2.SystemMetadata();
+            
+        end
         
         function sysmeta = set(sysmeta, name, value)
             % Overload the hgsetget set() function to customize setting properties
@@ -103,14 +115,20 @@ classdef SystemMetadata < hgsetget
             
             if strcmp(property, 'serialVersion')
                 % Validate the serialVersion as an integer
-                if mod(value, 1) == 0
-                    sysmeta.serialVersion = value;
-                else
+                if ( ischar(value) )
+                    value = str2num(value); % Ensure we have a number
+                    
+                end
+                
+                if ( ~ mod(value, 1) == 0 )
                     error(['The SystemMetadata.serialVersion property ' ...
                            'must be 0 or a whole positive number.']);
                        
                 end
-                
+                sysmeta.serialVersion = value;
+                import java.math.BigInteger;
+                serialVersionBigInt = BigInteger(num2str(sysmeta.serialVersion));
+                sysmeta.systemMetadata.setSerialVersion(serialVersionBigInt);
             end
 
             if strcmp(property, 'identifier')
@@ -126,12 +144,16 @@ classdef SystemMetadata < hgsetget
                        
                 end
                 
-                if ( value == '' || isempty(value) || isnan(value))
+                if ( isempty(value) || any(isnan(value)))
                     error(['The SystemMetadata.identifier property ' ...
                            'must an 800 character or less string.']);
                     
                 end
                 sysmeta.identifier = value;
+                import org.dataone.service.types.v1.Identifier;
+                obsoletesId = Identifier();
+                obsoletesId.setValue(value);
+                sysmeta.systemMetadata.setIdentifier(obsoletesId);
                 
             end
 
@@ -148,17 +170,29 @@ classdef SystemMetadata < hgsetget
                     
                 end
                 sysmeta.formatId = value;
+                import org.dataone.service.types.v1.ObjectFormatIdentifier;
+                fmtId = ObjectFormatIdentifier();
+                fmtId.setValue(value);
+                sysmeta.systemMetadata.setFormatId(fmtId);
                 
             end
 
             if strcmp(property, 'size')
                 % Validate the size
+                if ( ischar(value) )
+                    value = str2num(value); % Ensure we have a number
+                    
+                end
+                
                 if ( mod(value, 1) ~= 0 )
                     error(['The SystemMetadata.size property ' ...
                            'must be a whole positive number ']);
                     
                 end
                 sysmeta.size = value;
+                import java.math.BigInteger;
+                sizeBigInt = BigInteger(num2str(sysmeta.size));
+                sysmeta.systemMetadata.setSize(sizeBigInt);
                 
             end
 
@@ -171,18 +205,22 @@ classdef SystemMetadata < hgsetget
                            'value and algorithm.']);
                 end
                 
-                if ( ~ strcmp(value.algorithm, 'MD5') || ...
+                if ( ~ strcmp(value.algorithm, 'MD5') && ...
                      ~ strcmp(value.algorithm, 'SHA-1') )
                     error(['The SystemMetadata.checksum.algorithm ' ...
                            'must be either "MD5" or "SHA-1".']);
                        
                 end
-                chksum = value;
-                if ( ~ ischar(chksum.value) )
+                if ( ~ ischar(value.value) )
                     error(['The SystemMetadata.checksum.value ' ...
-                        'must be a valid SHA-1 or MD5 checsum value.']);
+                        'must be a valid SHA-1 or MD5 checksum value.']);
                 end
                 sysmeta.checksum = value;
+                import org.dataone.service.types.v1.Checksum;
+                chksum = Checksum();
+                chksum.setValue(sysmeta.checksum.value);
+                chksum.setAlgorithm(sysmeta.checksum.algorithm);
+                sysmeta.systemMetadata.setChecksum(chksum);
                 
             end
 
@@ -194,34 +232,248 @@ classdef SystemMetadata < hgsetget
                     
                 end
                 sysmeta.submitter = value;
+                import org.dataone.service.types.v1.Subject;
+                subject = Subject();
+                subject.setValue(sysmeta.submitter);
+                sysmeta.systemMetadata.setSubmitter(subject);
                 
             end
 
             if strcmp(property, 'rightsHolder')
                 % Validate the rightsHolder
-                if ( ~ ischar(value) || isempty(value))
+                if ( ~ ischar(value) )
                     error(['The SystemMetadata.rightsHolder property ' ...
                         'must be a string.']);
                     
                 end
-                sysmeta.submitter = value;
+                sysmeta.rightsHolder = value;
+                import org.dataone.service.types.v1.Subject;
+                subject = Subject();
+                subject.setValue(sysmeta.rightsHolder);
+                sysmeta.systemMetadata.setRightsHolder(subject);
+                
             end
 
-            % if strcmp(property, 'accessPolicy')
-            %     
-            % end
+            if strcmp(property, 'accessPolicy')
+                % Validate the access policy
+                msg = ['The SystemMetadata.accessPolicy property ' ...
+                        'must be a struct with a ''rules'' field ' ...
+                        char(10) ...
+                        'that is a containers.Map object. The map ' ...
+                        'must contain a ''subject'' key and a ' ...
+                        char(10) ...
+                        '''permission'' value, both as strings. ' ...
+                        'For example: ' ...
+                        char(10) ...
+                        'accessPolicy.rules = containers.Map' ...
+                        '(''KeyType'', ''char'', ''ValueType'', ''char'');' ...
+                        char(10) ...
+                        'accessPolicy.rules(''public'') = ''read'';' ...
+                        char(10) ...
+                        'set(sysmeta, ''accessPolicy'', accessPolicy);'
+                       ];
+                
+                if ( ~ isstruct(value) ) % must be a struct
+                    error(msg);
+                    
+                end
+                
+                if ( ~ any(ismember('rules', fieldnames(value))) ) % rules field
+                    error(msg);
+                    
+                end
+                
+                if ( ~ isa(value.rules, 'containers.Map') ) % rules map
+                    error(msg);
+                    
+                end
+                
+                sysmeta.accessPolicy = value;
+                import org.dataone.service.types.v1.AccessPolicy;
+                import org.dataone.service.types.v1.AccessRule;
+                import org.dataone.service.types.v1.Permission;
+                import org.dataone.service.types.v1.Subject;
+                policy = AccessPolicy();
+                
+                % Create access rules
+                accessSubjects = keys(sysmeta.accessPolicy.rules);
+                for i = 1:length(accessSubjects)
+                    subj = accessSubjects{i};
+                    subject = Subject();
+                    subject.setValue(subj);
+                    perm = sysmeta.accessPolicy.rules(subj);
+                    % What level of permission do we have?
+                    switch perm
+                        case {'read', 'READ', 'Read'}
+                            permission = Permission.READ;
+                            
+                        case {'write', 'WRITE', 'Write'}
+                            permission = Permission.WRITE;
 
-            %if strcmp(property, 'replicationPolicy')
-            %     
-            %end
+                        case {'changePermission', 'CHANGEPERMISSION', 'ChangePermission'}
+                            permission = Permission.CHANGE_PERMISSION;
+                            
+                        otherwise
+                            error(msg);
+                            
+                    end
+                    accessRule = AccessRule();
+                    accessRule.addSubject(subject);
+                    accessRule.addPermission(permission);
+                    policy.addAllow(accessRule);
+                    
+                end
+                sysmeta.systemMetadata.setAccessPolicy(policy);
+                
+                
+            end
 
-            % if strcmp(property, 'obsoletes')
-            %
-            % end
+            if strcmp(property, 'replicationPolicy')
+                 % Validate the replication policy
+                 msg = ['The SystemMetadata.replicationPolicy property ' ...
+                     'must be a struct with a boolean ''replicationAllowed'' ' ...
+                     char(10) ...
+                     'field and a numberOfReplicas integer field. ' ...
+                     'Other optional fields include the preferredNodes list ' ...
+                     char(10) ...
+                     'and the blockedNodes list, both of which are cell ' ...
+                     'arrays of node identifier strings. ' ...
+                     'For example: ' ...
+                     char(10) ...
+                     'replicationPolicy.replicationAllowed = true;' ...
+                     char(10) ...
+                     'replicationPolicy.numberOfReplicas = 2;' ...
+                     char(10) ...
+                     'replicationPolicy.preferredNodes = {''urn:node:FASTNODE'', ''urn:node:FRIENDNODE''};' ...
+                     char(10) ...
+                     'replicationPolicy.blockedNodes = {''urn:node:SLOWNODE'', ''urn:node:FOENODE''};' ...
+                     char(10) ...
+                     'set(sysmeta, ''replicationPolicy'', replicationPolicy);'
+                     ];
+                
+                 if ( ~ isstruct(value) ) % must be a struct
+                    error(msg);
+                    
+                end
+                
+                if ( ~ any(ismember('replicationAllowed', fieldnames(value))) ) % allowed field
+                    error(msg);
+                    
+                end
+                
+                if ( ~ any(ismember('numberOfReplicas', fieldnames(value))) ) % number field
+                    error(msg);
+                    
+                end
+                
+                if ( any(ismember('preferredNodes', fieldnames(value))) ) % preferred field
+                    if ( ~ iscellstr(value.preferredNodes) ) % cell array of strings
+                        error(msg);
+                    
+                    end
+                                        
+                end
+                
+                if ( any(ismember('blockedNodes', fieldnames(value))) ) % blocked field
+                    if ( ~ iscellstr(value.blockedNodes) ) % cell array of strings
+                        error(msg);
+                    
+                    end
+                                        
+                end
+                sysmeta.replicationPolicy = value;
+                import org.dataone.service.types.v1.ReplicationPolicy;
+                import org.dataone.service.types.v1.NodeReference;
+                import java.lang.Integer;
+                import java.lang.Boolean;
+                
+                if ( ~ isempty(sysmeta.replicationPolicy) )
+                    policy = ReplicationPolicy();
+                    policy.setReplicationAllowed( ...
+                        Boolean(sysmeta.replicationPolicy.replicationAllowed));
+                    policy.setNumberReplicas(Integer( ... 
+                        sysmeta.replicationPolicy.numberOfReplicas));
+                    
+                    % Add any preferred MNs
+                    if ( any(ismember('preferredNodes', ...
+                            fieldnames(sysmeta.replicationPolicy))) )
+                        for i = 1:length(sysmeta.replicationPolicy.preferredNodes)
+                            nodeId = NodeReference();
+                            nodeId.setValue( ...
+                                sysmeta.replicationPolicy.preferredNodes{i});
+                            policy.addPreferredMemberNode(nodeId);
+                            
+                        end
+                    end
+                    
+                    % Add any blocked MNs
+                    if ( any(ismember('blockedNodes', ...
+                            fieldnames(sysmeta.replicationPolicy))) )
+                        for i = 1:length(sysmeta.replicationPolicy.blockedNodes)
+                            nodeId = NodeReference();
+                            nodeId.setValue( ...
+                                sysmeta.replicationPolicy.blockedNodes{i});
+                            policy.addBlockedMemberNode(nodeId);
+                            
+                        end
+                    end
+                    sysmeta.systemMetadata.setReplicationPolicy(policy);
+                    
+                end
 
-            % if strcmp(property, 'obsoletedBy')
-            %
-            % end
+            end
+
+            if strcmp(property, 'obsoletes')
+                % Validate the obsoletes string
+                if ( any(isspace(value)) )
+                    error(['The SystemMetadata.obsoletes property ' ...
+                           'can not contain whitespace characters.']);
+                end
+                
+                if ( length(value) > 800 )
+                    error(['The SystemMetadata.obsoletes property ' ...
+                           'must be less than 800 characters.']);
+                       
+                end
+                
+                if ( isempty(value) || any(isnan(value)))
+                    error(['The SystemMetadata.obsoletes property ' ...
+                           'must an 800 character or less string.']);
+                    
+                end
+                sysmeta.obsoletes = value;
+                import org.dataone.service.types.v1.Identifier;
+                obsoletesId = Identifier();
+                obsoletesId.setValue(sysmeta.obsoletes);
+                sysmeta.systemMetadata.setObsoletes(obsoletesId);
+                
+            end
+
+            if strcmp(property, 'obsoletedBy')
+                % Validate the obsoletedBy string
+                if ( any(isspace(value)) )
+                    error(['The SystemMetadata.obsoletedBy property ' ...
+                           'can not contain whitespace characters.']);
+                end
+                
+                if ( length(value) > 800 )
+                    error(['The SystemMetadata.obsoletedBy property ' ...
+                           'must be less than 800 characters.']);
+                       
+                end
+                
+                if ( isempty(value) || any(isnan(value)))
+                    error(['The SystemMetadata.obsoletedBy property ' ...
+                           'must an 800 character or less string.']);
+                    
+                end
+                sysmeta.obsoletedBy = value;
+                import org.dataone.service.types.v1.Identifier;
+                obsoletedById = Identifier();
+                obsoletedById.setValue(sysmeta.obsoletedBy);
+                sysmeta.systemMetadata.setObsoletes(obsoletedById);
+                
+            end
 
             if strcmp(property, 'archived')
                 % Validate the archived flag
@@ -231,6 +483,8 @@ classdef SystemMetadata < hgsetget
                     
                 end
                 sysmeta.archived = value;
+                import java.lang.Boolean;
+                sysmeta.systemMetadata.setArchived(Boolean(sysmeta.archived));
                 
             end
 
@@ -242,6 +496,12 @@ classdef SystemMetadata < hgsetget
                     
                 end
                 sysmeta.dateUploaded = value;
+                import java.util.Date;
+                millisSinceEpoch = round(86400000 * ... % millis in a day
+                    (datenum(sysmeta.dateUploaded) - ... % datetime to numeric
+                     datenum('1970', 'yyyy'))); % Unix epoch
+                jDate = Date(millisSinceEpoch);
+                sysmeta.systemMetadata.setDateUploaded(jDate);
                 
             end
 
@@ -253,6 +513,13 @@ classdef SystemMetadata < hgsetget
                     
                 end
                 sysmeta.dateSysMetadataModified = value;
+                import java.util.Date;
+                millisSinceEpoch = round(86400000 * ... % millis in a day
+                    (datenum(sysmeta.dateSysMetadataModified) - ... % datetime to numeric
+                     datenum('1970', 'yyyy'))); % Unix epoch
+                jDate = Date(millisSinceEpoch);
+                sysmeta.systemMetadata.setDateSysMetadataModified(jDate);
+                
             end
 
             if strcmp(property, 'originMemberNode')
@@ -268,7 +535,11 @@ classdef SystemMetadata < hgsetget
                     
                 end
                 sysmeta.originMemberNode = value;
-                
+                import org.dataone.service.types.v1.NodeReference;
+                nodeId = NodeReference();
+                nodeId.setValue(sysmeta.originMemberNode);
+                sysmeta.systemMetadata.setOriginMemberNode(nodeId);
+
             end
 
             if strcmp(property, 'authoritativeMemberNode')
@@ -284,6 +555,10 @@ classdef SystemMetadata < hgsetget
                     
                 end
                 sysmeta.authoritativeMemberNode = value;
+                import org.dataone.service.types.v1.NodeReference;
+                nodeId = NodeReference();
+                nodeId.setValue(sysmeta.authoritativeMemberNode);
+                sysmeta.systemMetadata.setAuthoritativeMemberNode(nodeId);
                 
             end
 
@@ -298,30 +573,76 @@ classdef SystemMetadata < hgsetget
                         'must be a string.']);
                 end
                 sysmeta.seriesId = value;
+                import org.dataone.service.types.v1.Identifier;
+                seriesId = Identifier();
+                seriesId.setValue(sysmeta.seriesId);
+                sysmeta.systemMetadata.setSeriesId(seriesId);
                 
             end
 
             if strcmp(property, 'mediaType')
                 % Validate the mediaType property
-                if ( ~ isstruct(value) )
-                    error(['The SystemMetadata.mediaType property ' ...
-                        'must be a struct data type.']);
-                    
-                else
-                    if ( ~ isa(value.properties, 'containers.Map') )
-                        error(['The SystemMetadata.mediaType.properties ' ...
-                            'must be a containers.Map data type.']);
-                    end
-                    if ( strcmp(value.properties.KeyType, 'char') || ...
-                         strcmp(value.properties.ValueType, 'char') )
-                        error(['The SystemMetadata.mediaType.properties field ' ...
-                            char(10) ...
-                            'must have both a KeyType and ValueType of ' ...
-                            '''char''']);
-                    end
-                    sysmeta.mediaType = value;
+                msg = ['The SystemMetadata.mediaType property ' ...
+                        'must be a struct with a ''name'' field. ' ...
+                        char(10) ...
+                        'An optional ''properties'' field can be added ' ...
+                        'that is a containers.Map object. The map ' ...
+                        char(10) ...
+                        'must contain the property name as a key and a ' ...
+                        'property value as a value, both as strings. ' ...
+                        'For example: ' ...
+                        char(10) ...
+                        'mediaType.name = ''text/plain'';' ...
+                        char(10) ...
+                        'mediaType.properties = containers.Map(''KeyType'', ''char'', ''ValueType'', ''char'');' ...
+                        char(10) ...
+                        'mediaType.properties(''my-prop-1'') = ''my-val-1'';' ...
+                        char(10) ...
+                        'mediaType.properties(''my-prop-2'') = ''my-val-2'';' ...
+                        char(10) ...
+                        'set(sysmeta, ''mediaType'', mediaType);' ...
+                       ];
+                
+                if ( ~ isstruct(value) ) % must be a struct
+                    error(msg);
                     
                 end
+                
+                if ( ~ any(ismember('name', fieldnames(value))) ) % name field
+                    error(msg); 
+                end
+                
+                if ( any(ismember('properties', fieldnames(value))) ) % properties field
+                    if ( ~ isa(value.properties, 'containers.Map') ) % properties map
+                        error(msg);
+                    
+                    end
+                    
+                    % must be string name/value pairs
+                    if ( ~ strcmp(value.properties.KeyType, 'char') || ... 
+                         ~ strcmp(value.properties.ValueType, 'char') )
+                        error(msg);
+                        
+                    end
+                end
+                sysmeta.mediaType = value;
+                import org.dataone.service.types.v2.MediaType;
+                import org.dataone.service.types.v2.MediaTypeProperty;
+                mType = MediaType();
+                mType.setName(char(sysmeta.mediaType.name));
+                
+                if ( any(ismember('properties', fieldnames(value))) ) % any properties?
+                    propKeys = keys(sysmeta.mediaType.properties);
+                    for i = 1:length(propKeys)
+                        mTypeProperty = MediaTypeProperty();
+                        mTypeProperty.setName(char(propKeys(i)));
+                        mTypeProperty.setValue( ...
+                            sysmeta.mediaType.properties(char(propKeys(i))));
+                        mType.addProperty(mTypeProperty);
+                    end
+                end
+                
+                sysmeta.systemMetadata.setMediaType(mType);
             end
 
             if strcmp(property, 'fileName')
@@ -331,85 +652,23 @@ classdef SystemMetadata < hgsetget
                         'must be a string.']);
                 end
                 sysmeta.fileName = value;
-            end
-
-            
-        end
-        
-        function sysmeta = SystemMetadata()
-        % SYSTEMMETADATA Constructs a new SystemMetadata object
-        
-            % Pull in user-defined configuration options
-            import org.dataone.client.configure.Configuration;
-            config = Configuration.loadConfig('');
-            
-            % Initialize properties
-            sysmeta.serialVersion = 0;
-            sysmeta.identifier = '';
-            sysmeta.formatId = '';
-            sysmeta.size = NaN;
-            sysmeta.checksum(1).value = '';
-            sysmeta.checksum(1).algorithm = 'SHA-1';
-            sysmeta.submitter = '';
-            sysmeta.rightsHolder = '';
-            sysmeta.accessPolicy(1).subject = '';
-            sysmeta.accessPolicy(1).permission = '';
-            sysmeta.replicationPolicy.replicationAllowed = true;
-            sysmeta.replicationPolicy.numberReplicas = 2;
-            sysmeta.replicationPolicy.preferredNodes = {};
-            sysmeta.replicationPolicy.blockedNodes = {};
-            sysmeta.obsoletes = '';
-            sysmeta.obsoletedBy = '';
-            sysmeta.archived = '';
-            sysmeta.dateUploaded = '';
-            sysmeta.dateSysMetadataModified = '';
-            sysmeta.originMemberNode = '';
-            sysmeta.authoritativeMemberNode = '';
-            % sysmeta.replica = ;
-            sysmeta.seriesId = '';
-            sysmeta.mediaType = '';
-            sysmeta.fileName = '';
-
-            sysmeta.systemMetadata = org.dataone.service.types.v2.SystemMetadata();
-        end
-        
-        function addAccessRule(subject, permission)
-        % ADDACCESSRULE Adds a rule to the access policy for the given subject and permission    
-        
-        end
-        
-        function removeAccessRule(subject, permission)
-        % REMOVEACCESSRULE Removes a rule to from access policy matching the given subject and permission    
-    
-        end
+                sysmeta.systemMetadata.setFileName(sysmeta.fileName);
                 
-        function addPreferredNode(sysmeta, node_id)
-        % ADDPREFERREDNODE Adds a node id to the list of preferred nodes
-        
-        end
-        
-        function removePreferredNode(sysmeta, node_id)
-        % REMOVEPREFERREDNODE Removes a node id from the list of preferred nodes
-        end
-        
-        function addBlockedNode(sysmeta, node_id)
-        % ADDBLOCKEDNODE Adds a node id to the list of blocked nodes
-        
-        end
-        
-        function removeBlockedNode(sysmeta, node_id)
-        % REMOVEBLOCKEDNODE Removes a node id from the list of blocked nodes
-        
             end
-        
-    end
-    
-    methods (Access = 'private')
-        
-        function updateSystemMetadata()
+
+        end
+       
+        function xml = toXML(sysmeta)
+            % TOXML serializes the system metadata to XML
+            import org.dataone.service.util.TypeMarshaller;
+            import java.io.ByteArrayOutputStream;
+            import java.nio.charset.StandardCharsets;
+            baos = ByteArrayOutputStream;
+            TypeMarshaller.marshalTypeToOutputStream(sysmeta.systemMetadata, baos);
+            xml = char(baos.toString(StandardCharsets.UTF_8.toString()));
             
         end
-        
+
     end
     
 end
