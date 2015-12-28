@@ -106,6 +106,83 @@ classdef SystemMetadata < hgsetget
             sysmeta.config = Configuration.loadConfig('');
             sysmeta.systemMetadata = org.dataone.service.types.v2.SystemMetadata();
             
+            if ( ~ isempty(sysmeta.config.target_member_node_id) )
+                % Set the MN value in system metadata
+                set(sysmeta, 'originMemberNode', ...
+                    sysmeta.config.target_member_node_id);
+                set(sysmeta, 'authoritativeMemberNode', ...
+                    sysmeta.config.target_member_node_id);
+                
+            end
+            
+            if ( ~ isempty(sysmeta.config.format_id) )
+                % Set the format id value in system metadata
+                set(sysmeta, 'formatId', sysmeta.config.format_id);
+                
+            end
+            
+            if ( ~ isempty(sysmeta.config.submitter) )
+                % Set the submitter value in system metadata
+                set(sysmeta, 'submitter', sysmeta.config.submitter);
+                
+            end
+            
+            if ( ~ isempty(sysmeta.config.rights_holder) )
+                % Set the rights holder value in system metadata
+                set(sysmeta, 'rightsHolder', sysmeta.config.submitter);
+            end
+            
+            if ( ~ isempty(sysmeta.config.public_read_allowed) )
+                % Set the value in system metadata
+                accessPolicy.rules = ...
+                    containers.Map('KeyType', 'char', 'ValueType', 'char');
+                accessPolicy.rules('public') = 'read';
+                set(sysmeta, 'accessPolicy', accessPolicy);
+                
+            end
+            
+            if ( ~ isempty(sysmeta.config.replication_allowed) && ...
+                 ~ isempty(sysmeta.config.number_of_replicas) && ...
+                 sysmeta.config.replication_allowed )
+                % Set the replication policy value in system metadata
+                replicationPolicy.replicationAllowed = ...
+                    sysmeta.config.replication_allowed;
+                replicationPolicy.numberOfReplicas = ...
+                    sysmeta.config.number_of_replicas;
+                
+                if ( ~ isempty(sysmeta.config.preferred_replica_node_list) && ...
+                        iscellstr(sysmeta.config.preferred_replica_node_list) )
+                    % Set the preferred MN listvalue in system metadata
+                    replicationPolicy.preferredNodes = ...
+                        sysmeta.config.preferred_replica_node_list;
+                    
+                end
+                
+                if ( ~ isempty(sysmeta.config.blocked_replica_node_list) && ...
+                        iscellstr(sysmeta.config.blocked_replica_node_list) )
+                    % Set the value in system metadata
+                    replicationPolicy.blockedNodes = ...
+                        sysmeta.config.blocked_replica_node_list;
+                    
+                end
+                
+                set(sysmeta, 'replicationPolicy', replicationPolicy);
+                
+            end
+                                    
+            if ( ~ isempty(sysmeta.config.certificate_path) )
+                % Set the submitter and rights holder value in system metadata
+                import org.dataone.client.auth.CertificateManager;
+                import javax.servlet.http.HttpServletRequest;
+                
+                x509Cert = CertificateManager.getInstance().loadCertificateFromFile( ...
+                    sysmeta.config.certificate_path);
+                dn = CertificateManager.getInstance().getSubjectDN(x509Cert)
+                set(sysmeta, 'submitter', char(dn));
+                set(sysmeta, 'rightsHolder', char(dn));
+                
+            end
+            
         end
         
         function sysmeta = set(sysmeta, name, value)
@@ -471,7 +548,7 @@ classdef SystemMetadata < hgsetget
                 import org.dataone.service.types.v1.Identifier;
                 obsoletedById = Identifier();
                 obsoletedById.setValue(sysmeta.obsoletedBy);
-                sysmeta.systemMetadata.setObsoletes(obsoletedById);
+                sysmeta.systemMetadata.setObsoletedBy(obsoletedById);
                 
             end
 
