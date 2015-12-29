@@ -36,6 +36,7 @@ classdef SystemMetadataTest < matlab.unittest.TestCase
         end
         
         function testSet(testCase)
+            % TESTSET tests the set() function for correctness
             
             import org.dataone.client.v2.SystemMetadata;
             sysmeta = SystemMetadata();
@@ -133,15 +134,78 @@ classdef SystemMetadataTest < matlab.unittest.TestCase
             
             xml = sysmeta.toXML();
             
-            import org.dataone.service.util.TypeMarshaller;
-            import java.io.ByteArrayInputStream;
-            import java.nio.charset.StandardCharsets;
-            import java.lang.String;
-            
-            jXML = String(xml);
-            bais = ByteArrayInputStream(jXML.getBytes(StandardCharsets.UTF_8));
-            % responseSysMeta = TypeMarshaller.unmarshallTypeFromStream(SystemMetadata, bais);
+            % import org.dataone.service.util.TypeMarshaller;
+            % import java.io.ByteArrayInputStream;
+            % import java.nio.charset.StandardCharsets;
+            % import java.lang.String;
+            %
+            % jXML = String(xml);
+            % bais = ByteArrayInputStream(jXML.getBytes(StandardCharsets.UTF_8));
+            % responseSysMeta = TypeMarshaller.unmarshalTypeFromStream( ...
+            %     org.dataone.service.types.v2.SystemMetadata.class, bais);
             % responseSysMeta.getIdentifier().getValue()
+        end
+        
+        function testFromJavaSysMetaV2(testCase)
+            % TESTFROMJAVASYSMETAV2 tests converting a Java V2 system
+            % metadata object to matlab V2 system metadata.
+            
+            import org.dataone.client.v2.itk.D1Client;
+            import org.dataone.configuration.Settings;
+            import org.dataone.service.types.v1.Session;
+            import org.dataone.service.types.v1.Identifier;
+            import org.dataone.service.types.v1.NodeReference;
+            import org.dataone.client.v2.SystemMetadata;
+            
+            Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                'https://cn-dev-2.test.dataone.org/cn');
+            mn = D1Client.getMN('https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn');
+            
+            session = Session();
+            pid = Identifier();
+            pid.setValue('dv.test.006');
+            j_sysmeta = mn.getSystemMetadata(session, pid);
+            
+            % Enhance the repl policy to test the conversion
+            fast_node = NodeReference();
+            fast_node.setValue('urn:node:FASTNODE');
+
+            slow_node = NodeReference();
+            slow_node.setValue('urn:node:SLOWNODE');
+
+            friend_node = NodeReference();
+            friend_node.setValue('urn:node:FRIENDNODE');
+
+            foe_node = NodeReference();
+            foe_node.setValue('urn:node:FOENODE');
+            
+            repl_policy = j_sysmeta.getReplicationPolicy();
+            repl_policy.addPreferredMemberNode(fast_node);
+            repl_policy.addBlockedMemberNode(slow_node);
+            repl_policy.addPreferredMemberNode(friend_node);
+            repl_policy.addBlockedMemberNode(foe_node);
+
+            j_sysmeta.setReplicationPolicy(repl_policy);
+            
+            % Add a media type for testing
+            import org.dataone.service.types.v2.MediaType;
+            import org.dataone.service.types.v2.MediaTypeProperty;
+            prop_1 = MediaTypeProperty();
+            prop_1.setName('my-prop-1');
+            prop_1.setValue('my-val-1');
+            
+            prop_2 = MediaTypeProperty();
+            prop_2.setName('my-prop-2');
+            prop_2.setValue('my-val-2');
+            
+            media_type = MediaType();
+            media_type.setName('text/plain');
+            media_type.addProperty(prop_1);
+            media_type.addProperty(prop_2);
+            j_sysmeta.setMediaType(media_type);
+            
+            sysmeta = SystemMetadata.fromJavaSysMetaV2(j_sysmeta);
+            
         end
     end
     
