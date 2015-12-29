@@ -134,7 +134,23 @@ classdef DataONENode < hgsetget
                     j_system_metadata = this.node.getSystemMetadata(session, pid);
                     
                 catch baseException
+                    msg = ['The system metadata for the object ' ...
+                        'could not be retrieved because: '];
                     
+                    if ( isa(baseException.ExceptionObject, ...
+                            'org.dataone.service.exceptions.NotFound') )
+                        msg = [msg 'The object with id ''' id ''' couldn''t be found.'];
+                        
+                    elseif ( isa(baseException.ExceptionObject, ...
+                            'org.dataone.service.exceptions.NotAuthorized') )
+                        msg = [msg 'You don''t have permission to access ' ...
+                            'the object with id ''' id '''.'];
+                        
+                    else
+                        msg = [msg baseException.message];
+                        
+                    end
+                    error(msg);
                 end
                 
                 system_metadata = SystemMetadata.fromJavaSysMetaV2( ...
