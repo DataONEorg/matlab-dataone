@@ -53,7 +53,7 @@ classdef DataONEClient < hgsetget
             
             import org.dataone.client.v2.MemberNode;
             url = char(mn.getNodeBaseServiceUrl());
-            memberNode = MemberNode(url);
+            memberNode = MemberNode(node_id);
             memberNode.node = mn;
             
         end
