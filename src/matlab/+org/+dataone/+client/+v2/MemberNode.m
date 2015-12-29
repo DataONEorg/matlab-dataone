@@ -42,7 +42,6 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 
                 import org.dataone.client.configure.Configuration;
                 config = Configuration.loadConfig('');
-                set(config, 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn');
                 
                 import org.dataone.configuration.Settings;
                 Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
