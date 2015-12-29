@@ -74,7 +74,7 @@ classdef SystemMetadata < hgsetget
         authoritativeMemberNode;
         
         % A container field used to repeatedly provide several metadata fields about each object replica that exists
-        replica;
+        replicas;
         
         % An optional, unique Unicode string that identifies an object revision chain
         seriesId;
@@ -747,6 +747,231 @@ classdef SystemMetadata < hgsetget
         end
 
     end
-    
+ 
+    methods (Static)
+        
+        function sysmeta = fromJavaSysMetaV2(systemMetadataV2)
+            % FROMSYSMETAV2 converts a Java SystemMetadata V2 object to Matlab
+            
+            import org.dataone.client.v2.SystemMetadata;
+            sysmeta = SystemMetadata();
+            
+            % Set the serialVersion from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getSerialVersion()) )
+                set(sysmeta, 'serialVersion', ...
+                    systemMetadataV2.getSerialVersion().doubleValue());
+                
+            end
+            
+            % Set the identifier property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getIdentifier()) )
+                set(sysmeta, 'identifier', char(systemMetadataV2.getIdentifier().getValue()));
+                
+            end
+            
+            % Set the formatId property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getFormatId()) )
+                set(sysmeta, 'formatId', ...
+                    char(systemMetadataV2.getFormatId().getValue()));
+                
+            end
+            
+            % Set the size property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getSize()) )
+                set(sysmeta, 'size', systemMetadataV2.getSize().doubleValue());
+                
+            end
+            
+            % Set the checksum property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getChecksum()) )
+                if ( ~ isempty(systemMetadataV2.getChecksum().getValue()) && ...
+                     ~ isempty(systemMetadataV2.getChecksum().getAlgorithm())   )
+                    chksum.value = char(systemMetadataV2.getChecksum().getValue());
+                    chksum.algorithm = char(systemMetadataV2.getChecksum().getAlgorithm());
+                    set(sysmeta, 'checksum', chksum);
+                    
+                end
+            end
+            
+            % Set the submitter property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getSubmitter()) )
+                set(sysmeta, 'submitter', ...
+                    char(systemMetadataV2.getSubmitter().getValue()));
+                
+            end
+            
+            % Set the rightsHolder property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getRightsHolder()) )
+                set(sysmeta, 'rightsHolder', ...
+                    char(systemMetadataV2.getRightsHolder().getValue()));
+                
+            end
+            
+            % Set the accessPolicy property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getAccessPolicy()) )
+                
+                % The map used to store the access policy rules in matlab
+                mAccessPolicy.rules = containers.Map('KeyType', 'char', 'ValueType', 'char');
+                
+                jPolicy = systemMetadataV2.getAccessPolicy();
+                if ( double(jPolicy.sizeAllowList()) > 0 )
+                    % For each access rule
+                    for i = 0:double(jPolicy.sizeAllowList() - 1)
+                        jRule = jPolicy.getAllow(i);
+                        
+                        % For each subject in the rule
+                        for j = 0:double(jRule.sizeSubjectList() - 1)
+                            subj = char(jRule.getSubject(j).getValue());
+                            
+                            % For each permission in the rule
+                            for k = 0:double(jRule.sizePermissionList() - 1)
+                                perm = char(jRule.getPermission(k));
+                                
+                                % Populate the Matlab access policy rules map
+                                mAccessPolicy.rules(subj) = perm;
+                                
+                            end
+                        end
+                    end
+                end
+                set(sysmeta, 'accessPolicy', mAccessPolicy);
+            
+            end
+            
+            % Set the accessPolicy from the Java SystemMetadata V2 object
+            replPolicy = systemMetadataV2.getReplicationPolicy();
+            if ( ~ isempty(replPolicy) )
+                
+                % Replicas allowed?
+                if ( ~ isempty(replPolicy().getReplicationAllowed()) )
+                    replicationPolicy.replicationAllowed = ...
+                        replPolicy().getReplicationAllowed().booleanValue();
+
+                end
+                
+                % How many?
+                if ( ~ isempty(replPolicy().getNumberReplicas()) )
+                    replicationPolicy.numberOfReplicas  = ...
+                        replPolicy().getNumberReplicas().intValue();
+                    
+                end
+                
+                % Any preferred nodes?
+                if ( replPolicy().sizePreferredMemberNodeList() > 0 )
+                    for i = 0:replPolicy().sizePreferredMemberNodeList() - 1
+                        node_id = char(replPolicy.getPreferredMemberNode(i).getValue);
+                        replicationPolicy.preferredNodes{i + 1} = node_id;
+                        
+                    end
+                end
+                
+                % Any blocked nodes?
+                if ( replPolicy().sizeBlockedMemberNodeList() > 0 )
+                    for i = 0:replPolicy().sizeBlockedMemberNodeList() - 1
+                        node_id = char(replPolicy.getBlockedMemberNode(i).getValue);
+                        replicationPolicy.blockedNodes{i + 1} = node_id;
+                        
+                    end
+                end
+                set(sysmeta, 'replicationPolicy', replicationPolicy);
+
+            end
+            
+            
+            % Set the obsoletes property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getObsoletes()) )
+                set(sysmeta, 'obsoletes', ....
+                    char(systemMetadataV2.getObsoletes().getValue()));
+                
+            end
+            
+            % Set the obsoletedBy property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getObsoletedBy()) )
+                set(sysmeta, 'obsoletedBy', ...
+                    char(systemMetadataV2.getObsoletedBy().getValue()));
+                
+            end
+            
+            % Set the archived property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getArchived()) )
+                set(sysmeta, 'archived', ...
+                    systemMetadataV2.getArchived().booleanValue());
+                
+            end
+            
+            % Set the dateUploaded property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getDateUploaded()) )
+                j_formatter = java.text.SimpleDateFormat('yyyy-MM-dd HH:mm:ss.SSSZ');
+                j_formatter.setTimeZone(java.util.TimeZone.getTimeZone('UTC'));
+                date_uploaded_str = ...
+                    char(j_formatter.format(systemMetadataV2.getDateUploaded()));
+                date_uploaded = datetime( ...
+                    date_uploaded_str, ...
+                    'TimeZone', 'UTC', ...
+                    'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSSZ');
+                set(sysmeta, 'dateUploaded', date_uploaded);
+            end
+            
+            % Set the dateSysMetadataModified property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getDateSysMetadataModified()) )
+                j_formatter = java.text.SimpleDateFormat('yyyy-MM-dd HH:mm:ss.SSSZ');
+                j_formatter.setTimeZone(java.util.TimeZone.getTimeZone('UTC'));
+                date_modified_str = ...
+                    char(j_formatter.format(systemMetadataV2.getDateSysMetadataModified()));
+                date_modified = datetime( ...
+                    date_modified_str, ...
+                    'TimeZone', 'UTC', ...
+                    'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSSZ');
+                set(sysmeta, 'dateSysMetadataModified', date_modified);
+            end
+            
+            % Set the originMemberNode property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getOriginMemberNode()) )
+                set(sysmeta, 'originMemberNode', ...
+                    char(systemMetadataV2.getOriginMemberNode().getValue()));
+            end
+            
+            % Set the authoritativeMemberNode property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getAuthoritativeMemberNode()) )
+                set(sysmeta, 'authoritativeMemberNode', ...
+                    char(systemMetadataV2.getAuthoritativeMemberNode().getValue()));
+            end
+                        
+            % Set the replica property from the Java SystemMetadata V2 object
+            % set(sysmeta, 'replica', char(systemMetadataV2.getSerialVersion));
+            
+            % Set the seriesId property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getSeriesId()) )
+                set(sysmeta, 'seriesId', char(systemMetadataV2.getSeriesId()));
+                
+            end
+            
+            % Set the mediaType property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getMediaType()) )
+                j_media_type = systemMetadataV2.getMediaType();
+                mediaType.name = char(j_media_type.getName());
+                
+                % Any media type properties?
+                if ( j_media_type.sizePropertyList() > 0 )
+                    mediaType.properties = ...
+                        containers.Map('KeyType', 'char', 'ValueType', 'char');
+                    for i = 0:j_media_type.sizePropertyList() - 1
+                        prop_name = char(j_media_type.getProperty(i).getName());
+                        prop_value = char(j_media_type.getProperty(i).getValue());
+                        mediaType.properties(prop_name) = prop_value;
+                    end
+                end
+                set(sysmeta, 'mediaType', mediaType);
+                
+            end
+            
+            % Set the fileName property from the Java SystemMetadata V2 object
+            if ( ~ isempty(systemMetadataV2.getFileName()) )
+                set(sysmeta, 'fileName', char(systemMetadataV2.getFileName()));
+                
+            end
+            
+        end
+    end
 end
 
