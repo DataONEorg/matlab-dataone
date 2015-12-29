@@ -116,13 +116,30 @@ classdef DataONENode < hgsetget
             
         end
 
-        function system_metadata = getSystemMetadata(session, id)
+        function system_metadata = getSystemMetadata(this, session, id)
         % GETSYSTEMMETADATA Returns the DataONE system metadata for the
-        % given object identifier as an XML string
+        % given object identifier
         
-            system_metadata = '';
+            import org.dataone.client.v2.SystemMetadata;
+            import org.dataone.service.types.v1.Identifier;
+            pid = Identifier();
+            pid.setValue(id);
+            % session = this.getSession();
+            system_metadata = SystemMetadata();
             
-            % Serialize the Java SystemMetadata object to XML and return it
+            % Convert the Java SystemMetadata object to a 
+            % Matlab SystemMetadata object
+            if ( ~ isempty(this.node) )
+                try
+                    j_system_metadata = this.node.getSystemMetadata(session, pid);
+                    
+                catch baseException
+                    
+                end
+                
+                system_metadata = SystemMetadata.fromJavaSysMetaV2( ...
+                    j_system_metadata);
+            end
             
         end
 
@@ -152,7 +169,7 @@ classdef DataONENode < hgsetget
             description(1).checksumAlgorithm = '';
             description(1).serialVersion = NaN;
         
-            % Convert the Java DescribeResponse into the structured aray
+            % Convert the Java DescribeResponse into the structured array
             
         end
     
@@ -169,7 +186,32 @@ classdef DataONENode < hgsetget
 
     end
     
-    methods (Access = 'private')
+    methods (Access = 'protected')
         
+        function session = getSession()
+            % GETSESSION returns a DataONE Java Session object using
+            % Configuration settings
+            import org.dataone.client.auth.CertificateManager;
+            import java.security.cert.X509Certificate;
+            import org.dataone.service.types.v1.Session;
+            
+            session = Session(); % start an empty session by default
+
+            % Get an authentication token or X509 certificate
+            config = Configuration.loadConfig('');
+            auth_token = config.get('authentication_token');
+            cert_path = config.get('certificate_path');
+                        
+            % Use auth tokens preferentially
+            if ( ~isempty(auth_token) )
+                import org.dataone.client.auth.AuthTokenSession;
+                session = AuthTokenSession(auth_token);
+                
+            % Otherwise use the X509 certificate
+            elseif ( ~ isempty(cert_path) )
+                CertificateManager.getInstance().setCertificateLocation(cert_path);
+                
+            end
+        end
     end
 end
