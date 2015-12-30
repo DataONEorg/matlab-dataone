@@ -130,8 +130,9 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             pid.setValue(obj_pid);
             item = matlab_mn_node.get([], pid);
             
+            item_size = matlab_mn_node.getSystemMetadata([], char(obj_pid)).size;
             % Verify if get() call is successful
-            assert(~isempty(item));
+            assertEqual(testCase, length(item), item_size);
             
             % Verify if the execution_input_ids contains one pid
             size = length(testCase.mgr.execution.execution_input_ids);
