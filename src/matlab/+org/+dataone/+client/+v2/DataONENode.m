@@ -234,7 +234,7 @@ classdef DataONENode < hgsetget
         %
         % end
         
-        function description = describe(session, id)
+        function description = describe(self, session, id)
         % DESCRIBE Returns a limited description of the object 
         %   Given the identifier, return a struct with minimal metadata
         %   about the object, including:
@@ -245,15 +245,29 @@ classdef DataONENode < hgsetget
         %   description.serialVersion
         %
         % See https://purl.dataone.org/architecturev2/apis/Types.html#Types.DescribeResponse
-        
-            description(1).formatId = '';
-            description(1).contentLength = NaN;
-            description(1).lastModified = '';
-            description(1).checksum = '';
-            description(1).checksumAlgorithm = '';
-            description(1).serialVersion = NaN;
-        
+                
             % Convert the Java DescribeResponse into the structured array
+            import org.dataone.service.types.v1.DescribeResponse;
+            import org.dataone.service.types.v1.Identifier;
+            pid = Identifier();
+            pid.setValue(id);
+            describe_response = self.node.describe(session, pid);
+            description.contentLength = ...
+                describe_response.getContent_Length().doubleValue();
+            description.formatId = ...
+                char(describe_response.getDataONE_ObjectFormatIdentifier().getValue());
+            
+            j_formatter = java.text.SimpleDateFormat('yyyy-MM-dd''T''HH:mm:ss.SSSZ');
+            j_formatter.setTimeZone(java.util.TimeZone.getTimeZone('UTC'));
+            description.lastModified = ...
+                char(j_formatter.format(describe_response.getLast_Modified()));
+            
+            description.checksum = ...
+                char(describe_response.getDataONE_Checksum().getValue());
+            description.checksumAlgorithm = ...
+                char(describe_response.getDataONE_Checksum().getAlgorithm());
+            description.serialVersion = ...
+                describe_response.getSerialVersion().doubleValue();
             
         end
     
