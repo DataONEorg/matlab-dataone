@@ -666,6 +666,13 @@ classdef SystemMetadata < hgsetget
             
         end
 
+        function java_system_metadata = toJavaSysMetaV2(sysmeta)
+            % Returns the system metadata as a Java SystemMetadata V2
+            % object
+            
+            java_system_metadata = sysmeta.systemMetadata;
+            
+        end
     end
  
     methods (Static)
@@ -892,6 +899,7 @@ classdef SystemMetadata < hgsetget
             end
             
         end
+        
     end
     
     methods (Access = 'private')
