@@ -106,17 +106,85 @@ classdef DataONENode < hgsetget
             node = char(baos.toString());
         end
         
-        function object = get(session, id)
-        % GET Returns the bytes of the object as a uint8 array
-        
-            object = zeros(1,1, 'uint8');
+        function object  = get(self, session, pid)        
+            % GET Returns the bytes of the object as a uint8 array
+
+            import org.dataone.client.v2.impl.MultipartMNode;
+            import org.dataone.client.run.RunManager;
+            import org.dataone.service.types.v2.SystemMetadata;
+            import org.apache.commons.io.IOUtils;
+            import java.io.File;
+            import java.io.FileInputStream;
+            import org.apache.commons.io.FileUtils;
             
-            % Convert the bytes from the Java InputStream and add them to
-            % the object array
+            runManager = RunManager.getInstance();
+            
+            if ( runManager.configuration.debug )
+                disp('Called the Java version of DataONENode.get().');
+            end
+
+            % Call the Java function with the same name to retrieve the
+            % DataONE object and get system metadata for this d1 object.
+            % The formatId information is obtained from the system metadata
+            inputStream = self.node.get(session, pid);  
+            
+            sysMetaData = self.node.getSystemMetadata(session, pid);
+            formatId = sysMetaData.getFormatId().getValue();
+            
+            % Get filename from d1 object system metadata; otherwise, 
+            % a UUID string is used as the filename of the local copy of the d1 object
+            d1FileName = sysMetaData.getFileName();
+            if isempty(d1FileName)
+                d1FileName = char(java.util.UUID.randomUUID());
+                
+            end
+            
+            % Create a local copy for the d1 object under the execution
+            % directory
+            [path, name, ext] = fileparts(char(d1FileName));
+            obj_name = [name ext];
+            d1FileFullPath = ...
+                fullfile(runManager.configuration.provenance_storage_directory, ...
+                'runs', runManager.execution.execution_id, obj_name);
+            targetFile = File(d1FileFullPath);
+            FileUtils.copyInputStreamToFile(inputStream, targetFile);          
+            object = uint8(FileUtils.readFileToByteArray(targetFile)); % Return the byte array
+            
+            % Identify the DataObject being used and add a prov:used statement
+            % in the RunManager DataPackage instance            
+            if ( runManager.configuration.capture_file_reads )
+                % Record the full path to the local copy of the downloaded object
+                % that will eventually be added to the resource map
+                
+                import org.dataone.client.v2.DataObject;
+  
+                existing_id = runManager.execution.getIdByFullFilePath( ...
+                     d1FileFullPath );
+                                
+                if ( isempty(existing_id) )
+                    % Add this object to the execution objects map
+                    dataObject = ...
+                        DataObject(char(pid.getValue()), formatId, d1FileFullPath);
+                    % Set the system metadata downloaded from the given
+                    % mnode for the current dataObject
+                    set(dataObject, 'system_metadata', sysMetaData);
+                    runManager.execution.execution_objects(dataObject.identifier) = ...
+                        dataObject;
+                     runManager.execution.execution_input_ids{end + 1} = ...
+                         char(pid.getValue());
+                     
+                else
+                    % Update the existing map entry with a new DataObject
+                    pid = existing_id;
+                    dataObject = DataObject(pid, formatId, d1FileFullPath);
+                    runManager.execution.execution_objects(dataObject.identifier) = ...
+                        dataObject;
+                end               
+            end
             
         end
-
-        function system_metadata = getSystemMetadata(this, session, id)
+        
+        function system_metadata = getSystemMetadata(self, session, id)
         % GETSYSTEMMETADATA Returns the DataONE system metadata for the
         % given object identifier
         
@@ -129,9 +197,9 @@ classdef DataONENode < hgsetget
             
             % Convert the Java SystemMetadata object to a 
             % Matlab SystemMetadata object
-            if ( ~ isempty(this.node) )
+            if ( ~ isempty(self.node) )
                 try
-                    j_system_metadata = this.node.getSystemMetadata(session, pid);
+                    j_system_metadata = self.node.getSystemMetadata(session, pid);
                     
                 catch baseException
                     msg = ['The system metadata for the object ' ...

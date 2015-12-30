@@ -28,11 +28,11 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 
     end
     
-    methods % class methods (function and operator definitions)    
+    methods 
         
         function memberNode = MemberNode(mnode_id) % class constructor method
-            % MNODE Constructs an MNode object instance with the given
-            % member node base url
+            % MEMBERNODE Constructs an MemberNode object instance with the given
+            % member node identifier
             
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.client.v2.impl.MultipartMNode;
@@ -58,86 +58,9 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             end
         end
         
-        function getMN(memberNode, mnBaseUrl)
-            % GETMN Returns a Member Node using the base service URL for the node 
-        end
-  
-        function targetStream  = get(memberNode, session, pid)
-            % GET Get a D1Objet instance with the givien identifier from
-            % the given member node
-            
-            import org.dataone.client.v2.impl.MultipartMNode;
-            import org.dataone.client.run.RunManager;
-            import org.dataone.service.types.v2.SystemMetadata;
-            import org.apache.commons.io.IOUtils;
-            import java.io.File;
-            import java.io.FileInputStream;
-            import org.apache.commons.io.FileUtils;
-            
-            runManager = RunManager.getInstance();
-            
-            if ( runManager.configuration.debug )
-                disp('Called the java version mnode.get() wrapper function.');
-            end
-
-            % Call the Java function with the same name to retrieve the
-            % DataONE object and get system metadata for this d1 object.
-            % The formatId information is obtained from the system metadata
-            inputStream = memberNode.node.get(session, pid);  
-            
-            sysMetaData = memberNode.node.getSystemMetadata(session, pid);
-            formatId = sysMetaData.getFormatId().getValue;
-            
-            % Get filename from d1 object system metadata; otherwise, 
-            % a UUID string is used as the filename of the local copy of the d1 object
-            d1FileName = sysMetaData.getFileName;
-            if isempty(d1FileName)
-                d1FileName = char(java.util.UUID.randomUUID());
-            end
-            
-            % Create a local copy for the d1 object under the execution
-            % directory
-            [path, name, ext] = fileparts(char(d1FileName));
-            obj_name = [name ext];
-            d1FileFullPath = fullfile(runManager.configuration.provenance_storage_directory, 'runs', runManager.execution.execution_id, obj_name);
-            targetFile = File(d1FileFullPath);
-            FileUtils.copyInputStreamToFile(inputStream, targetFile);          
-            targetStream = FileInputStream(targetFile); % Return an inputStream as results
-       
-            % Identifiy the DataObject being used and add a prov:used statement
-            % in the RunManager DataPackage instance            
-            if ( runManager.configuration.capture_file_reads )
-                % Record the full path to the local copy of the downloaded object
-                % that will eventually be added to the resource map
-                
-                import org.dataone.client.v2.DataObject;
-  
-                existing_id = runManager.execution.getIdByFullFilePath( ...
-                     d1FileFullPath );
-                                
-                if ( isempty(existing_id) )
-                    % Add this object to the execution objects map
-                    dataObject = DataObject(char(pid.getValue()), formatId, d1FileFullPath);
-                    % Set the system metadata downloaded from the given
-                    % mnode for the current dataObject
-                    set(dataObject, 'system_metadata', sysMetaData);
-                    runManager.execution.execution_objects(dataObject.identifier) = ...
-                        dataObject;
-                     runManager.execution.execution_input_ids{end+1} = char(pid.getValue());
-                else
-                    % Update the existing map entry with a new DataObject
-                    pid = existing_id;
-                    dataObject = DataObject(pid, formatId, d1FileFullPath);
-                    runManager.execution.execution_objects(dataObject.identifier) = ...
-                        dataObject;
-                end               
-            end
-            
-        end
-        
-        function identifier = create(memberNode, session, pid_obj, objectInputStream, sysmeta)
-            % CREATE Creates a D1Objet instance with the given identifier
-            % at the given member node
+        function identifier = create(memberNode, session, ...
+                 pid_obj, objectInputStream, sysmeta)
+            % CREATE Creates an object with the given identifier at the given member node
             
             import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
@@ -205,10 +128,9 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
 
         end
         
-        function identifier = update(memberNode, session, pid, objectInputStream, newPid, sysmeta)
-            % UPDATE Updates a D1Objet instance with a new identifier
-            % at the given member node. The last three parameters have new
-            % information
+        function identifier = update(memberNode, session, pid, ...
+                objectInputStream, newPid, sysmeta)
+            % UPDATE Updates an object with a new identifier at the given member node.
             
             import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
@@ -280,7 +202,6 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
    
         end
 
-        
         function [checksum, checksumAlgorithm] = getChecksum(memberNode, session, ...
                 pid, checksumAlgorithm)
             % GETCHECKSUM Returns the checksum of the object given the algorithm
@@ -302,8 +223,8 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             checksumAlgorithm = char(objCheckSum.getAlgorithm());
         end
         
-        
-        function [objects, start, count, total] = listObjects(memberNode, session, fromDate, toDate, ...
+        function [objects, start, count, total] = ...
+                listObjects(memberNode, session, fromDate, toDate, ...
                 formatid, identifier, replicaStatus, start, count)
             % LISTOBJECTS Returns the list of objects from the node
             %   Filter the returned list with the fromDate, toDate, formatId,
@@ -395,16 +316,15 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             total = objectList.getTotal();
         end
         
-        
         % function failed = synchronizationFailed(session, message)
         %
-        %   TODO: Won't implement
+        %   TODO: Won't implement, not a client API method
         %
         % end
 
         % function object = getReplica(session, pid)
         %
-        %   TODO: Won't implement
+        %   TODO: Won't implement, not a client API method
         %
         % end
 
@@ -422,10 +342,9 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         % function identifier = delete(session, id)
         % DELETE removes the object from the Member Node
         %
-        % TODO: Won't implement administrative method? (use archive)
+        %   TODO: Won't implement, not a client API method (use archive)
         %
         % end
-        
         
         function identifier = archive(memberNode, session, id)
             % ARCHIVE Renders the object undiscoverable but available given the id
@@ -449,7 +368,6 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             identifier = char(returned_identifier.getValue());
         end
         
-        
         function identifier = generateIdentifier(memberNode, session, scheme, fragment)
             % GENERATEIDENTIFIER Generates a unique identifier given the scheme and fragment
             %
@@ -465,7 +383,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
 
         % function replicated = replicate(session, sysmeta, sourceNode)
         % 
-        % TODO: Won't implement (is a CN admin function)
+        %   TODO: Won't implement, not a client API method (is a CN admin function)
         %
         % end
 
