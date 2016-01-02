@@ -37,11 +37,13 @@ classdef Session < hgsetget
         account_subject;
         
         % The expiration date and time of the authentication token or certificate
-        expiration;
+        expiration_date;
                
         % The type of session (authentication token or X509 certificate)
-        session_type;
+        type;
         
+        % The status of the session, either 'valid' or 'expired'
+        status;
         
     end
 
@@ -82,11 +84,22 @@ classdef Session < hgsetget
                                 ) ...
                             ), token_properties.ttl, 'millisecond');
                         
-                    session.expiration = ...
-                        datestr(expires, 'yyyy-MM-dd HH:mm z');
-                    
-                    session.session_type = 'authentication token';
-                    
+                        session.expiration_date = ...
+                            datetime(expires, ...
+                            'ConvertFrom', 'datenum', ...
+                            'TimeZone', 'UTC', ...
+                            'Format', 'yyyy-MM-dd hh:mm a ZZZZ');
+                        
+                        session.type = 'authentication token';
+                        
+                        if ( session.isValid() )
+                            session.status = 'valid';
+                            
+                        else
+                            session.status = 'expired';
+                            
+                        end
+                        
                 catch parseException
                     disp('There was a problem parsing the authentication token: ');
                     
@@ -99,17 +112,24 @@ classdef Session < hgsetget
             elseif ( ~ isempty(cert_path) )
                 CertificateManager.getInstance().setCertificateLocation(cert_path);
                 cert = CertificateManager.getInstance().loadCertificate();
-                formatter = java.text.SimpleDateFormat('yyyy-MM-dd HH:MM z');
-                session.expiration = char( ...
+                formatter = java.text.SimpleDateFormat('yyyy-MM-dd HH:MM a ZZZZ');
+                session.expiration_date = char( ...
                     formatter.format(cert.getNotAfter()));
                 
-                session.session_type = 'X509 certificate';
+                session.type = 'X509 certificate';
                 
                 subjectDN = CertificateManager.getInstance().getSubjectDN(cert);
                 session.account_subject = char( ...
                     CertificateManager.getInstance().standardizeDN( ...
                     subjectDN));
                 
+                if ( self.isValid() )
+                    session.status = 'valid';
+                    
+                else
+                    session.status = 'expired';
+                    
+                end
             end
         end
         
@@ -121,10 +141,7 @@ classdef Session < hgsetget
             % Compare the current time with the expiration date
             current_datetime = datetime('now', 'TimeZone', 'UTC');
             
-            expiry_datetime = datetime(self.expiration, ...
-                'TimeZone', 'local', 'InputFormat', 'yyyy-MM-dd HH:mm z');
-            
-            if ( current_datetime < expiry_datetime)
+            if ( current_datetime < self.expiration_date)
                 is_valid = true;
                 
             end
