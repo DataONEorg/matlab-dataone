@@ -282,34 +282,5 @@ classdef DataONENode < hgsetget
     
         end
 
-    end
-    
-    methods (Access = 'protected')
-        
-        function session = getSession()
-            % GETSESSION returns a DataONE Java Session object using
-            % Configuration settings
-            import org.dataone.client.auth.CertificateManager;
-            import java.security.cert.X509Certificate;
-            import org.dataone.service.types.v1.Session;
-            
-            session = Session(); % start an empty session by default
-
-            % Get an authentication token or X509 certificate
-            config = Configuration.loadConfig('');
-            auth_token = config.get('authentication_token');
-            cert_path = config.get('certificate_path');
-                        
-            % Use auth tokens preferentially
-            if ( ~isempty(auth_token) )
-                import org.dataone.client.auth.AuthTokenSession;
-                session = AuthTokenSession(auth_token);
-                
-            % Otherwise use the X509 certificate
-            elseif ( ~ isempty(cert_path) )
-                CertificateManager.getInstance().setCertificateLocation(cert_path);
-                
-            end
-        end
-    end
+    end   
 end
