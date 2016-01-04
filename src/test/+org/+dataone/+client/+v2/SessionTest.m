@@ -89,10 +89,6 @@ classdef SessionTest < matlab.unittest.TestCase
             known_type = 'authentication token';
             known_status = 'expired';
             
-            format long;
-            disp(datenum(known_expire_datenum));
-            disp(datenum(actual_expire_datenum));
-            
             assertEqual(testCase, known_subject, session.account_subject);
             assertEqual(testCase, known_expire_datenum, actual_expire_datenum);
             assertEqual(testCase, known_type, session.type);
