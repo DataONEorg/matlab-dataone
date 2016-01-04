@@ -88,7 +88,7 @@ classdef Session < hgsetget
                             datetime(expires, ...
                             'ConvertFrom', 'datenum', ...
                             'TimeZone', 'UTC', ...
-                            'Format', 'yyyy-MM-dd hh:mm a ZZZZ');
+                            'Format', 'dd-MMM-yyyy HH:mm:ss ZZZZ');
                         
                         session.type = 'authentication token';
                         
@@ -112,7 +112,7 @@ classdef Session < hgsetget
             elseif ( ~ isempty(cert_path) )
                 CertificateManager.getInstance().setCertificateLocation(cert_path);
                 cert = CertificateManager.getInstance().loadCertificate();
-                formatter = java.text.SimpleDateFormat('yyyy-MM-dd HH:MM a ZZZZ');
+                formatter = java.text.SimpleDateFormat('dd-MMM-yyyy HH:mm:ss ZZZZ');
                 session.expiration_date = char( ...
                     formatter.format(cert.getNotAfter()));
                 
@@ -123,7 +123,7 @@ classdef Session < hgsetget
                     CertificateManager.getInstance().standardizeDN( ...
                     subjectDN));
                 
-                if ( self.isValid() )
+                if ( session.isValid() )
                     session.status = 'valid';
                     
                 else
@@ -140,8 +140,11 @@ classdef Session < hgsetget
             
             % Compare the current time with the expiration date
             current_datetime = datetime('now', 'TimeZone', 'UTC');
-            
-            if ( current_datetime < self.expiration_date)
+            expiration_datetime = datetime(self.expiration_date, ...
+                'ConvertFrom', 'datetime', ...
+                'TimeZone', 'local', ...
+                'InputFormat', 'dd-MMM-yyyy HH:mm:ss ZZZZ');
+            if ( current_datetime < expiration_datetime)
                 is_valid = true;
                 
             end
