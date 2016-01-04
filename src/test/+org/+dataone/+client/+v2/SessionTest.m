@@ -246,6 +246,9 @@ classdef SessionTest < matlab.unittest.TestCase
             set(config, 'authentication_token', saved_authentication_token);
             set(config, 'certificate_path', saved_certificate_path);
             delete(fullfile(tempdir, 'test-cert-session.pem'));
+            upath = userpath;
+            userdir = upath(1:end - 1);
+            delete(fullfile(userdir, '.d1-auth-token-notified.txt'));
         end
     end
     

@@ -127,6 +127,7 @@ classdef Configuration < hgsetget & dynamicprops
         debug = false; 
     end
  
+    
     methods (Static)
         
         function configuration = loadConfig(filename)
@@ -341,15 +342,15 @@ classdef Configuration < hgsetget & dynamicprops
             end
             
             if strcmp(paraName, 'authentication_token')
-                warning('off','backtrace')
-                warning('Configuration:SecurityReminder', ...
-                    ['Your authentication token has been set in your configuration file. \n' ...
-                    'Please be careful to safeguard this token.\n' ...
-                    'Anyone with access to it can call operations as you. \n' ...
-                    'Be careful to not add this token to any published scripts, \n' ...
-                    'but rather set it only using a command prompt. This \n' ...
-                    'token will expire at {add the expiration time from the token here}.\n' ...
-                    'Please log in again and set the token again after it expires.']);
+                
+                % Set the auth token, then notify the user on the first 
+                % use of the authentication token
+                configuration.(paraName) = value;
+                configuration.saveConfig();
+                if ( ~ isempty(configuration.authentication_token) )
+                    notified = configuration.notify();
+                    
+                end
             end
             
             % Set value of a field
@@ -442,6 +443,41 @@ classdef Configuration < hgsetget & dynamicprops
                 end
                 fprintf(format, propName, propValue);
                 propName = ''; propValue = '';
+            end
+        end
+        
+        function notified = notify(configuration)
+            % NOTIFY notifies the user about cached authentication token values
+            
+            notified = false;
+            
+            % Check for the existence of the notice file
+            upath = userpath;
+            userdir = upath(1:end - 1);
+            
+            if ( exist(fullfile(userdir, '.d1-auth-token-notified.txt'), 'file') == 2 )
+                notified = true;
+                
+            else
+                import org.dataone.client.v2.Session;
+                session = Session();
+                
+                warning('off','backtrace')
+                warning('Configuration:SecurityReminder', ...
+                    ['Your authentication token has been set in your configuration file. \n' ...
+                    'Please be careful to safeguard this token.\n' ...
+                    'Anyone with access to it can call operations as you. \n' ...
+                    'Be careful to not add this token to any published scripts, \n' ...
+                    'but rather set it only using a command prompt. This \n' ...
+                    'token will expire at ' ...
+                    char(session.expiration_date) ...
+                    '.\n' ...
+                    'Please log in again and set the token again after it expires.']);
+                
+                % Create the file
+                fileId = fopen(fullfile(userdir, '.d1-auth-token-notified.txt'), 'w');
+                fwrite(fileId, 'notified=true');
+                fclose(fileId);
             end
         end
     end
@@ -579,8 +615,7 @@ classdef Configuration < hgsetget & dynamicprops
             
             configuration.science_metadata_config = sciMetaConfig;
         end
-        
-        
+               
         function createConfigurationDirectory(configuration)
         % CREATECONFIGURATIONDIRECTORY creates the DataONE configuration directory
         
@@ -680,5 +715,6 @@ classdef Configuration < hgsetget & dynamicprops
 
             end
         end
+        
     end
 end

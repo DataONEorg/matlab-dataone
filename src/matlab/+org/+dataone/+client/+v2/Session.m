@@ -101,9 +101,14 @@ classdef Session < hgsetget
                         end
                         
                 catch parseException
-                    disp('There was a problem parsing the authentication token: ');
+                    error([char(10) ...
+                        'There was a problem parsing the authentication token: ' ...
+                        char(10) ...
+                        auth_token ...
+                        char(10) ...
+                        ' Please ensure your authentication token is correct.']);
                     
-                    rethrow(parseException);
+                    % rethrow(parseException);
                     
                 end
                 j_session = AuthTokenSession(auth_token);
