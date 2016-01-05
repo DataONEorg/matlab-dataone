@@ -107,7 +107,7 @@ classdef DataONENode < hgsetget
         end
         
         function object  = get(self, session, pid)        
-            % GET Returns the bytes of the object as a uint8 array
+            % GET Returns the bytes of the object as a int8 array
 
             import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
@@ -148,7 +148,7 @@ classdef DataONENode < hgsetget
                 'runs', runManager.execution.execution_id, obj_name);
             targetFile = File(d1FileFullPath);
             FileUtils.copyInputStreamToFile(inputStream, targetFile);          
-            object = uint8(FileUtils.readFileToByteArray(targetFile)); % Return the byte array
+            object = int8(FileUtils.readFileToByteArray(targetFile)); % Return the byte array
             
             % Identify the DataObject being used and add a prov:used statement
             % in the RunManager DataPackage instance            
