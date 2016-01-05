@@ -215,6 +215,13 @@ classdef DataONENode < hgsetget
             j_pid = Identifier();
             j_pid.setValue(pid);
             
+            % Do we have a session?
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                import org.dataone.client.v2.Session;
+                session = Session();
+                
+            end
+            
             j_session = session.getJavaSession();
             
             system_metadata = SystemMetadata();
