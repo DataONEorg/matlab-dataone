@@ -123,6 +123,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 error(msg);
                 
             end
+            
             % get the Java session
             j_session = session.getJavaSession();
             
@@ -199,10 +200,11 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         end
         
         function identifier = update(memberNode, session, pid, ...
-                objectInputStream, newPid, sysmeta)
+                object, newPid, sysmeta)
             % UPDATE Updates an object with a new identifier at the given member node.
             
             import org.dataone.client.run.RunManager;
+            import org.dataone.service.types.v1.Identifier;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
             import java.io.File;
@@ -215,13 +217,85 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 disp('Called the java version mnode.update() wrapper function.');
             end
             
+            % Do we have a session object?
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                msg = ['The given ''session'' parameter must be an ' ...
+                    'org.dataone.client.v2.Session object.' ...
+                    char(10) ...
+                    'Please create a session ' ...
+                    'before calling the ''update()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid session, throw an error
+            if (  ~ session.isValid() )
+                
+                msg = ['Your session expired on ' ...
+                    char(session.expiration_date) '.' ...
+                    char(10) ...
+                    ' Please renew your ' ...
+                    session.type ...
+                    char(10) ...
+                    ' before calling the ''update()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid byte array, throw an error
+            if ( ~ isa(object, 'int8') )
+                msg = ['The given ''object'' parameter must be a ' ...
+                    'int8 byte array.' ...
+                    char(10) ...
+                    'Please convert your object to this data type ' ...
+                    char(10) ...
+                    'before calling the ''update()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid system metadata object, throw an error
+            if ( ~ isa(sysmeta, 'org.dataone.client.v2.SystemMetadata') )
+                msg = ['The given ''sysmeta'' parameter must be an ' ...
+                    'org.dataone.client.v2.SystemMetadata object.' ...
+                    char(10) ...
+                    'Please convert your object to this data type ' ...
+                    char(10) ...
+                    'before calling the ''update()'' function.'];
+                error(msg);
+                
+            end
+            
+            % get the Java session
+            j_session = session.getJavaSession();
+            
+            % Create a Java Identifier
+            j_pid = Identifier();
+            j_pid.setValue(pid);
+
+            % Create a new Java Identifier
+            j_newPid = Identifier();
+            j_newPid.setValue(newPid);
+            
+            % Get the Java system metadata
+            j_sysmeta = sysmeta.toJavaSysMetaV2();
+            
+            % Build an input stream from the object bytes
+            input_stream = ByteArrayInputStream(object);
             % Call the Java function with the same name to update a
-            % DataONE object 
-            identifier = memberNode.node.update(session, pid, objectInputStream, newPid, sysmeta);
-          
+            % DataONE object
+            try
+                j_identifier = memberNode.node.update(j_session, j_pid, input_stream, j_newPid, j_sysmeta);
+                identifier = char(j_identifier.getValue());
+                
+            catch baseException
+                rethrow(baseException);
+
+            end
+            
             % Get filename from d1 object system metadata; otherwise,
             % a UUID string is used as the filename of the local copy of the d1 object
-            d1FileName = sysmeta.getFileName; % ? ? ?
+            d1FileName = sysmeta.fileName; 
             if isempty(d1FileName)
                 d1FileName = char(java.util.UUID.randomUUID());
             end
@@ -234,7 +308,8 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 runManager.configuration.provenance_storage_directory, ...
                 'runs', runManager.execution.execution_id, obj_name);
             targetFile = File(d1FileFullPath);
-            FileUtils.copyInputStreamToFile(objectInputStream, targetFile);
+            input_stream = ByteArrayInputStream(object);
+            FileUtils.copyInputStreamToFile(input_stream, targetFile);
        
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
@@ -244,29 +319,27 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 
                 import org.dataone.client.v2.DataObject;
                 
-                formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
+                formatId = sysmeta.formatId; % get the d1 object formatId from its system metadata
                
                 existing_id = runManager.execution.getIdByFullFilePath( ...
                     d1FileFullPath ); 
                 
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map    
-                    new_pid = char(newPid.getValue());
-                    dataObject = DataObject(new_pid, formatId, d1FileFullPath);
+                    dataObject = DataObject(identifier, formatId, d1FileFullPath);
                     % Set the system metadata for the current dataObject
-                    set(dataObject, 'system_metadata', sysmeta);
+                    set(dataObject, 'system_metadata', sysmeta.toJavaSysMetaV2());
                     runManager.execution.execution_objects(dataObject.identifier) = ...
                         dataObject;
-                    runManager.execution.execution_output_ids{end+1} = new_pid;
+                    runManager.execution.execution_output_ids{end + 1} = identifier;
                 else
                     % Update the existing map entry with a new DataObject
-                    new_pid = char(newPid.getValue());
-                    dataObject = DataObject(new_pid, formatId, d1FileFullPath);
+                    dataObject = DataObject(identifier, formatId, d1FileFullPath);
                     % Set the system metadata for the current dataObject
-                    set(dataObject, 'system_metadata', sysmeta);
+                    set(dataObject, 'system_metadata', sysmeta.toJavaSysMetaV2());
                     runManager.execution.execution_objects(dataObject.identifier) = ...
                         dataObject;
-                    runManager.execution.execution_output_ids{end+1} = new_pid;
+                    runManager.execution.execution_output_ids{end + 1} = identifier;
                 end
             end 
    
