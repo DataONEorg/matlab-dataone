@@ -74,11 +74,14 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         % TESTGETSYSTEMMETADATA Tests the DataONE getSystemMetadata() API call to a Member Node
             
             import org.dataone.client.v2.DataONEClient;
+            import org.dataone.client.v2.Session;
+            
+            session = Session();
             
             mn = DataONEClient.getMN('urn:node:mnDevUCSB2');
             pid = 'dv.test.006';
             
-            sysmeta = mn.getSystemMetadata([], pid);
+            sysmeta = mn.getSystemMetadata(session, pid);
             assertEqual(testCase, sysmeta.identifier, pid);
             
         end
