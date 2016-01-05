@@ -35,7 +35,6 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             % member node identifier
             
             import org.dataone.client.v2.itk.D1Client;
-            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.service.types.v1.NodeReference;
             
             if ~isempty(mnode_id)
@@ -48,25 +47,26 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                     config.coordinating_node_base_url);
                 
                 node_ref = NodeReference();
-                node_ref.setValue(mnode_id);
+                node_ref.setValue(java.lang.String(mnode_id));
                           
-                memberNode.node = D1Client.getMN(node_ref);
+                mnode = D1Client.getMN(node_ref);
+                memberNode.node = mnode;
                 
-                memberNode.node_base_service_url = char(memberNode.node.getNodeBaseServiceUrl());
+                memberNode.node_base_service_url = ...
+                    char(memberNode.node.getNodeBaseServiceUrl());
                 memberNode.node_type = 'mn';
                 memberNode.node_id = mnode_id;
             end
         end
         
         function identifier = create(memberNode, session, ...
-                 pid_obj, objectInputStream, sysmeta)
+                 pid, object, sysmeta)
             % CREATE Creates an object with the given identifier at the given member node
             
-            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
-            import org.dataone.service.types.v2.SystemMetadata;
-            import org.apache.commons.io.IOUtils;
+            import org.dataone.service.types.v1.Identifier;
             import java.io.File;
+            import java.io.ByteArrayInputStream;
             import org.apache.commons.io.FileUtils;
             
             runManager = RunManager.getInstance();
@@ -75,16 +75,86 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 disp('Called the java version mnode.create() wrapper function.');
             end
             
+            % Do we have a session object?
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                msg = ['The given ''session'' parameter must be an ' ...
+                    'org.dataone.client.v2.Session object.' ...
+                    char(10) ...
+                    'Please create a session ' ...
+                    'before calling the ''create()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid session, throw an error
+            if (  ~ session.isValid() )
+                
+                msg = ['Your session expired on ' ...
+                    char(session.expiration_date) '.' ...
+                    char(10) ...
+                    ' Please renew your ' ...
+                    session.type ...
+                    char(10) ...
+                    ' before calling the ''create()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid byte array, throw an error
+            if ( ~ isa(object, 'int8') )
+                msg = ['The given ''object'' parameter must be a ' ...
+                    'int8 byte array.' ...
+                    char(10) ...
+                    'Please convert your object to this data type ' ...
+                    char(10) ...
+                    'before calling the ''create()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid system metadata object, throw an error
+            if ( ~ isa(sysmeta, 'org.dataone.client.v2.SystemMetadata') )
+                msg = ['The given ''sysmeta'' parameter must be an ' ...
+                    'org.dataone.client.v2.SystemMetadata object.' ...
+                    char(10) ...
+                    'Please convert your object to this data type ' ...
+                    char(10) ...
+                    'before calling the ''create()'' function.'];
+                error(msg);
+                
+            end
+            % get the Java session
+            j_session = session.getJavaSession();
+            
+            % Create a Java Identifier
+            j_pid = Identifier();
+            j_pid.setValue(pid);
+            
+            % Get the Java system metadata
+            j_sysmeta = sysmeta.toJavaSysMetaV2();
+            
+            % Build an input stream from the object bytes
+            input_stream = ByteArrayInputStream(object);
+            
             % Call the Java function with the same name to create the
-            % DataONE object 
-            identifier = memberNode.node.create(session, pid_obj, objectInputStream, sysmeta);
+            % DataONE object
+            try
+                j_identifier = ...
+                    memberNode.node.create(j_session, j_pid, input_stream, j_sysmeta);
+                identifier = char(j_identifier.getValue());
+                
+            catch baseException
+                rethrow(baseException);
+                
+            end
           
             % Get filename from d1 object system metadata; otherwise,
             % a UUID string is used as the filename of the local copy of the d1 object
-            d1FileName = char(sysmeta.getFileName); % full_file_path
+            d1FileName = sysmeta.fileName; % full_file_path
             if isempty(d1FileName)
                 d1FileName = char(java.util.UUID.randomUUID());
             end
+            
             [path, name, ext] = fileparts(char(d1FileName));
             obj_name = [name ext];
             d1FileFullPath = fullfile(...
@@ -93,7 +163,8 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 runManager.execution.execution_id, ...
                 obj_name);
             targetFile = File(d1FileFullPath);
-            FileUtils.copyInputStreamToFile(objectInputStream, targetFile);       
+            input_stream = ByteArrayInputStream(object);
+            FileUtils.copyInputStreamToFile(input_stream, targetFile);       
             
             % Identifiy the file being used and add a prov:wasGeneratedBy statement
             % in the RunManager DataPackage instance
@@ -103,20 +174,19 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 
                 import org.dataone.client.v2.DataObject;
                 
-                formatId = sysmeta.getFormatId().getValue; % get the d1 object formatId from its system metadata
+                formatId = sysmeta.formatId; % get the d1 object formatId from its system metadata
                
-                existing_id = runManager.execution.getIdByFullFilePath( ...
-                    d1FileName);
+                existing_id = ...
+                    runManager.execution.getIdByFullFilePath(d1FileName);
                 
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map 
-                    pid = char(pid_obj.getValue());
                     dataObject = DataObject(pid, formatId, d1FileName);
                     % Set the system metadata for the current dataObject
-                    set(dataObject, 'system_metadata', sysmeta);
+                    set(dataObject, 'system_metadata', sysmeta.toJavaSysMetaV2());
                     runManager.execution.execution_objects(dataObject.identifier) = ...
                         dataObject;
-                     runManager.execution.execution_output_ids{end+1} = pid; 
+                     runManager.execution.execution_output_ids{end + 1} = pid; 
                 else
                     % Update the existing map entry with a new DataObject
                     pid = existing_id;
@@ -132,11 +202,11 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 objectInputStream, newPid, sysmeta)
             % UPDATE Updates an object with a new identifier at the given member node.
             
-            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
             import java.io.File;
+            import java.io.ByteArrayInputStream;
             import org.apache.commons.io.FileUtils;
               
             runManager = RunManager.getInstance();
@@ -328,15 +398,40 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         %
         % end
 
-        function updated = updateSystemMetadata(session, pid, sysmeta)
+        function updated = updateSystemMetadata(self, session, pid, sysmeta)
             % UPDATESYSTEMMETADATA updates the object's system metadata
             %   Given the object identified by the pid, update the object's
             %   system metadata stored on the Member Node.
             
+            import org.dataone.service.types.v1.Identifier;
+            import org.dataone.client.configure.Configuration;
+            import org.dataone.client.v2.Session;
+            
             updated = false;
             
-            % Convert the Java boolean response to a logical true/false
+            if ( isempty(session) )
+                session = Session();
+                
+            end
+            j_session = session.getJavaSession();
             
+            identifier = Identifier();
+            identifier.setValue(pid);
+            
+            j_sysmeta = sysmeta.toJavaSysMetaV2();
+            
+            % Convert the Java boolean response to a logical true/false
+            try
+                j_updated = self.node.updateSystemMetadata( ...
+                    j_session, ...
+                    identifier, j_sysmeta);
+                updated = j_updated.booleanValue();
+                
+            catch exception
+                disp('There was a problem updating the system metadata: ');
+                rethrow(exception);
+                
+            end
         end
         
         % function identifier = delete(session, id)

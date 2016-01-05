@@ -153,23 +153,11 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
-            import java.io.File;
-            import org.dataone.service.types.v2.SystemMetadata;
-            import java.math.BigInteger;
             import org.dataone.service.types.v1.ObjectFormatIdentifier;
             import org.dataone.service.types.v1.util.ChecksumUtil;
-            import java.io.FileInputStream;
-            import org.dataone.service.types.v1.AccessPolicy;
-            import org.dataone.service.types.v1.util.AccessUtil;
-            import java.lang.String;
-            import org.dataone.service.types.v1.Permission;
-            import org.dataone.service.types.v1.ReplicationPolicy;
-            import java.lang.Integer;
-            import javax.activation.FileDataSource;
-            import org.dataone.service.types.v1.Subject;
-            import org.dataone.service.types.v1.NodeReference;
             import org.dataone.client.auth.CertificateManager;
             import java.security.cert.X509Certificate;
+            import org.apache.commons.io.IOUtils;
                 
             testCase.filename = 'src/test/resources/testData.csv';
             full_file_path = which(testCase.filename);
@@ -177,16 +165,12 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 full_file_path = struc.Name;
             end
-            
-            % Set the Node ID
-            mnodeRef = NodeReference();
-            mnodeRef.setValue('urn:node:mnDevUCSB2');
-            
+                        
             % Get a MNode matlab instance to the member node
             % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            mn = MemberNode('urn:node:mnDevUCSB2');
             
-            % Create a faked run
+            % Create a fake run
             import org.dataone.client.run.Execution;
             run2 = Execution();
             set(run2, 'tag', 'test_MN_Create');
@@ -204,44 +188,41 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 end
             end
             
-            obj_pid = Identifier();
-            obj_pid.setValue(java.util.UUID.randomUUID().toString());
+            obj_pid = char(java.util.UUID.randomUUID().toString());
             
-            objectFile = File(full_file_path);
-            data = FileDataSource(objectFile);
+            % Get the data as bytes
+            fileId = fopen(full_file_path, 'r');
+            data = int8(fread(fileId));
             
             try
+                import org.dataone.client.v2.SystemMetadata;
                 sysmeta = SystemMetadata();
                 
                 % Set the identifier
-                sysmeta.setIdentifier(obj_pid);
+                set(sysmeta, 'identifier', obj_pid);
                 
                 % Add the object format id
-                fmtid = ObjectFormatIdentifier();
-                fmtid.setValue('text/csv');
-                sysmeta.setFormatId(fmtid);
+                set(sysmeta, 'formatId', 'text/csv');
                 
                 % Add the file size
                 fileInfo = dir(full_file_path);
                 fileSize = fileInfo.bytes;
-                sizeBigInt = BigInteger.valueOf(fileSize);
-                sysmeta.setSize(sizeBigInt);
+                set(sysmeta, 'size', fileSize);
                 
                 % Add the checksum
-                fileInputStream = FileInputStream(objectFile);
-                checksum = ChecksumUtil.checksum(fileInputStream, 'SHA1');
-                sysmeta.setChecksum(checksum);
+                checksum = ChecksumUtil.checksum(data, 'SHA-1');
+                chksum.value = char(checksum.getValue());
+                chksum.algorithm = char(checksum.getAlgorithm());
+                set(sysmeta, 'checksum', chksum);
                 
                 % Set the file name
-                sysmeta.setFileName(full_file_path); % Question: pass the full_file_path here because in the java call create() there is no way to get the full_file_path in systemeta. No matlab d1object is used.
+                set(sysmeta, 'fileName', full_file_path);
                 
                 % Set the access policy
-                strArray = javaArray('java.lang.String', 1);
-                permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
-                strArray(1,1) = String('public');
-                permsArray(1,1) = Permission.READ;
-                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
-                sysmeta.setAccessPolicy(ap);
+                accessPolicy.rules = ...
+                    containers.Map('KeyType', 'char', 'ValueType', 'char');
+                accessPolicy.rules('public') = 'read';
+                set(sysmeta, 'accessPolicy', accessPolicy);
                 
                 % Get a certificate for the Root CA
                 certificate = CertificateManager.getInstance().loadCertificate();
@@ -253,20 +234,22 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 end
                 
                 % Set the submitter (required)
-                submitter = Subject();
-                submitter.setValue(standardizedName);
-                sysmeta.setSubmitter(submitter);
-                sysmeta.setRightsHolder(submitter);
+                set(sysmeta, 'submitter', standardizedName);
+                set(sysmeta, 'rightsHolder', standardizedName);
                 
-                % Set the node filelds (required)
-                sysmeta.setOriginMemberNode(mnodeRef);
-                sysmeta.setAuthoritativeMemberNode(mnodeRef);
+                % Set the node fields (required)
+                set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
+                set(sysmeta, 'authoritativeMemberNode', 'urn:node:mnDevUCSB2');
+
+                % Get a session
+                import org.dataone.client.v2.Session;
+                session = Session();
                 
                 % Call MemberNode.create()
-                returned_pid = matlab_mn_node.create([], obj_pid, data.getInputStream(), sysmeta);
+                returned_pid = mn.create(session, obj_pid, data, sysmeta);
                 
                 % Verify if create() call is successful
-                assertEqual(testCase, char(returned_pid.getValue()), char(obj_pid.getValue()));
+                assertEqual(testCase, returned_pid, obj_pid);
                 
                 % Verify if the execution_output_ids contains one pid
                 size = length(testCase.mgr.execution.execution_output_ids);
