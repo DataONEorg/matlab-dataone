@@ -135,6 +135,16 @@ classdef Session < hgsetget
                     session.status = 'expired';
                     
                 end
+                
+            else
+                if ( config.debug )
+                    disp(['Both the ''Configuration.authentication_token'' ' ...
+                        'and the Configuration.certificate_path ' ...
+                        char(10) ...
+                        'properties are empty. Using an anonymous, ' ...
+                        'unauthenticated session.']);
+                    
+                end
             end
         end
         
