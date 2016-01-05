@@ -92,7 +92,7 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
             
-            % Create a faked run
+            % Create a fake run
             import org.dataone.client.run.Execution;
             run1 = Execution();
             set(run1, 'tag', 'test_MN_Get');
@@ -110,6 +110,7 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 end
             end
             
+            
             % Get a MNode matlab instance to the member node
             % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
@@ -119,20 +120,21 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             objList = object_list.getObjectInfoList();
             for i=1:length(objList)
-                obj_pid = objList.get(i).getIdentifier().getValue();
-                if ~isempty(obj_pid)
+                pid = char(objList.get(i).getIdentifier().getValue());
+                if ( ~isempty(pid) )
                     break;
                 end
             end
             
+            import org.dataone.client.v2.Session;
+            session = Session();
             % Call MemberNode.get()
-            pid = Identifier();
-            pid.setValue(obj_pid);
-            item = matlab_mn_node.get([], pid);
+            object = matlab_mn_node.get(session, pid);
             
-            item_size = matlab_mn_node.getSystemMetadata([], char(obj_pid)).size;
+            item_size = ...
+                matlab_mn_node.getSystemMetadata(session, pid).size;
             % Verify if get() call is successful
-            assertEqual(testCase, length(item), item_size);
+            assertEqual(testCase, length(object), item_size);
             
             % Verify if the execution_input_ids contains one pid
             size = length(testCase.mgr.execution.execution_input_ids);

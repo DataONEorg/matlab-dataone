@@ -109,13 +109,12 @@ classdef DataONENode < hgsetget
         function object  = get(self, session, pid)        
             % GET Returns the bytes of the object as a int8 array
 
-            import org.dataone.client.v2.impl.MultipartMNode;
             import org.dataone.client.run.RunManager;
-            import org.dataone.service.types.v2.SystemMetadata;
             import org.apache.commons.io.IOUtils;
             import java.io.File;
             import java.io.FileInputStream;
             import org.apache.commons.io.FileUtils;
+            import org.dataone.service.types.v1.Identifier;
             
             runManager = RunManager.getInstance();
             
@@ -123,17 +122,40 @@ classdef DataONENode < hgsetget
                 disp('Called the Java version of DataONENode.get().');
             end
 
+            if ( ~ ischar(pid) )
+                msg = ['The given ''pid'' parameter must be an ' ...
+                    'string object.' ...
+                    char(10) ...
+                    'Please create a string identifier ' ...
+                    'before calling the ''get()'' function.'];
+                error(msg);
+            else
+                j_pid = Identifier();
+                j_pid.setValue(pid);
+                
+            end
+            
+            % Do we have a session object?
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                import org.dataone.client.v2.Session;
+                session = Session(); % Create a potentially empty session
+               
+            end
+            
+            % Get the Java session obect
+            j_session = session.getJavaSession();
+            
             % Call the Java function with the same name to retrieve the
             % DataONE object and get system metadata for this d1 object.
             % The formatId information is obtained from the system metadata
-            inputStream = self.node.get(session, pid);  
+            inputStream = self.node.get(j_session, j_pid);  
             
-            sysMetaData = self.node.getSystemMetadata(session, pid);
-            formatId = sysMetaData.getFormatId().getValue();
+            j_sysmeta = self.node.getSystemMetadata(j_session, j_pid);
+            formatId = j_sysmeta.getFormatId().getValue();
             
             % Get filename from d1 object system metadata; otherwise, 
             % a UUID string is used as the filename of the local copy of the d1 object
-            d1FileName = sysMetaData.getFileName();
+            d1FileName = j_sysmeta.getFileName();
             if isempty(d1FileName)
                 d1FileName = char(java.util.UUID.randomUUID());
                 
@@ -164,14 +186,14 @@ classdef DataONENode < hgsetget
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map
                     dataObject = ...
-                        DataObject(char(pid.getValue()), formatId, d1FileFullPath);
+                        DataObject(char(j_pid.getValue()), formatId, d1FileFullPath);
                     % Set the system metadata downloaded from the given
                     % mnode for the current dataObject
-                    set(dataObject, 'system_metadata', sysMetaData);
+                    set(dataObject, 'system_metadata', j_sysmeta);
                     runManager.execution.execution_objects(dataObject.identifier) = ...
                         dataObject;
                      runManager.execution.execution_input_ids{end + 1} = ...
-                         char(pid.getValue());
+                         char(j_pid.getValue());
                      
                 else
                     % Update the existing map entry with a new DataObject
@@ -184,22 +206,24 @@ classdef DataONENode < hgsetget
             
         end
         
-        function system_metadata = getSystemMetadata(self, session, id)
+        function system_metadata = getSystemMetadata(self, session, pid)
         % GETSYSTEMMETADATA Returns the DataONE system metadata for the
         % given object identifier
         
             import org.dataone.client.v2.SystemMetadata;
             import org.dataone.service.types.v1.Identifier;
-            pid = Identifier();
-            pid.setValue(id);
-            % session = this.getSession();
+            j_pid = Identifier();
+            j_pid.setValue(pid);
+            
+            j_session = session.getJavaSession();
+            
             system_metadata = SystemMetadata();
             
             % Convert the Java SystemMetadata object to a 
             % Matlab SystemMetadata object
             if ( ~ isempty(self.node) )
                 try
-                    j_system_metadata = self.node.getSystemMetadata(session, pid);
+                    j_system_metadata = self.node.getSystemMetadata(j_session, j_pid);
                     
                 catch baseException
                     msg = ['The system metadata for the object ' ...
