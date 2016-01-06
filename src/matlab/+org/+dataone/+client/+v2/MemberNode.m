@@ -407,55 +407,195 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             
             objects(1).identifier = '';
             objects(1).formatId = '';
-            objects(1).checksum = '';
-            objects(1).checksumAlgorithm = '';
+            objects(1).checksum.value = '';
+            objects(1).checksum.algorithm = '';
             objects(1).dateSysMetadataModified = '';
             objects(1).size = NaN;
             
-            % Todo: do the pattern matching for date string         
-            % Eg: '2015-12-31T02:00:00.000';
-            
-            if (~isempty(fromDate))
-                fromDateObj = Date(fromDate);
-            else
-                fromDateObj = [];
+            % Do we have a session?
+            if ( isempty(session) )
+                session = Session();
             end
             
+            j_session = session.getJavaSession();
+            
+            import java.text.SimpleDateFormat;
+            import java.util.TimeZone;
+            import java.util.Date;
+            
+            j_fromDate = [];
+            if ( ~isempty(fromDate) )
+                if ( ischar(fromDate) )
+                    try
+                        % Handle yyyy-MM-dd''T''HH:mm:ss.SSSZ
+                        formatter = ...
+                            SimpleDateFormat( ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSSZ');
+                        tz = TimeZone.getTimeZone('UTC');
+                        formatter.setTimeZone(tz);
+                        j_fromDate = formatter.parse(fromDate);
+                        
+                    catch exception
+                        try
+                            % Handle yyyy-MM-dd''T''HH:mm:ss.SSS
+                            formatter = ...
+                                SimpleDateFormat( ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSS');
+                            tz = TimeZone.getTimeZone('UTC');
+                            formatter.setTimeZone(tz);
+                            j_fromDate = formatter.parse(fromDate);
+                        catch exception2
+                            try
+                                % Handle yyyy-MM-dd''T''HH:mm:ss
+                                formatter = ...
+                                    SimpleDateFormat( ...
+                                    'yyyy-MM-dd''T''HH:mm:ss');
+                                tz = TimeZone.getTimeZone('UTC');
+                                formatter.setTimeZone(tz);
+                                j_fromDate = formatter.parse(fromDate);
+                                
+                            catch exception3
+                                % Couldn't parse the string. Throw an error
+                                msg = ['The date string ' fromDate ...
+                                char(10) ...
+                                'Couldn''t be parsed. Please provide ' ...
+                                'the ''fromDate'' parameter ' ...
+                                char(10) ...
+                                'in one of the following string formats: ' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSSZ' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSS' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss' ...
+                                char(10) ... 
+                                'For instance: ' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01.001+0000' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01.001' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01' ...
+                                ];
+                                error(msg);
+                            end
+                        end
+                    end
+                end
+            end
+            
+            j_toDate = [];
             if (~isempty(toDate))
-                toDateObj = Date(toDate);
-            else
-                toDateObj = []; 
+                if ( ischar(toDate) )
+                    try
+                        % Handle yyyy-MM-dd''T''HH:mm:ss.SSSZ
+                        formatter = ...
+                            SimpleDateFormat( ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSSZ');
+                        tz = TimeZone.getTimeZone('UTC');
+                        formatter.setTimeZone(tz);
+                        j_toDate = formatter.parse(toDate);
+                        
+                    catch exception
+                        try
+                            % Handle yyyy-MM-dd''T''HH:mm:ss.SSS
+                            formatter = ...
+                                SimpleDateFormat( ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSS');
+                            tz = TimeZone.getTimeZone('UTC');
+                            formatter.setTimeZone(tz);
+                            j_toDate = formatter.parse(toDate);
+                        catch exception2
+                            try
+                                % Handle yyyy-MM-dd''T''HH:mm:ss
+                                formatter = ...
+                                    SimpleDateFormat( ...
+                                    'yyyy-MM-dd''T''HH:mm:ss');
+                                tz = TimeZone.getTimeZone('UTC');
+                                formatter.setTimeZone(tz);
+                                j_toDate = formatter.parse(toDate);
+                                
+                            catch exception3
+                                % Couldn't parse the string. Throw an error
+                                msg = ['The date string ' toDate ...
+                                char(10) ...
+                                'Couldn''t be parsed. Please provide ' ...
+                                'the ''toDate'' parameter ' ...
+                                char(10) ...
+                                'in one of the following string formats: ' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSSZ' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSS' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss' ...
+                                char(10) ... 
+                                'For instance: ' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01.001+0000' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01.001' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01' ...
+                                ];
+                                error(msg);
+                                
+                            end
+                        end
+                    end
+                end
             end
             
-            formatidObj = ObjectFormatIdentifier();
-            formatidObj.setValue(formatid);
+            j_formatid = [];
+            if ( ~ isempty(formatid) )
+                j_formatid = ObjectFormatIdentifier();
+                j_formatid.setValue(formatid);
+                
+            end
          
-            identifierObj = Identifier();
-            identifierObj.setValue(identifier);
+            j_identifier = Identifier();
+            j_identifier.setValue(identifier);
             
-            if (~isempty(start))
-                startObj = Integer(start);
-            else
-                startObj = [];
+            j_replicaStatus = [];
+            if ( ~ isempty(replicaStatus) )
+                if ( islogical(replicaStatus) )
+                    j_replicaStatus = java.lang.Boolean(replicaStatus);
+                    
+                else
+                    msg = ['The replicaStatus parameter' char(replicaStatus) ...
+                    'couldn''t be parsed.' ...
+                    char(10) ...
+                    'Please provide it as a true or false logical value.'];
+                    error(msg);
+                    
+                end
             end
             
-            if(~isempty(count))
-                countObj = Integer(count);
-            else
-                countObj = [];
+            j_start = [];
+            if ( ~isempty(start) )
+                j_start = Integer(start);
+                
             end
             
-            objectList = memberNode.node.listObjects(session, fromDateObj, toDateObj, ...
-                formatidObj, identifierObj, replicaStatus, startObj, countObj); % Make a Java call
+            j_count = [];
+            if( ~isempty(count) )
+                j_count = Integer(count);
+                
+            end
             
-            % Covert the Java ObjectList into the above structured array
+            objectList = ...
+                memberNode.node.listObjects( ...
+                    j_session, j_fromDate, j_toDate, ...
+                    j_formatid, j_identifier, replicaStatus, j_start, j_count);
+            
+            % Convert the Java ObjectList into the above structured array
             objectInfoList = objectList.getObjectInfoList();
             for i = 1:size(objectInfoList)
-               anObj = objectInfoList.get(i-1);
+               anObj = objectInfoList.get(i - 1);
                objects(i).identifier = char(anObj.getIdentifier().getValue());
                objects(i).formatId = char(anObj.getFormatId().getValue());
-               objects(i).checksum = char(anObj.getChecksum().getValue());
-               objects(i).checksumAlgorithm = char(anObj.getChecksum().getAlgorithm());
+               objects(i).checksum.value = char(anObj.getChecksum().getValue());
+               objects(i).checksum.algorithm = char(anObj.getChecksum().getAlgorithm());
                objects(i).dateSysMetadataModified = char(anObj.getDateSysMetadataModified().toString());
                objects(i).size = char(anObj.getSize().toString());
             end
