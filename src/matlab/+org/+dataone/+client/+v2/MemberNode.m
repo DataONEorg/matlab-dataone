@@ -389,8 +389,8 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             %   objects - the list of objects as a struct, with:
             %   objects.identifier
             %   objects.formatId
-            %   objects.checksum
-            %   objects.checksumAlgorithm
+            %   objects.checksum.value
+            %   objects.checksum.algorithm
             %   objects.dateSysMetadataModified
             %   objects.size
             %
