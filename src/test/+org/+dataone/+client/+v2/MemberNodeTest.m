@@ -594,22 +594,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             fprintf('\nIn test Member Node archive() ...\n');
             
             import org.dataone.client.v2.MemberNode;
-            import org.dataone.service.types.v1.Identifier;
+            import org.dataone.client.v2.SystemMetadata;
+            import org.dataone.client.v2.Session;
             import java.io.File;
-            import org.dataone.service.types.v2.SystemMetadata;
-            import java.math.BigInteger;
-            import org.dataone.service.types.v1.ObjectFormatIdentifier;
             import org.dataone.service.types.v1.util.ChecksumUtil;
-            import java.io.FileInputStream;
-            import org.dataone.service.types.v1.AccessPolicy;
-            import org.dataone.service.types.v1.util.AccessUtil;
-            import java.lang.String;
-            import org.dataone.service.types.v1.Permission;
-            import org.dataone.service.types.v1.ReplicationPolicy;
-            import java.lang.Integer;
-            import javax.activation.FileDataSource;
-            import org.dataone.service.types.v1.Subject;
-            import org.dataone.service.types.v1.NodeReference;
             import org.dataone.client.auth.CertificateManager;
             import java.security.cert.X509Certificate;
                 
@@ -619,52 +607,43 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 full_file_path = struc.Name;
             end
-            
-            % Set the Node ID
-            mnodeRef = NodeReference();
-            mnodeRef.setValue('urn:node:mnDevUCSB2');
-            
+                        
             % Get a MNode matlab instance to the member node
-            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            mn = MemberNode('urn:node:mnDevUCSB2');
             
-            obj_pid = Identifier();
-            obj_pid.setValue(java.util.UUID.randomUUID().toString());
+            pid = char(java.util.UUID.randomUUID().toString());
             
-            objectFile = File(full_file_path);
-            data = FileDataSource(objectFile);
+            % Get the data as bytes
+            fileId = fopen(full_file_path, 'r');
+            data = int8(fread(fileId));
             
             try
                 sysmeta = SystemMetadata();
                 
                 % Set the identifier
-                sysmeta.setIdentifier(obj_pid);
+                set(sysmeta, 'identifier', pid);
                 
                 % Add the object format id
-                fmtid = ObjectFormatIdentifier();
-                fmtid.setValue('text/csv');
-                sysmeta.setFormatId(fmtid);
+                set(sysmeta, 'formatId', 'text/csv');
                 
                 % Add the file size
                 fileInfo = dir(full_file_path);
                 fileSize = fileInfo.bytes;
-                sizeBigInt = BigInteger.valueOf(fileSize);
-                sysmeta.setSize(sizeBigInt);
-                
-                % Add the checksum
-                fileInputStream = FileInputStream(objectFile);
-                checksum = ChecksumUtil.checksum(fileInputStream, 'SHA1');
-                sysmeta.setChecksum(checksum);
+                set(sysmeta, 'size', fileSize);
+
+                checksum = ChecksumUtil.checksum(data, 'SHA-1');
+                chksum.value = char(checksum.getValue());
+                chksum.algorithm = char(checksum.getAlgorithm());
+                set(sysmeta, 'checksum', chksum);
                 
                 % Set the file name
-                sysmeta.setFileName(full_file_path); 
+                set(sysmeta, 'fileName', full_file_path);
                 
                 % Set the access policy
-                strArray = javaArray('java.lang.String', 1);
-                permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
-                strArray(1,1) = String('public');
-                permsArray(1,1) = Permission.READ;
-                ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
-                sysmeta.setAccessPolicy(ap);
+                accessPolicy.rules = ...
+                    containers.Map('KeyType', 'char', 'ValueType', 'char');
+                accessPolicy.rules('public') = 'read';
+                set(sysmeta, 'accessPolicy', accessPolicy);
                 
                 % Get a certificate for the Root CA
                 certificate = CertificateManager.getInstance().loadCertificate();
@@ -676,38 +655,37 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 end
                 
                 % Set the submitter (required)
-                submitter = Subject();
-                submitter.setValue(standardizedName);
-                sysmeta.setSubmitter(submitter);
-                sysmeta.setRightsHolder(submitter);
+                set(sysmeta, 'submitter', standardizedName);
+                set(sysmeta, 'rightsHolder', standardizedName);
                 
-                % Set the node filelds (required)
-                sysmeta.setOriginMemberNode(mnodeRef);
-                sysmeta.setAuthoritativeMemberNode(mnodeRef);
+                % Set the node fields (required)
+                set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
+                set(sysmeta, 'authoritativeMemberNode', 'urn:node:mnDevUCSB2');
+
+                % Get a session
+                import org.dataone.client.v2.Session;
+                session = Session();
                 
-                % Make a Java create() call
-                pid = matlab_mn_node.node.create([], obj_pid, data.getInputStream(), sysmeta);
+                % Call MemberNode.create()
+                pid = mn.create(session, pid, data, sysmeta);
                 
-                % Make a Matlab archive() call
-                pid_value = char(pid.getValue());
-                pid2 = matlab_mn_node.archive([], pid_value);
+                % Call MemberNode.archive()
+                pid2 = mn.archive(session, pid);
                 
-                assertEqual(testCase, pid2, pid_value);
+                assertEqual(testCase, pid2, pid);
                 
             catch Error
                 rethrow(Error);
             end
         end
-        
-        
+                
         function testGenerateIdentifier(testCase)
             
             fprintf('\nIn test Member Node generateIdentifier() ...\n');
             
             % Todo: need to implement
         end
-        
-        
+                
         function testGetCapabilities(testCase)
             
             fprintf('\nIn test Member Node getCapabilities() ...\n');
@@ -721,8 +699,7 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             assert(~isempty(node_description));
         end
-        
-        
+               
         function testPing(testCase)
             
             fprintf('\nIn test Member Node ping() ...\n');

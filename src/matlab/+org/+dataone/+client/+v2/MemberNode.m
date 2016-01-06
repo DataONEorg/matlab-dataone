@@ -711,16 +711,60 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             %   See https://purl.dataone.org/architecturev2/apis/MN_APIs.html#MNStorage.archive
             
             import org.dataone.service.types.v1.Identifier;
+            import org.dataone.client.v2.Session;
             
             identifier = '';
             
-            obj_pid = Identifier();
-            obj_pid.setValue(id);
+            if ( isempty(session) )
+                session = Session();
+                
+            end
+            
+            % Do we have a session object?
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                msg = ['The given ''session'' parameter must be an ' ...
+                    'org.dataone.client.v2.Session object.' ...
+                    char(10) ...
+                    'Please create a session ' ...
+                    'before calling the ''archive()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid session, throw an error
+            if (  ~ session.isValid() )
+                
+                msg = ['Your session expired on ' ...
+                    char(session.expiration_date) '.' ...
+                    char(10) ...
+                    ' Please renew your ' ...
+                    session.type ...
+                    char(10) ...
+                    ' before calling the ''archive()'' function.'];
+                error(msg);
+                
+            end
+            
+            j_session = session.getJavaSession();
+            
+            if ( ~ ischar(id) )
+                msg = ['The ''id'' parameter must be a string. ' ...
+                    char(10) ...
+                    ' Please provide a string id value ' ...
+                    char(10) ...
+                    ' before calling the ''archive()'' function.'];
+                error(msg);
+                
+            end
+            
+            j_pid = Identifier();
+            j_pid.setValue(id);
                       
-            returned_identifier = memberNode.node.archive(session, obj_pid); % Make a Java call
+            returned_identifier = memberNode.node.archive(j_session, j_pid);
             
             % Convert the Java returned identifier to a string
             identifier = char(returned_identifier.getValue());
+            
         end
         
         function identifier = generateIdentifier(memberNode, session, scheme, fragment)
