@@ -423,26 +423,33 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             fprintf('\nIn test Member Node listObjects ...\n');
             
             import org.dataone.client.v2.MemberNode;
+            import org.dataone.client.v2.Session;
             import org.dataone.service.types.v1.Identifier;
+            
+            % Get a Session
+            session = Session();
             
             % Get a MNode matlab instance to the member node
             % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            mn = MemberNode('urn:node:mnDevUCSB2');
             
             % Use matlab wrapper function 
-            [ol1, start1, count1, total1] = matlab_mn_node.listObjects([], [], [], [], [], [], [], []);
+            [ol1, start1, count1, total1] = ...
+                mn.listObjects(session, [], [], [], [], [], [], []);
             assertEqual(testCase, start1, 0);
             
             % Use matlab wrapper function
-            [ol2, start2, count2, total2] = matlab_mn_node.listObjects([], [], [], [], [], [], '100', '50');
+            [ol2, start2, count2, total2] = ...
+                mn.listObjects(session, [], [], [], [], [], '100', '50');
             assertEqual(testCase, start2, 100);
             assertEqual(testCase, count2, 50);
             
             assertEqual(testCase, total1, total2);
             
-            [ol3, start3, count3, total3] = matlab_mn_node.listObjects([], [], [], [], [], [], '0', 50000);
+            [ol3, start3, count3, total3] = ...
+                mn.listObjects(session, [], [], [], [], [], '0', 50000);
             assertEqual(testCase, count3, length(ol3));
-            
+
         end
         
         function testMNodeGetChecksum(testCase)
