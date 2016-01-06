@@ -150,6 +150,108 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             remove(testCase.mgr.execution.execution_objects, all_keys);
         end
         
+        function testUpdateSystemMetadata(testCase)
+            fprintf('\nIn test Member Node updateSystemMetadata() ...\n');
+            
+            import org.dataone.client.v2.MemberNode;
+            import org.dataone.service.types.v1.Identifier;
+            import org.dataone.service.types.v1.ObjectFormatIdentifier;
+            import org.dataone.service.types.v1.util.ChecksumUtil;
+            import org.dataone.client.auth.CertificateManager;
+            import java.security.cert.X509Certificate;
+            import org.apache.commons.io.IOUtils;
+                
+            testCase.filename = 'src/test/resources/testData.csv';
+            full_file_path = which(testCase.filename);
+            if isempty(full_file_path)
+                [status, struc] = fileattrib(testCase.filename);
+                full_file_path = struc.Name;
+            end
+                        
+            % Get a MNode matlab instance to the member node
+            % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
+            mn = MemberNode('urn:node:mnDevUCSB2');
+            
+            pid = char(java.util.UUID.randomUUID().toString());
+            
+            % Get the data as bytes
+            fileId = fopen(full_file_path, 'r');
+            data = int8(fread(fileId));
+
+            try
+                import org.dataone.client.v2.SystemMetadata;
+                sysmeta = SystemMetadata();
+                
+                % Set the identifier
+                set(sysmeta, 'identifier', pid);
+                
+                % Add the object format id
+                set(sysmeta, 'formatId', 'text/csv');
+                
+                % Add the file size
+                fileInfo = dir(full_file_path);
+                fileSize = fileInfo.bytes;
+                set(sysmeta, 'size', fileSize);
+                
+                % Add the checksum
+                checksum = ChecksumUtil.checksum(data, 'SHA-1');
+                chksum.value = char(checksum.getValue());
+                chksum.algorithm = char(checksum.getAlgorithm());
+                set(sysmeta, 'checksum', chksum);
+                
+                % Set the file name
+                set(sysmeta, 'fileName', full_file_path);
+                
+                % Set the access policy
+                accessPolicy.rules = ...
+                    containers.Map('KeyType', 'char', 'ValueType', 'char');
+                accessPolicy.rules('public') = 'read';
+                set(sysmeta, 'accessPolicy', accessPolicy);
+
+                % Get a session
+                import org.dataone.client.v2.Session;
+                session = Session();
+                
+                % Get a certificate for the Root CA
+                certificate = CertificateManager.getInstance().loadCertificate();
+                
+                if ~isempty(certificate)
+                    dn = CertificateManager.getInstance().getSubjectDN( ...
+                         certificate).toString();
+                    standardizedName = char( ...
+                        CertificateManager.getInstance().standardizeDN(dn));
+                    
+                else
+                    standardizedName = '';
+                    
+                end
+                
+                % Set the submitter (required)
+                set(sysmeta, 'submitter', standardizedName);
+                set(sysmeta, 'rightsHolder', standardizedName);
+                
+                % Set the node fields (required)
+                set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
+                set(sysmeta, 'authoritativeMemberNode', 'urn:node:mnDevUCSB2');
+
+                % Call MemberNode.create()
+                returned_pid = mn.create(session, pid, data, sysmeta);
+                
+                % Then update the system metadata
+                mn_sysmeta = mn.getSystemMetadata(session, pid);
+                
+                set(mn_sysmeta, 'seriesId', ['series_' pid]);
+                
+                updated = mn.updateSystemMetadata(session, pid, mn_sysmeta);
+                
+                assertEqual(testCase, updated, true);
+                
+            catch Error
+                rethrow(Error);
+                
+            end
+        end
+        
         function testMNodeCreate(testCase)
         % TESTMNODECREATE Tests the DataONE create() API call to a Member Node
         
@@ -169,6 +271,7 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             if isempty(full_file_path)
                 [status, struc] = fileattrib(testCase.filename);
                 full_file_path = struc.Name;
+                
             end
                         
             % Get a MNode matlab instance to the member node

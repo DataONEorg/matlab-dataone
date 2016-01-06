@@ -637,19 +637,55 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 session = Session();
                 
             end
+            
+            % Do we have a session object?
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                msg = ['The given ''session'' parameter must be an ' ...
+                    'org.dataone.client.v2.Session object.' ...
+                    char(10) ...
+                    'Please create a session ' ...
+                    'before calling the ''updateSystemMetadata()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid session, throw an error
+            if (  ~ session.isValid() )
+                
+                msg = ['Your session expired on ' ...
+                    char(session.expiration_date) '.' ...
+                    char(10) ...
+                    ' Please renew your ' ...
+                    session.type ...
+                    char(10) ...
+                    ' before calling the ''updateSystemMetadata()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Without a valid system metadata object, throw an error
+            if ( ~ isa(sysmeta, 'org.dataone.client.v2.SystemMetadata') )
+                msg = ['The given ''sysmeta'' parameter must be an ' ...
+                    'org.dataone.client.v2.SystemMetadata object.' ...
+                    char(10) ...
+                    'Please convert your object to this data type ' ...
+                    char(10) ...
+                    'before calling the ''updateSystemMetadata()'' function.'];
+                error(msg);
+                
+            end
+            
             j_session = session.getJavaSession();
             
-            identifier = Identifier();
-            identifier.setValue(pid);
+            j_pid = Identifier();
+            j_pid.setValue(pid);
             
             j_sysmeta = sysmeta.toJavaSysMetaV2();
             
             % Convert the Java boolean response to a logical true/false
             try
-                j_updated = self.node.updateSystemMetadata( ...
-                    j_session, ...
-                    identifier, j_sysmeta);
-                updated = j_updated.booleanValue();
+                updated = self.node.updateSystemMetadata( ...
+                    j_session, j_pid, j_sysmeta);
                 
             catch exception
                 disp('There was a problem updating the system metadata: ');
