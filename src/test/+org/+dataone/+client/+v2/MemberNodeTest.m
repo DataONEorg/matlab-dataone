@@ -454,23 +454,28 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             % Get a MNode matlab instance to the member node
             % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
-            matlab_mn_node = MemberNode('urn:node:mnDevUCSB2');
+            mn = MemberNode('urn:node:mnDevUCSB2');
+            
+            import org.dataone.client.v2.Session;
+            session = Session();
             
             % Get an identifier of a D1 object from the member node
-            object_list = matlab_mn_node.node.listObjects([], [], [], [], [], [], [], []);
+            object_list = mn.node.listObjects([], [], [], [], [], [], [], []);
             objList = object_list.getObjectInfoList();
             for i=1:length(objList)
-                pid_value = objList.get(i-1).getIdentifier().getValue();
-                if ~isempty(pid_value)
+                pid = char(objList.get(i-1).getIdentifier().getValue());
+                if ( ~isempty(pid) )
                     break;
+                    
                 end
             end
             
-            checkAlg = 'SHA-1';
-            [checksum, checksumAlgorithm] = matlab_mn_node.getChecksum([], pid_value, checkAlg);
+            algorithm = 'SHA-1';
+            checksum = mn.getChecksum(session, pid, algorithm);
             
-            assert(~isempty(checksum));
-            assert(~isempty(checksumAlgorithm));
+            assert(~isempty(checksum.value));
+            assert(~isempty(checksum.algorithm));
+            
         end
         
         function testMNodeArchive(testCase)

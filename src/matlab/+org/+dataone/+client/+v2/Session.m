@@ -117,25 +117,31 @@ classdef Session < hgsetget
             elseif ( ~ isempty(cert_path) )
                 CertificateManager.getInstance().setCertificateLocation(cert_path);
                 cert = CertificateManager.getInstance().loadCertificate();
-                formatter = java.text.SimpleDateFormat('dd-MMM-yyyy HH:mm:ss ZZZZ');
-                session.expiration_date = char( ...
-                    formatter.format(cert.getNotAfter()));
                 
+                session.account_subject = [];
+                session.expiration_date = [];
                 session.type = 'X509 certificate';
+                session.status = [];
                 
-                subjectDN = CertificateManager.getInstance().getSubjectDN(cert);
-                session.account_subject = char( ...
-                    CertificateManager.getInstance().standardizeDN( ...
-                    subjectDN));
-                
-                if ( session.isValid() )
-                    session.status = 'valid';
+                if ( ~ isempty(cert) )
                     
-                else
-                    session.status = 'expired';
+                    formatter = java.text.SimpleDateFormat('dd-MMM-yyyy HH:mm:ss ZZZZ');
+                    session.expiration_date = char( ...
+                        formatter.format(cert.getNotAfter()));
+                                        
+                    subjectDN = CertificateManager.getInstance().getSubjectDN(cert);
+                    session.account_subject = char( ...
+                        CertificateManager.getInstance().standardizeDN( ...
+                        subjectDN));
                     
+                    if ( session.isValid() )
+                        session.status = 'valid';
+                        
+                    else
+                        session.status = 'expired';
+                        
+                    end
                 end
-                
             else
                 if ( config.debug )
                     disp(['Both the ''Configuration.authentication_token'' ' ...

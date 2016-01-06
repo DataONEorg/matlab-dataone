@@ -345,25 +345,36 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
    
         end
 
-        function [checksum, checksumAlgorithm] = getChecksum(memberNode, session, ...
+        function checksum = getChecksum(memberNode, session, ...
                 pid, checksumAlgorithm)
             % GETCHECKSUM Returns the checksum of the object given the algorithm
             
             import org.dataone.service.types.v1.Checksum;
             import org.dataone.service.types.v1.Identifier;
             
-            checksum = '';
-            checksumAlgorithm = '';
+            % Do we have a session?
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                import org.dataone.client.v2.Session;
+                session = Session();
+                
+            end
+            
+            checksum.value = '';
+            checksum.algorithm = '';
                       
-            obj_pid = Identifier();
-            obj_pid.setValue(pid);
+            j_pid = Identifier();
+            j_pid.setValue(pid);
+            
+            j_session = session.getJavaSession();
                     
-            objCheckSum = memberNode.node.getChecksum(session, obj_pid, checksumAlgorithm); % Make a Java call
+            j_checksum = ...
+                memberNode.node.getChecksum(j_session, j_pid, checksumAlgorithm); % Make a Java call
             
             % Convert the Java Checksum object returned into the above
             % array
-            checksum = char(objCheckSum.getValue());
-            checksumAlgorithm = char(objCheckSum.getAlgorithm());
+            checksum.value = char(j_checksum.getValue());
+            checksum.algorithm = char(j_checksum.getAlgorithm());
+            
         end
         
         function [objects, start, count, total] = ...
