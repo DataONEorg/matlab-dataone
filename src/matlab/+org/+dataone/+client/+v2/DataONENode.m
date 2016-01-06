@@ -280,11 +280,22 @@ classdef DataONENode < hgsetget
             % Convert the Java DescribeResponse into the structured array
             import org.dataone.service.types.v1.DescribeResponse;
             import org.dataone.service.types.v1.Identifier;
+            
+            if ( isempty(session) )
+                import org.dataone.client.v2.Session;
+                session = Session();
+                
+            end
+            
+            j_session = session.getJavaSession();
+            
             pid = Identifier();
             pid.setValue(id);
-            describe_response = self.node.describe(session, pid);
+            describe_response = self.node.describe(j_session, pid);
+            
             description.contentLength = ...
                 describe_response.getContent_Length().doubleValue();
+            
             description.formatId = ...
                 char(describe_response.getDataONE_ObjectFormatIdentifier().getValue());
             
@@ -295,8 +306,10 @@ classdef DataONENode < hgsetget
             
             description.checksum = ...
                 char(describe_response.getDataONE_Checksum().getValue());
+            
             description.checksumAlgorithm = ...
                 char(describe_response.getDataONE_Checksum().getAlgorithm());
+            
             description.serialVersion = ...
                 describe_response.getSerialVersion().doubleValue();
             
