@@ -713,6 +713,23 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             assert(~isempty(date));
         end
+        
+        function testIsAuthorized(testCase)
+        % TESTISAUTHORIZED Tests the DataONE isAuthorized() API call to a Member Node
+            
+            import org.dataone.client.v2.DataONEClient;
+            import org.dataone.client.v2.Session;
+            
+            session = Session();
+            
+            mn = DataONEClient.getMN('urn:node:mnDevUCSB2');
+            pid = 'dv.test.006';
+            
+            authorized = mn.isAuthorized(session, pid, 'read');
+            
+            assertEqual(testCase, authorized, true);
+            
+        end
     end
     
     methods (Access = 'private')

@@ -315,15 +315,95 @@ classdef DataONENode < hgsetget
             
         end
     
-        function authorized = isAuthorized(session, id, action)
+        function authorized = isAuthorized(self, session, id, action)
         % ISAUTHORIZED Returns whether the action is pemissible for the object
         %   Given the session credentials and the object id, determine 
         %   if the action (permission) on the object is allowed
         
             authorized = false;
             
+            if ( isempty(session) )
+                import org.dataone.client.v2.Session;
+                session = Session();
+                
+            end
+            
+            % Do we have a session?
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                import org.dataone.client.v2.Session;
+                session = Session();
+                
+            end
+            
+            j_session = session.getJavaSession();
+            
+            % Do we have a string identifier?
+            if ( ~ ischar(id) )
+                msg = ['The given ''id'' parameter must be a ' ...
+                    'string object.' ...
+                    char(10) ...
+                    'Please provide a string identifier ' ...
+                    'while calling the ''isAuthorized()'' function.'];
+                error(msg);
+                
+            end
+            
+            % Do we have a correct permission string?
+            if ( ~ isempty(action) )
+                if ( ~ ismember(action, {'read', 'write', 'changePermission'}) )
+                    msg = ['The given ''action'' parameter must be a ' ...
+                        'string object.' ...
+                        char(10) ...
+                        'Please use a ''read'', ''write'', or ''changePermission'' ' ...
+                        char(10) ...
+                        'action while calling the ''isAuthorized()'' function.'];
+                    error(msg);
+                    
+                end
+            end
+            
+            import org.dataone.service.types.v1.Identifier;
+            j_pid = Identifier();
+            j_pid.setValue(id);
+            
+            if ( ~ ischar(action) || ...
+                 ~ ismember(action, {'read', 'write', 'changePermission'}) )
+                msg = ['The given ''action'' parameter must be a ' ...
+                    'string object.' ...
+                    char(10) ...
+                    'Please use a ''read'', ''write'', or ''changePermission'' ' ...
+                    char(10) ...
+                    'action while calling the ''isAuthorized()'' function.'];
+                error(msg);
+            end
+            import org.dataone.service.types.v1.Permission;
+            j_action = Permission.convert(action);
             %Convert the Java response to logical true or false
-    
+            
+            try
+                authorized = ...
+                    self.node.isAuthorized(j_session, j_pid, j_action);
+                
+            catch baseException
+                if ( isprop(baseException, 'ExceptionObject') )
+                    if ( isa(baseException.ExceptionObject, ...
+                            'org.dataone.service.exceptions.NotFound') )
+                        msg = ['The object with id ''' id ...
+                               ''' could not be not found. '];
+                           
+                    elseif ( isa(baseException.ExceptionObject, ...
+                            'org.dataone.service.exceptions.NotAuthorized') )
+                        authorized = false;
+                            
+                    end
+                    
+                else
+                    rethrow(baseException)
+                    
+                end
+                error(msg);
+            end
+            
         end
 
     end   
