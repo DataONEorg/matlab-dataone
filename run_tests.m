@@ -61,6 +61,10 @@ suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true
 % suite = TestSuite.fromMethod(testCls, 'testListRunsTagsOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testDeleteRunsByTags');
 % suite = TestSuite.fromMethod(testCls, 'testDeleteRunsByTagsRunIdsOnly');
+% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationConfigAndDomElement');
+% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationNoDomElement');
+% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigWithDomElement');
+% suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigNoDomElement');
 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread');

@@ -348,7 +348,7 @@ classdef EML
                     
                else
                    % default to an empty document
-                   eml.document = eml.buildEmptyEMLDocument();
+                   eml.document = eml.buildValidEmptyEMLDocument();
                    mexception = MException('EML:fileNotFound', ...
                    ['The EML file named ' emlFilePath ...
                    ' could not be found.']);
