@@ -221,7 +221,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     testCase.filename, ...
                     fullfile(runDirectory, science_metadata_file), 'f');
                 
-                if ( status == -1 )
+                if ( status ~= 1 )
                     error('RunManager:putMetadata:IOError', ...
                         message);
                 end
@@ -283,7 +283,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     testCase.filename, ...
                     fullfile(runDirectory, science_metadata_file), 'f');
                 
-                if ( status == -1 )
+                if ( status ~= 1 )
                     error('RunManager:putMetadata:IOError', ...
                         message);
                 end
@@ -342,7 +342,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     testCase.filename, ...
                     fullfile(runDirectory, science_metadata_file), 'f');
                 
-                if ( status == -1 )
+                if ( status ~= 1 )
                     error('RunManager:putMetadata:IOError', ...
                         message);
                 end
@@ -401,7 +401,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     testCase.filename, ...
                     fullfile(runDirectory, science_metadata_file), 'f');
                 
-                if ( status == -1 )
+                if ( status ~= 1 )
                     error('RunManager:putMetadata:IOError', ...
                         message);
                 end
@@ -457,7 +457,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     testCase.filename, ...
                     fullfile(runDirectory, science_metadata_file), 'f');
                 
-                if ( status == -1 )
+                if ( status ~= 1 )
                     error('RunManager:putMetadata:IOError', ...
                         message);
                 end
