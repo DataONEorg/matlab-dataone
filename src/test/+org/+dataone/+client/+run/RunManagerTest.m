@@ -36,10 +36,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % SETUP Set up the test environment            
             import org.dataone.client.run.RunManager;
             import org.dataone.client.configure.Configuration;
-                        
-            % testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_3.m';
-            testCase.filename = 'src/test/resources/myScript1.m';
-            
+                                    
             if ispc
                 home_dir = getenv('USERPROFILE');
             elseif isunix
@@ -53,10 +50,16 @@ classdef RunManagerTest < matlab.unittest.TestCase
             config = Configuration( ...
                 'configuration_directory', test_config_directory);
             
-            testCase.mgr = RunManager.getInstance(config);           
-            testCase.yw_process_view_property_file_name = 'lib/yesworkflow/yw_process_view.properties'; 
-            testCase.yw_data_view_property_file_name = 'lib/yesworkflow/yw_data_view.properties'; 
-            testCase.yw_comb_view_property_file_name = 'lib/yesworkflow/yw_comb_view.properties'; 
+            testCase.mgr = RunManager.getInstance(config);
+            testCase.filename = ...
+                fullfile(testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                'src/test/resources/myScript1.m');
+            testCase.yw_process_view_property_file_name = ...
+                'lib/yesworkflow/yw_process_view.properties'; 
+            testCase.yw_data_view_property_file_name = ...
+                'lib/yesworkflow/yw_data_view.properties'; 
+            testCase.yw_comb_view_property_file_name = ...
+                'lib/yesworkflow/yw_comb_view.properties'; 
         end
     end
     
@@ -115,7 +118,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testYesWorkflow(testCase)
             fprintf('\nIn testYesWorkflow() ...\n');
             
-            testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
+            testCase.filename = ...
+                fullfile(testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m');
               
             %scriptPath = fullfile(pwd(), filesep, testCase.filename); 
             scriptPath = which(testCase.filename);
@@ -142,10 +147,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testRecord(testCase)
             fprintf('\nIn testRecord() ...\n');
      
-             testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-            % testCase.filename = 'src/test/resources/myScript1.m';
-            % testCase.filename = 'src/test/resources/myScript2.m';
-            % testCase.filename = 'src/Users/syc/Documents/matlab-dataone/src/test/resources/myScript2.m';
+             testCase.filename = ...
+                 fullfile( ...
+                     testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                     'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m');
  
             scriptPath = which(testCase.filename); % get the absolute path of the script
             if isempty(scriptPath)
@@ -193,8 +198,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             fprintf('\nIn test Put Metadata With Salutation Config Element Exists ...\n');
             
-            testCase.filename = 'src/test/resources/testMetadataWithSaluation.xml';
-            newScienceMetaFileName = 'src/test/resources/testReplaceMetadata.xml';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                     'src/test/resources/testMetadataWithSaluation.xml');
+            newScienceMetaFileName = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testReplaceMetadata.xml');
             
             % Create a faked run
             import org.dataone.client.run.Execution;
@@ -255,8 +266,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
             fprintf('\nIn test Put Metadata No Salutation Config Element Exists ...\n');
             
-            testCase.filename = 'src/test/resources/testMetadataNoSaluation.xml';
-            newScienceMetaFileName = 'src/test/resources/testReplaceMetadata.xml';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testMetadataNoSaluation.xml');
+            newScienceMetaFileName = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testReplaceMetadata.xml');
             
             % Create a faked run
             import org.dataone.client.run.Execution;
@@ -314,8 +331,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testPutMetadataWithoutSalutationConfigWithDomElement(testCase)
             fprintf('\nIn test Put Metadata Without Salutation Config Element Exists but Saluation dom element exists ...\n');
             
-            testCase.filename = 'src/test/resources/testMetadataWithSaluation.xml';
-            newScienceMetaFileName = 'src/test/resources/testReplaceMetadataNoSaluation.xml';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testMetadataWithSaluation.xml');
+            newScienceMetaFileName = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testReplaceMetadataNoSaluation.xml');
             
             % Create a faked run
             import org.dataone.client.run.Execution;
@@ -373,8 +396,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testPutMetadataWithoutSalutationConfigNoDomElement(testCase)
             fprintf('\nIn test Put Metadata Without Salutation Config Element Exists and Saluation dom element not present ...\n');
             
-            testCase.filename = 'src/test/resources/testMetadataNoSaluation.xml';
-            newScienceMetaFileName = 'src/test/resources/testReplaceMetadataNoSaluation.xml';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testMetadataNoSaluation.xml');
+            newScienceMetaFileName = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testReplaceMetadataNoSaluation.xml');
             
             % Create a faked run
             import org.dataone.client.run.Execution;
@@ -430,7 +459,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testGetMetadata(testCase)
             fprintf('\nIn test Get Metadata ...\n');
             
-            testCase.filename = 'src/test/resources/testMetadataWithSaluation.xml';
+            testCase.filename = ... 
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testMetadataWithSaluation.xml');
          
             % Create a faked run
             import org.dataone.client.run.Execution;
@@ -471,7 +503,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedCdfread(testCase)
             fprintf('\nIn testOverloadedCdfread() ...\n');            
-            testCase.filename = 'src/test/resources/myScript7.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript7.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -485,7 +520,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedCdfwrite(testCase)
             fprintf('\nIn testOverloadedCdfwrite() ...\n');            
-            testCase.filename = 'src/test/resources/myScript8.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript8.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -499,7 +537,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedHdfread(testCase)
             fprintf('\nIn testOverloadedHdfread() ...\n');            
-            testCase.filename = 'src/test/resources/myScript11.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript11.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -513,7 +554,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedHdfinfo(testCase)
             fprintf('\nIn testOverloadedHdfinfo() ...\n');            
-            testCase.filename = 'src/test/resources/myScript12.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript12.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -527,7 +571,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedH5read(testCase)
             fprintf('\nIn testOverloadedH5read ...\n');            
-            testCase.filename = 'src/test/resources/myScript9.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript9.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -541,7 +588,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedH5write(testCase)
             fprintf('\nIn testOverloadedH5write ...\n');            
-            testCase.filename = 'src/test/resources/myScript10.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript10.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -555,7 +605,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedTextread(testCase)
             fprintf('\nIn testOverloadedTextread ...\n');            
-            testCase.filename = 'src/test/resources/myScript13.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript13.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -569,7 +622,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedReadtable(testCase)
             fprintf('\nIn testOverloadedReadtable ...\n');            
-            testCase.filename = 'src/test/resources/myScript14.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript14.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -583,7 +639,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedWritetable(testCase)
             fprintf('\nIn testOverloadedWritetable ...\n');            
-            testCase.filename = 'src/test/resources/myScript14.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript14.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -596,7 +655,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedImread(testCase)
             fprintf('\nIn testOverloadedImread ...\n');            
-            testCase.filename = 'src/test/resources/myScript15.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript15.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -610,7 +672,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedImwrite(testCase)
             fprintf('\nIn testOverloadedImwrite ...\n');            
-            testCase.filename = 'src/test/resources/myScript16.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript16.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -624,7 +689,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedXmlread(testCase)
             fprintf('\nIn testOverloadedXmlread ...\n');
-            testCase.filename = 'src/test/resources/myScript17.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript17.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -638,7 +706,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedXmlwrite(testCase)
             fprintf('\nIn testOverloadedXmlwrite ...\n');
-            testCase.filename = 'src/test/resources/myScript18.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript18.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -652,7 +723,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
         function testOverloadedMultibandread(testCase)
             fprintf('\nIn testOverloadedMultibandread ...\n');
-            testCase.filename = 'src/test/resources/myScript20.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript20.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -666,7 +740,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 
         function testOverloadedMultibandwrite(testCase)
             fprintf('\nIn testOverloadedMultibandwrite ...\n');
-            testCase.filename = 'src/test/resources/myScript19.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript19.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -680,7 +757,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedFitsread(testCase)
             fprintf('\nIn testOverloadedFitsread ...\n');
-            testCase.filename = 'src/test/resources/myScript22.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript22.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -694,7 +774,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 
         function testOverloadedFitswrite(testCase)
             fprintf('\nIn testOverloadedFitswrite ...\n');
-            testCase.filename = 'src/test/resources/myScript21.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript21.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -708,7 +791,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
-            testCase.filename = 'src/test/resources/myScript3.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript3.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -721,7 +807,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
               
         function testOverloadedNCread(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
-            testCase.filename = 'src/test/resources/myScript1.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript1.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -734,7 +823,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedNCwrite(testCase)
             fprintf('\nIn testOverloadedNcwrite() ...\n');            
-            testCase.filename = 'src/test/resources/myScript2.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript2.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -747,7 +839,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         
         function testOverloadedCSVread(testCase)
             fprintf('\nIn testOverloadedCSVread() ...\n');            
-            testCase.filename = 'src/test/resources/myScript4.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript4.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -761,8 +856,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testOverloadedLoad(testCase)
             % Todo: load coast (not working)
             fprintf('\nIn testOverloadedLoad() ...\n');            
-            % testCase.filename = 'src/test/resources/myScript5.m';
-             testCase.filename = 'test/resources/myScript1.m'; % load coast
+            fullfile( ...
+                testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                'src/test/resources/myScript1.m'); % load coast
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -776,7 +872,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testOverloadedDlmread(testCase)
           
             fprintf('\nIn testOverloadedDlmread ...\n');            
-            testCase.filename = 'src/test/resources/myScript6.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript6.m');
             
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
@@ -1034,8 +1133,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
                      'https://cilogon.org/?skin=DataONEDev and \n ' ...
                      'download your X509 certificate to /tmp/x509up_u501.\n']);
 
-            %testCase.filename = 'src/test/resources/C3_C4_map_present_NA_Markup_v2_7.m';
-            testCase.filename = 'src/test/resources/myScript2.m';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/myScript2.m');
 
             set(testCase.mgr.configuration, 'certificate_path', '/tmp/x509up_u501');
             set(testCase.mgr.configuration, 'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJjb25zdW1lcktleSI6InRoZWNvbnN1bWVya2V5IiwiaXNzdWVkQXQiOiIyMDE1LTEwLTIxVDE0OjUzOjU1LjkzMyswMDowMCIsInVzZXJJZCI6IkNOPVlhbmcgQ2FvIEExOTQwMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiZnVsbE5hbWUiOiJZYW5nQ2FvIiwidHRsIjo2NDgwMDAwMH0.BfUC9GrK-WJyrYLr_C1vi-9Ufp9n_9ZQLRT2Yeqhv0eD0nCLB_Zgc8bfCStZdar7Hol2bl9nm-igEcM7E7rm3i-JQFS_6qrqJu5vpJID-ADH7w2pusY_R7xve-qyQ5-pmznQUZOY5mwxkmFyzF4uXTawD6MpDa7T3ulc2y6By0Q9oE1BcoG8Z4GAmmXGCYvTK7JK4lv--uRKJ95VL68_wwmoH1y6Hi3f6qcv0ObBt94BhI-ItEh0vW8LrbKKNLpvQ7ivsbiniRNtzwKXwi72BJ83xqcxN1fi2kCs1-GOqcQhHIdTwtvO3d0xSf8G6UzLsHb7denTWPitMF3RA_G5etMd6v6Qgewfl0pS-fZuaP28OpzxMvHCwDGkFehtoszEdXQLiD_dylPuvEdB4RE2uvfXtR3kWEwGl1HHdaV7Eq4zVxu2N8iq27r213W_R23NdJcU9mOFbT0Dg2AVW17hhdw8Ulp_FvB4-K_JghDlbZSPZKig8TFeZiGd0feqwVrupd48fHacG4qDrTtu_Itn0My2i8dwImc0EQtscrBPUkR-UGE4xJab79OalB7imEQRiO4C9nlrvbrabGixmn1d0FPZ5fKo9Pe00aH7GqiibS3P7roe1u7GQVSMIBH6QqkE8MOTUndyx76CXZ4xR1VnuGZwA9K-2-ZW7FsqiW_7Hcg');

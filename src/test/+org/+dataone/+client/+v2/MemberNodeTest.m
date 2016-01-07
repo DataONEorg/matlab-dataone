@@ -161,7 +161,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import java.security.cert.X509Certificate;
             import org.apache.commons.io.IOUtils;
                 
-            testCase.filename = 'src/test/resources/testData.csv';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testData.csv');
             full_file_path = which(testCase.filename);
             if isempty(full_file_path)
                 [status, struc] = fileattrib(testCase.filename);
@@ -266,7 +269,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import java.security.cert.X509Certificate;
             import org.apache.commons.io.IOUtils;
                 
-            testCase.filename = 'src/test/resources/testData.csv';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testData.csv');
             full_file_path = which(testCase.filename);
             if isempty(full_file_path)
                 [status, struc] = fileattrib(testCase.filename);
@@ -391,7 +397,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import java.nio.charset.StandardCharsets;
             import org.dataone.service.util.TypeMarshaller;
             
-            testCase.filename = 'src/test/resources/testData.csv';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testData.csv');
             full_file_path = which(testCase.filename);
             if isempty(full_file_path)
                 [status, struc] = fileattrib(testCase.filename);
@@ -601,7 +610,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import org.dataone.client.auth.CertificateManager;
             import java.security.cert.X509Certificate;
                 
-            testCase.filename = 'src/test/resources/testData.csv';
+            testCase.filename = ...
+                fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src/test/resources/testData.csv');
             full_file_path = which(testCase.filename);
             if isempty(full_file_path)
                 [status, struc] = fileattrib(testCase.filename);
