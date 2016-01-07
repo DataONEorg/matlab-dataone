@@ -86,11 +86,11 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
         end
         
-        function testMNodeGet(testCase)
-        % TESTMNODEGET Tests the DataONE get() API call to a Member Node
+        function testGet(testCase)
+        % TESTGET Tests the DataONE get() API call to a Member Node
         
             % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
-            fprintf('\nIn test Member Node Get() ...\n');
+            fprintf('\nIn test get() ...\n');
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
@@ -252,11 +252,11 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             end
         end
         
-        function testMNodeCreate(testCase)
-        % TESTMNODECREATE Tests the DataONE create() API call to a Member Node
+        function testCreate(testCase)
+        % TESTCREATE Tests the DataONE create() API call to a Member Node
         
             % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
-            fprintf('\nIn test Member Node Create() ...\n');
+            fprintf('\nIn test create() ...\n');
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
@@ -374,11 +374,11 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             end
         end
         
-        function testMNodeUpdate(testCase)
-        % TESTMNODEGET Tests the DataONE update() API call to a Member Node
+        function testUpdate(testCase)
+        % TESTGET Tests the DataONE update() API call to a Member Node
         
             % Certificate x509up_u501 is requried to run this unit test. Dec-11-2015
-            fprintf('\nIn test Member Node Update() ...\n');
+            fprintf('\nIn test update() ...\n');
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.client.v2.Session;
@@ -521,9 +521,9 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             end
         end
         
-        function testMNodeListObjects(testCase)
+        function testListObjects(testCase)
             % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
-            fprintf('\nIn test Member Node listObjects ...\n');
+            fprintf('\nIn test listObjects ...\n');
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.client.v2.Session;
@@ -555,9 +555,9 @@ classdef MemberNodeTest < matlab.unittest.TestCase
 
         end
         
-        function testMNodeGetChecksum(testCase)
+        function testGetChecksum(testCase)
             % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
-            fprintf('\nIn test Member Node getChecksum ...\n');
+            fprintf('\nIn test getChecksum ...\n');
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
@@ -588,10 +588,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
         end
         
-        function testMNodeArchive(testCase)
+        function testArchive(testCase)
            
             % Certificate x509up_u501 is requried to run this unit test. 
-            fprintf('\nIn test Member Node archive() ...\n');
+            fprintf('\nIn test archive() ...\n');
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.client.v2.SystemMetadata;

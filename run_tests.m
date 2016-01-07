@@ -100,12 +100,14 @@ suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true
 
 % testCls = ?org.dataone.client.v2.MemberNodeTest;
 % suite = TestSuite.fromMethod(testCls, 'testGetSystemMetadata');
-% suite = TestSuite.fromMethod(testCls, 'testMNodeGet');
-% suite = TestSuite.fromMethod(testCls, 'testMNodeCreate');
-% suite = TestSuite.fromMethod(testCls, 'testMNodeUpdate');
-% suite = TestSuite.fromMethod(testCls, 'testMNodeListObjects'); 
-% suite = TestSuite.fromMethod(testCls, 'testMNodeGetChecksum');
-% suite = TestSuite.fromMethod(testCls, 'testMNodeArchive');
+% suite = TestSuite.fromMethod(testCls, 'testIsAuthorized');
+% suite = TestSuite.fromMethod(testCls, 'testUpdateSystemMetadata');
+% suite = TestSuite.fromMethod(testCls, 'testGet');
+% suite = TestSuite.fromMethod(testCls, 'testCreate');
+% suite = TestSuite.fromMethod(testCls, 'testUpdate');
+% suite = TestSuite.fromMethod(testCls, 'testListObjects'); 
+% suite = TestSuite.fromMethod(testCls, 'testGetChecksum');
+% suite = TestSuite.fromMethod(testCls, 'testArchive');
 % suite = TestSuite.fromMethod(testCls, 'testGetCapabilities');
 % suite = TestSuite.fromMethod(testCls, 'testPing');
 
@@ -116,6 +118,8 @@ suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true
 
 % testCls = ?org.dataone.client.v2.SessionTest;
 % suite = TestSuite.fromMethod(testCls, 'testInstantiate');
+% suite = TestSuite.fromMethod(testCls, 'testTokenSession');
+% suite = TestSuite.fromMethod(testCls, 'testCertificateSession');
 
 run(suite);
 
