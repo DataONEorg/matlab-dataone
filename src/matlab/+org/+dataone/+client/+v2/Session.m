@@ -111,8 +111,8 @@ classdef Session < hgsetget
                     % rethrow(parseException);
                     
                 end
-                j_session = AuthTokenSession(auth_token);
-                
+                session.j_session = AuthTokenSession(auth_token);
+                    
             % Otherwise use the X509 certificate
             elseif ( ~ isempty(cert_path) )
                 CertificateManager.getInstance().setCertificateLocation(cert_path);
