@@ -92,7 +92,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             fprintf('\nIn test get() ...\n');
             
             import org.dataone.client.v2.MemberNode;
-            import org.dataone.service.types.v1.Identifier;
             
             % Create a fake run
             import org.dataone.client.run.Execution;
@@ -153,8 +152,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             fprintf('\nIn test Member Node updateSystemMetadata() ...\n');
             
             import org.dataone.client.v2.MemberNode;
-            import org.dataone.service.types.v1.Identifier;
-            import org.dataone.service.types.v1.ObjectFormatIdentifier;
             import org.dataone.service.types.v1.util.ChecksumUtil;
             import org.apache.commons.io.IOUtils;
                 
@@ -231,7 +228,13 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 updated = mn.updateSystemMetadata(session, pid, mn_sysmeta);
                 
                 assertEqual(testCase, updated, true);
-                
+
+                % Clear runtime input/output sources
+                testCase.mgr.execution.execution_input_ids = {};
+                testCase.mgr.execution.execution_output_ids = {};
+                all_keys = keys(testCase.mgr.execution.execution_objects);
+                remove(testCase.mgr.execution.execution_objects, all_keys);
+
             catch Error
                 rethrow(Error);
                 
@@ -244,8 +247,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             fprintf('\nIn test create() ...\n');
             
             import org.dataone.client.v2.MemberNode;
-            import org.dataone.service.types.v1.Identifier;
-            import org.dataone.service.types.v1.ObjectFormatIdentifier;
             import org.dataone.service.types.v1.util.ChecksumUtil;
             import org.apache.commons.io.IOUtils;
                 
@@ -359,13 +360,8 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import org.dataone.client.v2.MemberNode;
             import org.dataone.client.v2.Session;
             import org.dataone.client.v2.SystemMetadata;
-            import org.dataone.service.types.v1.Identifier;
-            import java.io.File;
             import org.dataone.service.types.v1.util.ChecksumUtil;
-            import java.io.FileInputStream;
             import org.apache.commons.io.IOUtils;
-            import java.nio.charset.StandardCharsets;
-            import org.dataone.service.util.TypeMarshaller;
             
             testCase.filename = ...
                 fullfile( ...
@@ -471,7 +467,7 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 
                 % Verify if the execution_output_ids contains two pids
                 size1 = length(testCase.mgr.execution.execution_output_ids);
-                assertEqual(testCase, size1, 2);
+                assertEqual(testCase, size1, 2); 
                 
                 % Verify if the execution_input_ids contains one pids
                 size2 = length(testCase.mgr.execution.execution_input_ids);
@@ -494,7 +490,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.client.v2.Session;
-            import org.dataone.service.types.v1.Identifier;
             
             % Get a Session
             session = Session();
@@ -526,7 +521,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             fprintf('\nIn test getChecksum ...\n');
             
             import org.dataone.client.v2.MemberNode;
-            import org.dataone.service.types.v1.Identifier;
             
             % Get a MNode matlab instance to the member node
             % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
@@ -562,7 +556,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import org.dataone.client.v2.Session;
             import org.dataone.client.v2.SystemMetadata;
             import org.dataone.client.v2.Session;
-            import java.io.File;
             import org.dataone.service.types.v1.util.ChecksumUtil;
                 
             testCase.filename = ...
@@ -630,6 +623,12 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 pid2 = mn.archive(session, pid);
                 
                 assertEqual(testCase, pid2, pid);
+                
+                % Clear runtime input/output sources
+                testCase.mgr.execution.execution_input_ids = {};
+                testCase.mgr.execution.execution_output_ids = {};
+                all_keys = keys(testCase.mgr.execution.execution_objects);
+                remove(testCase.mgr.execution.execution_objects, all_keys);
                 
             catch Error
                 rethrow(Error);
