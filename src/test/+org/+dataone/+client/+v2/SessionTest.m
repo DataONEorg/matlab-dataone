@@ -43,6 +43,9 @@ classdef SessionTest < matlab.unittest.TestCase
             import org.dataone.client.v2.Session;
             config = Configuration.loadConfig('');
             
+            saved_authentication_token = config.authentication_token;
+            saved_certificate_path = config.certificate_path;
+            
             % Use a known expired token
             set(config, 'authentication_token', ...
                 ['eyJhbGciOiJSUzI1NiJ9.eyJjb25zdW1lcktle' ...
@@ -94,6 +97,10 @@ classdef SessionTest < matlab.unittest.TestCase
             assertEqual(testCase, known_type, session.type);
             assertEqual(testCase, known_status, session.status);
             
+            % Reset the token if it was set beforehand
+            set(config, 'authentication_token', saved_authentication_token);
+            set(config, 'certificate_path', saved_certificate_path);
+                
         end
         
         function testCertificateSession(testCase)
@@ -249,6 +256,9 @@ classdef SessionTest < matlab.unittest.TestCase
             upath = userpath;
             userdir = upath(1:end - 1);
             delete(fullfile(userdir, '.d1-auth-token-notified.txt'));
+            import org.dataone.client.auth.CertificateManager;
+            certmgr = CertificateManager.getInstance();
+            certmgr.setCertificateLocation('');
         end
     end
     
