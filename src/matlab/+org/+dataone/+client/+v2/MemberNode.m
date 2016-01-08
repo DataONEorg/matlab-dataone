@@ -417,6 +417,16 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 session = Session();
             end
             
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                msg = ['The ''session'' parameter must be ' ...
+                    'an ''org.dataone.client.v2.Session'' object. '
+                    char(10) ...
+                    'Please use the Session class when calling ' ...
+                    'the listObjects() function.'];
+                error(msg);
+                
+            end
+            
             j_session = session.getJavaSession();
             
             import java.text.SimpleDateFormat;
