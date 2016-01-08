@@ -24,10 +24,10 @@ classdef Configuration < hgsetget & dynamicprops
     properties     
 
         % The source member node identifier
-        source_member_node_id  = 'urn:node:XXXX';
+        source_member_node_id = '';
         
         % The target member node identifier
-        target_member_node_id = 'urn:node:XXXX';
+        target_member_node_id = '';
         
         % The default object format identifier when creating system metadata and uploading files to a member node. 
         format_id = 'application/octet-stream';
@@ -157,7 +157,7 @@ classdef Configuration < hgsetget & dynamicprops
                     
                     % Save default configuration object in configuration.json 
                     % Not necessary to explicit an empty file.
-                    configuration.saveConfig();
+                    % configuration.saveConfig();
                     return;
                 else
                     % The configuration.json exists under the default directory

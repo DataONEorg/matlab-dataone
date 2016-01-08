@@ -44,6 +44,7 @@ classdef ConfigurationTest < matlab.unittest.TestCase
         function testSetGet(testCase)
             import org.dataone.client.configure.Configuration;
    
+            saved_config = Configuration.loadConfig('');
             c = Configuration();
             set(c, 'debug', true);
             
@@ -72,9 +73,8 @@ classdef ConfigurationTest < matlab.unittest.TestCase
             c.set('number_of_replicas ', 3);
             testCase.verifyEqual(c.get(' number_of_replicas'), 3);
             
-            c.set('number_of_replicas', 3.0);
-            testCase.verifyEqual(c.get(' number_of_replicas'), 3.0);
-             
+            % Reset the configuration to the original values
+            saved_config.saveConfig();
         end
     end
     
