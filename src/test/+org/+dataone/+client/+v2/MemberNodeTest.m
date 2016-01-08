@@ -89,7 +89,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         function testGet(testCase)
         % TESTGET Tests the DataONE get() API call to a Member Node
         
-            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
             fprintf('\nIn test get() ...\n');
             
             import org.dataone.client.v2.MemberNode;
@@ -157,8 +156,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.service.types.v1.ObjectFormatIdentifier;
             import org.dataone.service.types.v1.util.ChecksumUtil;
-            import org.dataone.client.auth.CertificateManager;
-            import java.security.cert.X509Certificate;
             import org.apache.commons.io.IOUtils;
                 
             testCase.filename = ...
@@ -214,24 +211,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 % Get a session
                 import org.dataone.client.v2.Session;
                 session = Session();
-                
-                % Get a certificate for the Root CA
-                certificate = CertificateManager.getInstance().loadCertificate();
-                
-                if ~isempty(certificate)
-                    dn = CertificateManager.getInstance().getSubjectDN( ...
-                         certificate).toString();
-                    standardizedName = char( ...
-                        CertificateManager.getInstance().standardizeDN(dn));
-                    
-                else
-                    standardizedName = '';
-                    
-                end
-                
+                                
                 % Set the submitter (required)
-                set(sysmeta, 'submitter', standardizedName);
-                set(sysmeta, 'rightsHolder', standardizedName);
+                set(sysmeta, 'submitter', session.account_subject);
+                set(sysmeta, 'rightsHolder', session.account_subject);
                 
                 % Set the node fields (required)
                 set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
@@ -258,15 +241,12 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         function testCreate(testCase)
         % TESTCREATE Tests the DataONE create() API call to a Member Node
         
-            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
             fprintf('\nIn test create() ...\n');
             
             import org.dataone.client.v2.MemberNode;
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.service.types.v1.ObjectFormatIdentifier;
             import org.dataone.service.types.v1.util.ChecksumUtil;
-            import org.dataone.client.auth.CertificateManager;
-            import java.security.cert.X509Certificate;
             import org.apache.commons.io.IOUtils;
                 
             testCase.filename = ...
@@ -283,6 +263,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             % Get a MNode matlab instance to the member node
             % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             mn = MemberNode('urn:node:mnDevUCSB2');
+            
+            % Get a session
+            import org.dataone.client.v2.Session;
+            session = Session();
             
             % Create a fake run
             import org.dataone.client.run.Execution;
@@ -338,27 +322,14 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 accessPolicy.rules('public') = 'read';
                 set(sysmeta, 'accessPolicy', accessPolicy);
                 
-                % Get a certificate for the Root CA
-                certificate = CertificateManager.getInstance().loadCertificate();
-                if ~isempty(certificate)
-                    dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
-                    standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
-                else
-                    standardizedName = '';
-                end
-                
                 % Set the submitter (required)
-                set(sysmeta, 'submitter', standardizedName);
-                set(sysmeta, 'rightsHolder', standardizedName);
+                set(sysmeta, 'submitter', session.account_subject);
+                set(sysmeta, 'rightsHolder', session.account_subject);
                 
                 % Set the node fields (required)
                 set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
                 set(sysmeta, 'authoritativeMemberNode', 'urn:node:mnDevUCSB2');
 
-                % Get a session
-                import org.dataone.client.v2.Session;
-                session = Session();
-                
                 % Call MemberNode.create()
                 returned_pid = mn.create(session, pid, data, sysmeta);
                 
@@ -383,7 +354,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         function testUpdate(testCase)
         % TESTGET Tests the DataONE update() API call to a Member Node
         
-            % Certificate x509up_u501 is requried to run this unit test. Dec-11-2015
             fprintf('\nIn test update() ...\n');
             
             import org.dataone.client.v2.MemberNode;
@@ -407,6 +377,9 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 full_file_path = struc.Name;
             end
                         
+            % Get a session
+            session = Session();
+            
             % Get a MNode matlab instance to the member node
             % mn_base_url = 'https://mn-dev-ucsb-2.test.dataone.org/metacat/d1/mn';
             mn = MemberNode('urn:node:mnDevUCSB2');
@@ -436,18 +409,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             data = int8(fread(fileId));
             
             try
-                % Gets a certificate
-                import org.dataone.client.auth.CertificateManager;
-                import java.security.cert.X509Certificate;
-                
-                % Get a certificate for the Root CA
-                certificate = CertificateManager.getInstance().loadCertificate();
-                if ~isempty(certificate)
-                    dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
-                    standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
-                else
-                    standardizedName = '';
-                end
                 
                 sysmeta = SystemMetadata();
                 
@@ -472,8 +433,8 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 set(sysmeta, 'fileName', full_file_path);
                 
                 % Set the submitter (required)
-                set(sysmeta, 'submitter', standardizedName);
-                set(sysmeta, 'rightsHolder', standardizedName);
+                set(sysmeta, 'submitter', session.account_subject);
+                set(sysmeta, 'rightsHolder', session.account_subject);
 
                 % Set the access policy
                 accessPolicy.rules = ...
@@ -485,8 +446,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
                 set(sysmeta, 'authoritativeMemberNode', 'urn:node:mnDevUCSB2');
 
-                % Get a session
-                session = Session();
                 % Call MemberNode.create()
                 returned_pid = mn.create(session, pid, data, sysmeta);
                 
@@ -531,7 +490,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         end
         
         function testListObjects(testCase)
-            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
             fprintf('\nIn test listObjects ...\n');
             
             import org.dataone.client.v2.MemberNode;
@@ -565,7 +523,6 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         end
         
         function testGetChecksum(testCase)
-            % Certificate x509up_u501 is requried to run this unit test. Dec-10-2015
             fprintf('\nIn test getChecksum ...\n');
             
             import org.dataone.client.v2.MemberNode;
@@ -599,16 +556,14 @@ classdef MemberNodeTest < matlab.unittest.TestCase
         
         function testArchive(testCase)
            
-            % Certificate x509up_u501 is requried to run this unit test. 
             fprintf('\nIn test archive() ...\n');
             
             import org.dataone.client.v2.MemberNode;
+            import org.dataone.client.v2.Session;
             import org.dataone.client.v2.SystemMetadata;
             import org.dataone.client.v2.Session;
             import java.io.File;
             import org.dataone.service.types.v1.util.ChecksumUtil;
-            import org.dataone.client.auth.CertificateManager;
-            import java.security.cert.X509Certificate;
                 
             testCase.filename = ...
                 fullfile( ...
@@ -619,7 +574,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 [status, struc] = fileattrib(testCase.filename);
                 full_file_path = struc.Name;
             end
-                        
+            
+            % Get a session
+            session = Session();
+            
             % Get a MNode matlab instance to the member node
             mn = MemberNode('urn:node:mnDevUCSB2');
             
@@ -656,28 +614,15 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                     containers.Map('KeyType', 'char', 'ValueType', 'char');
                 accessPolicy.rules('public') = 'read';
                 set(sysmeta, 'accessPolicy', accessPolicy);
-                
-                % Get a certificate for the Root CA
-                certificate = CertificateManager.getInstance().loadCertificate();
-                if ~isempty(certificate)
-                    dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
-                    standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
-                else
-                    standardizedName = '';
-                end
-                
+                                
                 % Set the submitter (required)
-                set(sysmeta, 'submitter', standardizedName);
-                set(sysmeta, 'rightsHolder', standardizedName);
+                set(sysmeta, 'submitter', session.account_subject);
+                set(sysmeta, 'rightsHolder', session.account_subject);
                 
                 % Set the node fields (required)
                 set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
                 set(sysmeta, 'authoritativeMemberNode', 'urn:node:mnDevUCSB2');
 
-                % Get a session
-                import org.dataone.client.v2.Session;
-                session = Session();
-                
                 % Call MemberNode.create()
                 pid = mn.create(session, pid, data, sysmeta);
                 
