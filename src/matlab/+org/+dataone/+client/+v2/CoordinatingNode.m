@@ -91,11 +91,11 @@ classdef CoordinatingNode < org.dataone.client.v2.DataONENode
         end
         
         
-        function [objects, start, count, total] = listObjects(coordinatingNode, session, fromDate, ...
+        function [objects, start, count, total] = ...
+                listObjects(coordinatingNode, session, fromDate, ...
                 toDate, formatid, nodeid, identifier, start, count)
             % ListObjects Retrieves the list of objects present on the CN that
-            % match the calling parameters. At a minimum, this method should be
-            % able to return a list of objects that match:
+            % match the calling parameters.
             
             import java.util.Date;
             import org.dataone.service.types.v1.ObjectFormatIdentifier;
@@ -105,47 +105,186 @@ classdef CoordinatingNode < org.dataone.client.v2.DataONENode
             
             objects(1).identifier = '';
             objects(1).formatId = '';
-            objects(1).checksum = '';
-            objects(1).checksumAlgorithm = '';
+            objects(1).checksum.value = '';
+            objects(1).checksum.algorithm = '';
             objects(1).dateSysMetadataModified = '';
             objects(1).size = NaN;
             
-            
-            if (~isempty(fromDate))
-                fromDateObj = Date(fromDate);
-            else
-                fromDateObj = [];
+            % Do we have a session?
+            if ( isempty(session) )
+                session = Session();
             end
             
+            if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                msg = ['The ''session'' parameter must be ' ...
+                    'an ''org.dataone.client.v2.Session'' object. '
+                    char(10) ...
+                    'Please use the Session class when calling ' ...
+                    'the listObjects() function.'];
+                error(msg);
+                
+            end
+            
+            j_session = session.getJavaSession();
+
+            j_fromDate = [];
+            if ( ~isempty(fromDate) )
+                if ( ischar(fromDate) )
+                    try
+                        % Handle yyyy-MM-dd''T''HH:mm:ss.SSSZ
+                        formatter = ...
+                            SimpleDateFormat( ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSSZ');
+                        tz = TimeZone.getTimeZone('UTC');
+                        formatter.setTimeZone(tz);
+                        j_fromDate = formatter.parse(fromDate);
+                        
+                    catch exception
+                        try
+                            % Handle yyyy-MM-dd''T''HH:mm:ss.SSS
+                            formatter = ...
+                                SimpleDateFormat( ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSS');
+                            tz = TimeZone.getTimeZone('UTC');
+                            formatter.setTimeZone(tz);
+                            j_fromDate = formatter.parse(fromDate);
+                        catch exception2
+                            try
+                                % Handle yyyy-MM-dd''T''HH:mm:ss
+                                formatter = ...
+                                    SimpleDateFormat( ...
+                                    'yyyy-MM-dd''T''HH:mm:ss');
+                                tz = TimeZone.getTimeZone('UTC');
+                                formatter.setTimeZone(tz);
+                                j_fromDate = formatter.parse(fromDate);
+                                
+                            catch exception3
+                                % Couldn't parse the string. Throw an error
+                                msg = ['The date string ' fromDate ...
+                                char(10) ...
+                                'Couldn''t be parsed. Please provide ' ...
+                                'the ''fromDate'' parameter ' ...
+                                char(10) ...
+                                'in one of the following string formats: ' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSSZ' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSS' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss' ...
+                                char(10) ... 
+                                'For instance: ' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01.001+0000' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01.001' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01' ...
+                                ];
+                                error(msg);
+                            end
+                        end
+                    end
+                end
+            end
+            
+            j_toDate = [];
             if (~isempty(toDate))
-                toDateObj = Date(toDate);
-            else
-                toDateObj = [];
+                if ( ischar(toDate) )
+                    try
+                        % Handle yyyy-MM-dd''T''HH:mm:ss.SSSZ
+                        formatter = ...
+                            SimpleDateFormat( ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSSZ');
+                        tz = TimeZone.getTimeZone('UTC');
+                        formatter.setTimeZone(tz);
+                        j_toDate = formatter.parse(toDate);
+                        
+                    catch exception
+                        try
+                            % Handle yyyy-MM-dd''T''HH:mm:ss.SSS
+                            formatter = ...
+                                SimpleDateFormat( ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSS');
+                            tz = TimeZone.getTimeZone('UTC');
+                            formatter.setTimeZone(tz);
+                            j_toDate = formatter.parse(toDate);
+                        catch exception2
+                            try
+                                % Handle yyyy-MM-dd''T''HH:mm:ss
+                                formatter = ...
+                                    SimpleDateFormat( ...
+                                    'yyyy-MM-dd''T''HH:mm:ss');
+                                tz = TimeZone.getTimeZone('UTC');
+                                formatter.setTimeZone(tz);
+                                j_toDate = formatter.parse(toDate);
+                                
+                            catch exception3
+                                % Couldn't parse the string. Throw an error
+                                msg = ['The date string ' toDate ...
+                                char(10) ...
+                                'Couldn''t be parsed. Please provide ' ...
+                                'the ''toDate'' parameter ' ...
+                                char(10) ...
+                                'in one of the following string formats: ' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSSZ' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss.SSS' ...
+                                char(10) ...
+                                'yyyy-MM-dd''T''HH:mm:ss' ...
+                                char(10) ... 
+                                'For instance: ' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01.001+0000' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01.001' ...
+                                char(10) ...
+                                '2016-01-01T01:01:01' ...
+                                ];
+                                error(msg);
+                                
+                            end
+                        end
+                    end
+                end
             end
             
-            formatidObj = ObjectFormatIdentifier();
-            formatidObj.setValue(formatid);
-            
-            mnodeRef = NodeReference();
-            mnodeRef.setValue(nodeid);
-            
-            identifierObj = Identifier();
-            identifierObj.setValue(identifier);
-            
-            if (~isempty(start))
-                startObj = Integer(start);
-            else
-                startObj = [];
+            j_formatid = [];
+            if ( ~ isempty(formatid) )
+                j_formatid = ObjectFormatIdentifier();
+                j_formatid.setValue(formatid);
+                
+            end
+         
+            j_nodeid = [];
+            if ( ~ isempty(nodeid) )
+                j_nodeid = NodeReference();
+                j_nodeid.setValue(nodeid);
+                
             end
             
-            if(~isempty(count))
-                countObj = Integer(count);
-            else
-                countObj = [];
+            j_identifier = [];
+            if ( ~isempty(identifier) )
+                j_identifier = Identifier();
+                j_identifier.setValue(identifier);
+            end
+                        
+            j_start = [];
+            if ( ~isempty(start) )
+                j_start = Integer(start);
+                
             end
             
-            objectList = coordinatingNode.node.listObjects(session, fromDateObj, toDateObj, formatidObj, ...
-                mnodeRef, identifierObj, startObj, countObj);
+            j_count = [];
+            if( ~isempty(count) )
+                j_count = Integer(count);
+                
+            end
+            
+            objectList = coordinatingNode.node.listObjects( ...
+                j_session, j_fromDate, j_toDate, j_formatid, ...
+                j_nodeid, j_identifier, j_start, j_count);
             
             % Covert the Java ObjectList into the above structured array
             objectInfoList = objectList.getObjectInfoList();
@@ -153,8 +292,8 @@ classdef CoordinatingNode < org.dataone.client.v2.DataONENode
                 anObj = objectInfoList.get(i-1);
                 objects(i).identifier = char(anObj.getIdentifier().getValue());
                 objects(i).formatId = char(anObj.getFormatId().getValue());
-                objects(i).checksum = char(anObj.getChecksum().getValue());
-                objects(i).checksumAlgorithm = char(anObj.getChecksum().getAlgorithm());
+                objects(i).checksum.value = char(anObj.getChecksum().getValue());
+                objects(i).checksum.algorithm = char(anObj.getChecksum().getAlgorithm());
                 objects(i).dateSysMetadataModified = char(anObj.getDateSysMetadataModified().toString());
                 objects(i).size = char(anObj.getSize().toString());
             end

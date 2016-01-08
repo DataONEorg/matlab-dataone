@@ -104,22 +104,29 @@ classdef CoordinatingNodeTest < matlab.unittest.TestCase
             fprintf('\nIn test Coordinating Node listObjects() ...\n');
             
             import org.dataone.client.v2.CoordinatingNode;
+            import org.dataone.client.v2.Session;
             import org.dataone.service.types.v1.Identifier;
             
             % Get a CNode matlab instance
-            matlab_cn_node = CoordinatingNode('https://cn-dev-2.test.dataone.org/cn');
+            cn = CoordinatingNode('https://cn-dev-2.test.dataone.org/cn');
+            
+            % Get a session
+            session = Session();
             
             % Use matlab wrapper function 
-            [ol1, start1, count1, total1] = matlab_cn_node.listObjects([], [], [], [], [], [], [], []);
+            [ol1, start1, count1, total1] = ...
+                cn.listObjects(session, [], [], [], [], [], [], []);
             assertEqual(testCase, start1, 0);
 
-            [ol2, start2, count2, total2] = matlab_cn_node.listObjects([], [], [], [], [], [], '100', '50');
+            [ol2, start2, count2, total2] = ...
+                cn.listObjects(session, [], [], [], [], [], '100', '50');
             assertEqual(testCase, start2, 100);
             assertEqual(testCase, count2, 50);
             
             assertEqual(testCase, total1, total2);
             
-            [ol3, start3, count3, total3] = matlab_cn_node.listObjects([], [], [], [], [], [], '0', 50000);
+            [ol3, start3, count3, total3] = ...
+                cn.listObjects(session, [], [], [], [], [], '0', 50000);
             assertEqual(testCase, count3, length(ol3));
                   
         end
