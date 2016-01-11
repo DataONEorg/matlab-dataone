@@ -62,6 +62,7 @@ classdef DataONENodeTest < matlab.unittest.TestCase
                 'certificate_path', '/tmp/x509up_u501', ...
                 'authentication_token', '');
             
+            testCase.mgr = RunManager.getInstance(config);
         end
         
     end

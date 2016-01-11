@@ -62,8 +62,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', '/tmp/x509up_u501', ...
                 'authentication_token', '');
-        end
-        
+            
+            testCase.mgr = RunManager.getInstance(config);
+
+        end 
     end
     
     methods (TestMethodTeardown)

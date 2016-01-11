@@ -51,7 +51,6 @@ classdef CoordinatingNodeTest < matlab.unittest.TestCase
             % for unit testing, set the D1 directory to a test location
             % config = Configuration( ...
             %     'configuration_directory', test_config_directory);
-            % testCase.mgr = RunManager.getInstance(config);
             
             config = Configuration( ...
                 'source_member_node_id', 'urn:node:mnDevUCSB2', ...
@@ -62,6 +61,9 @@ classdef CoordinatingNodeTest < matlab.unittest.TestCase
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', '/tmp/x509up_u501', ...
                 'authentication_token', '');
+            
+            testCase.mgr = RunManager.getInstance(config);
+
         end
         
     end
