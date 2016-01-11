@@ -377,56 +377,6 @@ classdef EML
             emlRootElement.setAttribute('xmlns:eml', 'eml://ecoinformatics.org/eml-2.0.1');
             emlRootElement.setAttribute('xsi:schemaLocation', 'eml://ecoinformatics.org/eml-2.1.1 eml.xsd');
             
-            % Create and add the packageId attribute
-            emlRootElement.setAttribute('packageId', 'YOUR_PACKAGE_ID');
-            
-            % Create and add the dataset element
-            datasetElement = documentNode.createElement('dataset');
-            emlRootElement.appendChild(datasetElement);
-
-            % Create and add the 'title' element
-            titleElement = documentNode.createElement('title');
-            titleElement.appendChild(documentNode.createTextNode('YOUR_TITLE'));
-            datasetElement.appendChild(titleElement);
-            
-            % Create and add the creator element
-            creatorElement = documentNode.createElement('creator');
-            
-            creatorElement.setAttribute('id', 'creator');
-            individualElement = documentNode.createElement('individualName');
-
-            salutationElement = documentNode.createElement('salutation');
-            salutationElement.appendChild(documentNode.createTextNode('YOUR_SALUTATION'));
-            individualElement.appendChild(salutationElement);
-
-            givenNameElement = documentNode.createElement('givenName');
-            givenNameElement.appendChild(documentNode.createTextNode('YOUR_GIVEN_NAME'));
-            individualElement.appendChild(givenNameElement);
-            
-            surNameElement = documentNode.createElement('surName');
-            surNameElement.appendChild(documentNode.createTextNode('YOUR_SURNAME'));
-            individualElement.appendChild(surNameElement);
-            
-            creatorElement.appendChild(individualElement);
-
-            datasetElement.appendChild(creatorElement);
-
-            % Create and add the abstract
-            abstractElement = documentNode.createElement('abstract');
-            paraElement = documentNode.createElement('para');
-            paraElement.appendChild(documentNode.createTextNode('YOUR_ABSTRACT'));
-            abstractElement.appendChild(paraElement);
-            datasetElement.appendChild(abstractElement);
-            
-            % Create and add the contact element
-            contactElement = documentNode.createElement('contact');
-            
-            refsElement = documentNode.createElement('references');
-            refsElement.appendChild(documentNode.createTextNode('creator'));
-            contactElement.appendChild(refsElement);
-                        
-            datasetElement.appendChild(contactElement);
-
         end
     end
 end

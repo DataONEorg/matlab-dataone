@@ -533,8 +533,8 @@ classdef RunManager < hgsetget
                 provONEUserURI); 
 
             % Create a science metadata object and add it to the package
-            import org.ecoinformatics.eml.EML;
-            eml = EML();
+            import org.ecoinformatics.eml.EMLDataset;
+            eml = EMLDataset();
             
             scienceMetadataIdStr = ['metadata_' ...
                 runManager.execution.execution_id '.xml'];
