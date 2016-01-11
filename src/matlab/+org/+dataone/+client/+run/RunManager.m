@@ -101,7 +101,7 @@ classdef RunManager < hgsetget
             warning('off','backtrace');
             
             manager.configuration = configuration;
-            configuration.saveConfig();            
+            % configuration.saveConfig();            
             manager.init();  
             mlock; % Lock the RunManager instance to prevent clears          
         end
@@ -923,7 +923,7 @@ classdef RunManager < hgsetget
 
             % Create a default configuration object if one isn't passed in
             if ( nargin < 1 )
-                configuration = Configuration();               
+                configuration = Configuration.loadConfig('');               
             end
             
             persistent singletonRunManager; % private, stays in memory across clears
@@ -1907,7 +1907,7 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.NodeReference;
             import org.dataone.client.v2.itk.DataPackage;           
             import org.dataone.service.types.v2.SystemMetadata;
-            import org.dataone.service.types.v1.Session;
+            import org.dataone.client.v2.Session;
             import org.dataone.service.util.TypeMarshaller;
             import org.dataone.service.types.v1.AccessPolicy;
             import org.dataone.service.types.v1.util.AccessUtil;
@@ -1959,39 +1959,39 @@ classdef RunManager < hgsetget
                 
                 pkg = runManager.buildPackage2( submitter, mnNodeId, runManager.execution.execution_directory );    
                                 
-                % Get authenticate token or X509 certificate 
-                auth_token = runManager.configuration.get('authentication_token');
-             
-                [certificate, standardizedName] = runManager.getCertificate();
+                % Get a Session
+                session = Session();
                 
-                if ~isempty(auth_token)
-                    import org.dataone.client.auth.AuthTokenSession;
-                    session = AuthTokenSession(auth_token);
+                % Do we have a session object?
+                if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                    msg = ['To publish a run to a Member Node, you need ' ...
+                        'to be logged in. Please provide your credentials \n' ...
+                        'either as a Configuration.authentication_token ' ...
+                        'property, or a Configuration.certificate_path \n' ...
+                        'property that points to an X509 certificate ' ...
+                        'saved to disk.'];
+                    error('RunManager:publish:missingCredentials', msg);
                     
-                elseif ~isempty(certificate)
-                    session = [];
-                    runManager.configuration.submitter = standardizedName;
-                    
-                else
-                    error('RunManager:publish:missingAuthentication', ...
-                          ['To publish a run to a Member Node, you need ' ...
-                          'to be logged in. Please provide your credentials \n' ...
-                          'either as a Configuration.authentication_token ' ...
-                          'property, or a Configuration.certificate_path \n' ...
-                          'property that points to an X509 certificate ' ...
-                          'saved to disk.']);
-                
                 end
-               
-                % Get D1 cilogon certificate stored at /tmp/x509up_u501
-                % certificate = runManager.getCertificate();
-                % Pull the subject DN out of the certificate for use in system metadata
-                %runManager.configuration.submitter = certificate.getSubjectDN().toString();
-                             
+                
+                % Without a valid session, throw an error
+                if (  ~ session.isValid() )
+                    
+                    msg = ['Your session expired on ' ...
+                        char(session.expiration_date) '.' ...
+                        char(10) ...
+                        ' Please renew your ' ...
+                        session.type ...
+                        char(10) ...
+                        ' before calling the ''publish()'' function.'];
+                    error('RunManager:publish:expiredCredentials',msg);
+                    
+                end
+                                
                 % Set the CN URL in the Java Client Library
                 if ( ~isempty(runManager.configuration.coordinating_node_base_url) )
                     Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
-                        runManager.configuration.coordinating_node_base_url); 
+                        runManager.configuration.coordinating_node_base_url);
                 end
                 
                 % Set the CNode ID
@@ -1999,27 +1999,26 @@ classdef RunManager < hgsetget
                 cnRef.setValue(runManager.configuration.coordinating_node_base_url);
                 cnNode = D1Client.getCN(cnRef.getValue());
                 if isempty(cnNode)
-                   error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint ...
-                       'encounted an error on the getCN() request.']); 
+                    error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint ...
+                        'encounted an error on the getCN() request.']);
                 end
-                                
+                
                 % Set the MNode ID
                 mnRef = NodeReference();
-                mnRef.setValue(runManager.configuration.target_member_node_id);            
+                mnRef.setValue(runManager.configuration.target_member_node_id);
                 % Get a MNode instance to the Member Node using the Node ID
                 mnNode = D1Client.getMN(mnRef);
                 if isempty(mnNode)
-                   error(['Member node' ...
-                       runManager.configuration.target_member_node_id ...
-                       'encounted an error on the getMN() request.']); 
+                    error(['Member node' ...
+                        runManager.configuration.target_member_node_id ...
+                        'encounted an error on the getMN() request.']);
                 end
-                 
-                % submitterStr = runManager.configuration.get('submitter');
+                
                 targetMNodeStr = runManager.configuration.get('target_member_node_id');
                 
                 submitter = Subject();
-                submitter.setValue(runManager.execution.account_name); % Todo: use account_name as the value of submitter now. But need to investigate if auth_token has the submitter information
-               
+                submitter.setValue(session.account_subject);
+                
                 % Upload each data object in the execution_objects map
                 identifiers = keys(runManager.execution.execution_objects);
                 d1objects = values(runManager.execution.execution_objects);
@@ -2046,7 +2045,7 @@ classdef RunManager < hgsetget
                         fprintf('***********************************************************\n');
                         fprintf('d1Obj.size=%d (bytes)\n', v2SysMeta.getSize().longValue());                   
                         fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v2SysMeta.getChecksum().getAlgorithm()), char(v2SysMeta.getChecksum().getValue()));
-                        fprintf('d1Obj.rightHolder=%s\n', char(v2SysMeta.getRightsHolder().getValue()));
+                        fprintf('d1Obj.rightsHolder=%s\n', char(v2SysMeta.getRightsHolder().getValue()));
                         fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v2SysMeta.getDateSysMetadataModified().toString()));
                         fprintf('d1Obj.dateUploaded=%s\n', char(v2SysMeta.getDateUploaded().toString()));
                         fprintf('d1Obj.originalMNode=%s\n', char(v2SysMeta.getOriginMemberNode().getValue()));
@@ -2081,11 +2080,12 @@ classdef RunManager < hgsetget
                         end
                     end
                     
-                    % Upload the data to the MN using create(), checking for success and a returned identifier       
-                    % pid = cnNode.reserveIdentifier(session,v2SysMeta.getIdentifier()); 
-                    % if isempty(pid) ~= 1
+                    % Upload the data to the MN using create(), 
+                    % checking for success and a returned identifier       
                     pid = v2SysMeta.getIdentifier();
-                    returnPid = mnNode.create(session, pid, dataSource.getInputStream(), v2SysMeta);  
+                    j_session = session.getJavaSession();
+                    
+                    returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);  
                     if isempty(returnPid) ~= 1
                         fprintf('Success: Uploaded %s\n.', char(v2SysMeta.getFileName()));
                     else
@@ -2101,8 +2101,13 @@ classdef RunManager < hgsetget
                 package_id = packageId; 
          
             catch runtimeError 
-                error(['Could not create member node reference: ' runtimeError.message]);
-                runManager.execution.error_message = [runManager.execution.error_message ' ' runtimeError.message];
+                runManager.execution.error_message = ...
+                    [runManager.execution.error_message ' ' ...
+                    runtimeError.message];
+                error(['There was an error trying to publish the run: ' ...
+                    char(10) ...
+                    runtimeError.message]);
+                
             end
             
             % Record the date and time that the package from this run is uploaded to DataONE
