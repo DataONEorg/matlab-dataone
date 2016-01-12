@@ -1285,6 +1285,13 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     mkdir(runDirectory);
                 end                
             end
+            
+            % Serialize the execution object to local file system in the
+            % execution_directory
+            execution_serialized_object = [testCase.mgr.execution.execution_id '.mat'];
+            exec_destination = [runDirectory filesep execution_serialized_object];
+            executionObj = testCase.mgr.execution;
+            save(char(exec_destination), 'executionObj');
         end
         
         function resetEnvironment(testCase)
