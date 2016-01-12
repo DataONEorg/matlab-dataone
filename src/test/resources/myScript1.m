@@ -17,6 +17,7 @@
 load coast
 xlon = long;
 ylat = lat;
+
 % Find the indexes for 165W-153W, 18N-24N, and Oct 3, 2004.
 lon = ncread('http://apdrc.soest.hawaii.edu/dods/public_data/NLOM/nlom_ssh', 'lon');
 lat = ncread('http://apdrc.soest.hawaii.edu/dods/public_data/NLOM/nlom_ssh', 'lat');
