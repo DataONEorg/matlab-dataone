@@ -6,3 +6,4 @@ dlmwrite('myfile.txt',X,'-append', ...
 type myfile.txt;
 M = dlmread('myfile.txt');
 M
+delete myfile.txt
