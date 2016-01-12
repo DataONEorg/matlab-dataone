@@ -92,8 +92,11 @@ function vardata = ncread( source, varname, varargin )
                 runManager.execution.execution_objects(dataObject.identifier) = ...
                     dataObject;
             else
-                dataObject = ...
-                    runManager.execution.execution_objects(existing_id);
+                pid = existing_id;
+                % dataObject = runManager.execution.execution_objects(existing_id);
+                dataObject = DataObject(pid, formatId, fullSourcePath);
+                runManager.execution.execution_objects(dataObject.identifier) = ...
+                    dataObject;
             end
             
             runManager.execution.execution_input_ids{ ...
