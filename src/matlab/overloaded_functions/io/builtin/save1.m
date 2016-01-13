@@ -203,12 +203,16 @@ function save( source, varargin)
             runManager.execution.execution_objects(dataObject.identifier) = ...
                 dataObject;
         else
-            dataObject = ...
-                runManager.execution.execution_objects(existing_id);
+            % Update the existing map entry with a new DataObject
+            pid = existing_id;
+            dataObject = DataObject(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(dataObject.identifier) = ...
+                dataObject;
         end
         
-        runManager.execution.execution_input_ids{ ...
-            end + 1} = dataObject.identifier;
-     
+        if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
+            runManager.execution.execution_output_ids{ ...
+                end + 1} = pid;
+        end
     end
 end

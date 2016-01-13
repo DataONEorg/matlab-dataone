@@ -151,7 +151,9 @@ function dlmwrite(source, m, varargin)
                 dataObject;
         end
      
-        runManager.execution.execution_output_ids{end+1} = pid;        
-        % exec_output_id_list.put(fullSourcePath, 'text/plain');
+        if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
+            runManager.execution.execution_output_ids{end+1} = pid;
+        end
+        
     end
 end

@@ -145,7 +145,9 @@ function [parseResult,p] = xmlread(source,varargin)
                         dataObject;
                 end
                 
-                runManager.execution.execution_input_ids{end+1} = pid;
+                if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+                    runManager.execution.execution_input_ids{end+1} = pid;
+                end
             else
                 % Todo: need to find an example for xmlread('file://....')
             end

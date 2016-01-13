@@ -194,7 +194,9 @@ function [data, info] = cdfread(source, varargin)
                 dataObject;
         end
         
-        runManager.execution.execution_input_ids{end+1} = pid;
+        if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+            runManager.execution.execution_input_ids{end+1} = pid;
+        end
     end
 
 end

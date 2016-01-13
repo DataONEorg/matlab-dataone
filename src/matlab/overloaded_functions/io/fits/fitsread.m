@@ -159,7 +159,6 @@ if ( runManager.configuration.capture_file_reads )
         runManager.execution.execution_objects(dataObject.identifier) = ...
             dataObject;
         
-        runManager.execution.execution_input_ids{end+1} = pid; % Only add to the collection for the first time (Dec-7-2015)
     else
         % Update the existing map entry with a new DataObject
         pid = existing_id;
@@ -168,7 +167,10 @@ if ( runManager.configuration.capture_file_reads )
             dataObject;
     end
     
-    % runManager.execution.execution_input_ids{end+1} = pid;
+    if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+        runManager.execution.execution_input_ids{end+1} = pid;
+    end
+    
 end
 
 end
