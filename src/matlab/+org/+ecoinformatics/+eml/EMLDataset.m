@@ -29,6 +29,7 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
     end
     
     methods
+        
         function emlDataset = EMLDataset()
         % EMLDATASET Creates a new, minimally valid instance of the EMLDataset class
             
@@ -38,6 +39,115 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             % Build the miminimal ./dataset/{title,abstract,creator,contact}
             emlDataset = emlDataset.buildMinimalEMLDataset();
             
+        end
+    
+        function emlDataset = appendOtherEntity(self, ...
+                entityName, entityDescription, objectName, size, formatName)
+            % APPENDOTHERENTITY Adds an OtherEntity element to the EMLDataset
+            %   As a first pass, only support externallyDefinedFormat
+            %   entitites.
+            
+            if ( isempty(entityName) || ...
+                 isempty(objectName) || ...
+                 isempty(formatName) )
+                msg = ['The entityName, objectName, and formatName ' ...
+                    'parameters can''t be empty.'];
+                error('EMLDataset:appendOtherEntity:missingParameters', msg);
+                
+            end
+            
+            % Find the correct location for the otherEntity element
+            contactElements = self.document.getElementsByTagName('contact');
+            contactElement = contactElements.item(length(contactElements) - 1);
+            publisherElements = self.document.getElementsByTagName('publisher');
+            publisherElement = publisherElements.item(length(publisherElements) - 1);
+            pubPlaceElements = self.document.getElementsByTagName('pubPlace');
+            pubPlaceElement = pubPlaceElements.item(length(pubPlaceElements) - 1);
+            methodsElements = self.document.getElementsByTagName('methods');
+            methodsElement = methodsElements.item(length(methodsElements) - 1);
+            projectElements = self.document.getElementsByTagName('project');
+            projectElement = projectElements.item(length(projectElements) - 1);
+            
+            if ( ~ isempty(projectElement) )
+                currentElement = projectElement;
+                
+            elseif ( ~ isempty(methodsElement) )
+                currentElement = methodsElement;
+                
+            elseif ( ~ isempty(pubPlaceElement) )
+                currentElement = pubPlaceElement;
+                
+            elseif ( ~ isempty(publisherElement) )
+                currentElement = publisherElement;
+                
+            elseif ( ~ isempty(contactElement) )
+                currentElement = contactElement;
+                
+            end
+            
+            % Add the otherEntity element
+            otherEntityElement = self.document.createElement('otherEntity');
+            currentElement.getParentNode().insertBefore(...
+                otherEntityElement, currentElement.getNextSibling());
+            
+            % Add the entityName element
+            entityNameElement = self.document.createElement('entityName');
+            entityNameElement.appendChild(self.document.createTextNode(entityName));
+            otherEntityElement.appendChild(entityNameElement);
+            
+            % Add the entityDescription element
+            if ( ~ isempty(entityDescription) )
+                entityDescriptionElement = ...
+                    self.document.createElement('entityName');
+                entityDescriptionElement.appendChild( ...
+                    self.document.createTextNode(entityName));
+                otherEntityElement.appendChild(entityDescriptionElement);
+            end
+            
+            % Add the objectName element
+            if ( ~ isempty(objectName) )
+                physicalElement = ...
+                    self.document.createElement('physical');
+                objectNameElement = ...
+                    self.document.createElement('objectName');
+                objectNameElement.appendChild( ...
+                    self.document.createTextNode(objectName));
+                physicalElement.appendChild(objectNameElement);
+            end
+            
+            % Add the size element
+            if ( ~ isempty(size) )
+                if ( isnumeric(size) )
+                    size = num2str(size);
+                    
+                end
+                
+                sizeElement = ...
+                    self.document.createElement('size');
+                sizeElement.appendChild( ...
+                    self.document.createTextNode(num2str(size)));
+                physicalElement.appendChild(sizeElement);
+            end
+            
+            otherEntityElement.appendChild(physicalElement);
+            
+            % Add the formatName element
+            if ( ~ isempty(formatName) )
+                dataFormatElement = ...
+                    self.document.createElement('dataFormat');
+                extDefinedFormatElement = ...
+                    self.document.createElement('externallyDefinedFormat');
+                formatNameElement = ...
+                    self.document.createElement('formatName');
+                extDefinedFormatElement.appendChild(formatNameElement);
+                formatNameElement.appendChild( ...
+                    self.document.createTextNode(formatName));
+                dataFormatElement.appendChild(extDefinedFormatElement);
+                physicalElement.appendChild(dataFormatElement);
+            end
+            
+            emlDataset = self;
+
         end
     end
     
@@ -49,9 +159,6 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             
             emlRootElement = self.document.getDocumentElement();
 
-            % Create and add the packageId attribute
-            emlRootElement.setAttribute('packageId', 'YOUR_PACKAGE_ID');
-            
             % Create and add the dataset element
             datasetElement = self.document.createElement('dataset');
             emlRootElement.appendChild(datasetElement);
