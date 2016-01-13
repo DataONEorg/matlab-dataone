@@ -143,9 +143,10 @@ function varargout = open(source, varargin)
                     %     dataObject;
                     %    dataObject.identifier) = dataObject;
 
-                    runManager.execution.execution_input_ids{ ...
-                        end + 1} = ...
-                        source;
+                    if ( ~ ismember(source, runManager.execution.execution_input_ids) )
+                        runManager.execution.execution_input_ids{ ...
+                            end + 1} = source;
+                    end
                 end
             end
      
