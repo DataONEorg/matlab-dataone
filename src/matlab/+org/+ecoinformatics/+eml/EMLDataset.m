@@ -41,16 +41,17 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             
         end
     
-        function emlDataset = appendOtherEntity(self, ...
-                entityName, entityDescription, objectName, size, formatName)
+        function emlDataset = appendOtherEntity(self, entityName, ...
+            entityDescription, objectName, size, formatName, entityType)
             % APPENDOTHERENTITY Adds an OtherEntity element to the EMLDataset
             %   As a first pass, only support externallyDefinedFormat
             %   entitites.
             
             if ( isempty(entityName) || ...
                  isempty(objectName) || ...
-                 isempty(formatName) )
-                msg = ['The entityName, objectName, and formatName ' ...
+                 isempty(formatName) || ...
+                 isempty(entityType) )
+                msg = ['The entityName, objectName, formatName, and entityType ' ...
                     'parameters can''t be empty.'];
                 error('EMLDataset:appendOtherEntity:missingParameters', msg);
                 
@@ -129,8 +130,6 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
                 physicalElement.appendChild(sizeElement);
             end
             
-            otherEntityElement.appendChild(physicalElement);
-            
             % Add the formatName element
             if ( ~ isempty(formatName) )
                 dataFormatElement = ...
@@ -144,6 +143,18 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
                     self.document.createTextNode(formatName));
                 dataFormatElement.appendChild(extDefinedFormatElement);
                 physicalElement.appendChild(dataFormatElement);
+            end
+
+            otherEntityElement.appendChild(physicalElement);
+            
+            % Add the entityType element
+            if ( ~ isempty(entityType) )
+                entityTypeElement = ...
+                    self.document.createElement('entityType');
+                entityTypeElement.appendChild( ...
+                    self.document.createTextNode(entityType));
+                otherEntityElement.appendChild(entityTypeElement);
+                
             end
             
             emlDataset = self;
