@@ -33,7 +33,7 @@ warning('off','backtrace');
 import matlab.unittest.TestSuite;
 
 % Use fromPackage
-% suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+ suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.configure', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.v2', 'IncludingSubpackages', true);
@@ -41,7 +41,7 @@ import matlab.unittest.TestSuite;
 % Use fromClass
 % testCls = ?org.dataone.client.configure.ConfigurationTest;
 % testCls = ?org.dataone.client.run.ExecutionTest;
- testCls = ?org.dataone.client.run.RunManagerTest;
+% testCls = ?org.dataone.client.run.RunManagerTest;
 % testCls = ?org.dataone.client.v2.SystemMetadataTest;
 % testCls = ?org.dataone.client.v2.SessionTest;
 % suite = TestSuite.fromClass(testCls);
@@ -67,7 +67,9 @@ import matlab.unittest.TestSuite;
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithoutSalutationConfigNoDomElement');
 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedCSVread'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedCsvWrite'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmread');
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedDlmWrite');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad'); % Fails, same as above
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCopen'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedNCread'); % Fails, same as above
@@ -94,7 +96,7 @@ import matlab.unittest.TestSuite;
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewByPackageIdOnly'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewBySequenceNumberOnly'); 
- suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
+% suite = TestSuite.fromMethod(testCls, 'testYesWorkflow');
 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationConfigAndDomElement'); 
 % suite = TestSuite.fromMethod(testCls, 'testPutMetadataWithSalutationNoDomElement'); 
