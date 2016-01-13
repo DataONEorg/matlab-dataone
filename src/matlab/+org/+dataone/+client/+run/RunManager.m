@@ -364,7 +364,7 @@ classdef RunManager < hgsetget
         end
         
         
-        function d1Obj = buildDataObject(runManager, fileName, fileFmt, idValue, submitter, mnNodeId)
+        function d1Obj = buildD1Object(runManager, fileName, fileFmt, idValue, submitter, mnNodeId)
             % BUILDD1OBJECT build a d1 object for a file on disk.
             %   fileName - the absolute path for a file
             %   fileFmt - the file format defiend in D1
@@ -460,7 +460,7 @@ classdef RunManager < hgsetget
             % Create a DataObject for the program that we are running and
             %    update the resulting sysmeta in the stored exucution matlab DataObject
             scriptD1Obj = runManager.execution.execution_objects(scriptIdentifier);
-            programD1JavaObj = runManager.buildDataObject( ...
+            programD1JavaObj = runManager.buildD1Object( ...
                 scriptD1Obj.full_file_path, scriptD1Obj.format_id, ...
                 scriptD1Obj.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(programD1JavaObj);
@@ -534,7 +534,7 @@ classdef RunManager < hgsetget
 
             % Create a science metadata object and add it to the package
             import org.ecoinformatics.eml.EMLDataset;
-            eml = EMLDataset();
+            emlDataset = EMLDataset();
             
             scienceMetadataIdStr = ['metadata_' ...
                 runManager.execution.execution_id '.xml'];
@@ -542,36 +542,46 @@ classdef RunManager < hgsetget
             scienceMetadataId.setValue(scienceMetadataIdStr);
             
             % Update the science metadata with configured fields
-            eml.update(runManager.configuration, runManager.execution);
+            emlDataset.update(runManager.configuration, runManager.execution);
 
             % Process execution_output_ids
             for i=1:length(runManager.execution.execution_output_ids)
                 outputId = runManager.execution.execution_output_ids{i};
                 
-                outputD1Obj = runManager.execution.execution_objects(outputId);
+                outputDataObject = runManager.execution.execution_objects(outputId);
                 
                 submitter = runManager.execution.account_name;
                 mnNodeId = runManager.configuration.target_member_node_id;
                 
                 if runManager.configuration.debug
-                    outputD1Obj.full_file_path
+                    outputDataObject.full_file_path
+                    
                 end
                 
-                outputD1JavaObj = runManager.buildDataObject( ...
-                        outputD1Obj.full_file_path, outputD1Obj.format_id, ...
-                        outputD1Obj.identifier, submitter, mnNodeId);
+                [path, file_name, ext] = fileparts(outputDataObject.full_file_path);
+                
+                j_outputD1Object = runManager.buildD1Object( ...
+                        outputDataObject.full_file_path, outputDataObject.format_id, ...
+                        outputDataObject.identifier, submitter, mnNodeId);
                     
-                runManager.dataPackage.addData(outputD1JavaObj);
+                runManager.dataPackage.addData(j_outputD1Object);
                 
-                systemMetadata = outputD1JavaObj.getSystemMetadata; % java version sysmeta     
-                out_file_metadata = dir(outputD1Obj.full_file_path);
-                systemMetadata.setFileName(outputD1Obj.system_metadata.getFileName); % use Java sysmeta base file name to set matlab sysmeta               
-                systemMetadata.setSize(BigInteger.valueOf(out_file_metadata.bytes)); % Set the file size for the generated data Dec-4-2015
-                % set(outputD1Obj, 'system_metadata', outputD1JavaObj.getSystemMetadata);
-                set(outputD1Obj, 'system_metadata', systemMetadata); % Update the d1 object system metadata Dec-4-2015
-                runManager.execution.execution_objects(outputD1Obj.identifier) = outputD1Obj;
+                j_sysmeta = j_outputD1Object.getSystemMetadata(); % java version sysmeta     
+                out_file_metadata = dir(outputDataObject.full_file_path);
+                j_sysmeta.setFileName(outputDataObject.system_metadata.getFileName());              
+                j_sysmeta.setSize(BigInteger.valueOf(out_file_metadata.bytes));
+                set(outputDataObject, 'system_metadata', j_sysmeta);
                 
-                outSourceURI = URI([runManager.D1_CN_Resolve_Endpoint outputD1Obj.identifier]); 
+                % Update the EML science metadata with the output entity
+                emlDataset.appendOtherEntity([file_name ext], [], ...
+                    [file_name ext], out_file_metadata.bytes, ...
+                    outputDataObject.format_id, outputDataObject.format_id);
+                
+                runManager.execution.execution_objects( ...
+                    outputDataObject.identifier) = outputDataObject;
+                
+                outSourceURI = URI( ...
+                    [runManager.D1_CN_Resolve_Endpoint outputDataObject.identifier]); 
                 runManager.dataPackage.insertRelationship( ...
                     outSourceURI, ...
                     wasAssociatedWithPredicate, ...
@@ -587,26 +597,38 @@ classdef RunManager < hgsetget
             for i=1:length(runManager.execution.execution_input_ids)
                 inputId = runManager.execution.execution_input_ids{i};
        
-                startIndex = regexp( inputId,'http' ); 
+                startIndex = regexp( inputId, 'http', 'once' ); 
                 if isempty(startIndex)                   
-                    inputD1Obj = runManager.execution.execution_objects(inputId);
+                    inputDataObject = ...
+                        runManager.execution.execution_objects(inputId);
   
                     submitter = runManager.execution.account_name;
                     mnNodeId = runManager.configuration.target_member_node_id;
                     
-                    inputD1JavaObj = runManager.buildDataObject( ...
-                        inputD1Obj.full_file_path, inputD1Obj.format_id, ...
-                        inputD1Obj.identifier, submitter, mnNodeId);
+                    [path, file_name, ext] = fileparts(inputDataObject.full_file_path);
+                    
+                    j_inputD1Object = runManager.buildD1Object( ...
+                        inputDataObject.full_file_path, inputDataObject.format_id, ...
+                        inputDataObject.identifier, submitter, mnNodeId);
                 
-                    runManager.dataPackage.addData(inputD1JavaObj);
-                    systemMetadata = inputD1JavaObj.getSystemMetadata; % java version sysmeta            
-                    systemMetadata.setFileName(inputD1Obj.system_metadata.getFileName); % use Java sysmeta base file name to set matlab sysmeta
+                    runManager.dataPackage.addData(j_inputD1Object);
+                    j_sysmeta = j_inputD1Object.getSystemMetadata();            
+                    in_file_metadata = dir(inputDataObject.full_file_path);
+                    j_sysmeta.setSize(BigInteger.valueOf(in_file_metadata.bytes));
+                    j_sysmeta.setFileName(inputDataObject.system_metadata.getFileName());
                 
-                    set(inputD1Obj, 'system_metadata', inputD1JavaObj.getSystemMetadata);
-                
-                    runManager.execution.execution_objects(inputD1Obj.identifier) = inputD1Obj;
-                
-                    inSourceURI = URI([runManager.D1_CN_Resolve_Endpoint inputD1Obj.identifier]); 
+                    set(inputDataObject, 'system_metadata', j_sysmeta);
+                    
+                    % Update the EML science metadata with the input entity
+                    emlDataset.appendOtherEntity([file_name ext], [], ...
+                        [file_name ext], in_file_metadata.bytes, ...
+                        inputDataObject.format_id, inputDataObject.format_id);
+                    runManager.execution.execution_objects( ...
+                        inputDataObject.identifier) = inputDataObject;
+                    
+                    inSourceURI = ...
+                        URI([runManager.D1_CN_Resolve_Endpoint ...
+                        inputDataObject.identifier]);
                     runManager.dataPackage.insertRelationship( ...
                         runManager.execution.execution_uri, ...
                         usedPredicate, ...
@@ -628,7 +650,7 @@ classdef RunManager < hgsetget
                 error('Could not open the science metadata file for writing.');
             end
             
-            fprintf(scienceMetadataFile, '%s', eml.toXML());
+            fprintf(scienceMetadataFile, '%s', emlDataset.toXML());
             fclose(scienceMetadataFile);            
 
             % Create the science metadata DataObject
@@ -640,7 +662,7 @@ classdef RunManager < hgsetget
                 scienceMetadataIdStr));
             
             % Add the science metadata to the Java DataPackage
-            scienceMetadataD1JavaObject = runManager.buildDataObject( ...
+            scienceMetadataD1JavaObject = runManager.buildD1Object( ...
                 scienceMetadataDataObject.full_file_path, ...
                 scienceMetadataDataObject.format_id, ...
                 scienceMetadataDataObject.identifier, submitter, mnNodeId);
@@ -699,7 +721,7 @@ classdef RunManager < hgsetget
 
             % Add resourceMap D1Object to the DataPackage                      
             resMapFmt = 'http://www.openarchives.org/ore/terms'; 
-            resMapD1JavaObj = runManager.buildDataObject(resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
+            resMapD1JavaObj = runManager.buildD1Object(resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
             runManager.dataPackage.addData(resMapD1JavaObj);     
            
             data_package = runManager.dataPackage;
@@ -2034,7 +2056,7 @@ classdef RunManager < hgsetget
                     end
                     
                     % build d1 object
-                    dataObj = runManager.buildDataObject(d1_object.full_file_path, ...
+                    dataObj = runManager.buildD1Object(d1_object.full_file_path, ...
                         d1_object_format, d1_object_id, submitter.getValue(), targetMNodeStr);
                     dataSource = dataObj.getDataSource();
                     
