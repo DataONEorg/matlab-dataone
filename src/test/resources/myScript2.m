@@ -18,18 +18,18 @@ clear pi;
 %% @begin generate_second_file
 %  @out myncfile02
 
-nccreate('myncfile02.nc','vmark',...
-         'Dimensions', {'time', inf, 'cols', 6},...
-         'ChunkSize',  [3 3],...
-         'DeflateLevel', 2);
-ncwrite('myncfile02.nc','vmark', eye(3),[1 1]);
-varData = ncread('myncfile02.nc','vmark');
-disp(varData);
-ncwrite('myncfile02.nc','vmark',fliplr(eye(3)),[1 4]);
-varData = ncread('myncfile02.nc','vmark');
-disp(varData);
+% nccreate('myncfile02.nc','vmark',...
+%          'Dimensions', {'time', inf, 'cols', 6},...
+%          'ChunkSize',  [3 3],...
+%          'DeflateLevel', 2);
+% ncwrite('myncfile02.nc','vmark', eye(3),[1 1]);
+% varData = ncread('myncfile02.nc','vmark');
+% disp(varData);
+% ncwrite('myncfile02.nc','vmark',fliplr(eye(3)),[1 4]);
+% varData = ncread('myncfile02.nc','vmark');
+% disp(varData);
+% delete('myncfile02.nc');
 %% @end generate_second_file
 
 
-delete('myncfile02.nc');
 %% @end myScript2

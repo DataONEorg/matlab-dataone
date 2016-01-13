@@ -113,12 +113,18 @@ function varargout = open(source, varargin)
                         runManager.execution.execution_objects(dataObject.identifier) = ...
                             dataObject;
                     else
-                        dataObject = ...
-                            runManager.execution.execution_objects(existing_id);
+                        %dataObject = ...
+                        %    runManager.execution.execution_objects(existing_id);
+                        pid = existing_id;
+                        dataObject = DataObject(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(dataObject.identifier) = ...
+                            dataObject;
                     end
-                    runManager.execution.execution_input_ids{ ...
-                        end + 1} = ...
-                        dataObject.identifier;
+                    
+                    if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+                        runManager.execution.execution_input_ids{ ...
+                            end + 1} = pid;
+                    end
 
                 end
             else
@@ -167,12 +173,16 @@ function varargout = open(source, varargin)
                         runManager.execution.execution_objects(dataObject.identifier) = ...
                             dataObject;
                     else
-                        dataObject = ...
-                            runManager.execution.execution_objects(existing_id);
+                        pid = existing_id;
+                        dataObject = DataObject(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(dataObject.identifier) = ...
+                            dataObject;
                     end
 
-                    runManager.execution.execution_input_ids{ ...
-                        end + 1} = dataObject.identifier;
+                    if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+                        runManager.execution.execution_input_ids{ ...
+                            end + 1} = pid;
+                    end
                 end
                 
                 if ( runManager.configuration.capture_file_writes )
@@ -189,8 +199,11 @@ function varargout = open(source, varargin)
                         runManager.execution.execution_objects(dataObject.identifier) = ...
                             dataObject;
                     end
-                    runManager.execution.execution_output_ids{ ...
-                        end + 1} = dataObject.identifier;
+                    
+                    if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
+                        runManager.execution.execution_output_ids{ ...
+                            end + 1} = dataObject.identifier;
+                    end
                 end
                 
             elseif any(strcmp(varargin{1}, {'NOWRITE', 'NC_NOWRITE'})) ~= 0
@@ -214,13 +227,17 @@ function varargout = open(source, varargin)
                         dataObject = DataObject(pid, formatId, fullSourcePath);
                         runManager.execution.execution_objects(dataObject.identifier) = ...
                             dataObject;
-                    else
-                        dataObject = ...
-                            runManager.execution.execution_objects(existing_id);
+                    else                     
+                        pid = existing_id;                      
+                        dataObject = DataObject(pid, formatId, fullSourcePath);
+                        runManager.execution.execution_objects(dataObject.identifier) = ...
+                            dataObject;
                     end
                     
-                    runManager.execution.execution_input_ids{ ...
-                        end + 1} = dataObject.identifier;
+                    if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+                        runManager.execution.execution_input_ids{ ...
+                            end + 1} = dataObject.identifier;
+                    end
                 end
             else
                 % 'SHARE' Synchronous file updates

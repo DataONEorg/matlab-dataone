@@ -91,16 +91,22 @@ function vardata = ncread( source, varname, varargin )
                 dataObject = DataObject(pid, formatId, fullSourcePath);
                 runManager.execution.execution_objects(dataObject.identifier) = ...
                     dataObject;
+             
             else
                 pid = existing_id;
                 % dataObject = runManager.execution.execution_objects(existing_id);
                 dataObject = DataObject(pid, formatId, fullSourcePath);
                 runManager.execution.execution_objects(dataObject.identifier) = ...
                     dataObject;
+              
             end
-            
-            runManager.execution.execution_input_ids{ ...
-                end + 1} = pid;
+
+            if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+                runManager.execution.execution_input_ids{ ...
+                    end + 1} = pid;
+               
+            end
+ 
         else
             % url
             % TODO: download the URL contents, cache in the execution
@@ -111,8 +117,10 @@ function vardata = ncread( source, varname, varargin )
             % runManager.execution.execution_objects(dataObject.identifier) = ...
             %     dataObject;
 
-            runManager.execution.execution_input_ids{ ...
-                end + 1} = source;
+            if ( ~ ismember(source, runManager.execution.execution_input_ids) )
+                runManager.execution.execution_input_ids{ ...
+                    end + 1} = source;
+            end
         end
     end
 end

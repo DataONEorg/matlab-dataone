@@ -57,7 +57,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'rights_holder', 'rightsHolder', ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', '/tmp/x509up_u501', ...
-                'authentication_token', '');
+                'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJjb25zdW1lcktleSI6InRoZWNvbnN1bWVya2V5IiwiaXNzdWVkQXQiOiIyMDE2LTAxLTEyVDE1OjQxOjQ2Ljg2NSswMDowMCIsInVzZXJJZCI6IkNOPVlhbmcgQ2FvIEEzNjEyMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiZnVsbE5hbWUiOiJZYW5nQ2FvIiwidHRsIjo2NDgwMDAwMH0.I_OkScV2GRWB2sMcCJ-MeU1TJbpIaTGyNYBFqTLwVLBrTQA_AQHtQ6BW2mPcSKOlj7OdEbkA9Aw6azklWAOI2Pl2f69zWRttqIqNl-iugC7y-GSTIbRO4n1z97CYNRJqwszXtV6yVbWduO7x-UFjBIC4YBKf64eDVs3IyUCs4hfWIGqfM3tuOk3GqAlYSXJw0m011ZTRevb0Q0-JzRGYPoQv-NZRTpf7dDVzbcLdn4Bdg2A8RIc1emQKyyY3ZDnS-fN9opgAue9Eedm3t4wRdE0I2Ll50mVVFhQRNB2ObnwIl6JbzR3Y0WbD8JtEbOBJX57i8kY9RFFzHKMurwHXcallYflu4_WKKkUu84LHJVQlf4Qgmcwph3E7Rnv0Ox0hn-9BWlYfffrYs_x4uEGhjP8Z2qQwLf4umiS3W-vQRskbohZVn0_Ns9SNhzw0jXC62Cg-8IhPlnPQNrd8NyjrVXaEs7ArTMBwRprIofqd1Gk-cVDiHRW5DxmM_ZYUbLKsw_di-fAFprG12HP7X8cEOP-lhS28Xx5IY9ZtIawoPGeYTkn3Pd70w6TNKiUMhwPsQYIKJdiHl2WzB_SrMdbqTPH9IGqYF6vQL0B9XpWdm_kAriCGO1P3BM_H5zdEB_ajF0YLxj4fXHTqh6Cnq5BCpInlHi8Zj81Lk9CwxWnCTJk');
             
             set(config, 'science_metadata_config', testCase.getScienceMetadataConfig('mstmip_c3c4'));
 
@@ -814,6 +814,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
     
             run(scriptPath);
+            
+            
         end        
               
         function testOverloadedNCread(testCase)
@@ -830,6 +832,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+            
+            testCase.mgr.execution.execution_input_ids  = {};
+            testCase.mgr.execution.execution_output_ids = {};
         end        
         
         function testOverloadedNCwrite(testCase)
@@ -846,6 +854,12 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+         
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
+            
+            testCase.mgr.execution.execution_input_ids  = {};
+            testCase.mgr.execution.execution_output_ids = {};
         end        
         
         function testOverloadedCSVread(testCase)

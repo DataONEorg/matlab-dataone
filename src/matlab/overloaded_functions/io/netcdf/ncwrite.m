@@ -94,15 +94,21 @@ function ncwrite( source, varname, varargin )
             dataObject = DataObject(pid, formatId, fullSourcePath);
             runManager.execution.execution_objects(dataObject.identifier) = ...
                 dataObject;
+           
         else
             % Update the existing map entry with a new DataObject
             pid = existing_id;
             dataObject = DataObject(pid, formatId, fullSourcePath);
             runManager.execution.execution_objects(dataObject.identifier) = ...
                 dataObject;
+            
         end
-        
-        runManager.execution.execution_input_ids{ ...
-            end + 1} = pid;
+       
+        if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
+            runManager.execution.execution_output_ids{ ...
+                end + 1} = pid;
+           
+        end
+ 
     end
 end
