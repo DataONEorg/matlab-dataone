@@ -376,6 +376,9 @@ classdef EML
             emlRootElement.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
             emlRootElement.setAttribute('xmlns:eml', 'eml://ecoinformatics.org/eml-2.0.1');
             emlRootElement.setAttribute('xsi:schemaLocation', 'eml://ecoinformatics.org/eml-2.1.1 eml.xsd');
+
+            % Create and add the packageId attribute
+            emlRootElement.setAttribute('packageId', 'YOUR_PACKAGE_ID');
             
         end
     end
