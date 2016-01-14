@@ -105,8 +105,7 @@ classdef RunManager < hgsetget
             manager.init();  
             mlock; % Lock the RunManager instance to prevent clears          
         end
-        
-        
+                
         function predicate = asPredicate(runManager, property, prefix)
             % ASPREDICATE  Given a Jena Property and namespace prefix, create an ORE Predicate. 
             % This allows us to use the Jena vocabularies.
@@ -142,8 +141,7 @@ classdef RunManager < hgsetget
                 fprintf('predicate.nameSpace = %s\n', char(predicate.getNamespace()));
             end
         end
-        
-        
+                
         function [certificate, standardizedName] = getCertificate(runManager)
             % GETCERTIFICATE Gets a certificate 
             import org.dataone.client.auth.CertificateManager;
@@ -158,8 +156,7 @@ classdef RunManager < hgsetget
                 standardizedName = '';
             end
         end
-        
-                
+                        
         function configYesWorkflow(runManager, scriptPath)
             % CONFIGYESWORKFLOW Set YesWorkflow extractor language model to be Matlab type
             % Default configuration is used now.
@@ -184,8 +181,7 @@ classdef RunManager < hgsetget
             runManager.configuration.generate_workflow_graphic = true;
             
         end
-        
-        
+                
         function captureProspectiveProvenanceWithYW(runManager, runDirectory)
             % CAPTUREPROSPECTIVEPROVENANCEWITHYW captures the prospective provenance using YesWorkflow 
             % by scannning the inline yesWorkflow comments.
@@ -299,8 +295,7 @@ classdef RunManager < hgsetget
                 error(ME.message);
             end      
         end
- 
-       
+        
         function generateYesWorkflowGraphic(runManager, runDirectory)
             % GENERATEYESWORKFLOWGRAPHIC Generates yesWorkflow graphcis in pdf format    
             
@@ -362,8 +357,7 @@ classdef RunManager < hgsetget
                 runManager.execution.execution_output_ids{end+1} = data_image_pid;
             end
         end
-        
-        
+                
         function d1Obj = buildD1Object(runManager, fileName, fileFmt, idValue, submitter, mnNodeId)
             % BUILDD1OBJECT build a d1 object for a file on disk.
             %   fileName - the absolute path for a file
@@ -383,8 +377,7 @@ classdef RunManager < hgsetget
             d1ObjIdentifier.setValue(idValue);
             d1Obj = D1Object(d1ObjIdentifier, data, D1TypeBuilder.buildFormatIdentifier(fileFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId)); 
         end
-        
-       
+               
         function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
@@ -430,7 +423,8 @@ classdef RunManager < hgsetget
            
             % Create a resourceMap identifier
             resourceMapId = Identifier();
-            resourceMapId.setValue(['resourceMap_' runManager.execution.execution_id]);
+            resourceMapId.setValue(['resourceMap_' ...
+                runManager.execution.execution_id '.rdf']);
             % Create an empty datapackage with resourceMapId
             runManager.dataPackage = DataPackage(resourceMapId);
             
@@ -533,8 +527,18 @@ classdef RunManager < hgsetget
                 provONEUserURI); 
 
             % Create a science metadata object and add it to the package
-            import org.ecoinformatics.eml.EMLDataset;
-            emlDataset = EMLDataset();
+            metadata_file_base_name = ['metadata_' identifier '.xml'];
+            metadataExists = exist(fullfile( ...
+                runManager.configuration.provenance_storage_directory, ...
+                'runs', ...
+                identifier, ...
+                metadata_file_base_name), 'file') == 2;
+            
+            if ( ~ metadataExists )
+                import org.ecoinformatics.eml.EMLDataset;
+                emlDataset = EMLDataset();
+                
+            end
             
             scienceMetadataIdStr = ['metadata_' ...
                 runManager.execution.execution_id '.xml'];
@@ -542,8 +546,11 @@ classdef RunManager < hgsetget
             scienceMetadataId.setValue(scienceMetadataIdStr);
             
             % Update the science metadata with configured fields
-            emlDataset.update(runManager.configuration, runManager.execution);
-
+            if ( ~ metadataExists )
+                emlDataset.update( ...
+                    runManager.configuration, runManager.execution);
+            end
+            
             % Process execution_output_ids
             for i=1:length(runManager.execution.execution_output_ids)
                 outputId = runManager.execution.execution_output_ids{i};
@@ -573,9 +580,12 @@ classdef RunManager < hgsetget
                 set(outputDataObject, 'system_metadata', j_sysmeta);
                 
                 % Update the EML science metadata with the output entity
-                emlDataset.appendOtherEntity([file_name ext], [], ...
-                    [file_name ext], out_file_metadata.bytes, ...
-                    outputDataObject.format_id, outputDataObject.format_id);
+                if ( ~ metadataExists )
+                    emlDataset.appendOtherEntity([file_name ext], [], ...
+                        [file_name ext], out_file_metadata.bytes, ...
+                        outputDataObject.format_id, outputDataObject.format_id);
+                    
+                end
                 
                 runManager.execution.execution_objects( ...
                     outputDataObject.identifier) = outputDataObject;
@@ -620,9 +630,13 @@ classdef RunManager < hgsetget
                     set(inputDataObject, 'system_metadata', j_sysmeta);
                     
                     % Update the EML science metadata with the input entity
-                    emlDataset.appendOtherEntity([file_name ext], [], ...
-                        [file_name ext], in_file_metadata.bytes, ...
-                        inputDataObject.format_id, inputDataObject.format_id);
+                    if ( ~ metadataExists )
+                        emlDataset.appendOtherEntity([file_name ext], [], ...
+                            [file_name ext], in_file_metadata.bytes, ...
+                            inputDataObject.format_id, inputDataObject.format_id);
+                        
+                    end
+                    
                     runManager.execution.execution_objects( ...
                         inputDataObject.identifier) = inputDataObject;
                     
@@ -642,16 +656,19 @@ classdef RunManager < hgsetget
             end
 
             % Write the science metadata to the execution directory
-            scienceMetadataFile = ...
-                fopen(fullfile( ...
-                runManager.execution.execution_directory, ...
-                scienceMetadataIdStr), 'w');
-            if ( scienceMetadataFile == -1 )
-                error('Could not open the science metadata file for writing.');
+            if ( ~ metadataExists )
+                scienceMetadataFile = ...
+                    fopen(fullfile( ...
+                    runManager.execution.execution_directory, ...
+                    scienceMetadataIdStr), 'w');
+                if ( scienceMetadataFile == -1 )
+                    error('Could not open the science metadata file for writing.');
+                    
+                end
+                
+                fprintf(scienceMetadataFile, '%s', emlDataset.toXML());
+                fclose(scienceMetadataFile);
             end
-            
-            fprintf(scienceMetadataFile, '%s', emlDataset.toXML());
-            fclose(scienceMetadataFile);            
 
             % Create the science metadata DataObject
             scienceMetadataDataObject = org.dataone.client.v2.DataObject( ...
@@ -671,12 +688,11 @@ classdef RunManager < hgsetget
             % Update the property "fileName" for the java system metadata.
             % Then, update the matlab system metadata using the java system
             % metadata Dec-4-2015
-            scienceMetadata_metadata = scienceMetadataD1JavaObject.getSystemMetadata();
-            scienceMetadata_metadata.setFileName(scienceMetadataDataObject.full_file_path);
-            set(scienceMetadataDataObject, 'system_metadata', ...
-                scienceMetadata_metadata);            
-            % set(scienceMetadataDataObject, 'system_metadata', ...
-            %    scienceMetadataD1JavaObject.getSystemMetadata());
+            j_sysmeta = ...
+                scienceMetadataD1JavaObject.getSystemMetadata();
+            j_sysmeta.setFileName( ...
+                scienceMetadataDataObject.full_file_path);
+            set(scienceMetadataDataObject, 'system_metadata', j_sysmeta);            
                         
             % Add the science metadata DataObject to the execution_objects map
             runManager.execution.execution_objects( ...
@@ -708,11 +724,9 @@ classdef RunManager < hgsetget
             rdfXml = runManager.dataPackage.serializePackage();
          
             % Write to a resourceMap file
-            resourceMapName = [char(resourceMapId.getValue()) '.rdf'];  
+            resourceMapName = [char(resourceMapId.getValue())];
             resourceMapFullPath = fullfile( ...
-                runManager.configuration.provenance_storage_directory, ...
-                'runs', ...
-                identifier, ...
+                runManager.execution.execution_directory, ...
                 resourceMapName);
             fw = fopen(resourceMapFullPath, 'w'); 
             if fw == -1, error('Cannot write "%s%".',resourceMapFullPath); end
@@ -721,14 +735,30 @@ classdef RunManager < hgsetget
 
             % Add resourceMap D1Object to the DataPackage                      
             resMapFmt = 'http://www.openarchives.org/ore/terms'; 
-            resMapD1JavaObj = runManager.buildD1Object(resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
-            runManager.dataPackage.addData(resMapD1JavaObj);     
-           
+            resourceMapD1Object = ...
+                runManager.buildD1Object( ...
+                resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);            
+            j_sysmeta = resourceMapD1Object.getSystemMetadata();
+            j_sysmeta.setFileName(resourceMapName);
+            resourceMapD1Object.setSystemMetadata(j_sysmeta);
+            
+            runManager.dataPackage.addData(resourceMapD1Object);     
+
+            % Create the resource map DataObject
+            resourceMapDataObject = org.dataone.client.v2.DataObject( ...
+                char(resourceMapId.getValue()), ...
+                resMapFmt, ...
+                resourceMapFullPath);
+            set(resourceMapDataObject, 'system_metadata', j_sysmeta);
+            
+            % Add the resource map DataObject to the execution_objects map
+            runManager.execution.execution_objects(resourceMapName) = ...
+                resourceMapDataObject;
+            
             data_package = runManager.dataPackage;
             
         end
-        
-        
+                
         function saveExecution(runManager, fileName)
             % SAVEEXECUTION saves the summary of each execution to an
             % execution database, a CSV file named execution.csv in the
@@ -800,8 +830,7 @@ classdef RunManager < hgsetget
                 fclose(fileId); 
             end           
         end
-       
-        
+               
         function [execMetaMatrix, header] = getExecMetadataMatrix(runManager)
             % GETEXECMETADATAMATRIX returns a matrix storing the
             % metadata summary for all executions from the exeucton
@@ -820,7 +849,6 @@ classdef RunManager < hgsetget
                 execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]}];
             end
         end
-        
         
         function stmtStruct = getRDFTriple(runManager, filePath, p)
            % GETRDFTRIPLE get all related subjects related to a given property from all
@@ -1032,25 +1060,21 @@ classdef RunManager < hgsetget
             % GETDATAPACKAGE get the data package from the runManager
             pkg = runManager.dataPackage;
         end
-        
-        
+                
         function d1_cn_resolve_endpoint = getD1_CN_Resolve_Endpoint(runManager)
             % GETD1CNRESOLVEENDPOINT get the dataone CN resolve endpoint
             % from the runManager
             d1_cn_resolve_endpoint = runManager.D1_CN_Resolve_Endpoint;
         end
-        
-        
+                
         function exec_input_id_list = getExecInputIds(runManager)
             exec_input_id_list = get(runManager.execution, 'execution_input_ids');
         end
-        
-        
+                
         function exec_output_id_list = getExecOutputIds(runManager)
             exec_output_id_list = get(runManager.execution, 'execution_output_ids');
         end
-        
-     
+             
         function init(runManager)
             % INIT initializes the RunManager instance
                         
@@ -1098,8 +1122,7 @@ classdef RunManager < hgsetget
                 end
             end
         end
-        
-        
+                
         function callYesWorkflow(runManager, scriptPath, dirPath)
             % CALLYESWORKFLOW Records provenance information at the script
             % level using the yesWorkflow tool.
@@ -1109,8 +1132,7 @@ classdef RunManager < hgsetget
                 runManager.generateYesWorkflowGraphic(dirPath);
             end
         end
-        
-        
+                
         function data_package = record(runManager, filePath, tag)
             % RECORD Records provenance relationships between data and scripts
             % When record() is called, data input files, data output files,
@@ -1207,8 +1229,7 @@ classdef RunManager < hgsetget
             runManager.endRecord();
      
         end
-        
-        
+                
         function startRecord(runManager, tag)
             % STARTRECORD Starts recording provenance relationships (see record()).
                        
@@ -1314,8 +1335,7 @@ classdef RunManager < hgsetget
                 end
             end
         end
-        
-        
+               
         function endRecord(runManager)
             % ENDRECORD Ends the recording of an execution (run).
             
@@ -1424,8 +1444,7 @@ classdef RunManager < hgsetget
             munlock('RunManager');            
             % clear RunManager;
         end
-    
-        
+            
         function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
@@ -1542,7 +1561,6 @@ classdef RunManager < hgsetget
                 disp(tableForSelectedRuns);                      
             end          
         end
-
         
         function deleted_runs = deleteRuns(runManager, varargin)
             % DELETERUNS Deletes prior executions (runs) from the stored
@@ -1725,7 +1743,6 @@ classdef RunManager < hgsetget
                              
             end          
         end
-
         
         function results = view(runManager, varargin)
            % VIEW Displays detailed information about a data package that
@@ -1915,7 +1932,6 @@ classdef RunManager < hgsetget
            
            more off; % terminate more           
         end
-
         
         function package_id = publish(runManager, packageId)
             % PUBLISH Uploads a data package from a folder on disk
@@ -1941,15 +1957,18 @@ classdef RunManager < hgsetget
             prov_dir = runManager.configuration.get('provenance_storage_directory');
             curRunDir = fullfile(prov_dir, 'runs', packageId);
          
-            if exist(curRunDir, 'dir') ~= 7
-                error([' A directory was not found for execution identifier: ' packageId]);               
+            if ( exist(curRunDir, 'dir') ~= 7 )
+                error([' There was an error in publishing the run. ' ...
+                    char(10) ...
+                    'A directory was not found for the run identifier: ' ...
+                    packageId]);               
             end                 
             
             % Get a MNode instance to the Member Node
             try                
                 % Deserialize the execution object from the disk
                 
-                % Load the stroed execution given the directory name
+                % Load the stored execution given the directory name
                 exec_file_base_name = [packageId '.mat'];
                 stored_execution = load(fullfile( ...
                     runManager.configuration.provenance_storage_directory, ...
@@ -1979,7 +1998,10 @@ classdef RunManager < hgsetget
                         'Please set it with the correct Member Node id.']);                 
                 end
                 
-                pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );    
+                % Build the package back into memory
+                pkg = runManager.buildPackage( ...
+                    submitter, mnNodeId, ...
+                    runManager.execution.execution_directory );    
                                 
                 % Get a Session
                 session = Session();
@@ -2041,6 +2063,9 @@ classdef RunManager < hgsetget
                 submitter = Subject();
                 submitter.setValue(session.account_subject);
                 
+                % TODO: CSJ change this to iterate through the DataPackage
+                % members
+                
                 % Upload each data object in the execution_objects map
                 identifiers = keys(runManager.execution.execution_objects);
                 d1objects = values(runManager.execution.execution_objects);
@@ -2052,7 +2077,9 @@ classdef RunManager < hgsetget
                     d1_object_format = d1_object.format_id;
                     
                     if true % runManager.configuration.debug
-                        fprintf('Uploading file: %s, file format: %s, file path: %s \n', d1_object_id, d1_object_format, d1_object.full_file_path);
+                        fprintf( ...
+                            'Uploading file: %s, \nfile format: %s, \nfile path: %s \n', ...
+                            d1_object_id, d1_object_format, d1_object.full_file_path);
                     end
                     
                     % build d1 object
@@ -2081,7 +2108,7 @@ classdef RunManager < hgsetget
                     
                     if runManager.configuration.public_read_allowed == 1
                         strArray = javaArray('java.lang.String', 1);
-                        permsArrary = javaArray('org.dataone.service.types.v1.Permission', 1);
+                        permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
                         strArray(1,1) = String('public');
                         permsArray(1,1) = Permission.READ;
                         ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
@@ -2109,10 +2136,12 @@ classdef RunManager < hgsetget
                     
                     returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);  
                     if isempty(returnPid) ~= 1
-                        fprintf('Success: Uploaded %s\n.', char(v2SysMeta.getFileName()));
+                        fprintf('Success: Uploaded %s.\n', char(v2SysMeta.getFileName()));
+                        
                     else
                         % TODO: Process the error correctly.
                         error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));
+                        
                     end
                     % else
                         % TODO: Process the error correctly.
@@ -2194,12 +2223,10 @@ classdef RunManager < hgsetget
                 fclose(fileId);
             end
         end
-
         
         function combFileName = getYWCombViewFileName(runManager)
             combFileName = runManager.combinedViewPdfFileName;
         end
-
         
         function science_metadata = getMetadata(runManager, varargin)
             % GETMETADATA retrieves the metadata describing data objects of
@@ -2266,7 +2293,6 @@ classdef RunManager < hgsetget
                 return;               
             end            
         end
-
         
         function putMetadata(runManager, varargin)
             % PUTMETADATA puts a metadata document into the recordr cache
