@@ -1999,9 +1999,9 @@ classdef RunManager < hgsetget
                 end
                 
                 % Build the package back into memory
-                pkg = runManager.buildPackage( ...
-                    submitter, mnNodeId, ...
-                    runManager.execution.execution_directory );    
+                % pkg = runManager.buildPackage( ...
+                %     submitter, mnNodeId, ...
+                %     runManager.execution.execution_directory );    
                                 
                 % Get a Session
                 session = Session();
@@ -2062,9 +2062,6 @@ classdef RunManager < hgsetget
                 
                 submitter = Subject();
                 submitter.setValue(session.account_subject);
-                
-                % TODO: CSJ change this to iterate through the DataPackage
-                % members
                 
                 % Upload each data object in the execution_objects map
                 identifiers = keys(runManager.execution.execution_objects);
