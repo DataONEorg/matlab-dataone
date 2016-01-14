@@ -71,6 +71,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'lib/yesworkflow/yw_data_view.properties';
             testCase.yw_comb_view_property_file_name = ...
                 'lib/yesworkflow/yw_comb_view.properties';
+            
+            testCase.mgr.execution.execution_input_ids  = {};
+            testCase.mgr.execution.execution_output_ids = {};
         end
     end
     
@@ -519,6 +522,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+  
         end 
                 
         function testOverloadedCdfwrite(testCase)
@@ -535,6 +542,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
+
         end 
                 
         function testOverloadedHdfread(testCase)
@@ -551,6 +562,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+
         end 
                 
         function testOverloadedHdfinfo(testCase)
@@ -567,6 +582,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+
         end 
                 
         function testOverloadedH5read(testCase)
@@ -583,6 +602,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+
         end 
                 
         function testOverloadedH5write(testCase)
@@ -599,6 +622,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),1);
+
         end 
                 
         function testOverloadedTextread(testCase)
@@ -615,6 +642,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
+
         end 
                 
         function testOverloadedReadtable(testCase)
@@ -631,6 +662,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),1);
+
         end 
                 
         function testOverloadedWritetable(testCase)
@@ -647,6 +682,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),1);
+
         end 
         
         function testOverloadedImread(testCase)
@@ -663,6 +702,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+
         end 
                 
         function testOverloadedImwrite(testCase)
@@ -679,6 +722,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
           
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),3);
+
         end 
                 
         function testOverloadedXmlread(testCase)
@@ -695,6 +742,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+
         end
                 
         function testOverloadedXmlwrite(testCase)
@@ -711,6 +762,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),1);
+
         end
                   
         function testOverloadedMultibandread(testCase)
@@ -727,6 +782,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 2);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+
         end
                         
         function testOverloadedMultibandwrite(testCase)
@@ -743,6 +802,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
+
         end
                 
         function testOverloadedFitsread(testCase)
@@ -759,6 +822,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+
         end
                         
         function testOverloadedFitswrite(testCase)
@@ -775,10 +842,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),1);
+
         end
                 
         function testOverloadedNCopen(testCase)
-            fprintf('\nIn testOverloadedNcread() ...\n');            
+            fprintf('\nIn testOverloadedNCopen() ...\n');            
             testCase.filename = ...
                 fullfile( ...
                     testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
@@ -792,7 +863,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
     
             run(scriptPath);
             
-            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
+
         end        
               
         function testOverloadedNCread(testCase)
@@ -812,9 +885,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
             assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),0);
-            
-            testCase.mgr.execution.execution_input_ids  = {};
-            testCase.mgr.execution.execution_output_ids = {};
+
         end        
         
         function testOverloadedNCwrite(testCase)
@@ -834,9 +905,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
          
             assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
             assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
-            
-            testCase.mgr.execution.execution_input_ids  = {};
-            testCase.mgr.execution.execution_output_ids = {};
+
         end        
         
         function testOverloadedCSVread(testCase)
@@ -853,8 +922,33 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
            
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 0);
+
         end        
-                       
+          
+        
+        function testOverloadedCsvWrite(testCase)
+            fprintf('\nIn testOverloadedCsvWrite() ...\n');
+            testCase.filename = ...
+                fullfile( ...
+                testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                'src/test/resources/myScript24.m');
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+               
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
+
+        end
+        
         function testOverloadedLoad(testCase)
             % Todo: load coast (not working)
             fprintf('\nIn testOverloadedLoad() ...\n');            
@@ -886,7 +980,34 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
          
             run(scriptPath);
+               
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 2);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
+
         end        
+          
+        
+        function testOverloadedDlmWrite(testCase)
+            
+            fprintf('\nIn testOverloadedDlmWrite ...\n');
+            testCase.filename = ...
+                fullfile( ...
+                testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                'src/test/resources/myScript25.m');
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
+
+        end
+        
                 
         function testListRunsNoParams(testCase)
             fprintf('\n*** testListRuns with no parameters: ***\n');

@@ -168,7 +168,9 @@ function writetable(T,source,varargin)
                 dataObject;
         end
     
-        runManager.execution.execution_output_ids{end+1} = pid;
+        if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
+            runManager.execution.execution_output_ids{end+1} = pid;
+        end
     end
 
 end
