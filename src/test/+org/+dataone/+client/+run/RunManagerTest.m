@@ -57,7 +57,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'rights_holder', 'rightsHolder', ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', '/tmp/x509up_u501', ...
-                'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJjb25zdW1lcktleSI6InRoZWNvbnN1bWVya2V5IiwiaXNzdWVkQXQiOiIyMDE2LTAxLTEyVDE1OjQxOjQ2Ljg2NSswMDowMCIsInVzZXJJZCI6IkNOPVlhbmcgQ2FvIEEzNjEyMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiZnVsbE5hbWUiOiJZYW5nQ2FvIiwidHRsIjo2NDgwMDAwMH0.I_OkScV2GRWB2sMcCJ-MeU1TJbpIaTGyNYBFqTLwVLBrTQA_AQHtQ6BW2mPcSKOlj7OdEbkA9Aw6azklWAOI2Pl2f69zWRttqIqNl-iugC7y-GSTIbRO4n1z97CYNRJqwszXtV6yVbWduO7x-UFjBIC4YBKf64eDVs3IyUCs4hfWIGqfM3tuOk3GqAlYSXJw0m011ZTRevb0Q0-JzRGYPoQv-NZRTpf7dDVzbcLdn4Bdg2A8RIc1emQKyyY3ZDnS-fN9opgAue9Eedm3t4wRdE0I2Ll50mVVFhQRNB2ObnwIl6JbzR3Y0WbD8JtEbOBJX57i8kY9RFFzHKMurwHXcallYflu4_WKKkUu84LHJVQlf4Qgmcwph3E7Rnv0Ox0hn-9BWlYfffrYs_x4uEGhjP8Z2qQwLf4umiS3W-vQRskbohZVn0_Ns9SNhzw0jXC62Cg-8IhPlnPQNrd8NyjrVXaEs7ArTMBwRprIofqd1Gk-cVDiHRW5DxmM_ZYUbLKsw_di-fAFprG12HP7X8cEOP-lhS28Xx5IY9ZtIawoPGeYTkn3Pd70w6TNKiUMhwPsQYIKJdiHl2WzB_SrMdbqTPH9IGqYF6vQL0B9XpWdm_kAriCGO1P3BM_H5zdEB_ajF0YLxj4fXHTqh6Cnq5BCpInlHi8Zj81Lk9CwxWnCTJk');
+                'authentication_token', '');
             
             set(config, 'science_metadata_config', testCase.getScienceMetadataConfig('mstmip_c3c4'));
 
@@ -124,8 +124,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             % reset to the original
             set(testCase.mgr.configuration, 'format_id', old_format_id);
         end
-        
-        
+                
         function testYesWorkflow(testCase)
             fprintf('\nIn testYesWorkflow() ...\n');
             
@@ -153,8 +152,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             assert(isequal(existed,1));
         end
-        
-        
+                
         function testRecord(testCase)
             fprintf('\nIn testRecord() ...\n');
             
@@ -270,8 +268,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             assertNotEqual(testCase, saluationText1, saluationText2);
         end
-        
-        
+                
         function testPutMetadataWithSalutationNoDomElement(testCase)
             % The Saluation element is not present in the dom object
             
@@ -337,8 +334,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             assert(~isempty(saluationText2));
         end
-        
-        
+                
         function testPutMetadataWithoutSalutationConfigWithDomElement(testCase)
             fprintf('\nIn test Put Metadata Without Salutation Config Element Exists but Saluation dom element exists ...\n');
             
@@ -402,8 +398,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assert(isempty(salutationNode2));
             
         end
-        
-        
+                
         function testPutMetadataWithoutSalutationConfigNoDomElement(testCase)
             fprintf('\nIn test Put Metadata Without Salutation Config Element Exists and Saluation dom element not present ...\n');
             
@@ -465,8 +460,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assert(isempty(salutationNode2));
             
         end
-        
-        
+                
         function testGetMetadata(testCase)
             fprintf('\nIn test Get Metadata ...\n');
             
@@ -510,8 +504,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             eml_string = testCase.mgr.getMetadata('packageId', testCase.mgr.execution.execution_id);     
             assert(~isempty(eml_string));
         end
-        
-        
+                
         function testOverloadedCdfread(testCase)
             fprintf('\nIn testOverloadedCdfread() ...\n');            
             testCase.filename = ...
@@ -527,8 +520,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedCdfwrite(testCase)
             fprintf('\nIn testOverloadedCdfwrite() ...\n');            
             testCase.filename = ...
@@ -544,8 +536,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedHdfread(testCase)
             fprintf('\nIn testOverloadedHdfread() ...\n');            
             testCase.filename = ...
@@ -561,8 +552,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedHdfinfo(testCase)
             fprintf('\nIn testOverloadedHdfinfo() ...\n');            
             testCase.filename = ...
@@ -578,8 +568,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedH5read(testCase)
             fprintf('\nIn testOverloadedH5read ...\n');            
             testCase.filename = ...
@@ -595,8 +584,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedH5write(testCase)
             fprintf('\nIn testOverloadedH5write ...\n');            
             testCase.filename = ...
@@ -612,8 +600,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedTextread(testCase)
             fprintf('\nIn testOverloadedTextread ...\n');            
             testCase.filename = ...
@@ -629,8 +616,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedReadtable(testCase)
             fprintf('\nIn testOverloadedReadtable ...\n');            
             testCase.filename = ...
@@ -646,8 +632,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedWritetable(testCase)
             fprintf('\nIn testOverloadedWritetable ...\n');            
             testCase.filename = ...
@@ -679,8 +664,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedImwrite(testCase)
             fprintf('\nIn testOverloadedImwrite ...\n');            
             testCase.filename = ...
@@ -696,8 +680,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
         end 
-        
-        
+                
         function testOverloadedXmlread(testCase)
             fprintf('\nIn testOverloadedXmlread ...\n');
             testCase.filename = ...
@@ -713,8 +696,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             run(scriptPath);
         end
-        
-        
+                
         function testOverloadedXmlwrite(testCase)
             fprintf('\nIn testOverloadedXmlwrite ...\n');
             testCase.filename = ...
@@ -730,8 +712,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             run(scriptPath);
         end
-        
-          
+                  
         function testOverloadedMultibandread(testCase)
             fprintf('\nIn testOverloadedMultibandread ...\n');
             testCase.filename = ...
@@ -747,8 +728,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             run(scriptPath);
         end
-        
-                
+                        
         function testOverloadedMultibandwrite(testCase)
             fprintf('\nIn testOverloadedMultibandwrite ...\n');
             testCase.filename = ...
@@ -764,8 +744,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             run(scriptPath);
         end
-        
-        
+                
         function testOverloadedFitsread(testCase)
             fprintf('\nIn testOverloadedFitsread ...\n');
             testCase.filename = ...
@@ -781,8 +760,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             run(scriptPath);
         end
-        
-                
+                        
         function testOverloadedFitswrite(testCase)
             fprintf('\nIn testOverloadedFitswrite ...\n');
             testCase.filename = ...
@@ -798,8 +776,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             run(scriptPath);
         end
-        
-        
+                
         function testOverloadedNCopen(testCase)
             fprintf('\nIn testOverloadedNcread() ...\n');            
             testCase.filename = ...
@@ -1161,7 +1138,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.filename = ...
                 fullfile( ...
                     testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
-                        'src/test/resources/myScript2.m');
+                        'src/test/resources/C3_C4_map_present_NA_with_comments.m');
 
             scriptPath = which(testCase.filename); % get the absolute path of the script
             if isempty(scriptPath)
@@ -1190,7 +1167,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
             pkgId = runs{1,1};
             testCase.mgr.publish(pkgId);
             runs = testCase.mgr.listRuns();
-        end 
+        end
+        
     end
     
     methods (Access = 'private')
