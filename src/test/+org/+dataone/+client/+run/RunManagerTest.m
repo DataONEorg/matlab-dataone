@@ -57,7 +57,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'rights_holder', 'rightsHolder', ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', '/tmp/x509up_u501', ...
+<<<<<<< Updated upstream
                 'authentication_token', '');
+=======
+                'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJjb25zdW1lcktleSI6InRoZWNvbnN1bWVya2V5IiwiaXNzdWVkQXQiOiIyMDE2LTAxLTE0VDE1OjM1OjU2LjM4NyswMDowMCIsInVzZXJJZCI6IkNOPVlhbmcgQ2FvIEEzNjEyMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiZnVsbE5hbWUiOiJZYW5nQ2FvIiwidHRsIjo2NDgwMDAwMH0.ee6RRkQXVDQiNpRzOB73cp2ym90AzEV4df7ag7kWlWHINgkb5puac7ItRQkuHgr0xWHdupYaejYORVXNvnXuEGD6mAWMJahmPiG5lu41GvRGmkaxNFlQoZvj70Irl1iZDhyhD7igyyV9j_vbCRQ7UEWaaJtLjVrEIs4okoh_oG5EYHteEkQ3icIMX2N_ivc0cC7MVCX_kZbNDHey6RLHIit50UzLJw4VaCfMnH-HKzUIHj6jG6G6yq8hpzSp3Dz8DJo9boAtsCZvwchJkaS5nwuFJiN1S6ssp4GMhe1CwrCrlrHmi6OQrlBTuCjeESR_icYxmOsumWQmEMIxfH6bJBkmkLAofZ0R_0RpNTBPQYPLN1sIaAkjW7J3mt7WAMPA_8MbNP0n3reQTVa23fKz4yre9bu0MGVStDbMiJenVgrvAhAGXzn5AXKScbkV7kYUpOHCgmpoqXklaXn9MwIIQNWTvftgd3oyS04DaHGPVwnt-4bfMV5TOMsxFeY4VxEUyr1zTJBq8-KD7X-8mLPrWHtfJmFToMWBFUgJgQDijZL4UNgqvlCICafhpvhqLHvzeg0z-bcOV1KfbMv48T_XU6Uz3rlxYuudvj7szdHGFCy8JPpW2gh9lywj131mI2UY3aj9mZK2gOEaF-p-YWsD5RclXxJ5hLg40O89HnJkPkw');
+>>>>>>> Stashed changes
             
             set(config, 'science_metadata_config', testCase.getScienceMetadataConfig('mstmip_c3c4'));
 
