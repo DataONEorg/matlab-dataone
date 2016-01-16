@@ -41,7 +41,7 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             
         end
     
-        function emlDataset = appendOtherEntity(self, entityName, ...
+        function emlDataset = appendOtherEntity(self, entityId, entityName, ...
             entityDescription, objectName, size, formatName, entityType)
             % APPENDOTHERENTITY Adds an OtherEntity element to the EMLDataset
             %   As a first pass, only support externallyDefinedFormat
@@ -90,7 +90,12 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             otherEntityElement = self.document.createElement('otherEntity');
             currentElement.getParentNode().insertBefore(...
                 otherEntityElement, currentElement.getNextSibling());
-            
+
+            % Add the optional entity identifier
+            if ( ~ isempty(entityId) )
+                otherEntityElement.setAttribute('id', entityId);
+                
+            end
             % Add the entityName element
             entityNameElement = self.document.createElement('entityName');
             entityNameElement.appendChild(self.document.createTextNode(entityName));

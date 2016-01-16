@@ -415,7 +415,7 @@ classdef RunManager < hgsetget
             runManager.execution = stored_execution.executionObj(1);
             
             % Initialize a dataPackage to manage the run
-            scriptIdentifier = runManager.execution.getIdByFullFilePath( ...
+            program_id = runManager.execution.getIdByFullFilePath( ...
                 runManager.execution.software_application);
         
             packageIdentifier = Identifier();
@@ -453,17 +453,17 @@ classdef RunManager < hgsetget
             
             % Create a DataObject for the program that we are running and
             %    update the resulting sysmeta in the stored exucution matlab DataObject
-            scriptD1Obj = runManager.execution.execution_objects(scriptIdentifier);
+            programDataObject = runManager.execution.execution_objects(program_id);
             programD1JavaObj = runManager.buildD1Object( ...
-                scriptD1Obj.full_file_path, scriptD1Obj.format_id, ...
-                scriptD1Obj.identifier, submitter, mnNodeId);
+                programDataObject.full_file_path, programDataObject.format_id, ...
+                programDataObject.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(programD1JavaObj);
-            set(scriptD1Obj, 'system_metadata', programD1JavaObj.getSystemMetadata);
-            runManager.execution.execution_objects(scriptIdentifier) = scriptD1Obj;
+            set(programDataObject, 'system_metadata', programD1JavaObj.getSystemMetadata());
+            runManager.execution.execution_objects(program_id) = programDataObject;
             
             % Create a D1 identifier for the workflow script  
             runManager.wfIdentifier = Identifier();                   
-            runManager.wfIdentifier.setValue(scriptD1Obj.identifier);
+            runManager.wfIdentifier.setValue(programDataObject.identifier);
           
             % Record relationship identifying workflow identifier and URI as a provONE:Program
             runManager.dataPackage.insertRelationship( ...
@@ -551,6 +551,26 @@ classdef RunManager < hgsetget
                     runManager.configuration, runManager.execution);
             end
             
+            % Update the EML science metadata with the program (script) entity
+            [path, file_name, ext] = fileparts(programDataObject.full_file_path);
+            program_file_metadata = dir(programDataObject.full_file_path);
+            
+            if ( ~ metadataExists )
+                emlDataset.appendOtherEntity([], [file_name ext], [], ...
+                    [file_name ext], program_file_metadata.bytes, ...
+                    programDataObject.format_id, programDataObject.format_id);
+                
+            end
+            
+            % Associate the science metadata with the program in the
+            % aggregation
+            import org.dataone.util.ArrayListWrapper;
+            programList = ArrayListWrapper();
+            programList.add(runManager.wfIdentifier);
+                
+            runManager.dataPackage.insertRelationship( ...
+                scienceMetadataId, programList);
+
             % Process execution_output_ids
             for i=1:length(runManager.execution.execution_output_ids)
                 outputId = runManager.execution.execution_output_ids{i};
@@ -568,20 +588,20 @@ classdef RunManager < hgsetget
                 [path, file_name, ext] = fileparts(outputDataObject.full_file_path);
                 
                 j_outputD1Object = runManager.buildD1Object( ...
-                        outputDataObject.full_file_path, outputDataObject.format_id, ...
-                        outputDataObject.identifier, submitter, mnNodeId);
-                    
+                    outputDataObject.full_file_path, outputDataObject.format_id, ...
+                    outputDataObject.identifier, submitter, mnNodeId);
+                
                 runManager.dataPackage.addData(j_outputD1Object);
                 
-                j_sysmeta = j_outputD1Object.getSystemMetadata(); % java version sysmeta     
+                j_sysmeta = j_outputD1Object.getSystemMetadata(); % java version sysmeta
                 out_file_metadata = dir(outputDataObject.full_file_path);
-                j_sysmeta.setFileName(outputDataObject.system_metadata.getFileName());              
+                j_sysmeta.setFileName(outputDataObject.system_metadata.getFileName());
                 j_sysmeta.setSize(BigInteger.valueOf(out_file_metadata.bytes));
                 set(outputDataObject, 'system_metadata', j_sysmeta);
                 
                 % Update the EML science metadata with the output entity
                 if ( ~ metadataExists )
-                    emlDataset.appendOtherEntity([file_name ext], [], ...
+                    emlDataset.appendOtherEntity([], [file_name ext], [], ...
                         [file_name ext], out_file_metadata.bytes, ...
                         outputDataObject.format_id, outputDataObject.format_id);
                     
@@ -591,7 +611,7 @@ classdef RunManager < hgsetget
                     outputDataObject.identifier) = outputDataObject;
                 
                 outSourceURI = URI( ...
-                    [runManager.D1_CN_Resolve_Endpoint outputDataObject.identifier]); 
+                    [runManager.D1_CN_Resolve_Endpoint outputDataObject.identifier]);
                 runManager.dataPackage.insertRelationship( ...
                     outSourceURI, ...
                     wasAssociatedWithPredicate, ...
@@ -606,12 +626,12 @@ classdef RunManager < hgsetget
             % Process execution_input_ids
             for i=1:length(runManager.execution.execution_input_ids)
                 inputId = runManager.execution.execution_input_ids{i};
-       
-                startIndex = regexp( inputId, 'http', 'once' ); 
-                if isempty(startIndex)                   
+                
+                startIndex = regexp( inputId, 'http', 'once' );
+                if isempty(startIndex)
                     inputDataObject = ...
                         runManager.execution.execution_objects(inputId);
-  
+                    
                     submitter = runManager.execution.account_name;
                     mnNodeId = runManager.configuration.target_member_node_id;
                     
@@ -620,18 +640,18 @@ classdef RunManager < hgsetget
                     j_inputD1Object = runManager.buildD1Object( ...
                         inputDataObject.full_file_path, inputDataObject.format_id, ...
                         inputDataObject.identifier, submitter, mnNodeId);
-                
+                    
                     runManager.dataPackage.addData(j_inputD1Object);
-                    j_sysmeta = j_inputD1Object.getSystemMetadata();            
+                    j_sysmeta = j_inputD1Object.getSystemMetadata();
                     in_file_metadata = dir(inputDataObject.full_file_path);
                     j_sysmeta.setSize(BigInteger.valueOf(in_file_metadata.bytes));
                     j_sysmeta.setFileName(inputDataObject.system_metadata.getFileName());
-                
+                    
                     set(inputDataObject, 'system_metadata', j_sysmeta);
                     
                     % Update the EML science metadata with the input entity
                     if ( ~ metadataExists )
-                        emlDataset.appendOtherEntity([file_name ext], [], ...
+                        emlDataset.appendOtherEntity([], [file_name ext], [], ...
                             [file_name ext], in_file_metadata.bytes, ...
                             inputDataObject.format_id, inputDataObject.format_id);
                         
@@ -646,15 +666,15 @@ classdef RunManager < hgsetget
                     runManager.dataPackage.insertRelationship( ...
                         runManager.execution.execution_uri, ...
                         usedPredicate, ...
-                        inSourceURI); 
-                
+                        inSourceURI);
+                    
                     runManager.dataPackage.insertRelationship(...
                         inSourceURI, ...
                         runManager.aTypePredicate, ...
                         runManager.provONEdataURI);
                 end
             end
-
+            
             % Write the science metadata to the execution directory
             if ( ~ metadataExists )
                 scienceMetadataFile = ...
@@ -2133,7 +2153,7 @@ classdef RunManager < hgsetget
                     
                     returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);  
                     if isempty(returnPid) ~= 1
-                        fprintf('Success: Uploaded %s.\n', char(v2SysMeta.getFileName()));
+                        fprintf('Success: Uploaded %s.\n\n', char(v2SysMeta.getFileName()));
                         
                     else
                         % TODO: Process the error correctly.
