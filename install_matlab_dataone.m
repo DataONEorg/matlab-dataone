@@ -4,13 +4,14 @@ installFilePath = mfilename('fullpath');
 
 if ispc
     userdir= getenv('USERPROFILE');
+    user_path = strsplit(userpath, ';');
+    matlab_path = char(user_path{1});
 else
     userdir= getenv('HOME');
+    user_path = strsplit(userdir, ':');
+    matlab_path = char(user_path{1});
 end
 
-% user_path = strsplit(userpath, ':');
-user_path = strsplit(userdir, ':');
-matlab_path = char(user_path{1});
 
 % Add to Matlab path
 warning off MATLAB:dispatcher:nameConflict;
@@ -48,9 +49,14 @@ matlabVersion = ver('MATLAB');
 
 
 % Open the ~/.matlab/[R2015a]/javaclasspath.txt
-matlab_path = fullfile(userdir, '.matlab');
-javaclasspath_file_path = fullfile(matlab_path, matlabVersion.Release(2:end-1), 'javaclasspath.txt');
-jcls_fid = fopen(javaclasspath_file_path, 'w');
+if ispc
+    javaclasspath_file_path = fullfile(prefdir, 'javaclasspath.txt');
+    jcls_fid = fopen(javaclasspath_file_path, 'w');
+else
+    matlab_path = fullfile(userdir, '.matlab');
+    javaclasspath_file_path = fullfile(matlab_path, matlabVersion.Release(2:end-1), 'javaclasspath.txt');
+    jcls_fid = fopen(javaclasspath_file_path, 'w');
+end
 
 % Add the <before> keyword
 fprintf(jcls_fid, '%s\n', '<before>');
@@ -59,7 +65,8 @@ fprintf(jcls_fid, '%s\n', '<before>');
 jars = dir(fullfile('lib', 'java'));
 for i=1:length(jars)
     if ~ismember(jars(i).name, {'.', '..', '.DS_Store', 'lucene-core-2.2.0.jar'})        
-        path = [pwd '/lib/java/' jars(i).name];
+        %path = [pwd '/lib/java/' jars(i).name];
+        path = fullfile(pwd, 'lib', 'java', jars(i).name);
         fprintf(jcls_fid, '%s\n', path);
     end
 end
