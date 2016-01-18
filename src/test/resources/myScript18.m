@@ -63,4 +63,6 @@ xmlFileName = [tempname, '.xml'];
 % highest ranking node 
 xmlwrite(xmlFileName, docNode); 
 % edit(xmlFileName); 
+
+fclose('all');
 delete(xmlFileName); 

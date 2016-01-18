@@ -5,8 +5,7 @@ csvwrite('data.csv', M);
 
 data = textread('data.csv', '', 'delimiter', ',', ... 
                 'emptyvalue', NaN);
-            
-data
 
+fclose('all');
 delete('data.csv');
             

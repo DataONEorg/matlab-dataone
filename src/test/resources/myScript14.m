@@ -13,4 +13,5 @@ T = readtable('myPatientData.dat');
 
 disp(T);
 
+fclose('all');
 delete('myPatientData.dat');

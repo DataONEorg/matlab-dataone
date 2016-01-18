@@ -12,6 +12,8 @@ ncwriteatt('myfile02.nc','/','creation_time',datestr(now));
 ncwrite('myfile02.nc','pi',3.1416);
 ncdisp('myfile02.nc');
 %% @end generate_pi_file
+
+fclose('all');
 delete('myfile02.nc');
 clear pi;
 

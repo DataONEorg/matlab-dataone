@@ -2,8 +2,8 @@ A = rand(50);
 imwrite(A,'myGray.png')
 load clown.mat
 imwrite(X,map,'myclown.png')
-delete('myGray.png');
-delete('myclown.png');
+
+
 
 x = 0:0.01:1;
 figure
@@ -23,5 +23,8 @@ im = frame2im(frame);
 	end
 end
 
+fclose('all');
 
+delete('myGray.png');
+delete('myclown.png');
 delete(filename);

@@ -5,4 +5,5 @@ N = magic(3);
 dlmwrite('myFile.txt',M,'delimiter',' ');
 dlmwrite('myFile.txt',N,'-append',...
             'delimiter',' ','roffset',1)
-
+fclose('all');
+delete('myFile.txt');

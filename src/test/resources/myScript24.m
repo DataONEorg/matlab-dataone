@@ -7,4 +7,5 @@ type csvlist.dat;
 csvwrite('csvlist.dat',m,0,2);
 type csvlist.dat;
 
+fclose('all');
 delete('csvlist.dat');

@@ -9,6 +9,6 @@ for j = 1:10
 end
 
 h5disp('myfile.h5');
-h5disp('example.h5','/g4/lat');
 
+fclose('all');
 delete('myfile.h5');

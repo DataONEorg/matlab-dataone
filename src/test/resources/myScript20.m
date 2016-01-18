@@ -24,7 +24,8 @@
               'double', 0, 'bil', 'ieee-le')
  
     % Delete the file that we created.
-         delete(filename);
+    fclose('all');
+    delete(filename);
  
     % The FITS file 'tst0012.fits' contains int16 BIL data starting at
     % byte 74880.
