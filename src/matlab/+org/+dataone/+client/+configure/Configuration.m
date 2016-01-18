@@ -563,7 +563,11 @@ classdef Configuration < hgsetget & dynamicprops
         % SETMATLABDATAONETOOLBOXDIRECTORY sets the Matlab DataONE Toolbox directory path
             
             mpath = path;
-            mpaths = strsplit(mpath, ':');
+            if ispc
+                mpaths = strsplit(mpath, ';');
+            else
+                mpaths = strsplit(mpath, ':');
+            end
             indxs = strfind(mpaths, 'matlab-dataone');
             configuration.matlab_dataone_toolbox_directory = ...
                 mpath(1:indxs{1} + 13); % Add the rest of the 'matlab-dataone' string
