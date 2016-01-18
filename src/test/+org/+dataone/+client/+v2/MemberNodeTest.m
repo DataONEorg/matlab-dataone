@@ -60,7 +60,7 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 'submitter', 'submitter', ...
                 'rights_holder', 'rightsHolder', ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
-                'certificate_path', '/tmp/x509up_u501', ...
+                'certificate_path', fullfile(tempdir, 'x509up_u501'), ...
                 'authentication_token', '');
             
             testCase.mgr = RunManager.getInstance(config);
@@ -335,8 +335,8 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 set(sysmeta, 'accessPolicy', accessPolicy);
                 
                 % Set the submitter (required)
-                set(sysmeta, 'submitter', session.account_subject);
-                set(sysmeta, 'rightsHolder', session.account_subject);
+                set(sysmeta, 'submitter', char(session.account_subject));
+                set(sysmeta, 'rightsHolder', char(session.account_subject));
                 
                 % Set the node fields (required)
                 set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
@@ -440,8 +440,8 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 set(sysmeta, 'fileName', full_file_path);
                 
                 % Set the submitter (required)
-                set(sysmeta, 'submitter', session.account_subject);
-                set(sysmeta, 'rightsHolder', session.account_subject);
+                set(sysmeta, 'submitter', char(session.account_subject));
+                set(sysmeta, 'rightsHolder', char(session.account_subject));
 
                 % Set the access policy
                 accessPolicy.rules = ...
@@ -620,8 +620,8 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 set(sysmeta, 'accessPolicy', accessPolicy);
                                 
                 % Set the submitter (required)
-                set(sysmeta, 'submitter', session.account_subject);
-                set(sysmeta, 'rightsHolder', session.account_subject);
+                set(sysmeta, 'submitter', char(session.account_subject));
+                set(sysmeta, 'rightsHolder', char(session.account_subject));
                 
                 % Set the node fields (required)
                 set(sysmeta, 'originMemberNode', 'urn:node:mnDevUCSB2');
