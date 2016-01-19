@@ -1,13 +1,13 @@
 A = rand(50);
-imwrite(A,'myGray.png')
+imwrite(A,'tests/myGray.png')
 load clown.mat
-imwrite(X,map,'myclown.png')
+imwrite(X,map,'tests/myclown.png')
 
 
 
 x = 0:0.01:1;
 figure
-filename = 'testAnimated.gif';
+filename = 'tests/testAnimated.gif';
 
 for n = 1:0.5:5
 y = x.^n;
@@ -25,6 +25,6 @@ end
 
 fclose('all');
 
-delete('myGray.png');
-delete('myclown.png');
+delete('tests/myGray.png');
+delete('tests/myclown.png');
 delete(filename);

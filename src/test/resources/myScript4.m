@@ -2,7 +2,7 @@
 % area and volume as a function of lake level.
 
 % define parameters
-file = 'src/test/resources/quabbin.csv';
+file = fullfile('src', 'test', 'resources', 'quabbin.csv');
 dx = 20; % m
 dy = 20; % m
 num_level = 10;

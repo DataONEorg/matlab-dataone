@@ -6,12 +6,12 @@ BloodPressure = [124 93; 109 77; 125 83; 117 75; 122 80];
 
 T = table(Age,Height,Weight,BloodPressure,...
     'RowNames',LastName)
-writetable(T,'myPatientData.dat','WriteRowNames',true)
+writetable(T,'tests/myPatientData.dat','WriteRowNames',true)
 type 'myPatientData.dat';
 
-T = readtable('myPatientData.dat');
+T = readtable('tests/myPatientData.dat');
 
 disp(T);
 
 fclose('all');
-delete('myPatientData.dat');
+delete('tests/myPatientData.dat');

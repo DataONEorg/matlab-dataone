@@ -1,9 +1,9 @@
 M = magic(3)*pi;
-dlmwrite('myFile.txt',M,'delimiter','\t','precision',3);
+dlmwrite('tests/myFile.txt',M,'delimiter','\t','precision',3);
 M = magic(5);
 N = magic(3);
-dlmwrite('myFile.txt',M,'delimiter',' ');
-dlmwrite('myFile.txt',N,'-append',...
+dlmwrite('tests/myFile.txt',M,'delimiter',' ');
+dlmwrite('tests/myFile.txt',N,'-append',...
             'delimiter',' ','roffset',1)
 fclose('all');
-delete('myFile.txt');
+delete('tests/myFile.txt');

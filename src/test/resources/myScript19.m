@@ -11,7 +11,7 @@ for band = 1:numBands
             
             upperLeft = [subsetRows(1), subsetCols(1), band];
             multibandwrite(data(subsetRows, subsetCols, band), ...
-                'banddata.bsq', 'bsq', upperLeft, dataDims);
+                fullfile('tests', 'banddata.bsq'), 'bsq', upperLeft, dataDims);
             
         end
     end
