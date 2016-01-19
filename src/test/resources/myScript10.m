@@ -10,5 +10,3 @@ end
 
 h5disp('tests/myfile.h5');
 
-fclose('all');
-delete 'tests/myfile.h5';

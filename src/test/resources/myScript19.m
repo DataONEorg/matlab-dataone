@@ -17,5 +17,3 @@ for band = 1:numBands
     end
 end
 
-fclose('all');
-delete('banddata.bsq');

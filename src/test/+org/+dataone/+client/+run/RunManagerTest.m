@@ -27,6 +27,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         yw_process_view_property_file_name
         yw_data_view_property_file_name 
         yw_comb_view_property_file_name
+        test_output_dir
     end
 
     methods (TestMethodSetup)
@@ -57,7 +58,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'rights_holder', 'rightsHolder', ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', fullfile(tempdir, 'x509up_u501'), ... 
-                'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0NTMyMDc1NDQsInN1YiI6IkNOPVlhbmcgQ2FvIEEzNjEyMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiY29uc3VtZXJLZXkiOiJ0aGVjb25zdW1lcmtleSIsImlzc3VlZEF0IjoiMjAxNi0wMS0xOFQxODo0NTo0NC43NTcrMDA6MDAiLCJ1c2VySWQiOiJDTj1ZYW5nIENhbyBBMzYxMjEsTz1Vbml2ZXJzaXR5IG9mIElsbGlub2lzIGF0IFVyYmFuYS1DaGFtcGFpZ24sQz1VUyxEQz1jaWxvZ29uLERDPW9yZyIsImZ1bGxOYW1lIjoiWWFuZ0NhbyIsInR0bCI6NjQ4MDAsImlhdCI6MTQ1MzE0Mjc0NH0.kPM4xDa8jIPUIpmk0HP5QAjX7aq2cNcYM0eAEpNBwkxwtBVBziWBMycLZte5vr_pk0iYuKq4JKRC_G1k_LDfiBTZfbTx4TePjbhjHFjn9KbL6lzO0uXvH_S0Tm5gfV4-4lcQWkLY2AGQjsHDxIbCa1hJwyeKa3o8IQI7DhpYtX0KTxzdUYnqm9XT8xf2lZK7pqB5VjGgzEi6n2c9bpSIx76m1zF0cjsHrOnfEt0dh-bjnoJDR5lGckpcf7Icuzhc_Osgycb2gweLssxpPwfea9iWRpPSqy6OFqalsUVbVvvFCdtG-EpCGWqxNU3gt_nIi4tug4ybaltBdCGYLbKc5T4rtawD9l8CHUeN2hWiFKdgEaA-p-uEzNyuYg49aRpttlzgE3D5CfzcvLwaVK2LnOlExXm5IImKFQ2k1S8hvWbmBB8rJ2DHDff-NLGGy3Q4BLMd292IPAQ20kvpddxF8SeG_85Wur2Mb0tHOOePGP1kjfHLfUUc-FDbsTHbo6MhU-tedyFv94Mhp6w1PIY0J2tUuCz38EFs1n-cIDSV5TwHcA8SecBB-PSlPP-1GxMt2mymwDC5m_R6s2piRUe9EIJlrPgRlAXC2L-sXZEAQ050X2AcjOUEvaNSHlnRew6gLZs2PpZAsv03SsamfldM-YnwW1QPiLMg8XmfCpBY74Y');
+                'authentication_token', '');
 
                
             set(config, 'science_metadata_config', testCase.getScienceMetadataConfig('mstmip_c3c4'));
@@ -75,6 +76,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             
             testCase.mgr.execution.execution_input_ids  = {};
             testCase.mgr.execution.execution_output_ids = {};
+            
+            testCase.test_output_dir = fullfile('src', 'test', 'resources', 'tests');
+            if (~ exist(testCase.test_output_dir, 'dir') )
+                mkdir(testCase.test_output_dir);
+            end
         end
     end
     
@@ -1416,6 +1422,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 if ( isprop(testCase.mgr.configuration, 'configuration_directory') )
                     rmpath(fullfile(testCase.mgr.execution.execution_directory));
                     rmdir(testCase.mgr.configuration.configuration_directory, 's');
+                    rmdir(testCase.test_output_dir, 's');
                 end
                 
             catch IOError

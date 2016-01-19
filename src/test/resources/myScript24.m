@@ -4,6 +4,3 @@ m = [3 6 9 12 15; 5 10 15 20 25; ...
 csvwrite('tests/csvlist.dat',m);
 csvwrite('tests/csvlist.dat',m,0,2);
 
-
-fclose('all');
-delete('tests/csvlist.dat');

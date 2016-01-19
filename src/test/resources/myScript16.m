@@ -23,8 +23,3 @@ im = frame2im(frame);
 	end
 end
 
-fclose('all');
-
-delete('tests/myGray.png');
-delete('tests/myclown.png');
-delete(filename);

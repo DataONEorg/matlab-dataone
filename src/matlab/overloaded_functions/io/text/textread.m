@@ -204,7 +204,7 @@ function varargout = textread(varargin)
             fullSourcePath = which(file_name);
             
             if isempty(fullSourcePath)
-                [status, struc] = fileattrib(source);
+                [status, struc] = fileattrib(file_name);
                 fullSourcePath = struc.Name;
             end
             

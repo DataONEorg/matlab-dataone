@@ -5,6 +5,3 @@ dlmwrite('tests/myfile.txt',X,'-append', ...
    'roffset',1,'delimiter',' ');
 
 M = dlmread('tests/myfile.txt');
-
-fclose('all');
-delete('tests/myfile.txt');

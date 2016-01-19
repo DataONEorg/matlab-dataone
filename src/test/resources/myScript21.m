@@ -5,4 +5,3 @@ fitswrite(G,'tests/myfile.fits','writemode','append');
 fitswrite(B,'tests/myfile.fits','writemode','append');
 fitsdisp('tests/myfile.fits');
 
-delete('tests/myfile.fits');

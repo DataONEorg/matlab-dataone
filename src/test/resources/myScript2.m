@@ -13,8 +13,7 @@ ncwrite('tests/myfile02.nc','pi',3.1416);
 ncdisp('tests/myfile02.nc');
 %% @end generate_pi_file
 
-fclose('all');
-delete('tests/myfile02.nc');
+
 clear pi;
 
 %% @begin generate_second_file

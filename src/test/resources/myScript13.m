@@ -6,6 +6,4 @@ csvwrite('tests/data.csv', M);
 data = textread('tests/data.csv', '', 'delimiter', ',', ... 
                 'emptyvalue', NaN);
 
-fclose('all');
-delete('tests/data.csv');
             
