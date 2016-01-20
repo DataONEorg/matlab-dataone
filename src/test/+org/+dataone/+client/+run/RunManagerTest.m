@@ -28,6 +28,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         yw_data_view_property_file_name 
         yw_comb_view_property_file_name
         test_output_dir
+        ywdb
     end
 
     methods (TestMethodSetup)
@@ -45,12 +46,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
             else
                 error('Current platform not supported.');
             end
+            
             % test_config_directory = fullfile(home_dir, '.d1test');
             
             % for unit testing, set the D1 directory to a test location
             % 'configuration_directory', test_config_directory, ...
 
             config = Configuration( ...
+                'configuration_directory', fullfile(home_dir, '.d1'), ...
                 'source_member_node_id', 'urn:node:mnDevUCSB2', ...
                 'target_member_node_id', 'urn:node:mnDevUCSB2', ...
                 'format_id', 'application/octet-stream', ...
@@ -58,21 +61,23 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'rights_holder', 'rightsHolder', ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', fullfile(tempdir, 'x509up_u501'), ... 
-                'authentication_token', '');
+                'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0NTMzNjg5MjksInN1YiI6IkNOPVlhbmcgQ2FvIEEzNjEyMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiY29uc3VtZXJLZXkiOiJ0aGVjb25zdW1lcmtleSIsImlzc3VlZEF0IjoiMjAxNi0wMS0yMFQxNTozNToyOS42NDUrMDA6MDAiLCJ1c2VySWQiOiJDTj1ZYW5nIENhbyBBMzYxMjEsTz1Vbml2ZXJzaXR5IG9mIElsbGlub2lzIGF0IFVyYmFuYS1DaGFtcGFpZ24sQz1VUyxEQz1jaWxvZ29uLERDPW9yZyIsImZ1bGxOYW1lIjoiWWFuZ0NhbyIsInR0bCI6NjQ4MDAsImlhdCI6MTQ1MzMwNDEyOX0.fv3DgE2X4ZhDdlN6-S_AFQWYgMUlYRbq56mUo2y_Jel26B_T0EqcdPOKMNbnDiz7yp5Gl9atsS3SPXb9A_bKF3nzd6HTcOxeBAo-paXTCC47euhWYjWSz2Die2ZfRORj8tmGsKfeXfwzXCK-m4uaiKNMJOdgp3Vuu8OWybBzpTVLZmOxWwweFy-M4r70yoJQnhhWlTlGJe5tqmgnxKT5K4kSekmDQdmm1pzjnesx7kqhSGwFG3blrZK1EbUNiRe6EPvtujU5rjXQteTULn-Omf8ehOIdy-ojBIOop1phG4iJYg8-VNVE4hEDhsk5CyhAAkht6JIkF8MDyqxY-6JM4SvlMeuEKl_-7MiMa0mJXBa9Fkkr8_WNH3yqQYe0CWUsvkhkgoK6eF9sUEM0wor-y5duStE9KSs0r0oYOKJM6sIwihYqCSs_9gCeAaI5A2ygL2mg_Izfazv11I250ZnmDpetQ6AuP8zPuk7S2mr8pJluCR_IBP-UG2IAup4CYV1Lke0zRF9zyrW_vQ0gBQOil_qq-B62t_fZJ7WY-XHWUlFtQ_VScMiHFw5Ir1NzkLp1aAhTZFYMZQMAdk4-SSA24tfNhRxPbo4k9qohvlLkWvtUYSN87ut7rS_5c4wfptkvb49-_5vKwEVDd1pdeNRqJt4KJMEoSPiGycGhyxR6Y1Q');
 
                
             set(config, 'science_metadata_config', testCase.getScienceMetadataConfig('mstmip_c3c4'));
 
             testCase.mgr = RunManager.getInstance(config);
-            testCase.filename = ...
-                fullfile(testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
-                'src', 'test', 'resources','myScript1.m');
-            testCase.yw_process_view_property_file_name = ...
-                fullfile('lib', 'yesworkflow', 'yw_process_view.properties');
-            testCase.yw_data_view_property_file_name = ...
-                fullfile('lib', 'yesworkflow', 'yw_data_view.properties');
-            testCase.yw_comb_view_property_file_name = ...
-                fullfile('lib', 'yesworkflow', 'yw_comb_view.properties');
+            
+%             testCase.filename = ...
+%                 fullfile(testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+%                 'src', 'test', 'resources','myScript1.m');
+%             testCase.yw_process_view_property_file_name = ...
+%                 fullfile('lib', 'yesworkflow', 'yw_process_view.properties');
+%             testCase.yw_data_view_property_file_name = ...
+%                 fullfile('lib', 'yesworkflow', 'yw_data_view.properties');
+%             testCase.yw_comb_view_property_file_name = ...
+%                 fullfile('lib', 'yesworkflow', 'yw_comb_view.properties');
+            
             
             testCase.mgr.execution.execution_input_ids  = {};
             testCase.mgr.execution.execution_output_ids = {};
@@ -81,6 +86,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
             if (~ exist(testCase.test_output_dir, 'dir') )
                 mkdir(testCase.test_output_dir);
             end
+            
+            %import org.yesworkflow.db.YesWorkflowDB;
+            %testCase.ywdb = YesWorkflowDB.createInMemoryDB();
         end
     end
     
@@ -89,7 +97,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function tearDown(testCase)
             
             % Reset the Matlab DataONE Toolbox environment
-            resetEnvironment(testCase);
+             resetEnvironment(testCase);
         end
     end
     
@@ -199,18 +207,13 @@ classdef RunManagerTest < matlab.unittest.TestCase
             total = sum(~cellfun('isempty', matches));
             assertEqual(testCase, total, 3);
             
-            % Test if there are three yw.properties
-            % matches = regexp(b(1,:), '.properties');
-            % total = sum(~cellfun('isempty', matches));
-            % assertEqual(testCase, total, 3);
-            
-            % Test if there are two prolog dump files
-            matches = regexp(b(1,:), 'extractfacts');
-            total1 = sum(~cellfun('isempty', matches));
-            matches = regexp(b(1,:), 'modelfacts');
-            total2 = sum(~cellfun('isempty', matches));
-            total = total1 + total2;
-            assertEqual(testCase, total, 2);
+%             % Test if there are two prolog dump files
+%             matches = regexp(b(1,:), 'extractfacts');
+%             total1 = sum(~cellfun('isempty', matches));
+%             matches = regexp(b(1,:), 'modelfacts');
+%             total2 = sum(~cellfun('isempty', matches));
+%             total = total1 + total2;
+%             assertEqual(testCase, total, 2);
         end
         
         function testPutMetadataWithSalutationConfigAndDomElement(testCase)
@@ -1423,6 +1426,8 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     rmpath(fullfile(testCase.mgr.execution.execution_directory));
                     rmdir(testCase.mgr.configuration.configuration_directory, 's');
                     rmdir(testCase.test_output_dir, 's');
+                    
+                    %clear testCase.ywdb;
                 end
                 
             catch IOError

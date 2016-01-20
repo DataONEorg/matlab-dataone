@@ -160,13 +160,17 @@ classdef RunManager < hgsetget
         function configYesWorkflow(runManager, scriptPath)
             % CONFIGYESWORKFLOW Set YesWorkflow extractor language model to be Matlab type
             % Default configuration is used now.
+            
             import org.yesworkflow.extract.DefaultExtractor;
             import org.yesworkflow.model.DefaultModeler;
             import org.yesworkflow.graph.DotGrapher;
             import java.io.PrintStream;
+            import org.yesworkflow.db.YesWorkflowDB;
             
-            runManager.extractor = DefaultExtractor;
-            runManager.modeler = DefaultModeler;
+            ywdb = YesWorkflowDB.createInMemoryDB();
+                       
+            runManager.extractor = DefaultExtractor(ywdb);
+            runManager.modeler = DefaultModeler(ywdb);
             runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
             
             % Configure yesWorkflow language model to be Matlab
@@ -195,9 +199,10 @@ classdef RunManager < hgsetget
             import java.util.List;
             import java.util.HashMap;
             import org.yesworkflow.config.YWConfiguration;
-       
+            import org.yesworkflow.model.DefaultModeler;
+            
             try
-                
+                           
                 % Read script content from disk
                 in = FileInputStream(runManager.execution.software_application);
                 reader = BufferedReader(InputStreamReader(in));
@@ -213,7 +218,7 @@ classdef RunManager < hgsetget
                 runManager.modeler = runManager.modeler.annotations(annotations);
                 runManager.modeler = runManager.modeler.model();
                 runManager.workflow = runManager.modeler.getModel().program;
-                
+               
                 % Call YW-Graph module
                 if runManager.configuration.generate_workflow_graphic
                     import org.yesworkflow.graph.GraphView;
@@ -246,49 +251,7 @@ classdef RunManager < hgsetget
                     config.set('graph.dotfile', full_path_combinedViewDotFileName);
                     runManager.grapher.configure(config.getSection('graph'));
                     runManager.grapher = runManager.grapher.graph();
-                   
-%                     % Create yesWorkflow modelFacts prolog dump 
-%                     import org.yesworkflow.model.ModelFacts;
-%                     import org.yesworkflow.extract.ExtractFacts;
-%                     
-%                     import org.dataone.client.v2.DataObject;
-%                     
-%                     prologDumpFormatId = 'text/plain';
-%                     
-%                     modelFacts = runManager.modeler.getFacts();  
-%                     runManager.mfilename = config.get('model.factsfile');
-%                     mf_fullFilePath = [runDirectory filesep runManager.mfilename];
-%                     fw = fopen(mf_fullFilePath, 'w'); 
-%                     if fw == -1, error('Cannot write "%s%".',runManager.mfilename); end
-%                     fprintf(fw, '%s', char(modelFacts));
-%                     fclose(fw);
-%                     
-%                     % Create D1 object for yesworkflow model facts dump file and put
-%                     % its id into execution_output_ids array
-%                     mf_pid = char(java.util.UUID.randomUUID());
-%                     mf_dataObject = DataObject(mf_pid, prologDumpFormatId, mf_fullFilePath); 
-%                     runManager.execution.execution_objects(mf_dataObject.identifier) = ...
-%                         mf_dataObject;
-%                     runManager.execution.execution_output_ids{end+1} = mf_pid;
-%                     
-%                     % Create yesWorkflow extractFacts prolog dump
-%                   % extractFacts = runManager.extractor.getFacts(); 
-%                     extractFacts = runManager.extractor.getSkeleton(); 
-%                     runManager.efilename = config.get('extract.factsfile');
-%                     ef_fullFilePath = [runDirectory filesep runManager.efilename];
-%                     fw = fopen(ef_fullFilePath, 'w');    
-%                     if fw == -1, error('Cannot write "%s%".',runManager.efilename); end
-%                     fprintf(fw, '%s', char(extractFacts));
-%                     fclose(fw);
-%                    
-%                     % Create D1 object for yesworkflow extract facts dump file and put
-%                     % its id into execution_output_ids array
-%                     ef_pid = char(java.util.UUID.randomUUID());
-%                     ef_dataObject = DataObject(ef_pid, prologDumpFormatId, ef_fullFilePath);
-%                     runManager.execution.execution_objects(ef_dataObject.identifier) = ...
-%                         ef_dataObject;
-%                     runManager.execution.execution_output_ids{end+1} = ef_pid;
-                           
+                                              
                 end  
                 
             catch ME 
@@ -381,7 +344,7 @@ classdef RunManager < hgsetget
         function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
-            import org.dataone.client.run.NamedConstant;
+            %import org.dataone.client.run.NamedConstant;
             import org.dataone.util.ArrayListWrapper;
             import org.dataone.client.v2.itk.D1Object;
             import com.hp.hpl.jena.vocabulary.RDF;
@@ -1361,7 +1324,7 @@ classdef RunManager < hgsetget
             
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.client.v2.itk.DataPackage;
-            import org.dataone.client.run.NamedConstant;
+            %import org.dataone.client.run.NamedConstant;
             import java.io.File;
             import javax.activation.FileDataSource;
             import org.dataone.client.v1.types.D1TypeBuilder;
