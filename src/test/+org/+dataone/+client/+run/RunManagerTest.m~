@@ -193,6 +193,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             total = sum(~cellfun('isempty', matches));
             assertEqual(testCase, total, 3);
             
+
         end
         
         function testPutMetadataWithSalutationConfigAndDomElement(testCase)
