@@ -61,7 +61,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'rights_holder', 'rightsHolder', ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', fullfile(tempdir, 'x509up_u501'), ... 
-                'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0NTMzNjg5MjksInN1YiI6IkNOPVlhbmcgQ2FvIEEzNjEyMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiY29uc3VtZXJLZXkiOiJ0aGVjb25zdW1lcmtleSIsImlzc3VlZEF0IjoiMjAxNi0wMS0yMFQxNTozNToyOS42NDUrMDA6MDAiLCJ1c2VySWQiOiJDTj1ZYW5nIENhbyBBMzYxMjEsTz1Vbml2ZXJzaXR5IG9mIElsbGlub2lzIGF0IFVyYmFuYS1DaGFtcGFpZ24sQz1VUyxEQz1jaWxvZ29uLERDPW9yZyIsImZ1bGxOYW1lIjoiWWFuZ0NhbyIsInR0bCI6NjQ4MDAsImlhdCI6MTQ1MzMwNDEyOX0.fv3DgE2X4ZhDdlN6-S_AFQWYgMUlYRbq56mUo2y_Jel26B_T0EqcdPOKMNbnDiz7yp5Gl9atsS3SPXb9A_bKF3nzd6HTcOxeBAo-paXTCC47euhWYjWSz2Die2ZfRORj8tmGsKfeXfwzXCK-m4uaiKNMJOdgp3Vuu8OWybBzpTVLZmOxWwweFy-M4r70yoJQnhhWlTlGJe5tqmgnxKT5K4kSekmDQdmm1pzjnesx7kqhSGwFG3blrZK1EbUNiRe6EPvtujU5rjXQteTULn-Omf8ehOIdy-ojBIOop1phG4iJYg8-VNVE4hEDhsk5CyhAAkht6JIkF8MDyqxY-6JM4SvlMeuEKl_-7MiMa0mJXBa9Fkkr8_WNH3yqQYe0CWUsvkhkgoK6eF9sUEM0wor-y5duStE9KSs0r0oYOKJM6sIwihYqCSs_9gCeAaI5A2ygL2mg_Izfazv11I250ZnmDpetQ6AuP8zPuk7S2mr8pJluCR_IBP-UG2IAup4CYV1Lke0zRF9zyrW_vQ0gBQOil_qq-B62t_fZJ7WY-XHWUlFtQ_VScMiHFw5Ir1NzkLp1aAhTZFYMZQMAdk4-SSA24tfNhRxPbo4k9qohvlLkWvtUYSN87ut7rS_5c4wfptkvb49-_5vKwEVDd1pdeNRqJt4KJMEoSPiGycGhyxR6Y1Q');
+                'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0NTMzOTI1MDMsInN1YiI6IkNOPVlhbmcgQ2FvIEEzNjEyMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiY29uc3VtZXJLZXkiOiJ0aGVjb25zdW1lcmtleSIsImlzc3VlZEF0IjoiMjAxNi0wMS0yMFQyMjowODoyMy42MjgrMDA6MDAiLCJ1c2VySWQiOiJDTj1ZYW5nIENhbyBBMzYxMjEsTz1Vbml2ZXJzaXR5IG9mIElsbGlub2lzIGF0IFVyYmFuYS1DaGFtcGFpZ24sQz1VUyxEQz1jaWxvZ29uLERDPW9yZyIsImZ1bGxOYW1lIjoiWWFuZ0NhbyIsInR0bCI6NjQ4MDAsImlhdCI6MTQ1MzMyNzcwM30.URUlg4soarVc2kSOK2OtTpuHA5wOLvXbZtoxNRjSNg3bsrWmljuJgUXGU_UY_1uPYoJlZKT39IazcT6l3KJtH19536qmKtUT3V2kp3EpJutIBUXeWXvenNvvQjq0eQPOyMAXE6OPVrBM8LWP-_Cg-92G2bSFSV9wmTSG_wA2DJCnpgPZ89a-HqhKlu9Cedznv8g43gHakYQrwQ7G72wMM1H8_DwCIxIImrXIj4RE280HqGb64jB5EViepv4wYcZUJ4OQtoDaYqHxqbrCWcRoDA3zvSrPUqH6vx2Us1OKsTHuyZaILyZqY0EQD7iQDGGLvdOt0Mt-Wcf6t3X_M557f4am23WpZZYHOp2KVnKQtcwl4lYqwBQWNiGkAUBPNOSJRigKlljzmyZa7FJXbKoeMySdj0BatIR0_RHr2v7j33HqGpGkB1HN-2Zbm3BbJWiVBCn0wsTurprUkgrGRTq5WJUfRUuEtY7kH9UHApnIalMj5leLW9zxaThnVVuZT9SYVq_NDyr6UqFJgAUVhnkOyXlMCJVn8uIrtdo-LqsPtUEJosdAf-m28XmNiSfbFSoYdY7XxDmClzU9TuT0InrHBrDrVAhwm2QpZgrXndHQxaSCZ0MN4RnSlXjAsTybp9F_8M435bA0HiyRbD3m9frEaneadio6FLntUZDvF7l5QEs');
 
                
             set(config, 'science_metadata_config', testCase.getScienceMetadataConfig('mstmip_c3c4'));
@@ -84,7 +84,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function tearDown(testCase)
             
             % Reset the Matlab DataONE Toolbox environment
-             resetEnvironment(testCase);
+            % resetEnvironment(testCase);
         end
     end
     

@@ -286,48 +286,53 @@ classdef RunManager < hgsetget
             imageFormatId = 'application/pdf';
            
             % Convert .gv files to .pdf files
-            if isunix    
-                
+            if isunix
                 if ismac
                     path2dot = char('/usr/local/bin/dot');
-                elseif isunix
-                    [status, path2dot] = system('which dot');
-                    path2dot = strtrim(path2dot);
-                elseif ispc
-                    [status, path2dot] = system('which dot');
-                    path2dot = strtrim(path2dot);
                 else
-                    disp('Cannot recognize platform')
+                    [status, path2dot] = system('which dot');
+                    path2dot = strtrim(path2dot);
                 end
                 
                 system([path2dot ' -Tpdf ' fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
-                system([path2dot ' -Tpdf ' fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);  
+                system([path2dot ' -Tpdf ' fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);
                 system([path2dot ' -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & m
-            
-                delete(fullPathProcessViewDotFileName);
-                delete(fullPathDataViewDotFileName);
-                delete(fullPathCombViewDotName);
                 
-                % Create D1 object for three yesworkflow images and put
-                % them into execution_output_ids array
-                comb_image_pid = char(java.util.UUID.randomUUID());
-                comb_image_dataObject = DataObject(comb_image_pid, imageFormatId, fullPathCombinedViewPdfFileName);
-                runManager.execution.execution_objects(comb_image_dataObject.identifier) = ...
-                        comb_image_dataObject;
-                runManager.execution.execution_output_ids{end+1} = comb_image_pid;
+            elseif ispc
+                %[status, path2dot] = system('which dot');
+                %path2dot = strtrim(path2dot);
+                dos(['dot -Tpdf ' fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
+                dos(['dot -Tpdf ' fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);
+                dos(['dot -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & m
+            else
+                disp('Cannot recognize platform');
                 
-                process_image_pid = char(java.util.UUID.randomUUID());
-                process_image_dataObject = DataObject(process_image_pid, imageFormatId, fullPathProcessViewPdfFileName);
-                runManager.execution.execution_objects(process_image_dataObject.identifier) = ...
-                        process_image_dataObject;
-                runManager.execution.execution_output_ids{end+1} = process_image_pid;
-                
-                data_image_pid = char(java.util.UUID.randomUUID());
-                data_image_dataObject = DataObject(data_image_pid, imageFormatId, fullPathDataViewPdfFileName);
-                runManager.execution.execution_objects(data_image_dataObject.identifier) = ...
-                        data_image_dataObject;
-                runManager.execution.execution_output_ids{end+1} = data_image_pid;
             end
+                       
+            delete(fullPathProcessViewDotFileName);
+            delete(fullPathDataViewDotFileName);
+            delete(fullPathCombViewDotName);
+            
+            % Create D1 object for three yesworkflow images and put
+            % them into execution_output_ids array
+            comb_image_pid = char(java.util.UUID.randomUUID());
+            comb_image_dataObject = DataObject(comb_image_pid, imageFormatId, fullPathCombinedViewPdfFileName);
+            runManager.execution.execution_objects(comb_image_dataObject.identifier) = ...
+                comb_image_dataObject;
+            runManager.execution.execution_output_ids{end+1} = comb_image_pid;
+            
+            process_image_pid = char(java.util.UUID.randomUUID());
+            process_image_dataObject = DataObject(process_image_pid, imageFormatId, fullPathProcessViewPdfFileName);
+            runManager.execution.execution_objects(process_image_dataObject.identifier) = ...
+                process_image_dataObject;
+            runManager.execution.execution_output_ids{end+1} = process_image_pid;
+            
+            data_image_pid = char(java.util.UUID.randomUUID());
+            data_image_dataObject = DataObject(data_image_pid, imageFormatId, fullPathDataViewPdfFileName);
+            runManager.execution.execution_objects(data_image_dataObject.identifier) = ...
+                data_image_dataObject;
+            runManager.execution.execution_output_ids{end+1} = data_image_pid;
+
         end
                 
         function d1Obj = buildD1Object(runManager, fileName, fileFmt, idValue, submitter, mnNodeId)
