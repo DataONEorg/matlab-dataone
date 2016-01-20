@@ -84,7 +84,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function tearDown(testCase)
             
             % Reset the Matlab DataONE Toolbox environment
-            % resetEnvironment(testCase);
+             resetEnvironment(testCase);
         end
     end
     
