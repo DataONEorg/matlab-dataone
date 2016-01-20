@@ -1282,15 +1282,6 @@ classdef RunManagerTest < matlab.unittest.TestCase
             cd(scriptParentPath);
             testCase.mgr.record(scriptPath, tag);  
             cd(currentDir);
-
-            set(testCase.mgr.configuration, ...
-                'target_member_node_id', 'urn:node:mnDevUCSB2');
-       
-            % set(testCase.mgr.configuration, ...
-            %    'target_member_node_id', 'urn:node:mnDevUNM2');
-            
-            set(testCase.mgr.configuration, ...
-                'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn');
             
             runs = testCase.mgr.listRuns();
             pkgId = runs{1,1};
