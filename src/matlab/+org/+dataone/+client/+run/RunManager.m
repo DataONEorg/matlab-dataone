@@ -299,8 +299,7 @@ classdef RunManager < hgsetget
                 system([path2dot ' -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & m
                 
             elseif ispc
-                %[status, path2dot] = system('which dot');
-                %path2dot = strtrim(path2dot);
+
                 dos(['dot -Tpdf ' fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
                 dos(['dot -Tpdf ' fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);
                 dos(['dot -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & m
