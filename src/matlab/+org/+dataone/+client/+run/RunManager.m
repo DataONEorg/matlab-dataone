@@ -2078,6 +2078,7 @@ classdef RunManager < hgsetget
                         'encounted an error on the getMN() request.']);
                 end
                 
+                mn_base_url = char(mnNode.getNodeBaseServiceUrl());
                 targetMNodeStr = runManager.configuration.get('target_member_node_id');
                 
                 submitter = Subject();
@@ -2095,8 +2096,12 @@ classdef RunManager < hgsetget
                     
                     if true % runManager.configuration.debug
                         fprintf( ...
-                            'Uploading file: %s, \nfile format: %s, \nfile path: %s \n', ...
-                            d1_object_id, d1_object_format, d1_object.full_file_path);
+                            ['Uploading to : %s\n' ...
+                             'File format  : %s\n' ...
+                             'File path    : %s\n'], ...
+                            [mn_base_url '/object/' d1_object_id], ...
+                            d1_object_format, ...
+                            d1_object.full_file_path);
                     end
                     
                     % build d1 object
@@ -2153,7 +2158,7 @@ classdef RunManager < hgsetget
                     
                     returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);  
                     if isempty(returnPid) ~= 1
-                        fprintf('Success: Uploaded %s.\n\n', char(v2SysMeta.getFileName()));
+                        fprintf('Success      : Uploaded %s\n\n', char(v2SysMeta.getFileName()));
                         
                     else
                         % TODO: Process the error correctly.
