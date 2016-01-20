@@ -67,18 +67,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             set(config, 'science_metadata_config', testCase.getScienceMetadataConfig('mstmip_c3c4'));
 
             testCase.mgr = RunManager.getInstance(config);
-            
-%             testCase.filename = ...
-%                 fullfile(testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
-%                 'src', 'test', 'resources','myScript1.m');
-%             testCase.yw_process_view_property_file_name = ...
-%                 fullfile('lib', 'yesworkflow', 'yw_process_view.properties');
-%             testCase.yw_data_view_property_file_name = ...
-%                 fullfile('lib', 'yesworkflow', 'yw_data_view.properties');
-%             testCase.yw_comb_view_property_file_name = ...
-%                 fullfile('lib', 'yesworkflow', 'yw_comb_view.properties');
-            
-            
+         
             testCase.mgr.execution.execution_input_ids  = {};
             testCase.mgr.execution.execution_output_ids = {};
             
@@ -86,9 +75,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             if (~ exist(testCase.test_output_dir, 'dir') )
                 mkdir(testCase.test_output_dir);
             end
-            
-            %import org.yesworkflow.db.YesWorkflowDB;
-            %testCase.ywdb = YesWorkflowDB.createInMemoryDB();
+         
         end
     end
     
@@ -149,8 +136,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             testCase.filename = ...
                 fullfile(testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
                     'src', 'test', 'resources', 'C3_C4_map_present_NA_Markup_v2_7.m');
-            
-            %scriptPath = fullfile(pwd(), filesep, testCase.filename);
+
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
                 [status, struc] = fileattrib(testCase.filename);
@@ -1426,8 +1412,6 @@ classdef RunManagerTest < matlab.unittest.TestCase
                     rmpath(fullfile(testCase.mgr.execution.execution_directory));
                     rmdir(testCase.mgr.configuration.configuration_directory, 's');
                     rmdir(testCase.test_output_dir, 's');
-                    
-                    %clear testCase.ywdb;
                 end
                 
             catch IOError
