@@ -288,7 +288,9 @@ classdef RunManager < hgsetget
             % Convert .gv files to .pdf files
             if isunix
                 if ismac
-                    path2dot = char('/usr/local/bin/dot');
+                    % path2dot = char('/usr/local/bin/dot');
+                    [status, path] = system('export PATH=${PATH}:/usr/local/bin:/opt/local/bin:~/bin; which dot');
+                    path2dot = strtrim(path);
                 else
                     [status, path2dot] = system('which dot');
                     path2dot = strtrim(path2dot);
@@ -296,13 +298,13 @@ classdef RunManager < hgsetget
                 
                 system([path2dot ' -Tpdf ' fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
                 system([path2dot ' -Tpdf ' fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);
-                system([path2dot ' -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & m
+                system([path2dot ' -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); 
                 
             elseif ispc
 
                 dos(['dot -Tpdf ' fullPathProcessViewDotFileName ' -o ' fullPathProcessViewPdfFileName]);
                 dos(['dot -Tpdf ' fullPathDataViewDotFileName ' -o ' fullPathDataViewPdfFileName]);
-                dos(['dot -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); % for linux & m
+                dos(['dot -Tpdf ' fullPathCombViewDotName ' -o ' fullPathCombinedViewPdfFileName]); 
             else
                 disp('Cannot recognize platform');
                 
