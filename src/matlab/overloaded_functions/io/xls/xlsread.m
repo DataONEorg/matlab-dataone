@@ -1,4 +1,5 @@
-function [numericData, textData, rawData, customOutput] = xlsread(source, varargin)
+function varargout = xlsread(varargin)
+
 % XLSREAD Read Microsoft Excel spreadsheet file.
 %   [NUM,TXT,RAW]=XLSREAD(FILE) reads data from the first worksheet in
 %   the Microsoft Excel spreadsheet file named FILE and returns the numeric
@@ -107,7 +108,7 @@ function [numericData, textData, rawData, customOutput] = xlsread(source, vararg
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2015 DataONE
+%   Copyright 2016 DataONE
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -139,7 +140,8 @@ function [numericData, textData, rawData, customOutput] = xlsread(source, vararg
     end
      
     % Call xlsread 
-    [numericData, textData, rawData, customOutput] = xlsread( source, varargin{:} );
+    source = varargin{1};
+    [varargout{1:nargout}] = xlsread( varargin{:} );
     
     % Add the wrapper xlsread back to the Matlab path
     addpath(overloaded_func_path, '-begin');
@@ -152,7 +154,8 @@ function [numericData, textData, rawData, customOutput] = xlsread(source, vararg
     % in the RunManager DataPackage instance  
     if ( runManager.configuration.capture_file_reads )
         formatId = 'application/vnd.ms-excel';
-        import org.dataone.client.v2.D1Object;
+        
+        import org.dataone.client.v2.DataObject;
 
         fullSourcePath = which(source);       
         if isempty(fullSourcePath)
@@ -165,13 +168,13 @@ function [numericData, textData, rawData, customOutput] = xlsread(source, vararg
         if ( isempty(existing_id) )
             % Add this object to the execution objects map
             pid = char(java.util.UUID.randomUUID()); % generate an id
-            d1Object = D1Object(pid, formatId, fullSourcePath);
+            d1Object = DataObject(pid, formatId, fullSourcePath);
             runManager.execution.execution_objects(d1Object.identifier) = ...
                 d1Object;
         else
             % Update the existing map entry with a new D1Object
             pid = existing_id;
-            d1Object = D1Object(pid, formatId, fullSourcePath);
+            d1Object = DataObject(pid, formatId, fullSourcePath);
             runManager.execution.execution_objects(d1Object.identifier) = ...
                 d1Object;
         end

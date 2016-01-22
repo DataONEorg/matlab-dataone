@@ -61,7 +61,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 'rights_holder', 'rightsHolder', ...
                 'coordinating_node_base_url', 'https://cn-dev-2.test.dataone.org/cn', ...
                 'certificate_path', fullfile(tempdir, 'x509up_u501'), ... 
-                'authentication_token', 'eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0NTMzOTI1MDMsInN1YiI6IkNOPVlhbmcgQ2FvIEEzNjEyMSxPPVVuaXZlcnNpdHkgb2YgSWxsaW5vaXMgYXQgVXJiYW5hLUNoYW1wYWlnbixDPVVTLERDPWNpbG9nb24sREM9b3JnIiwiY29uc3VtZXJLZXkiOiJ0aGVjb25zdW1lcmtleSIsImlzc3VlZEF0IjoiMjAxNi0wMS0yMFQyMjowODoyMy42MjgrMDA6MDAiLCJ1c2VySWQiOiJDTj1ZYW5nIENhbyBBMzYxMjEsTz1Vbml2ZXJzaXR5IG9mIElsbGlub2lzIGF0IFVyYmFuYS1DaGFtcGFpZ24sQz1VUyxEQz1jaWxvZ29uLERDPW9yZyIsImZ1bGxOYW1lIjoiWWFuZ0NhbyIsInR0bCI6NjQ4MDAsImlhdCI6MTQ1MzMyNzcwM30.URUlg4soarVc2kSOK2OtTpuHA5wOLvXbZtoxNRjSNg3bsrWmljuJgUXGU_UY_1uPYoJlZKT39IazcT6l3KJtH19536qmKtUT3V2kp3EpJutIBUXeWXvenNvvQjq0eQPOyMAXE6OPVrBM8LWP-_Cg-92G2bSFSV9wmTSG_wA2DJCnpgPZ89a-HqhKlu9Cedznv8g43gHakYQrwQ7G72wMM1H8_DwCIxIImrXIj4RE280HqGb64jB5EViepv4wYcZUJ4OQtoDaYqHxqbrCWcRoDA3zvSrPUqH6vx2Us1OKsTHuyZaILyZqY0EQD7iQDGGLvdOt0Mt-Wcf6t3X_M557f4am23WpZZYHOp2KVnKQtcwl4lYqwBQWNiGkAUBPNOSJRigKlljzmyZa7FJXbKoeMySdj0BatIR0_RHr2v7j33HqGpGkB1HN-2Zbm3BbJWiVBCn0wsTurprUkgrGRTq5WJUfRUuEtY7kH9UHApnIalMj5leLW9zxaThnVVuZT9SYVq_NDyr6UqFJgAUVhnkOyXlMCJVn8uIrtdo-LqsPtUEJosdAf-m28XmNiSfbFSoYdY7XxDmClzU9TuT0InrHBrDrVAhwm2QpZgrXndHQxaSCZ0MN4RnSlXjAsTybp9F_8M435bA0HiyRbD3m9frEaneadio6FLntUZDvF7l5QEs');
+                'authentication_token', '');
 
                
             set(config, 'science_metadata_config', testCase.getScienceMetadataConfig('mstmip_c3c4'));
@@ -497,7 +497,50 @@ classdef RunManagerTest < matlab.unittest.TestCase
             eml_string = testCase.mgr.getMetadata('packageId', testCase.mgr.execution.execution_id);     
             assert(~isempty(eml_string));
         end
+        
+        function testOverloadedXlsread(testCase)
+            if ispc
+                fprintf('\nIn testOverloadedXlsread() ...\n');
+                testCase.filename = ...
+                    fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src', 'test', 'resources', 'myScript23.m');
                 
+                scriptPath = which(testCase.filename);
+                if isempty(scriptPath)
+                    [status, struc] = fileattrib(testCase.filename);
+                    scriptPath = struc.Name;
+                end
+                
+                run(scriptPath);
+                
+                assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
+                assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),1);
+            end
+        end
+        
+        function testOverloadedXlswrite(testCase)
+            if ispc
+                fprintf('\nIn testOverloadedXlswrite() ...\n');
+                testCase.filename = ...
+                    fullfile( ...
+                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                    'src', 'test', 'resources', 'myScript26.m');
+                
+                scriptPath = which(testCase.filename);
+                if isempty(scriptPath)
+                    [status, struc] = fileattrib(testCase.filename);
+                    scriptPath = struc.Name;
+                end
+                
+                run(scriptPath);
+                
+                assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+                assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 2);
+            end
+        end
+        
+        
         function testOverloadedCdfread(testCase)
             fprintf('\nIn testOverloadedCdfread() ...\n');            
             testCase.filename = ...

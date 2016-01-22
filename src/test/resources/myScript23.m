@@ -1,34 +1,23 @@
-% This test script can be used to test the MNode.get() method of the MNode
-% class. This script downloads a dataset from DataONE and creates a local
-% csv file from this dataset.
-% The provenance relationships that should be recorded are:
-% testData.csv <-- wasGeneratedBy <-- sampleUserScript.R
-% sampleUserScript.R <-- used <--
-% doi:10.6085/AA/pisco_intertidal_summar.42.3
-%
 
-disp('Sample User Script');
+values = {1, 2, 3 ; 4, 5, 'x' ; 7, 8, 9};
+headers = {'First','Second','Third'};
+xlswrite('tests/myExample.xlsx',[headers; values]);
 
-% Set the certificate/token in order to call services at d1 mn node
-% cm = CertificateMaanger();
-% getCertExpires(cm);
+% Read numeric data, text, raw data from worksheet
+[num,txt,raw] = xlsread('tests/myExample.xlsx');
 
-import org.dataone.client.v2.D1Client;
-import org.dataone.client.v2.MNode;
+% Read range of cells
+filename = 'tests/myExample.xlsx';
+sheet = 1;
+xlRange = 'B2:C3';
+subsetA = xlsread(filename,sheet,xlRange);
 
-% mnNode = D1Client('SANDBOX', 'urn:node:mnSandboxUCSB1');
-mn_base_url = 'urn:node:mnSandboxUCSB1';
-matlab_mn_node = MNode(mn_base_url);
-matlab_mn_node.setMN(matlab_mn_node);
 
-% Download a single D1 object
-% item = getD1Object(cli, 'doi:10.6085/AA/pisco_intertidal_summary.42.3');
-item = matlab_mn_node.get([], 'doi:10.6085/AA/pisco_intertidal_summary.42.3'); % Is it ok that a pid is an instance of doi?
+% Read column
+filename = 'tests/myExample.xlsx';
+columnB = xlsread(filename,'B:B');
 
-% Pull out data as a data frame
-% df = asDataFrame(item);
-df = csvread(item);
 
-% Save local file
-% write.csv(df, file='testData.csv');
-csvwrite('testData.csv', df);
+
+
+

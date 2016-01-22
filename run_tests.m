@@ -91,7 +91,10 @@ import matlab.unittest.TestSuite;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedMultibandread');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedFitswrite');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedFitsread');
- 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedXlsread'); 
+% suite = TestSuite.fromMethod(testCls, 'testOverloadedXlswrite'); 
+
+
 % suite = TestSuite.fromMethod(testCls, 'testPublish'); 
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); 
 % suite = TestSuite.fromMethod(testCls, 'testViewByPackageIdOnly'); 
