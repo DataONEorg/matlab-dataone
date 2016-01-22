@@ -288,7 +288,6 @@ classdef RunManager < hgsetget
             % Convert .gv files to .pdf files
             if isunix
                 if ismac
-                    % path2dot = char('/usr/local/bin/dot');
                     [status, path] = system('export PATH=${PATH}:/usr/local/bin:/opt/local/bin:~/bin; which dot');
                     path2dot = strtrim(path);
                 else
