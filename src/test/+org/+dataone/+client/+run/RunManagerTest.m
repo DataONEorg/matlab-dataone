@@ -1437,8 +1437,17 @@ classdef RunManagerTest < matlab.unittest.TestCase
             try
                 if ( isprop(testCase.mgr.configuration, 'configuration_directory') )
                     rmpath(fullfile(testCase.mgr.execution.execution_directory));
-                    rmdir(testCase.mgr.configuration.configuration_directory, 's');
-                    rmdir(testCase.test_output_dir, 's');
+                    
+                    if ispc
+                        dos_cmd = sprintf( 'rmdir /S /Q "%s"', testCase.mgr.configuration.configuration_directory );
+                        [ st, msg ] = system( dos_cmd );
+                        
+                        dos_cmd = sprintf( 'rmdir /S /Q "%s"', testCase.test_output_dir );
+                        [ st, msg ] = system( dos_cmd );
+                    else
+                        rmdir(testCase.mgr.configuration.configuration_directory, 's');
+                        rmdir(testCase.test_output_dir, 's');
+                    end
                 end
                 
             catch IOError
