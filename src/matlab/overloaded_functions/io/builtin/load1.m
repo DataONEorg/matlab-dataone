@@ -1,4 +1,7 @@
-function S = load( source, varargin )
+% function S = load( source, varargin )
+
+function varargout = load( varargin )
+
 % LOAD Load data from MAT-file into workspace.
 %   S = LOAD(FILENAME) loads the variables from a MAT-file into a structure
 %   array, or data from an ASCII file into a double-precision array.
@@ -67,7 +70,7 @@ function S = load( source, varargin )
     end
     
     % Remove wrapper load from the Matlab path
-    overloadedFunctPath = which('load');
+    overloadedFunctPath = which('load1');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
     
@@ -76,12 +79,15 @@ function S = load( source, varargin )
     end
     
     % Call builtin load function
-    S = builtin('load', source, varargin{:} );
-    % varargout = builtin('load', source, varargin{:} );
-    % varargout = load( source, varargin{:} );
-    % S = varargout;
+    source = varargin{1};
+    [varargout{1:nargout}]  = load( varargin{:} );
     
-    %S = varargout;
+    % S = builtin('load', source, varargin{:} );
+    % varargout = builtin('load', source, varargin{:} );
+   
+    % varargout = load( source, varargin{:} );  
+    % S = struct(varargout);
+   
     
     % Add the wrapper load back to the Matlab path
     warning off MATLAB:dispatcher:nameConflict;
@@ -94,6 +100,7 @@ function S = load( source, varargin )
     
     % Identifiy the file being used and add a prov:used statement 
     % in the RunManager DataPackage instance    
+    % if ( runManager.configuration.capture_file_reads )
     if ( runManager.configuration.capture_file_reads )
         formatId = 'application/octet-stream';
         import org.dataone.client.v2.DataObject;
@@ -115,13 +122,17 @@ function S = load( source, varargin )
             runManager.execution.execution_objects(dataObject.identifier) = ...
                 dataObject;
         else
-            dataObject = ...
-                runManager.execution.execution_objects(existing_id);
+            pid = existing_id;
+            dataObject = DataObject(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(dataObject.identifier) = ...
+                dataObject;
         end
         
         if ~isempty(fullSourcePath)
-            runManager.execution.execution_input_ids{ ...
-                end + 1} = dataObject.identifier;
+            if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+                runManager.execution.execution_input_ids{ ...
+                    end + 1} = pid;
+            end
         end
     end
 end

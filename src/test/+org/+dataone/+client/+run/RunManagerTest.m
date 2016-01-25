@@ -982,13 +982,14 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
         end
         
-        function testOverloadedLoad(testCase)
-            % Todo: load coast (not working)
-            fprintf('\nIn testOverloadedLoad() ...\n');            
-            fullfile( ...
+        function testOverloadedLoad1(testCase)
+           % Todo: load coast (not working)
+           fprintf('\nIn testOverloadedLoad1() ...\n'); 
+                       
+            testCase.filename = ...
+                fullfile( ...
                 testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
-                    'src', 'test', 'resources', 'myScript1.m'); % load coast
-            
+                'src', 'test', 'resources', 'myScript27.m');                
             scriptPath = which(testCase.filename);
             if isempty(scriptPath)
                 [status, struc] = fileattrib(testCase.filename);
@@ -996,6 +997,10 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
            
             run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 2);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 0);
+
         end        
         
         function testOverloadedDlmread(testCase)
