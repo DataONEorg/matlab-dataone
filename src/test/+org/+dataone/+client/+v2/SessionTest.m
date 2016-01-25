@@ -92,7 +92,7 @@ classdef SessionTest < matlab.unittest.TestCase
                 'TimeZone', 'UTC', ...
                 'Format', 'yyyy-MM-dd HH:mm:ss.SSSSSSSSSZ'));
             known_type = 'authentication token';
-            known_status = 'valid';
+            known_status = 'expired';
             
             assertEqual(testCase, known_subject, session.account_subject);
             assertEqual(testCase, known_expire_datenum, actual_expire_datenum);
