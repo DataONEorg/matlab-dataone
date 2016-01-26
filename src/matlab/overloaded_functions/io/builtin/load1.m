@@ -116,7 +116,8 @@ function varargout = load( varargin )
         formatId = 'application/octet-stream';
         import org.dataone.client.v2.DataObject;
     
-        % Check variable source has extension
+        % Check if variable source has no extension. If so, add an
+        % extension '.mat'
         [path, file_name, ext] = fileparts(source);
         if isempty(ext)
             source = [source '.mat'];
