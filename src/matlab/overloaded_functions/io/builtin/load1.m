@@ -92,7 +92,7 @@ function varargout = load( varargin )
     else
         load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
        
-        % Export loaded data from the function load to the base workspace
+        % Export loaded data from the function load to the caller workspace
         fnames = fieldnames( load_returned_struct );
         for i = 1:size(fnames)
             val =  getfield(load_returned_struct,fnames{i});
