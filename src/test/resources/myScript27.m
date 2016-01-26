@@ -59,3 +59,13 @@ ylat = S.lat;
 clear xlon, ylat
 
 
+% Load from an ascii file
+a = magic(4);
+b=ones(2,4)*-5.7;
+c=[8 6 4 2];
+save -ascii mydata.dat 'a' 'b' 'c';
+disp('Contents of mydata.dat:');
+clear
+load1('mydata.dat');
+
+
