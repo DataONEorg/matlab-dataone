@@ -80,14 +80,16 @@ function varargout = load( varargin )
     
     % Call builtin load function
     source = varargin{1};
-    [varargout{1:nargout}]  = load( varargin{:} );
+    load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
+    %[varargout{1:nargout}]  = load( varargin{:} );
     
-    % S = builtin('load', source, varargin{:} );
-    % varargout = builtin('load', source, varargin{:} );
-   
-    % varargout = load( source, varargin{:} );  
-    % S = struct(varargout);
-   
+    % Export loaded data from the function load to the base workspace 
+    fnames = fieldnames( load_returned_struct );  
+    for i = 1:size(fnames)
+        val =  getfield(load_returned_struct,fnames{i});   
+        assignin('base', fnames{i}, val);
+    end
+  
     
     % Add the wrapper load back to the Matlab path
     warning off MATLAB:dispatcher:nameConflict;
