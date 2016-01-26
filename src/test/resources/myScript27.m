@@ -7,8 +7,8 @@ disp('Contents of gong.mat:')
 whos('-file','gong.mat')
 
 load1('gong.mat');
-%Fs
-%y
+Fs
+y
 disp('Contents of workspace after loading file:')
 whos
 
