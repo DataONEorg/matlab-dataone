@@ -1,4 +1,3 @@
-% function S = load( source, varargin )
 
 function varargout = load( varargin )
 
@@ -47,7 +46,7 @@ function varargout = load( varargin )
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2015 DataONE
+%   Copyright 2016 DataONE
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -78,18 +77,28 @@ function varargout = load( varargin )
         disp('remove the path of the overloaded load function.');  
     end
     
-    % Call builtin load function
-    source = varargin{1};
-    load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
-    %[varargout{1:nargout}]  = load( varargin{:} );
-    
-    % Export loaded data from the function load to the base workspace 
-    fnames = fieldnames( load_returned_struct );  
-    for i = 1:size(fnames)
-        val =  getfield(load_returned_struct,fnames{i});   
-        assignin('caller', fnames{i}, val);
+    % Get the filename as source
+    source = '';
+    if ismember(varargin{1}, {'-mat', '-ascii'}) % for syntax load('-mat', 'filename') or load('-ascii', 'filename')
+        source = varargin{2};
+    else
+        source = varargin{1};
     end
-  
+    
+    % Call builtin load function
+    if nargout > 0
+        % For syntax S = load(...) and naragout is 1 (variable S)
+        [varargout{1:nargout}]  = load( varargin{:} ); 
+    else
+        load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
+       
+        % Export loaded data from the function load to the base workspace
+        fnames = fieldnames( load_returned_struct );
+        for i = 1:size(fnames)
+            val =  getfield(load_returned_struct,fnames{i});
+            assignin('caller', fnames{i}, val);
+        end
+    end
     
     % Add the wrapper load back to the Matlab path
     warning off MATLAB:dispatcher:nameConflict;
@@ -107,6 +116,12 @@ function varargout = load( varargin )
         formatId = 'application/octet-stream';
         import org.dataone.client.v2.DataObject;
     
+        % Check variable source has extension
+        [path, file_name, ext] = fileparts(source);
+        if isempty(ext)
+            source = [source '.mat'];
+        end
+        
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
             [status, struc] = fileattrib(source);
