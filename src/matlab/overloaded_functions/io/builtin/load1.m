@@ -87,7 +87,6 @@ function varargout = load( varargin )
     fnames = fieldnames( load_returned_struct );  
     for i = 1:size(fnames)
         val =  getfield(load_returned_struct,fnames{i});   
-        %assignin('base', fnames{i}, val);
         assignin('caller', fnames{i}, val);
     end
   
