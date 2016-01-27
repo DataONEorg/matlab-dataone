@@ -96,7 +96,7 @@ function varargout = load( varargin )
     if ismember(ext, {'.mat', ''})
         % Load MAT-file
         if nargout > 0
-            % For syntax S = load(...) and naragout is 1 (variable S)
+            % For syntax S = load(...) and naragout is 1 (output variable S)
             [varargout{1:nargout}]  = load( varargin{:} );
         else
             load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
@@ -114,13 +114,21 @@ function varargout = load( varargin )
             % For syntax S = load(...) and naragout is 1 (variable S)
             [varargout{1:nargout}]  = load( varargin{:} );
         else
-            % TODO: Jan-27-2016
+            % Create variable name
+            output_variable_name = file_name;
+            
+            % TODO: create variable name, precedes any leading underscores
+            % or digits in filename with X and replaces any other
+            % nonalphabetic characters with underscores. Eg., load
+            % 10-May-data.dat, creates a variable called X10_May_data
+            % Jan-27-2016
+            
             
             % Assign the returned results to a 2-dim double array
-            load_returned_array = load(varargin{:}); 
+            output_variable_value = load(varargin{:}); 
             
             % Export loaded data from the function load to the caller workspace
-            assignin('caller', load_returned_array, load_returned_array);
+            assignin('caller', output_variable_name, output_variable_value);
         end
     end
     
