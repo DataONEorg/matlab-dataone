@@ -85,18 +85,42 @@ function varargout = load( varargin )
         source = varargin{1};
     end
     
+    % Get the filename extension and check if variable source has no extension. If so, add an
+    % extension '.mat'
+    [path, file_name, ext] = fileparts(source);
+    if isempty(ext)
+        source = [source '.mat'];
+    end
+        
     % Call builtin load function
-    if nargout > 0
-        % For syntax S = load(...) and naragout is 1 (variable S)
-        [varargout{1:nargout}]  = load( varargin{:} ); 
+    if ismember(ext, {'.mat', ''})
+        % Load MAT-file
+        if nargout > 0
+            % For syntax S = load(...) and naragout is 1 (variable S)
+            [varargout{1:nargout}]  = load( varargin{:} );
+        else
+            load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
+            
+            % Export loaded data from the function load to the caller workspace
+            fnames = fieldnames( load_returned_struct );
+            for i = 1:size(fnames)
+                val =  getfield(load_returned_struct,fnames{i});
+                assignin('caller', fnames{i}, val);
+            end
+        end
     else
-        load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
-       
-        % Export loaded data from the function load to the caller workspace
-        fnames = fieldnames( load_returned_struct );
-        for i = 1:size(fnames)
-            val =  getfield(load_returned_struct,fnames{i});
-            assignin('caller', fnames{i}, val);
+        % Load ASCII-file
+        if nargout > 0
+            % For syntax S = load(...) and naragout is 1 (variable S)
+            [varargout{1:nargout}]  = load( varargin{:} );
+        else
+            % TODO: Jan-27-2016
+            
+            % Assign the returned results to a 2-dim double array
+            load_returned_array = load(varargin{:}); 
+            
+            % Export loaded data from the function load to the caller workspace
+            assignin('caller', load_returned_array, load_returned_array);
         end
     end
     
@@ -115,14 +139,7 @@ function varargout = load( varargin )
     if ( runManager.configuration.capture_file_reads )
         formatId = 'application/octet-stream';
         import org.dataone.client.v2.DataObject;
-    
-        % Check if variable source has no extension. If so, add an
-        % extension '.mat'
-        [path, file_name, ext] = fileparts(source);
-        if isempty(ext)
-            source = [source '.mat'];
-        end
-        
+            
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
             [status, struc] = fileattrib(source);

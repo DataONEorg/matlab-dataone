@@ -59,13 +59,18 @@ ylat = S.lat;
 clear xlon, ylat
 
 
-% Load from an ascii file
+% Test load an ASCII-file
 a = magic(4);
 b=ones(2,4)*-5.7;
 c=[8 6 4 2];
 save -ascii mydata.dat 'a' 'b' 'c';
-disp('Contents of mydata.dat:');
-clear
+
+% Load from an ascii file using syntax x = load('ascii-filename)');
+disp('Load a matrix using syntax x = load("ascii-filename")');
+xx=load1('mydata.dat');
+%xx
+clear xx;
+
+% Load from an ascii file using syntax load('ascii-filename)');
+disp('Load a matrix using syntax load("ascii-filename")');
 load1('mydata.dat');
-
-
