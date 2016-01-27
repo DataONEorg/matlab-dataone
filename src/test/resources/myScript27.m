@@ -68,9 +68,10 @@ save -ascii mydata.dat 'a' 'b' 'c';
 % Load from an ascii file using syntax x = load('ascii-filename)');
 disp('Load a matrix using syntax x = load("ascii-filename")');
 xx=load1('mydata.dat');
-%xx
+xx
 clear xx;
 
 % Load from an ascii file using syntax load('ascii-filename)');
 disp('Load a matrix using syntax load("ascii-filename")');
 load1('mydata.dat');
+mydata
