@@ -454,8 +454,10 @@ function imwrite(varargin)
     imwrite( varargin{:} );
    
     % Add the wrapper imwrite back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
-    
+    warning on MATLAB:dispatcher:nameConflict;
+     
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded imwrite function back.');
     end

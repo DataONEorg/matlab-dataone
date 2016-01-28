@@ -63,7 +63,8 @@ clear xlon, ylat
 a = magic(4);
 b=ones(2,4)*-5.7;
 c=[8 6 4 2];
-save -ascii mydata.dat 'a' 'b' 'c';
+which save
+save  mydata.dat  a  b c -ascii;
 
 % Load from an ascii file using syntax x = load('ascii-filename)');
 disp('Load a matrix using syntax x = load("ascii-filename")');

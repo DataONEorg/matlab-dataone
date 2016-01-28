@@ -60,8 +60,10 @@ function csvwrite(source, varargin)
     csvwrite( source, varargin{:} );
    
     % Add the wrapper csvwrite back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
-    
+    warning on MATLAB:dispatcher:nameConflict;
+     
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded csvwrite function back.');
     end

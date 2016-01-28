@@ -706,14 +706,10 @@ classdef MemberNodeTest < matlab.unittest.TestCase
             
             try
                 if ( isprop(testCase.mgr.configuration, 'configuration_directory') )
-                    if ispc
-                        dos_cmd = sprintf( 'rmdir /S /Q "%s"', fullfile(testCase.mgr.execution.execution_directory) );
-                        [ st, msg ] = system( dos_cmd );
-                        
+                    if ispc                       
                         dos_cmd = sprintf( 'rmdir /S /Q "%s"', testCase.mgr.configuration.configuration_directory );
                         [ st, msg ] = system( dos_cmd );
-                    else
-                        rmpath(fullfile(testCase.mgr.execution.execution_directory));
+                    else                      
                         rmdir(testCase.mgr.configuration.configuration_directory, 's');
                     end
                 end

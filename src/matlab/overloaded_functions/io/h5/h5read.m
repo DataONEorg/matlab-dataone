@@ -70,8 +70,10 @@ function data = h5read(source,varargin)
     data = h5read( source, varargin{:} );
     
     % Add the wrapper h5read back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
-    
+    warning on MATLAB:dispatcher:nameConflict;
+     
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded h5read function back.');
     end

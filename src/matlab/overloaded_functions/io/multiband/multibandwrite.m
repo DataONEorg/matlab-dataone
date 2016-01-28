@@ -150,8 +150,10 @@ function multibandwrite(data,source,interleave,varargin)
     multibandwrite( data, source, interleave, varargin{:} );
    
     % Add the wrapper multibandwrite back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
-    
+    warning on MATLAB:dispatcher:nameConflict;
+     
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded multibandwrite function back.');
     end
