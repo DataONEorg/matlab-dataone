@@ -380,6 +380,11 @@ classdef RunManager < hgsetget
             path_array = strsplit(dirPath, filesep);
             identifier = char(path_array(end));
             
+            % Remove the path to the overloaded load() from the Matlab path
+            overloadedFunctPath = which('load');
+            [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
+            rmpath(overloaded_func_path);
+              
             % Load the stored execution given the directory name
             exec_file_base_name = [identifier '.mat'];
             stored_execution = load(fullfile( ...
@@ -388,6 +393,11 @@ classdef RunManager < hgsetget
                 identifier, ...
                 exec_file_base_name));
 
+            % Add the path to the overloaded load() back to the Matlab path
+            warning off MATLAB:dispatcher:nameConflict;
+            addpath(overloaded_func_path, '-begin');
+            warning on MATLAB:dispatcher:nameConflict;
+    
             % Assign deserialized execution to runManager.execution
             runManager.execution = stored_execution.executionObj(1);
             
@@ -1415,21 +1425,35 @@ classdef RunManager < hgsetget
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.configuration.execution_db_name);   
                        
+            % Remove the path to the overloaded save()
+            overloadedFunctPath = which('save');
+            [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
+            rmpath(overloaded_func_path);
+    
             % Serialize the execution object to local file system in the
             % execution_directory
             execution_serialized_object = [runManager.execution.execution_id '.mat'];
             exec_destination = [runManager.execution.execution_directory filesep execution_serialized_object];
             executionObj = runManager.execution;
             save(char(exec_destination), 'executionObj');
-            
+                      
             % Build a D1 datapackage
             pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );
+            
+            % Remove the path to the overloaded save() before calling the
+            % original save()
+            rmpath(overloaded_func_path);
             
             % Re-serialize the execution object to local file system in the
             % execution_directory because we need to set the actual file
             % size for the generated files during a run Dec-4-2015
             executionObj = runManager.execution;
             save(char(exec_destination), 'executionObj');
+            
+            % Add the path to the overloaded save() back to the Matlab path
+            warning off MATLAB:dispatcher:nameConflict;
+            addpath(overloaded_func_path, '-begin');
+            warning on MATLAB:dispatcher:nameConflict;
             
             % Clear runtime input/output sources
             runManager.execution.execution_input_ids = {};
@@ -1440,6 +1464,8 @@ classdef RunManager < hgsetget
             if ( runManager.console ~= 1 )
                 runManager.console = true; 
             end
+            
+
             
             % Unlock the RunManager instance
             munlock('RunManager');            
@@ -1847,6 +1873,11 @@ classdef RunManager < hgsetget
 
            % Deserialize the execution object from the disk
            
+           % Remove the path to the overloaded load() from the Matlab path
+           overloadedFunctPath = which('load');
+           [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
+           rmpath(overloaded_func_path);
+            
            % Load the stored execution given the directory name
            exec_file_base_name = [packageId '.mat'];
            stored_execution = load(fullfile( ...
@@ -1854,6 +1885,11 @@ classdef RunManager < hgsetget
                'runs', ...
                packageId, ...
                exec_file_base_name));
+           
+           % Add the path to the overloaded load() back to the Matlab path
+           warning off MATLAB:dispatcher:nameConflict;
+           addpath(overloaded_func_path, '-begin');
+           warning on MATLAB:dispatcher:nameConflict;
            
            % Assign deserialized execution to runManager.execution
            runManager.execution = stored_execution.executionObj(1);
@@ -1969,6 +2005,11 @@ classdef RunManager < hgsetget
             try                
                 % Deserialize the execution object from the disk
                 
+                % Remove the path to the overloaded load() from the Matlab path
+                overloadedFunctPath = which('load');
+                [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
+                rmpath(overloaded_func_path);
+           
                 % Load the stored execution given the directory name
                 exec_file_base_name = [packageId '.mat'];
                 stored_execution = load(fullfile( ...
@@ -1977,6 +2018,11 @@ classdef RunManager < hgsetget
                     packageId, ...
                     exec_file_base_name));
                 
+                % Add the path to the overloaded load() back to the Matlab path
+                warning off MATLAB:dispatcher:nameConflict;
+                addpath(overloaded_func_path, '-begin');
+                warning on MATLAB:dispatcher:nameConflict;
+                    
                 % Assign deserialized execution to runManager.execution
                 runManager.execution = stored_execution.executionObj(1);
 

@@ -69,7 +69,7 @@ function varargout = load( varargin )
     end
     
     % Remove wrapper load from the Matlab path
-    overloadedFunctPath = which('load1');
+    overloadedFunctPath = which('load');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
     
@@ -114,7 +114,7 @@ function varargout = load( varargin )
             % For syntax S = load(...) and naragout is 1 (variable S)
             [varargout{1:nargout}]  = load( varargin{:} );
         else
-            % Create variable name
+            % Create variable name after the loaded file (minus any)
             output_variable_name = file_name;
             
             % TODO: create variable name, precedes any leading underscores
