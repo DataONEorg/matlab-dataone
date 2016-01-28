@@ -1,4 +1,5 @@
-function save( source, varargin)
+%function save( source, varargin)
+function save( varargin )
 % SAVE Save workspace variables to file. 
 %   SAVE(FILENAME) stores all variables from the current workspace in a
 %   MATLAB formatted binary file (MAT-file) called FILENAME.
@@ -169,9 +170,22 @@ function save( source, varargin)
         disp('remove the path of the overloaded save function.');  
     end
     
+    
+    % Get the filename as source
+    source = '';
+    if ismember(varargin{1}, {'-mat', '-ascii'}) % for syntax save('-mat', 'filename') or save('-ascii', 'filename')
+        source = varargin{2};
+    else
+        source = varargin{1};
+    end 
+    
+    % Load variables into the current workspace
+    
     % Call builtin save function
-    s = struct(varargin{:});
-    save( source, '-struct', 's' );
+    save(varargin{:});    
+        
+    %s = struct(varargin{:});
+    %save( source, '-struct', 's' );
    
     % Add the wrapper save back to the Matlab path
     warning off MATLAB:dispatcher:nameConflict;

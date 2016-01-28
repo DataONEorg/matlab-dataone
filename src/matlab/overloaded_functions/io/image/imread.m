@@ -353,7 +353,9 @@ function [X, map, alpha] = imread(varargin)
     [X, map, alpha] = imread( varargin{:} );
     
     % Add the wrapper imread back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
+    warning on MATLAB:dispatcher:nameConflict;
     
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded imread function back.');

@@ -86,8 +86,10 @@ function varargout = create(source, mode, varargin)
     [varargout{:}] = netcdf.create(source, mode, varargin{:});
   
     % Add the parent directory of netcdf.create back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(pkgParentPath, '-begin');
-    
+    warning on MATLAB:dispatcher:nameConflict;
+     
     if ( runManager.configuration.debug)
         disp('add the parent path of the overloaded netcdf.open function back.');
     end

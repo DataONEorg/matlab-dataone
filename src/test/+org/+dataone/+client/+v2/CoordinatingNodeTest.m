@@ -141,6 +141,19 @@ classdef CoordinatingNodeTest < matlab.unittest.TestCase
             assertEqual(testCase, count3, length(ol3));
                   
         end
+        
+        function testListFormats(testCase)
+                     
+            fprintf('\nIn test Coordinating Node listFormats() ...\n');
+            
+            import org.dataone.client.v2.CoordinatingNode;
+         
+            % Get a CNode matlab instance
+            matlab_cn_node = CoordinatingNode('https://cn-dev-2.test.dataone.org/cn');  
+            
+            objectFormats = matlab_cn_node.listFormats();
+            objectFormats
+        end
     end
     
     methods (Access = 'private')
@@ -150,7 +163,7 @@ classdef CoordinatingNodeTest < matlab.unittest.TestCase
             
             try
                 if ( isprop(testCase.mgr.configuration, 'configuration_directory') )
-                    rmpath(fullfile(testCase.mgr.execution.execution_directory));
+                    %rmpath(fullfile(testCase.mgr.execution.execution_directory));
                     rmdir(testCase.mgr.configuration.configuration_directory, 's');
                 end
                 

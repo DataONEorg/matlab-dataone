@@ -82,8 +82,10 @@ function h5write(source,Dataset,Data,varargin)
     h5write( source, Dataset, Data, varargin{:} );
    
     % Add the wrapper h5write back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
-    
+    warning on MATLAB:dispatcher:nameConflict;
+     
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded h5write function back.');
     end

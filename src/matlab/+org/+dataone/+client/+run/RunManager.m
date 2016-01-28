@@ -380,11 +380,6 @@ classdef RunManager < hgsetget
             path_array = strsplit(dirPath, filesep);
             identifier = char(path_array(end));
             
-            % Remove the path to the overloaded load() from the Matlab path
-            overloadedFunctPath = which('load');
-            [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
-            rmpath(overloaded_func_path);
-              
             % Load the stored execution given the directory name
             exec_file_base_name = [identifier '.mat'];
             stored_execution = load(fullfile( ...
@@ -393,11 +388,6 @@ classdef RunManager < hgsetget
                 identifier, ...
                 exec_file_base_name));
 
-            % Add the path to the overloaded load() back to the Matlab path
-            warning off MATLAB:dispatcher:nameConflict;
-            addpath(overloaded_func_path, '-begin');
-            warning on MATLAB:dispatcher:nameConflict;
-    
             % Assign deserialized execution to runManager.execution
             runManager.execution = stored_execution.executionObj(1);
             

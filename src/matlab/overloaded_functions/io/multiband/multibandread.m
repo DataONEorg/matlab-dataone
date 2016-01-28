@@ -144,8 +144,10 @@ function im = multibandread(source,dims,precision,...
         offset,interleave,byteOrder,varargin{:});
     
     % Add the wrapper multibandread back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
-    
+    warning on MATLAB:dispatcher:nameConflict;
+     
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded multibandread function back.');
     end

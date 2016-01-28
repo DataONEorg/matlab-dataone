@@ -189,9 +189,11 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assertEqual(testCase, total, 1);
             
             % Test if there are three views outputs exist
-            matches = regexp(b(1,:), '.pdf');
-            total = sum(~cellfun('isempty', matches));
-            assertEqual(testCase, total, 3);
+            if  testCase.mgr.configuration.capture_yesworkflow_comments
+                matches = regexp(b(1,:), '.pdf');
+                total = sum(~cellfun('isempty', matches));
+                assertEqual(testCase, total, 3);
+            end
             
         end
         

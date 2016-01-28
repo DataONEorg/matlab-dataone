@@ -116,8 +116,10 @@ function dlmwrite(source, m, varargin)
     dlmwrite( source, m, varargin{:} );
    
     % Add the wrapper dlmwrite back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
-    
+    warning on MATLAB:dispatcher:nameConflict;
+       
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded dlmwrite function back.');
     end

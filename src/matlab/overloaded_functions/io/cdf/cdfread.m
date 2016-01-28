@@ -159,7 +159,9 @@ function [data, info] = cdfread(source, varargin)
     [data, info] = cdfread( source, varargin{:} );
     
     % Add the wrapper cdfread back to the Matlab path
+    warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
+    warning on MATLAB:dispatcher:nameConflict;
     
     if ( runManager.configuration.debug)
         disp('add the path of the overloaded cdfread function back.');

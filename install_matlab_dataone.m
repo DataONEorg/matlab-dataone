@@ -14,7 +14,7 @@ end
 
 
 % Add to Matlab path
-warning off MATLAB:dispatcher:nameConflict;
+%warning off MATLAB:dispatcher:nameConflict;
 
 % Add the toolbox to the permanent matlab path using the matlabrc.m file
 % See http://www.mathworks.com/help/matlab/ref/matlabrc.html
@@ -22,6 +22,11 @@ warning off MATLAB:dispatcher:nameConflict;
 % Open the startup.m file for writing
 startup_path = fullfile(matlab_path, 'startup.m');
 startup_fid = fopen(startup_path, 'w');
+
+% fprintf(startup_fid, '\nwarning off MATLAB:dispatcher:nameConflict;');
+% overloaded_function_path = fullfile(mlt_dataone_root, 'src', 'matlab', 'overloaded_functions', 'io', 'builtin');
+% fprintf(startup_fid, '\naddpath(''%s'');', overloaded_function_path);
+% fprintf(startup_fid, '\nwarning on MATLAB:dispatcher:nameConflict;');
 
 % Add a section to the file that adds all matlab-dataone files in lib/matlab and
 % src/matlab to the path
@@ -41,7 +46,7 @@ fprintf(startup_fid, 'addpath(genpath(''%s''));\n', src_matlab_dataone_path);
 fclose(startup_fid);
 
 
-warning off MATLAB:dispatcher:nameConflict;
+%warning off MATLAB:dispatcher:nameConflict;
 
 % Add to the permanent java path
 % Get the version of Matlab
