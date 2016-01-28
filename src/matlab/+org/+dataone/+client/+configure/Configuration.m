@@ -82,7 +82,7 @@ classdef Configuration < hgsetget & dynamicprops
                 
         % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
         % capture_yesworkflow_comments = false;
-        capture_yesworkflow_comments = true;
+        capture_yesworkflow_comments = false;
         
         % The directory used to store persistent configuration file Eg: $HOME/.d1/configuration.json
         persistent_configuration_file_name = '';
