@@ -756,7 +756,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
           
             run(scriptPath);
             
-            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 1);
             assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),3);
 
         end 
@@ -982,9 +982,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
         end
         
-        function testOverloadedLoad1(testCase)
-           % Todo: load coast (not working)
-           fprintf('\nIn testOverloadedLoad1() ...\n'); 
+        function testOverloadedLoad(testCase)
+
+           fprintf('\nIn testOverloadedLoad() ...\n'); 
                        
             testCase.filename = ...
                 fullfile( ...
@@ -998,7 +998,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
            
             run(scriptPath);
             
-            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 2);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 3);
             assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 0);
 
         end        
@@ -1294,11 +1294,16 @@ classdef RunManagerTest < matlab.unittest.TestCase
                      'https://cilogon.org/?skin=DataONEDev and \n ' ...
                      'download your X509 certificate to /tmp/x509up_u501.\n']);
 
+%             testCase.filename = ...
+%                 fullfile( ...
+%                     testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+%                         'src', 'test', 'resources', 'C3_C4_map_present_NA_with_comments.m');
+
             testCase.filename = ...
                 fullfile( ...
-                    testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
-                        'src', 'test', 'resources', 'C3_C4_map_present_NA_with_comments.m');
-
+                testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                'src', 'test', 'resources', 'myScript2.m');
+            
             scriptPath = which(testCase.filename); % get the absolute path of the script
             if isempty(scriptPath)
                 [status, struc] = fileattrib(testCase.filename);
@@ -1306,7 +1311,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
             end
             
             [scriptParentPath, name, ext] = fileparts(scriptPath);
-            tag = 'myscript2'; 
+            tag = 'testPublish'; 
  
             currentDir = pwd();
             cd(scriptParentPath);
@@ -1433,7 +1438,18 @@ classdef RunManagerTest < matlab.unittest.TestCase
             execution_serialized_object = [testCase.mgr.execution.execution_id '.mat'];
             exec_destination = [runDirectory filesep execution_serialized_object];
             executionObj = testCase.mgr.execution;
+            
+            % Remove the path to the overloaded save()
+            overloadedFunctPath = which('save');
+            [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
+            rmpath(overloaded_func_path);
+            
             save(char(exec_destination), 'executionObj');
+            
+            % Add the path to the overloaded save() back to the Matlab path
+            warning off MATLAB:dispatcher:nameConflict;
+            addpath(overloaded_func_path, '-begin');
+            warning on MATLAB:dispatcher:nameConflict;
         end
         
         function resetEnvironment(testCase)
