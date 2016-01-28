@@ -33,15 +33,15 @@ warning('off','backtrace');
 import matlab.unittest.TestSuite;
 
 % Use fromPackage
- suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
+% suite = TestSuite.fromPackage('org.dataone.client', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.configure', 'IncludingSubpackages', true);
-% suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
+ suite = TestSuite.fromPackage('org.dataone.client.run', 'IncludingSubpackages', true);
 % suite = TestSuite.fromPackage('org.dataone.client.v2', 'IncludingSubpackages', true);
 
 % Use fromClass
 % testCls = ?org.dataone.client.configure.ConfigurationTest;
 % testCls = ?org.dataone.client.run.ExecutionTest;
-% testCls = ?org.dataone.client.run.RunManagerTest;
+ testCls = ?org.dataone.client.run.RunManagerTest;
 % testCls = ?org.dataone.client.v2.SystemMetadataTest;
 % testCls = ?org.dataone.client.v2.SessionTest;
 % suite = TestSuite.fromClass(testCls);
@@ -93,7 +93,7 @@ import matlab.unittest.TestSuite;
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedFitsread');
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedXlsread'); 
 % suite = TestSuite.fromMethod(testCls, 'testOverloadedXlswrite'); 
-
+suite = TestSuite.fromMethod(testCls, 'testOverloadedLoad1'); 
 
 % suite = TestSuite.fromMethod(testCls, 'testPublish'); 
 % suite = TestSuite.fromMethod(testCls, 'testRecord'); 

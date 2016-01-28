@@ -1,4 +1,6 @@
-function S = load( source, varargin )
+
+function varargout = load( varargin )
+
 % LOAD Load data from MAT-file into workspace.
 %   S = LOAD(FILENAME) loads the variables from a MAT-file into a structure
 %   array, or data from an ASCII file into a double-precision array.
@@ -44,7 +46,7 @@ function S = load( source, varargin )
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2015 DataONE
+%   Copyright 2016 DataONE
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -67,7 +69,7 @@ function S = load( source, varargin )
     end
     
     % Remove wrapper load from the Matlab path
-    overloadedFunctPath = which('load');
+    overloadedFunctPath = which('load1');
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
     
@@ -75,13 +77,60 @@ function S = load( source, varargin )
         disp('remove the path of the overloaded load function.');  
     end
     
-    % Call builtin load function
-    S = builtin('load', source, varargin{:} );
-    % varargout = builtin('load', source, varargin{:} );
-    % varargout = load( source, varargin{:} );
-    % S = varargout;
+    % Get the filename as source
+    source = '';
+    if ismember(varargin{1}, {'-mat', '-ascii'}) % for syntax load('-mat', 'filename') or load('-ascii', 'filename')
+        source = varargin{2};
+    else
+        source = varargin{1};
+    end
     
-    %S = varargout;
+    % Get the filename extension and check if variable source has no extension. If so, add an
+    % extension '.mat'
+    [path, file_name, ext] = fileparts(source);
+    if isempty(ext)
+        source = [source '.mat'];
+    end
+        
+    % Call builtin load function
+    if ismember(ext, {'.mat', ''})
+        % Load MAT-file
+        if nargout > 0
+            % For syntax S = load(...) and naragout is 1 (output variable S)
+            [varargout{1:nargout}]  = load( varargin{:} );
+        else
+            load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
+            
+            % Export loaded data from the function load to the caller workspace
+            fnames = fieldnames( load_returned_struct );
+            for i = 1:size(fnames)
+                val =  getfield(load_returned_struct,fnames{i});
+                assignin('caller', fnames{i}, val);
+            end
+        end
+    else
+        % Load ASCII-file
+        if nargout > 0
+            % For syntax S = load(...) and naragout is 1 (variable S)
+            [varargout{1:nargout}]  = load( varargin{:} );
+        else
+            % Create variable name
+            output_variable_name = file_name;
+            
+            % TODO: create variable name, precedes any leading underscores
+            % or digits in filename with X and replaces any other
+            % nonalphabetic characters with underscores. Eg., load
+            % 10-May-data.dat, creates a variable called X10_May_data
+            % Jan-27-2016
+            
+            
+            % Assign the returned results to a 2-dim double array
+            output_variable_value = load(varargin{:}); 
+            
+            % Export loaded data from the function load to the caller workspace
+            assignin('caller', output_variable_name, output_variable_value);
+        end
+    end
     
     % Add the wrapper load back to the Matlab path
     warning off MATLAB:dispatcher:nameConflict;
@@ -94,10 +143,11 @@ function S = load( source, varargin )
     
     % Identifiy the file being used and add a prov:used statement 
     % in the RunManager DataPackage instance    
+    % if ( runManager.configuration.capture_file_reads )
     if ( runManager.configuration.capture_file_reads )
         formatId = 'application/octet-stream';
         import org.dataone.client.v2.DataObject;
-    
+            
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
             [status, struc] = fileattrib(source);
@@ -115,13 +165,17 @@ function S = load( source, varargin )
             runManager.execution.execution_objects(dataObject.identifier) = ...
                 dataObject;
         else
-            dataObject = ...
-                runManager.execution.execution_objects(existing_id);
+            pid = existing_id;
+            dataObject = DataObject(pid, formatId, fullSourcePath);
+            runManager.execution.execution_objects(dataObject.identifier) = ...
+                dataObject;
         end
         
         if ~isempty(fullSourcePath)
-            runManager.execution.execution_input_ids{ ...
-                end + 1} = dataObject.identifier;
+            if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+                runManager.execution.execution_input_ids{ ...
+                    end + 1} = pid;
+            end
         end
     end
 end
