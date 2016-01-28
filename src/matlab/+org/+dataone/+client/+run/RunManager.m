@@ -2035,6 +2035,8 @@ classdef RunManager < hgsetget
                         runManager.configuration.coordinating_node_base_url);
                 end
                 
+                Settings.getConfiguration().setProperty('D1Client.default.timeout', 300000);
+                
                 % Set the CNode ID
                 cnRef = NodeReference();
                 cnRef.setValue(runManager.configuration.coordinating_node_base_url);
