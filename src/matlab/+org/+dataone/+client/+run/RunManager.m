@@ -403,6 +403,10 @@ classdef RunManager < hgsetget
             resourceMapId.setValue(['resourceMap_' ...
                 runManager.execution.execution_id '.rdf']);
             % Create an empty datapackage with resourceMapId
+            import org.dataone.configuration.Settings;
+            Settings.getConfiguration().setProperty( ...
+                'D1Client.CN_URL', ...
+                runManager.configuration.coordinating_node_base_url);
             runManager.dataPackage = DataPackage(resourceMapId);
             
             % Get the base URL of the DataONE coordinating node server
