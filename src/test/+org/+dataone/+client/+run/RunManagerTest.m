@@ -1005,6 +1005,27 @@ classdef RunManagerTest < matlab.unittest.TestCase
 
         end        
         
+        function testOverloadedSave(testCase)
+            
+            fprintf('\nIn testOverloadedSave() ...\n');
+            
+            testCase.filename = ...
+                fullfile( ...
+                testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                'src', 'test', 'resources', 'myScript28.m');
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 3);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 0);
+            
+        end
+        
         function testOverloadedDlmread(testCase)
           
             fprintf('\nIn testOverloadedDlmread ...\n');            
