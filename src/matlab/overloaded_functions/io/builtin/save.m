@@ -139,7 +139,7 @@ function save( source, varargin)
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2015 DataONE
+%   Copyright 2016 DataONE
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -157,7 +157,7 @@ function save( source, varargin)
     
     runManager = RunManager.getInstance();  
     
-    if ( runManager.configuration.debug)
+    if ( runManager.configuration.debug )
         disp('Called the save wrapper function.');
     end
     
@@ -169,36 +169,59 @@ function save( source, varargin)
     if ( runManager.configuration.debug)
         disp('remove the path of the overloaded save function.');  
     end
-    
-    
-    % Get the filename as source
-%     source = '';
-%     if ismember(varargin{1}, {'-mat', '-ascii'}) % for syntax save('-mat', 'filename') or save('-ascii', 'filename')
-%         source = varargin{2};
-%     else
-%         source = varargin{1};
-%     end 
-    
-    % Load variables into the current workspace
-    %inputname(1)
-    %inputname(2)
-    %for iInput = 2:nargin
-    %    eval([inputname(iInput) ' = varargin{' int2str(iInput-1) '}; ']);
-    %end
-    
-    whos
-    
-    input_struct.(varargin{1}) = evalin('caller', varargin{1});
-    input_struct.(varargin{2}) = evalin('caller', varargin{2});
-    input_struct.(varargin{3}) = evalin('caller', varargin{3});
-    
-    whos
-    
-    save( source, '-ascii', '-struct', 'input_struct' );
-    
-    % Call builtin save function
-    %save(source, varargin{:});    
+   
+    % ...
+    option_array= {};
+    input_struct = '';
+    if length(varargin) == 0
+        % Save all variables from the current workspace in a file
         
+        input_struct = evalin('caller', 'whos()');
+        save(source, '-struct', 'input_struct');
+    
+    elseif length(varargin) > 0
+        
+        for i = 1:length(varargin) 
+            if regexp(varargin{i}, '^-')
+                % an option can be fmt
+                % fmt: '-mat' (default) | '-ascii' | '-ascii','-tabs' | '-ascii','-double' | '-ascii','-double','-tabs'
+                % version: '-v7.3' | '-v7' | '-v6' | '-v4'
+                % -struct, structName
+                % -struct, structName, field1, ..., fileldN
+                % -struct, structName, '-regexp', expr1, ..., exprN
+                
+                if strcmp(varargin{i}, '-struct')                   
+                    X = evalin('caller', varargin{i+1});
+                    eval([varargin{i+1} '= X;']);
+                end
+                
+                for j = i:length(varargin)
+                    option_array{end+1} = varargin{j};
+                end
+                               
+                break;
+            else   
+                if any(strfind(varargin{i}, '*'))
+                    % Use the '*' wildcard to match patterns
+                    list = evalin('caller', whos(varargin{i}));
+                    for i = 1:length(list)
+                        input_struct.(list{i}) = evalin('caller', list{i});
+                    end
+                else
+                    input_struct.(varargin{i}) = evalin('caller', varargin{i}); 
+                end
+                                                
+            end
+        end
+        
+        if ~isempty(input_struct)            
+            save( source, '-struct', 'input_struct', option_array{:} ); 
+        else
+            save( source, option_array{:} ); 
+        end
+    end
+    % ...
+
     %s = struct(varargin{:});
     %save( source, '-struct', 's' );
    
