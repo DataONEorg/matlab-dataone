@@ -8,7 +8,7 @@ if ispc
     matlab_path = char(user_path{1});
 else
     userdir= getenv('HOME');
-    user_path = strsplit(userdir, ':');
+    user_path = strsplit(userpath, ':');
     matlab_path = char(user_path{1});
 end
 
@@ -32,10 +32,12 @@ startup_fid = fopen(startup_path, 'w');
 % src/matlab to the path
 
 lib_matlab_path = fullfile(mlt_dataone_root, 'lib', 'matlab');
+fprintf(startup_fid, '%s', 'warning off MATLAB:dispatcher:nameConflict');
 fprintf(startup_fid, '\naddpath(genpath(''%s''));\n', lib_matlab_path);    
 
 src_matlab_dataone_path = fullfile(mlt_dataone_root, 'src', 'matlab');
 fprintf(startup_fid, 'addpath(genpath(''%s''));\n', src_matlab_dataone_path);      
+fprintf(startup_fid, '%s', 'warning on MATLAB:dispatcher:nameConflict');
 
 % Add the YW libraries to the dynamic java path
 % yw_library_name = 'yesworkflow-0.2-SNAPSHOT.jar';
