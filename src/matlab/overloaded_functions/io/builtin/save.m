@@ -1,5 +1,5 @@
-%function save( source, varargin)
-function save( varargin )
+function save( source, varargin)
+%function save( varargin )
 % SAVE Save workspace variables to file. 
 %   SAVE(FILENAME) stores all variables from the current workspace in a
 %   MATLAB formatted binary file (MAT-file) called FILENAME.
@@ -172,17 +172,32 @@ function save( varargin )
     
     
     % Get the filename as source
-    source = '';
-    if ismember(varargin{1}, {'-mat', '-ascii'}) % for syntax save('-mat', 'filename') or save('-ascii', 'filename')
-        source = varargin{2};
-    else
-        source = varargin{1};
-    end 
+%     source = '';
+%     if ismember(varargin{1}, {'-mat', '-ascii'}) % for syntax save('-mat', 'filename') or save('-ascii', 'filename')
+%         source = varargin{2};
+%     else
+%         source = varargin{1};
+%     end 
     
     % Load variables into the current workspace
+    %inputname(1)
+    %inputname(2)
+    %for iInput = 2:nargin
+    %    eval([inputname(iInput) ' = varargin{' int2str(iInput-1) '}; ']);
+    %end
+    
+    whos
+    
+    input_struct.(varargin{1}) = evalin('caller', varargin{1});
+    input_struct.(varargin{2}) = evalin('caller', varargin{2});
+    input_struct.(varargin{3}) = evalin('caller', varargin{3});
+    
+    whos
+    
+    save( source, '-ascii', '-struct', 'input_struct' );
     
     % Call builtin save function
-    save(varargin{:});    
+    %save(source, varargin{:});    
         
     %s = struct(varargin{:});
     %save( source, '-struct', 's' );

@@ -64,7 +64,9 @@ a = magic(4);
 b=ones(2,4)*-5.7;
 c=[8 6 4 2];
 which save
-save  mydata.dat  a  b c -ascii;
+%save  mydata.dat  a  b c -ascii;
+save  mydata.dat  a  b c ;
+%save( 'mydata.dat',  'a',  'b', 'c' );
 
 % Load from an ascii file using syntax x = load('ascii-filename)');
 disp('Load a matrix using syntax x = load("ascii-filename")');
