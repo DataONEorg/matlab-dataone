@@ -355,7 +355,7 @@ classdef RunManager < hgsetget
             d1Obj = D1Object(d1ObjIdentifier, data, D1TypeBuilder.buildFormatIdentifier(fileFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId)); 
         end
                
-        function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
+   function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
             %import org.dataone.client.run.NamedConstant;
@@ -719,12 +719,12 @@ classdef RunManager < hgsetget
                 fullfile( ...
                 runManager.execution.execution_directory, ...
                 scienceMetadataIdStr));
-            
+           
             % Add the science metadata to the Java DataPackage
             scienceMetadataD1JavaObject = runManager.buildD1Object( ...
                 scienceMetadataDataObject.full_file_path, ...
                 scienceMetadataDataObject.format_id, ...
-                scienceMetadataDataObject.identifier, submitter, mnNodeId);
+                scienceMetadataDataObject.identifier, submitter, mnNodeId); 
             runManager.dataPackage.addData(scienceMetadataD1JavaObject);
             
             % Update the property "fileName" for the java system metadata.
@@ -733,7 +733,7 @@ classdef RunManager < hgsetget
             j_sysmeta = ...
                 scienceMetadataD1JavaObject.getSystemMetadata();
             j_sysmeta.setFileName( ...
-                scienceMetadataDataObject.full_file_path);
+                scienceMetadataIdStr); % use base name in system metadata Feb-1-2016
             set(scienceMetadataDataObject, 'system_metadata', j_sysmeta);            
                         
             % Add the science metadata DataObject to the execution_objects map
@@ -799,8 +799,9 @@ classdef RunManager < hgsetget
             
             data_package = runManager.dataPackage;
             
-        end
-                
+   end
+               
+        
         function saveExecution(runManager, fileName)
             % SAVEEXECUTION saves the summary of each execution to an
             % execution database, a CSV file named execution.csv in the
