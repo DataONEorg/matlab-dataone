@@ -175,10 +175,19 @@ function save( source, varargin)
     input_struct = '';
     if length(varargin) == 0
         % Save all variables from the current workspace in a file
+       
+        % Grab all variables from caller workspace. Refenence:
+        % http://stackoverflow.com/questions/1823668/is-there-a-way-to-push-a-matlab-workspace-onto-a-stack
+        w  = evalin('caller', 'whos');   
+        names = {w.name};
+        in_struct = struct;
+        for i = 1:numel(w)
+            evalin('caller', names{i} )
+            in_struct.(names{i}) = evalin('caller', names{i} );
+        end
         
-        input_struct = evalin('caller', 'whos()');
-        save(source, '-struct', 'input_struct');
-    
+        save(source, '-struct', 'in_struct');
+        
     elseif length(varargin) > 0
         
         for i = 1:length(varargin) 
@@ -203,9 +212,13 @@ function save( source, varargin)
             else   
                 if any(strfind(varargin{i}, '*'))
                     % Use the '*' wildcard to match patterns
-                    list = evalin('caller', whos(varargin{i}));
-                    for i = 1:length(list)
-                        input_struct.(list{i}) = evalin('caller', list{i});
+                    command = ['whos ' varargin{i}];
+                    evalin('caller', command)
+                    workspace_variables = evalin('caller', command);
+                    variable_names = {workspace_variables.name};
+                    in_struct = struct;
+                    for x = 1:numel(workspace_variables)
+                        input_struct.(variable_names{x}) = evalin('caller', variable_names{x});
                     end
                 else
                     input_struct.(varargin{i}) = evalin('caller', varargin{i}); 
