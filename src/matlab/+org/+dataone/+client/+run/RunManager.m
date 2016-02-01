@@ -411,7 +411,7 @@ classdef RunManager < hgsetget
             
             % Get the base URL of the DataONE coordinating node server
             runManager.D1_CN_Resolve_Endpoint = ...
-                [char(runManager.configuration.coordinating_node_base_url) '/v1/resolve/'];
+                [char(runManager.configuration.coordinating_node_base_url) '/v2/resolve/'];
             
             runManager.provONEdataURI = URI(ProvONE.Data.getURI());
             runManager.aTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
