@@ -1000,7 +1000,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
            
             run(scriptPath);
             
-            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 3);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 4);
             assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 1);
 
         end        

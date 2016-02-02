@@ -1,15 +1,18 @@
 % This script is used to track down the issue of the command 'load'
 % returning variables
-
+disp('Display the file path of the load command');
 which load;
 
 disp('Contents of workspace before loading file:');
 whos;
 
 
-% disp('Load all variables from the mat-file matlab.mat; otherwise returns an error');
-% load
-
+disp('Load all variables from the mat-file matlab.mat; otherwise returns an error');
+load;
+disp('Contents of matlab.mat before loading it:');
+whos('-file', 'matlab.mat');
+disp('Contents of workspace after loading file:');
+whos
 
 disp('Contents of gong.mat:');
 whos('-file','gong.mat');
@@ -85,18 +88,19 @@ clear xlon ylat;
 a = magic(4);
 b=ones(2,4)*-5.7;
 c=[8 6 4 2];
-save  mydata.dat  a  b c -ascii;
+test_file_name = fullfile('tests', 'mydata.dat');
+save( test_file_name, 'a', 'b', 'c', '-ascii');
 
 
 % Load from an ascii file using syntax x = load('ascii-filename)');
 disp('Load a ascii-file using syntax x = load("ascii-filename")');
-xx=load('mydata.dat');
+xx=load(test_file_name);
 xx
 clear xx;
 
 % Load from an ascii file using syntax load('ascii-filename)');
 disp('Load a ascii-file using syntax load("ascii-filename")');
-load('mydata.dat');
+load(test_file_name );
 mydata
 clear mydata;
 
