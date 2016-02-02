@@ -1,11 +1,14 @@
 % This script is used to track down the issue of the command 'load'
 % returning variables
+
+which load;
+
 disp('Contents of workspace before loading file:');
 whos;
 
 
-disp('Load all variables from the mat-file matlab.mat; otherwise returns an error');
-load
+% disp('Load all variables from the mat-file matlab.mat; otherwise returns an error');
+% load
 
 
 disp('Contents of gong.mat:');
@@ -16,42 +19,50 @@ load('gong.mat', 'Fs');
 disp('Load a mat-file using syntax load("filename", "X", "Y", "Z")');
 clear Fs;
 
-% Load a mat-file
+% Load variables that match any of the regular expression in exprlist from a mat-file 
 load('gong.mat', '-regexp', '^F|^y|^a');
 disp('Load a mat-file using syntax load("filename", "-regexp", exprlist)');
 whos;
-clear Fs, y;
+clear Fs y;
+
+% Load variables that match any of the regular expression in exprlist from
+% a mat-file in command form
+whos
+load gong.mat -regexp '^F';
+disp('Load a mat-file using syntax load filename  -regexp  exprlist');
+whos;
+clear Fs;
 
 % Load a mat-file using syntax load('-mat', 'filename')
 load('-mat', 'gong.mat');
 disp('Load a mat-file using syntax load("-mat", "filename")');
-clear Fs, y;
+clear Fs y;
 
 % Load a mat-file using syntax load('filename')
 load('gong.mat');
 disp('Load a mat-file using syntax load("filename"):');
-clear Fs, y;
+clear Fs y;
 
 % Load the coastline using syntax load('filename')
 load('coast.mat');
 disp('Load a mat-file using syntax load("filename")');
 xlon = long;
 ylat = lat;
-clear xlon, ylat;
+clear xlon ylat;
 
 % Load the coastline using syntax load filename
 load coast.mat;
 disp('Load a mat-file using syntax load filename');
 xlon = long;
 ylat = lat;
-clear xlon, ylat;
+clear xlon ylat;
 
 % Load the coastline using syntax load filename without extension
 load coast;
 disp('Load a mat-file using syntax load filename without extension');
 xlon = long;
 ylat = lat;
-clear xlon, ylat;
+clear xlon ylat;
 
 % 
 % % Load the coastline using syntax S = load('filename')
@@ -59,7 +70,7 @@ clear xlon, ylat;
 % disp('Load a mat-file using syntax S=load("filename")');
 % xlon = S.long;
 % ylat = S.lat;
-% clear xlon, ylat, S;
+% clear xlon  ylat S;
 % 
 % 
 % % Load the coastline using syntax S = load('filename')
@@ -67,7 +78,7 @@ clear xlon, ylat;
 % disp('Load a mat-file using syntax S=load("filename", "-mat", VARIABLES)');
 % xlon = S.long;
 % ylat = S.lat;
-% clear xlon, ylat, S;
+% clear xlon  ylat   S;
 
 
 % Test load an ASCII-file
