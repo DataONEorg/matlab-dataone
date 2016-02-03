@@ -1,11 +1,13 @@
 % DATAONENODE A class that represents a DataONE Node
+%   This is a superclass to the MemberNode and CoordinatingNode classes,
+%   providing shared DataONE API functions.
 %
 % This work was created by participants in the DataONE project, and is
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
 %   Copyright 2009-2016 DataONE
-%
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -92,9 +94,16 @@ classdef DataONENode < hgsetget
         % GETCAPABILITIES Returns the capabilities of the DataONE Node
         %   The Node document that describes the DataONE node is returned
         %   as an XML string.
-        
-            import org.dataone.service.util.TypeMarshaller;
-            import java.io.ByteArrayOutputStream;
+        %   import org.dataone.client.v2.DataONEClient;
+        %   mn = DataONEClient.getMN('urn:node:KNB');
+        %   node = mn.getCapabilities() returns
+        %   the Node XML string of the configured DataONE node (repository).  
+        %
+        %   See also org.dataone.client.v2.DataONEClient,
+        %   org.dataone.client.v2.MemberNode,
+        %   org.dataone.client.v2.CoordinatingNode
+        import org.dataone.service.util.TypeMarshaller;
+        import java.io.ByteArrayOutputStream;
             
             node = ''; 
         
@@ -106,8 +115,12 @@ classdef DataONENode < hgsetget
             node = char(baos.toString());
         end
         
-        function object  = get(self, session, pid)        
-            % GET Returns the bytes of the object as a int8 array
+        function object = get(self, session, pid)        
+        % GET Returns the bytes of the object as a int8 array
+        %   import org.dataone.client.v2.DataONEClient;
+        %   mn = DataONEClient.getMN('urn:node:KNB')
+        %   object = mn.get([], 'the-object-id') returns the bytes of
+        %   the object (file) from the configured DataONE node (repository)
 
             import org.dataone.client.run.RunManager;
             import org.apache.commons.io.IOUtils;
@@ -207,9 +220,19 @@ classdef DataONENode < hgsetget
         end
         
         function system_metadata = getSystemMetadata(self, session, pid)
-        % GETSYSTEMMETADATA Returns the DataONE system metadata for the
-        % given object identifier
-        
+            % GETSYSTEMMETADATA Returns the DataONE system metadata for 
+            %   the given object identifier
+            %
+            %   import org.dataone.client.v2.DataONEClient;
+            %   mn = DataONEClient.getMN('urn:node:KNB');
+            %   object = mn.getSystemMetadata([], 'the-object-id') returns 
+            %   the SystemMetadata of the object (file) from the 
+            %   configured DataONE node (repository).  An empty array for
+            %   the session parameter uses an anonymous session. 
+            %
+            % See also org.dataone.client.v2.SystemMetadata,
+            %   org.dataone.client.v2.Session
+            
             import org.dataone.client.v2.SystemMetadata;
             import org.dataone.service.types.v1.Identifier;
             j_pid = Identifier();
@@ -319,6 +342,15 @@ classdef DataONENode < hgsetget
         % ISAUTHORIZED Returns whether the action is pemissible for the object
         %   Given the session credentials and the object id, determine 
         %   if the action (permission) on the object is allowed
+        %
+        %   import org.dataone.client.v2.DataONEClient;
+        %   mn = DataONEClient.getMN('urn:node:KNB')
+        %   authorized = mn.isAuthorized(session, 'the-object-id', 'read')
+        %      returns a logical true if the credentials of the
+        %      user in the given Session object is authorized to
+        %      perform the action on the given object. Note that
+        %      the action parameter is limited to 'read',
+        %      'write', and 'changePermission' strings.
         
             authorized = false;
             
