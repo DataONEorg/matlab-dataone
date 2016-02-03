@@ -6,7 +6,7 @@
 % more information on DataONE, see our web site at http://dataone.org.
 %
 %   Copyright 2009-2016 DataONE
-%
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -99,7 +99,13 @@ classdef SystemMetadata < hgsetget
     methods
         
         function sysmeta = SystemMetadata()
-        % SYSTEMMETADATA Constructs a new SystemMetadata object
+            % SYSTEMMETADATA Constructs a new SystemMetadata object
+            %
+            %   import org.dataone.client.v2.SystemMetadata;
+            %   sysmeta = SystemMetadata() returns a SystemMetadata object
+            %
+            %   See also org.dataone.client.configure.Configuration
+
             sysmeta.systemMetadata = ...
                 org.dataone.service.types.v2.SystemMetadata();
             
@@ -107,6 +113,9 @@ classdef SystemMetadata < hgsetget
         
         function sysmeta = set(sysmeta, name, value)
             % Overload the hgsetget set() function to customize setting properties
+            %
+            %   set(sysmeta, 'name', 'value') sets the named property with
+            %   the given value.
             
             property = strtrim(name);
             
@@ -657,6 +666,12 @@ classdef SystemMetadata < hgsetget
        
         function xml = toXML(sysmeta)
             % TOXML serializes the system metadata to XML
+            %
+            %   import org.dataone.client.v2.SystemMetadata;
+            %   sysmeta = SystemMetadata();
+            %   xml = sysmeta.toXML() returns the SystemMetadata as an XML
+            %   string
+            
             import org.dataone.service.util.TypeMarshaller;
             import java.io.ByteArrayOutputStream;
             import java.nio.charset.StandardCharsets;
