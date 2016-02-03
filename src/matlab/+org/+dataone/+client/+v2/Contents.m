@@ -8,3 +8,4 @@
 %   MemberNode - A class that represents a member node in the DataONE network
 %   CoordinatingNode - A class that represents a coordinating node in the DataONE network
 %   Session - A class that provides an authenticated session based on configuration settings
+%   SystemMetadata - A class representing DataONE sytem metadata associated with an object.
