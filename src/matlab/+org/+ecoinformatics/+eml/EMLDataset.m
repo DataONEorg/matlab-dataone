@@ -42,7 +42,8 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
         end
     
         function emlDataset = appendOtherEntity(self, entityId, entityName, ...
-            entityDescription, objectName, size, formatName, entityType)
+            entityDescription, objectName, size, formatName, ...
+            onlineUrl, entityType)
             % APPENDOTHERENTITY Adds an OtherEntity element to the EMLDataset
             %   As a first pass, only support externallyDefinedFormat
             %   entitites.
@@ -50,9 +51,10 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             if ( isempty(entityName) || ...
                  isempty(objectName) || ...
                  isempty(formatName) || ...
+                 isempty(onlineUrl) || ...
                  isempty(entityType) )
-                msg = ['The entityName, objectName, formatName, and entityType ' ...
-                    'parameters can''t be empty.'];
+                msg = ['The entityName, objectName, formatName, ' ...
+                    'onlineUrl, and entityType parameters can''t be empty.'];
                 error('EMLDataset:appendOtherEntity:missingParameters', msg);
                 
             end
@@ -96,6 +98,7 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
                 otherEntityElement.setAttribute('id', entityId);
                 
             end
+            
             % Add the entityName element
             entityNameElement = self.document.createElement('entityName');
             entityNameElement.appendChild(self.document.createTextNode(entityName));
@@ -149,7 +152,21 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
                 dataFormatElement.appendChild(extDefinedFormatElement);
                 physicalElement.appendChild(dataFormatElement);
             end
-
+            
+            % Add the online url distribution element
+            distributionElement = ...
+                self.document.createElement('distribution');
+            onlineElement = ...
+                self.document.createElement('online');
+            urlElement = ...
+                self.document.createElement('url');
+            urlElement.appendChild( ...
+                self.document.createTextNode( ...
+                onlineUrl));
+            
+            onlineElement.appendChild(urlElement);
+            distributionElement.appendChild(onlineElement);
+            physicalElement.appendChild(distributionElement);
             otherEntityElement.appendChild(physicalElement);
             
             % Add the entityType element
