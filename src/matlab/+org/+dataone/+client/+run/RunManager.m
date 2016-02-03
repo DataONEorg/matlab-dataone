@@ -1193,8 +1193,13 @@ classdef RunManager < hgsetget
             % RECORD Records provenance relationships between data and scripts
             % When record() is called, data input files, data output files,
             % and programs (scripts and classes) are tracked during an
-            % execution of the program, and a graph of their relationships
-            % is produced using the W3C PROV ontology standard 
+            % execution of the program.
+            %    import or.dataone.client.run.RunManager;
+            %    mgr = RunManager.getInstance();
+            %    mgr.record('path/to/file/to/run', 'optional tag string');
+            %
+            % A graph of the relationships between the script, its inputs
+            % and outputs is produced using the W3C PROV ontology standard 
             % (<http://www.w3.org/TR/prov-o/>) and the
             % DataONE ProvONE model(<https://purl.dataone.org/provone-v1-dev>).
             % Note that, when passing scripts to the record() function,
