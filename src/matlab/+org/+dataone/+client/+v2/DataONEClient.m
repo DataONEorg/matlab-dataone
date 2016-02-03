@@ -8,7 +8,7 @@
 % more information on DataONE, see our web site at http://dataone.org.
 %
 %   Copyright 2009-2016 DataONE
-%
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -31,6 +31,12 @@ classdef DataONEClient < hgsetget
         
         function memberNode = getMN(node_id)
         % GETMN Returns a MemberNode instance used to communicate with the node
+        %
+        %   memberNode = DataONEClient.getMN('urn:node:KNB')
+        %
+        %   Note that the node_id parameter comes from a controlled
+        %   vocabulary of registered DataONE Member Node repositories.  See
+        %   the production list at https://cn.dataone.org/cn/v2/node.
             
             import org.dataone.client.v2.MNode;
             import org.dataone.client.v2.itk.D1Client;
@@ -60,6 +66,13 @@ classdef DataONEClient < hgsetget
         
         function coordinating_node = getCN()
         % GETCN Returns a CoordinatingNode instance for the environment
+        %
+        %   coordinating_node = DataONEClient.getCN()
+        %
+        %   Note that the Configuration.coordinating_node_base_url sets
+        %   which DataONE environment to connect to, and defaults to
+        %   https://cn.dataone.org/cn
+        
         
             import org.dataone.client.v2.CNode;
             import org.dataone.client.v2.itk.D1Client;
