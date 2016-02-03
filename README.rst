@@ -29,7 +29,9 @@ Matlab R2015b or later for Mac, Windows, or Linux is required to use the toolbox
 License
 =======
 
-The `Matlab DataONE Toolbox` is licensed as open source software under the Apache 2.0 license.
+The `Matlab DataONE Toolbox` is licensed as open source software under the `Apache 2.0`_ license.
+
+.. _`Apache 2.0`: http://opensource.org/licenses/Apache-2.0
 
 Example Usage
 =============
