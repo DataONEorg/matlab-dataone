@@ -9,7 +9,7 @@
 % more information on DataONE, see our web site at http://dataone.org.
 %
 %   Copyright 2009-2016 DataONE
-%
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -33,6 +33,10 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         function memberNode = MemberNode(mnode_id) % class constructor method
             % MEMBERNODE Constructs an MemberNode object instance with the given
             % member node identifier
+            %
+            %   import org.dataone.client.v2.MemberNode;
+            %   mn = MemberNode('urn:node:KNB') returns the MemberNode
+            %   object representing this DataONE data repository
             
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
@@ -62,6 +66,17 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         function identifier = create(memberNode, session, ...
                  pid, object, sysmeta)
             % CREATE Creates an object with the given identifier at the given member node
+            %
+            %   import org.dataone.client.v2.MemberNode;
+            %   mn = MemberNode('urn:node:KNB');
+            %   identifier = mn.create(session, '12345', object, sysmeta)
+            %   uploads the object bytes along with its SystemMetadata
+            %   using the user credentials found in the given Session
+            %   object.
+            %
+            %   See also org.dataone.client.configure.Configuration, 
+            %   org.dataone.client.v2.Session,
+            %   org.dataone.client.v2.SystemMetadata
             
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v1.Identifier;
@@ -202,6 +217,18 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         function identifier = update(memberNode, session, pid, ...
                 object, newPid, sysmeta)
             % UPDATE Updates an object with a new identifier at the given member node.
+            %
+            %   import org.dataone.client.v2.MemberNode;
+            %   mn = MemberNode('urn:node:KNB');
+            %   identifier = mn.update(session, '12345', object, '23456', sysmeta)
+            %   updates the object on the repository along with its 
+            %   new identifier and new SystemMetadata,
+            %   using the user credentials found in the given Session
+            %   object.
+            %
+            %   See also org.dataone.client.configure.Configuration, 
+            %   org.dataone.client.v2.Session,
+            %   org.dataone.client.v2.SystemMetadata
             
             import org.dataone.client.run.RunManager;
             import org.dataone.service.types.v1.Identifier;
@@ -348,6 +375,18 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
         function checksum = getChecksum(memberNode, session, ...
                 pid, checksumAlgorithm)
             % GETCHECKSUM Returns the checksum of the object given the algorithm
+            %   The returned checksum is a struct with the following
+            %   fields:
+            %       checksum.value
+            %       checksum.algorithm
+            %
+            %   import org.dataone.client.v2.MemberNode;
+            %   mn = MemberNode('urn:node:KNB');
+            %   identifier = mn.getChecksum(session, '12345', 'SHA-1')
+            %   returns the object checksum using the user credentials 
+            %   found in the given Session object.
+            %
+            %   See also org.dataone.client.v2.Session
             
             import org.dataone.service.types.v1.Checksum;
             import org.dataone.service.types.v1.Identifier;
@@ -636,6 +675,17 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             % UPDATESYSTEMMETADATA updates the object's system metadata
             %   Given the object identified by the pid, update the object's
             %   system metadata stored on the Member Node.
+            %
+            %   import org.dataone.client.v2.MemberNode;
+            %   mn = MemberNode('urn:node:KNB');
+            %   identifier = mn.updateSystemMetadata(session, '12345', sysmeta)
+            %   updates the object's SystemMetadata on the repository
+            %   using the user credentials found in the given Session
+            %   object.
+            %
+            %   See also org.dataone.client.configure.Configuration, 
+            %   org.dataone.client.v2.Session,
+            %   org.dataone.client.v2.SystemMetadata
             
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.client.configure.Configuration;
@@ -719,6 +769,18 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             %   journal article), but only with the object id itself
             %
             %   See https://purl.dataone.org/architecturev2/apis/MN_APIs.html#MNStorage.archive
+            %
+            %   import org.dataone.client.v2.MemberNode;
+            %   mn = MemberNode('urn:node:KNB');
+            %   identifier = mn.archive(session, '12345')
+            %   archives the object on the repository
+            %   using the user credentials found in the given Session
+            %   object.
+            %
+            %   See also org.dataone.client.configure.Configuration, 
+            %   org.dataone.client.v2.Session,
+            %   org.dataone.client.v2.SystemMetadata
+            %
             
             import org.dataone.service.types.v1.Identifier;
             import org.dataone.client.v2.Session;
@@ -784,7 +846,9 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             
             identifier = '';
             
-            returned_identifier = memberNode.node.generateIdentifier(session, scheme, fragment); % Make a Java call
+            returned_identifier = ...
+                memberNode.node.generateIdentifier( ...
+                session, scheme, fragment); % Make a Java call
             
             % Convert the returned Java identifier to a string
             identifier = char(returned_identifier.getValue());
