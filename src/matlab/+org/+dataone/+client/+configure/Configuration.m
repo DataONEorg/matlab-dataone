@@ -136,6 +136,10 @@ classdef Configuration < hgsetget & dynamicprops
         
         function configuration = loadConfig(filename)
             % LOADCONFIG  Loads the DataONE Client configuration from a file
+            %    config = Configuration.loadConfig('') loads the default
+            %             configuration on disk.
+            %    config = Configuration.loadConfig('path/to/config.json')
+            %             loads the given JSON configuration file
             
             narginchk(1,1); 
             
@@ -309,6 +313,9 @@ classdef Configuration < hgsetget & dynamicprops
 
         function configuration = set(configuration, name, value)
             % SET A method used to set one property at a time
+            %    set(config, 'name', 'value') sets the named property with
+            %        the provided value
+            
             paraName = strtrim((name));
             
             % Validate the value of number_of_replicas field
@@ -364,12 +371,16 @@ classdef Configuration < hgsetget & dynamicprops
         
         function val = get(configuration,name)
             % GET A method used to get the value of a property
+            %    value = get(config, 'name') gets the named property value
+            
             paraName = strtrim((name));
             val = configuration.(paraName);            
         end
         
         function configuration = saveConfig(configuration)
             % SAVECONFIG Saves the configuration properties to a JSON file
+            %     config = saveConfig(config) saves the Configuration
+            %              object to disk
             
             % Convert configuration object to configuration struct
             configurationProps = properties(configuration); % displays the names of the public properties for the class of configuration
@@ -421,6 +432,7 @@ classdef Configuration < hgsetget & dynamicprops
         
         function listConfig(configuration, varargin)
             % LISTCONFIG  lists configuration properties and their values
+            %    listConfig(config) dispalys the properties of the Configuration
             
             % Get each property name
             configurationProps = properties(configuration);
