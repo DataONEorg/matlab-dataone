@@ -1,11 +1,15 @@
-% CONFIGURATION A class used to set configuration options for the DataONE Toolbox
+% CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager
+%   config = Configuration() creates a default Configuration object
+%   config = Configuration( 'name', 'value', ...) sets the listed properties in the returned Configuration object
+%
+%   See also org.dataone.client.run.RunManager
 %
 % This work was created by participants in the DataONE project, and is
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2009-2015 DataONE
-%
+%   Copyright 2009-2016 DataONE
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -19,7 +23,6 @@
 % limitations under the License.
 
 classdef Configuration < hgsetget & dynamicprops 
-    % CONFIGURATION A class that stores configuration settings for script runs managed through the RunManager 
     
     properties     
 
