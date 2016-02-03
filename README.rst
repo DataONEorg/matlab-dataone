@@ -51,7 +51,7 @@ Kown Issues
 - Debugging log output for some function calls is not suppressed completely. See `Issue #200`_
 
 .. _`Issue #196`: https://github.com/DataONEorg/sem-prov-design/issues/196
-.. _`Issue #198`: https://github.com/DataONEorg/sem-prov-design/issues/196
+.. _`Issue #198`: https://github.com/DataONEorg/sem-prov-design/issues/198
 .. _`Issue #200`: https://github.com/DataONEorg/sem-prov-design/issues/200
 
 .. image:: https://www.dataone.org/sites/default/files/d1-logo-v3_aligned_left_0_0.jpeg
