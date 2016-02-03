@@ -8,7 +8,7 @@
 % more information on DataONE, see our web site at http://dataone.org.
 %
 %   Copyright 2009-2016 DataONE
-%
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -22,11 +22,7 @@
 % limitations under the License.
 
 classdef DataObject < hgsetget
-% DATAOBJECT A class that represents a data object with DataONE properties
-%   The DataObject class provides properties about a data object including
-%   its storage location, as well as DataONE-specific properties like the
-%   SystemMetadata associated with the object.
-    
+
     properties
         
         % The identifier string for the object
@@ -46,7 +42,14 @@ classdef DataObject < hgsetget
     methods
         
         function dataObject = DataObject(identifier, format_id, full_file_path) 
-        % DataObject constructs an DataObject instance with the given identifier
+        % DataObject constructs a DataObject instance with the given identifier
+        %
+        %   dataObject = DataObject('12345', 'application/octet-stream', 
+        %   '/path/to/the/file') returns a DataObject object.
+        %
+        %   Note that the format_id parameter value comes from a controlled
+        %   vocabulary, the DataONE Object Format Registry,
+        %   https://cn.dataone.org/cn/v2/formats
             
             dataObject.identifier = identifier;
             dataObject.format_id = format_id;

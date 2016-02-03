@@ -7,7 +7,7 @@
 % more information on DataONE, see our web site at http://dataone.org.
 %
 %   Copyright 2009-2016 DataONE
-%
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -21,7 +21,6 @@
 % limitations under the License.
 
 classdef CoordinatingNode < org.dataone.client.v2.DataONENode
-    %COORDINATINGNODE A class representing a DataONE Coordinating Node
     
     properties
         
