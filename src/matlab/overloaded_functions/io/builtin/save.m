@@ -182,7 +182,7 @@ function save( source, varargin)
         names = {workspace_all_variables.name};
         in_struct = struct;
         for i = 1:numel(workspace_all_variables)
-            evalin('caller', names{i} )
+            %evalin('caller', names{i} )
             in_struct.(names{i}) = evalin('caller', names{i} );
         end
         

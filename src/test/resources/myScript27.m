@@ -67,7 +67,7 @@ xlon = long;
 ylat = lat;
 clear xlon ylat;
 
-% 
+
 % % Load the coastline using syntax S = load('filename')
 % S = load('coast.mat');
 % disp('Load a mat-file using syntax S=load("filename")');
@@ -103,4 +103,12 @@ disp('Load a ascii-file using syntax load("ascii-filename")');
 load(test_file_name );
 mydata
 clear mydata;
+
+
+test_file_name_special_chars = fullfile('tests', '10-May-01-data-??.dat');
+save( test_file_name_special_chars, 'a', 'b', 'c', '-ascii' );
+load(test_file_name_special_chars);
+whos;
+
+
 
