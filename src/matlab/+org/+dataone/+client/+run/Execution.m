@@ -1,12 +1,15 @@
-% EXECUTION A class representing the metadata associated with a script
-% execution.
+% EXECUTION A class representing the metadata associated with a script execution.
+%       An Execution represents a script run, and contains some
+%       critical metadata needed to understand the execution
+%       environment, uniquely identify the run, categorize it,
+%       and know it's start and end times.
 %
 % This work was created by participants in the DataONE project, and is
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
 %   Copyright 2009-2016 DataONE
-%
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -20,12 +23,7 @@
 % limitations under the License.
 
 classdef Execution < hgsetget
-    % EXECUTION A class representing the metadata associated with a script execution.
-    %       An Execution represents a script run, and contains some
-    %       critical metadata needed to understand the execution
-    %       environment, uniquely identify the run, categorize it,
-    %       and know it's start and end times.
-      
+
     properties
         % The sequence number assigned to the run for easy reference
         sequence_number;
@@ -90,6 +88,10 @@ classdef Execution < hgsetget
 
         function execution = Execution(varargin)
             % EXECUTION Constructs an instance of the Execution class
+            %   exec = Execution() creates a default execution object
+            %   exec = Execution('some tag string') creates the execution
+            %          object and sets the tag property to the given string
+            
             if ( nargin > 0 )
                 if ( ischar(varargin{1}) )
                     execution.tag = varargin{1};
