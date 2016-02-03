@@ -4,7 +4,7 @@ Matlab DataONE Toolbox
 - **Author**:  Christopher Jones, Yang Cao, Peter Slaughter, Matthew B. Jones (DataONE_)
 - **License**: `Apache 2`_
 - `Package source code on Github`_
-- `Submit Bugs and feature requests`_ (https://github.com/DataONEorg/sem-prov-design/issues)
+- `Submit Bugs and feature requests`_
 
 .. _DataONE: http://dataone.org
 .. _`Apache 2`: http://opensource.org/licenses/Apache-2.0
