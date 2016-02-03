@@ -58,9 +58,6 @@ q = ones(10);
 save(filename2, 'p', 'q', '-append');
 whos('-file', filename2);
 
-% TODO: the following two examples are not working right now. Need to make
-% them work correctly.
-
 % Save all workspace variables to mat-file
 save(filename2);
 whos('-file', filename2);

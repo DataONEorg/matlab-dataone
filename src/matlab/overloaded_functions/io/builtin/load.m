@@ -73,62 +73,81 @@ function varargout = load( varargin )
     [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
     rmpath(overloaded_func_path);    
     
-    if ( runManager.configuration.debug)
+    if ( runManager.configuration.debug )
         disp('remove the path of the overloaded load function.');  
     end
     
-    % Get the filename as source
     source = '';
-    if ismember(varargin{1}, {'-mat', '-ascii'}) % for syntax load('-mat', 'filename') or load('-ascii', 'filename')
-        source = varargin{2};
-    else
-        source = varargin{1};
-    end
-    
-    % Get the filename extension and check if variable source has no extension. If so, add an
-    % extension '.mat'
-    [path, file_name, ext] = fileparts(source);
-    if isempty(ext)
-        source = [source '.mat'];
-    end
+    if nargin == 0
+        % TODO: load all variables from the mat-file matlab.mat if it exists. Returns an error if it doesn't exist.
         
-    % Call builtin load function
-    if ismember(ext, {'.mat', ''})
-        % Load MAT-file
-        if nargout > 0
-            % For syntax S = load(...) and naragout is 1 (output variable S)
-            [varargout{1:nargout}]  = load( varargin{:} );
-        else
-            load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
-            
-            % Export loaded data from the function load to the caller workspace
+        % Call builtin load with any input arguments
+        load_returned_struct = load; % Assign the returned results to a struct
+        
+        % Export loaded data from the function load to the caller workspace
+        if ~ isempty(load_returned_struct)
             fnames = fieldnames( load_returned_struct );
             for i = 1:size(fnames)
                 val =  getfield(load_returned_struct,fnames{i});
                 assignin('caller', fnames{i}, val);
             end
+            source = 'matlab.mat';
         end
+       
     else
-        % Load ASCII-file
-        if nargout > 0
-            % For syntax S = load(...) and naragout is 1 (variable S)
-            [varargout{1:nargout}]  = load( varargin{:} );
+        
+        % Get the filename as source        
+        if ismember(varargin{1}, {'-mat', '-ascii'}) % for syntax load('-mat', 'filename') or load('-ascii', 'filename')
+            source = varargin{2};
         else
-            % Create variable name after the loaded file (minus any)
-            output_variable_name = file_name;
-            
-            % TODO: create variable name, precedes any leading underscores
-            % or digits in filename with X and replaces any other
-            % nonalphabetic characters with underscores. Eg., load
-            % 10-May-data.dat, creates a variable called X10_May_data
-            % Jan-27-2016
-            
-            
-            % Assign the returned results to a 2-dim double array
-            output_variable_value = load(varargin{:}); 
-            
-            % Export loaded data from the function load to the caller workspace
-            assignin('caller', output_variable_name, output_variable_value);
+            source = varargin{1};
+        end
+        
+        % Get the filename extension and check if variable source has no extension. If so, add an
+        % extension '.mat'
+        [path, file_name, ext] = fileparts(source);
+        if isempty(ext)
+            source = [source '.mat'];
+        end
+        
+        % Call builtin load function
+        if ismember(ext, {'.mat', ''})
+            % Load MAT-file
+            if nargout > 0
+                % For syntax S = load(...) and naragout is 1 (output variable S)
+                [varargout{1:nargout}]  = load( varargin{:} );
+            else
+                load_returned_struct = load(varargin{:}); % Assign the returned results to a struct
+                
+                % Export loaded data from the function load to the caller workspace
+                fnames = fieldnames( load_returned_struct );
+                for i = 1:size(fnames)
+                    val =  getfield(load_returned_struct,fnames{i});
+                    assignin('caller', fnames{i}, val);
+                end
+            end
+        else
+            % Load ASCII-file
+            if nargout > 0
+                % For syntax S = load(...) and naragout is 1 (variable S)
+                [varargout{1:nargout}]  = load( varargin{:} );
+            else
+                % Create variable name after the loaded file (minus any)
+                output_variable_name = file_name;
+                
+                % TODO: create variable name, precedes any leading underscores
+                % or digits in filename with X and replaces any other
+                % nonalphabetic characters with underscores. Eg., load
+                % 10-May-data.dat, creates a variable called X10_May_data
+                % Jan-27-2016
+                
+                
+                % Assign the returned results to a 2-dim double array
+                output_variable_value = load(varargin{:});
+                
+                % Export loaded data from the function load to the caller workspace
+                assignin('caller', output_variable_name, output_variable_value);
+            end
         end
     end
     
