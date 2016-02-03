@@ -8,7 +8,7 @@
 % more information on DataONE, see our web site at http://dataone.org.
 %
 %   Copyright 2009-2016 DataONE
-%
+
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
 % You may obtain a copy of the License at
@@ -1004,6 +1004,10 @@ classdef RunManager < hgsetget
         function runManager = getInstance(configuration)
             % GETINSTANCE returns an instance of the RunManager by either
             % creating a new instance or returning an existing one.
+            %    mgr = RunManager.getInstance() returns a RunManager object
+            %          with the default configuration
+            %    mgr = RunManager.getInstance() returns a RunManager object
+            %          with the given configuration
                         
             import org.dataone.client.configure.Configuration;
             import org.dataone.client.run.RunManager;
@@ -1039,11 +1043,10 @@ classdef RunManager < hgsetget
                 
             end
         end
-        
-        
+                
         function setJavaClassPath()
             % SETJAVACLASSPATH adds all Java libraries found in 
-            % $matalab-dataone/lib to the java class path
+            %   $matlab-dataone/lib to the java class path
             
             % Determine the lib directory relative to the RunManager location
             filePath = mfilename('fullpath');           
@@ -1068,11 +1071,10 @@ classdef RunManager < hgsetget
                 
             end
         end
-        
-        
+                
         function setMatlabPath()
             % SETMATLABPATH adds all Matlab libraries found in 
-            % $matalab-dataone/lib/matlab to the Matlab path
+            %   $matalab-dataone/lib/matlab to the Matlab path
             
             % Determine the lib directory relative to the RunManager location
             filePath = mfilename('fullpath');         
@@ -1086,11 +1088,10 @@ classdef RunManager < hgsetget
            % Add subdirectories of lib/matlab to the Matlab path,
            addpath(genpath(matlab_dataone_lib_dir));               
         end
-        
-        
+                
         function setIOFunctionPath()
             % SETIOFUNCTIONPATH adds all overloaded I/O functions found in 
-            % $matalab-dataone/src/matlab/overloaded_functions/io to the top of Matlab path
+            %   $matalab-dataone/src/matlab/overloaded_functions/io to the top of Matlab path
             
             % Determine the src directory relative to the RunManager location
             filePath = mfilename('fullpath');         
@@ -1109,13 +1110,15 @@ classdef RunManager < hgsetget
     methods         
         
         function pkg = getDataPackage(runManager)
-            % GETDATAPACKAGE get the data package from the runManager
+            % GETDATAPACKAGE returns the Java DataPackage object from the runManager
+            
             pkg = runManager.dataPackage;
         end
                 
         function d1_cn_resolve_endpoint = getD1_CN_Resolve_Endpoint(runManager)
-            % GETD1CNRESOLVEENDPOINT get the dataone CN resolve endpoint
-            % from the runManager
+            % GETD1CNRESOLVEENDPOINT returns the DataONE CN resolve endpoint
+            %   from the runManager
+            
             d1_cn_resolve_endpoint = runManager.D1_CN_Resolve_Endpoint;
         end
                 
@@ -1178,6 +1181,7 @@ classdef RunManager < hgsetget
         function callYesWorkflow(runManager, scriptPath, dirPath)
             % CALLYESWORKFLOW Records provenance information at the script
             % level using the yesWorkflow tool.
+            
            if runManager.configuration.generate_workflow_graphic && runManager.configuration.include_workflow_graphic
                 runManager.configYesWorkflow(scriptPath);
                 runManager.captureProspectiveProvenanceWithYW(dirPath);
@@ -1516,9 +1520,9 @@ classdef RunManager < hgsetget
         function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
-            %   startDate -- the starting timestamp for an execution
-            %   endDate -- the ending timestamp for an execution
-            %   tag -- a tag given to an execution 
+            %   startDate -- the starting timestamp for an execution (yyyyMMddThh:mm:ss)
+            %   endDate -- the ending timestamp for an execution  (yyyyMMddThh:mm:ss)
+            %   tag -- a tag string given to an execution 
             %   runNumber -- a sequence number given to an execution
        
             persistent listRunsParser
@@ -1634,8 +1638,10 @@ classdef RunManager < hgsetget
             % DELETERUNS Deletes prior executions (runs) from the stored
             % list.    
             %   runIdList -- the list of runIds for executions to be deleted
-            %   startDate -- the starting timestamp for an execution to be deleted
-            %   endDate -- the ending timestamp for an execution to be deleted
+            %   startDate -- the starting timestamp for an execution to be
+            %                deleted  (yyyyMMddThh:mm:ss)
+            %   endDate -- the ending timestamp for an execution to be
+            %              deleted  (yyyyMMddThh:mm:ss)
             %   tag -- a tag given to an execution to be deleted
             %   runNumber -- a sequence number given to an execution to be deleted
             %   noop -- control delete the exuecution from disk or not
@@ -1815,7 +1821,19 @@ classdef RunManager < hgsetget
         function results = view(runManager, varargin)
            % VIEW Displays detailed information about a data package that
            % is the result of an execution (run).
- 
+           %    import org.dataone.client.run.RunManager;
+           %    mgr = RunManager.getInstance();
+           %    mgr.view('packageId', 'the-package-id') shows the run with the
+           %        given package identifier
+           %    mgr.view('runNumber', 1) shows the run with the
+           %        given run number
+           %    mgr.view('tag', 'the desired tag') shows the run with the
+           %        given tag string
+           %    mgr.view('runNumber', 1, ...
+           %         'sections', {'details', 'used', 'generated'}) shows 
+           %        the run with the given run number and include the
+           %        details, used, and generated sections
+
            % Display a warning message to the user
            if runManager.configuration.debug
                disp('Warning: There is no scientific metadata in this data package.');
@@ -2013,7 +2031,13 @@ classdef RunManager < hgsetget
         
         function package_id = publish(runManager, packageId)
             % PUBLISH Uploads a data package from a folder on disk
-            % to the configured DataONE Member Node server.
+            % to the configured DataONE Member Node server.  This requires
+            % that the Configuration.authentication_token and
+            % Configuration.target_member_node_id properties are set.
+            %
+            %    import org.dataone.client.run.RunManager;
+            %    mgr = RunManager.getInstance();
+            %    pkg_id = mgr.publish(mgr, 'the-package-id')
             
             import java.lang.String;
             import java.lang.Boolean;
