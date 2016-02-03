@@ -41,7 +41,7 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
 .. code:: matlab
 
   import org.dataone.client.run.RunManager;
-  mgr = RunManager();
+  mgr = RunManager.getInstance();
   mgr.record('/Users/cjones/projects/intertidal_temps/process_temperatures.m', 'First toolbox run');
   mgr.listRuns();
   mgr.viewRun(1);  
