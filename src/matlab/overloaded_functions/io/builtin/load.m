@@ -132,16 +132,21 @@ function varargout = load( varargin )
                 % For syntax S = load(...) and naragout is 1 (variable S)
                 [varargout{1:nargout}]  = load( varargin{:} );
             else
-                % Create variable name after the loaded file (minus any)
-                output_variable_name = file_name;
-                
-                % TODO: create variable name, precedes any leading underscores
+                % Create variable name after the loaded file
+               
+                % Create default output variable name when a user do not
+                % speccify any output variable,
+                % precedes any leading underscores
                 % or digits in filename with X and replaces any other
                 % nonalphabetic characters with underscores. Eg., load
                 % 10-May-data.dat, creates a variable called X10_May_data
                 % Jan-27-2016
-                
-                
+                temp_str1 = regexprep(file_name, '[^a-zA-Z0-9]', '_'); % replace any non alphabetic/digit character with '_'
+               
+                expression = '^([\d*]|_)';
+                replace = 'X$1';
+                output_variable_name = regexprep(temp_str1, expression, replace); % replace any leading underscores or digits in filename with an X
+               
                 % Assign the returned results to a 2-dim double array
                 output_variable_value = load(varargin{:});
                 
