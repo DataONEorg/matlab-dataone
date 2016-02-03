@@ -43,5 +43,15 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   mgr.record('/Users/cjones/projects/intertidal_temps/process_temperatures.m', 'First toolbox run');
   mgr.listRuns();
   mgr.viewRun(1);  
-  
+
+Kown Issues
+===========
+- The toolbox captures provenance for only a subset of the load() function syntaxes. See `Issue #196`_
+- The toolbox captures provenance for the save() function, but requires the filename to be the first argument. See `Issue #198`_
+- Debugging log output for some function calls is not suppressed completely. See `Issue #200`_
+
+.. _`Issue #196`: https://github.com/DataONEorg/sem-prov-design/issues/196
+.. _`Issue #196`: https://github.com/DataONEorg/sem-prov-design/issues/196
+.. _`Issue #200`: https://github.com/DataONEorg/sem-prov-design/issues/200
+
 .. image:: https://www.dataone.org/sites/default/files/d1-logo-v3_aligned_left_0_0.jpeg
