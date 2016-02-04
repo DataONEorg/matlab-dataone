@@ -46,6 +46,16 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   mgr.listRuns();
   mgr.view(1);  
 
+Documentation
+============
+The classes provided in the toolbox have built-in documentation.  Use the help() function or the doc() function to view the help for a given class.  For instance, to view the help on the RunManager class, use:
+
+.. code:: matlab
+  doc org.dataone.client.run.RunManager
+
+A `User Guide`_ is in the works, and will walk through the various toolbox functions.
+
+.. _`User Guide`: https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst
 Kown Issues
 ===========
 - The toolbox captures provenance for only a subset of the load() function syntaxes. See `Issue #196`_
