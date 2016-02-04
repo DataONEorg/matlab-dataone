@@ -27,10 +27,10 @@ classdef Configuration < hgsetget & dynamicprops
     properties     
 
         % The source member node identifier
-        source_member_node_id = '';
+        source_member_node_id = 'urn:node:KNB';
         
         % The target member node identifier
-        target_member_node_id = '';
+        target_member_node_id = 'urn:node:KNB';
         
         % The default object format identifier when creating system metadata and uploading files to a member node. 
         format_id = 'application/octet-stream';
@@ -57,7 +57,7 @@ classdef Configuration < hgsetget & dynamicprops
         blocked_replica_node_list = '';
         
         % The base URL of the DataONE coordinating node server
-        coordinating_node_base_url;
+        coordinating_node_base_url = 'https://cn.dataone.org/cn';
         
         % The researcher's ORCID
         orcid_identifier = '';
