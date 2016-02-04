@@ -51,6 +51,7 @@ Documentation
 The classes provided in the toolbox have built-in documentation.  Use the help() function or the doc() function to view the help for a given class.  For instance, to view the help on the RunManager class, use:
 
 .. code:: matlab
+  
   doc org.dataone.client.run.RunManager
 
 A `User Guide`_ is in the works, and will walk through the various toolbox functions.
