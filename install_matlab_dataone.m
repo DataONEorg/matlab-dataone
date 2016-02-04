@@ -1,6 +1,6 @@
 
 installFilePath = mfilename('fullpath');
-[mlt_dataone_root, name, ext] = fileparts(installFilePath);
+[matlab_dataone_dir, name, ext] = fileparts(installFilePath);
 
 if ispc
     userdir= getenv('USERPROFILE');
@@ -12,6 +12,11 @@ else
     matlab_path = char(user_path{1});
 end
 
+% Write the matlab_dataone_root to disk for configuration bootstrapping
+matlab_dataone_dir_fid = fopen( ...
+    fullfile(matlab_path, '.matlab_dataone_dir.txt'), 'w');
+fwrite(matlab_dataone_dir_fid, matlab_dataone_dir);
+fclose(matlab_dataone_dir_fid);
 
 % Add to Matlab path
 %warning off MATLAB:dispatcher:nameConflict;
@@ -31,11 +36,11 @@ startup_fid = fopen(startup_path, 'w');
 % Add a section to the file that adds all matlab-dataone files in lib/matlab and
 % src/matlab to the path
 
-lib_matlab_path = fullfile(mlt_dataone_root, 'lib', 'matlab');
+lib_matlab_path = fullfile(matlab_dataone_dir, 'lib', 'matlab');
 fprintf(startup_fid, '%s', 'warning off MATLAB:dispatcher:nameConflict');
 fprintf(startup_fid, '\naddpath(genpath(''%s''));\n', lib_matlab_path);    
 
-src_matlab_dataone_path = fullfile(mlt_dataone_root, 'src', 'matlab');
+src_matlab_dataone_path = fullfile(matlab_dataone_dir, 'src', 'matlab');
 fprintf(startup_fid, 'addpath(genpath(''%s''));\n', src_matlab_dataone_path);      
 fprintf(startup_fid, '%s', 'warning on MATLAB:dispatcher:nameConflict');
 
