@@ -1968,13 +1968,13 @@ classdef RunManager < hgsetget
                inDataObject = runManager.execution.execution_objects(inId);
                in_d1_sysmeta = inDataObject.system_metadata;
                in_file_size = in_d1_sysmeta.getSize;
-               in_file_name = in_d1_sysmeta.getFileName;
+               in_file_name = char(in_d1_sysmeta.getFileName());
                in_file_metadata = dir(inDataObject.full_file_path);
-               
-               usedFileStruct(i,1).LocalName = cell(in_file_name); % Convert java string to cell so that the usedFile table can be displayed Dec-8-2015    
+
+               usedFileStruct(i,1).LocalName = {in_file_name};
                fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
-               usedFileStruct(i,1).Size = char(fsize); 
-               usedFileStruct(i,1).ModifiedTime = in_file_metadata.date; 
+               usedFileStruct(i,1).Size = {char(fsize)}; 
+               usedFileStruct(i,1).ModifiedTime = {in_file_metadata.date}; 
            end
                       
            % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
@@ -1984,13 +1984,13 @@ classdef RunManager < hgsetget
                outDataObject = runManager.execution.execution_objects(outId);
                out_d1_sysmeta = outDataObject.system_metadata;
                out_file_size = out_d1_sysmeta.getSize;
-               out_file_name = out_d1_sysmeta.getFileName;
+               out_file_name = char(out_d1_sysmeta.getFileName());
                out_file_metadata = dir(outDataObject.full_file_path);
    
-               generatedFileStruct(j,1).LocalName = cell(out_file_name); % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
+               generatedFileStruct(j,1).LocalName = {out_file_name}; % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
                fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
-               generatedFileStruct(j,1).Size = char(fsize); 
-               generatedFileStruct(j,1).ModifiedTime = out_file_metadata.date;     
+               generatedFileStruct(j,1).Size = {char(fsize)}; 
+               generatedFileStruct(j,1).ModifiedTime = {out_file_metadata.date};     
            end
         
            results = {detailStruct, usedFileStruct, generatedFileStruct};
