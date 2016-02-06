@@ -127,7 +127,7 @@ With the metadata populated, you may choose to publish a run and its artifacts t
 
   mgr.configuration.target_member_node_id = 'urn:node:KNB'); % Or another repository
   mgr.configuration.coordinating_node_base_url = 'https://cn.dataone.org/cn');
-  mgr.configuration.authentication_token', 'eyJhbGciOiJSUzI1Ni ...'); % Add your token here
+  mgr.configuration.authentication_token = 'eyJhbGciOiJSUzI1Ni ...'); % Add your token here
   mgr.configuration.saveConfig();
   mgr.publish('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % Replace the packageId here
 
