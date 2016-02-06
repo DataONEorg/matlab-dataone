@@ -131,7 +131,7 @@ With the metadata populated, you may choose to publish a run and its artifacts t
   mgr.configuration.saveConfig();
   mgr.publish('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % Replace the packageId here
 
-To obtain an authentication token above, visit http://search.dataone.org and use the *Sign In* button to log in with your account from your institution'.  You can also log in via a Google account.
+To obtain an authentication token above, visit http://search.dataone.org and use the *Sign In* button to log in with your account from your institution.  You can also log in via a Google account.
 
 Once signed in, navigate to the 'My profile' section of your account.  Choose the 'Settings' tab, and choose the 'Apps' section.  You'll see an authentication token in a dialog box.  Use the 'Copy' button to copy it to your clipboard, and paste it into the above command.  The token expires after 18 hours, so just return to your profile to renew it when needed.
 
