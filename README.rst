@@ -24,7 +24,7 @@ Matlab R2015b or later for Mac, Windows, or Linux is required to use the toolbox
 4) Run the *install_matlab_dataone* script in that directory
 5) Restart Matlab
 
-.. _`Matlab DataONE Toolbox 1.0.0`: https://github.com/DataONEorg/matlab-dataone/archive/master.zip
+.. _`Matlab DataONE Toolbox 1.0.0`: https://github.com/DataONEorg/matlab-dataone/archive/1.0.0.zip
 
 License
 =======
