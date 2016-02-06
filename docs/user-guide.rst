@@ -122,6 +122,7 @@ Basic metadata are generated for each run.  The toolbox provides a template meta
 Publishing an execution
 ~~~~~~~~~~~~~~~~~~~~~~~
 With the metadata populated, you may choose to publish a run and its artifacts to a DataONE Member Node.  To do so, use the *RunManagerpublish()* function.  First, set the appropriate Member Node and Coordinating Node configuration properties, along with authentication properties.
+
 .. code:: matlab
 
   mgr.configuration.target_member_node_id = 'urn:node:KNB'); % Or another repository
