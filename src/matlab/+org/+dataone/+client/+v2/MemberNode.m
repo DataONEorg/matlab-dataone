@@ -30,18 +30,20 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
     
     methods 
         
-        function memberNode = MemberNode(mnode_id) % class constructor method
+        function memberNode = MemberNode(mnode_ref) % class constructor method
             % MEMBERNODE Constructs an MemberNode object instance with the given
-            % member node identifier
+            % member node identifier or member node base url
             %
             %   import org.dataone.client.v2.MemberNode;
             %   mn = MemberNode('urn:node:KNB') returns the MemberNode
             %   object representing this DataONE data repository
+            %   mn = MemberNode('https://knb.ecoinformatics.org/knb/d1/mn') 
+            %   returns the MemberNode object representing this DataONE data repository
             
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
             
-            if ~isempty(mnode_id)
+            if ~isempty(mnode_ref)
                 
                 import org.dataone.client.configure.Configuration;
                 config = Configuration.loadConfig('');
@@ -49,17 +51,30 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
                 import org.dataone.configuration.Settings;
                 Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
                     config.coordinating_node_base_url);
-                
-                node_ref = NodeReference();
-                node_ref.setValue(java.lang.String(mnode_id));
+                if ( regexp(mnode_ref, '^urn') == 1 )
+                    node_ref = NodeReference();
+                    node_ref.setValue(java.lang.String(mnode_ref));
+                    mnode = D1Client.getMN(node_ref);
+
+                elseif ( regexp(mnode_ref, '^http') == 1 )
+                    mnode = D1Client.getMN(mnode_ref);
+                    
+                else
+                    msg = ['The mnode_ref parameter must be either ' ...
+                        char(10) ...
+                        'a Member Node id starting with ''urn:node:'' ' ...
+                        char(10) ...
+                        'or a Member Node base URL starting with ''http''.'];
+                    error(msg);
+                    
+                end
                           
-                mnode = D1Client.getMN(node_ref);
                 memberNode.node = mnode;
                 
                 memberNode.node_base_service_url = ...
                     char(memberNode.node.getNodeBaseServiceUrl());
                 memberNode.node_type = 'mn';
-                memberNode.node_id = mnode_id;
+                memberNode.node_id = mnode_ref;
             end
         end
         
@@ -423,7 +438,8 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             %   Filter the returned list with the fromDate, toDate, formatId,
             %   identifier, or replicaStatus parameters.  Use the start and
             %   count parameters to page through the results
-            %   [objects, start, count, total] = listObjects() returns:
+            %   [objects, start, count, total] = ...
+            %       listObjects([], [], [], [], [], [], [], []) returns:
             %
             %   objects - the list of objects as a struct, with:
             %   objects.identifier
@@ -433,9 +449,18 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             %   objects.dateSysMetadataModified
             %   objects.size
             %
+            %   Parameters:
+            %   session - An org.dataone.client.v2.Session object
+            %   fromDate - include objects after this date (yyyy-MM-dd''T''hh:mm:ss)
+            %   fromDate - include objects before this date (yyyy-MM-dd''T''hh:mm:ss)
+            %   formatid - return objects with this DataONE object format identifier
+            %   identifier - return objects with this identifier
+            %   replicaStatus - when false, don't return replicas
+            %
+            %   Returns:
             %   start - the starting index requested (start at nth object)
             %   count - the number of returned objects requested
-            %   total - the total number of objects on the Node
+            %   total - the total number of requested objects on the Node
             %
             %   See https://purl.dataone.org/architecturev2/apis/Types.html#Types.ObjectList
             
@@ -453,6 +478,7 @@ classdef MemberNode < org.dataone.client.v2.DataONENode
             
             % Do we have a session?
             if ( isempty(session) )
+                import org.dataone.client.v2.Session;
                 session = Session();
             end
             
