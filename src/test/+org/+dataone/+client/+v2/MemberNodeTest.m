@@ -208,7 +208,8 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 set(sysmeta, 'checksum', chksum);
                 
                 % Set the file name
-                set(sysmeta, 'fileName', full_file_path);
+                [path filename ext] = fileparts(full_file_path);
+                set(sysmeta, 'fileName', [filename ext]);
                 
                 % Set the access policy
                 accessPolicy.rules = ...
@@ -326,7 +327,8 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 set(sysmeta, 'checksum', chksum);
                 
                 % Set the file name
-                set(sysmeta, 'fileName', full_file_path);
+                [path filename ext] = fileparts(full_file_path);
+                set(sysmeta, 'fileName', [filename ext]);
                 
                 % Set the access policy
                 accessPolicy.rules = ...
@@ -437,7 +439,8 @@ classdef MemberNodeTest < matlab.unittest.TestCase
                 set(sysmeta, 'checksum', chksum);
                 
                 % Set the file name
-                set(sysmeta, 'fileName', full_file_path);
+                [path filename ext] = fileparts(full_file_path);
+                set(sysmeta, 'fileName', [filename ext]);
                 
                 % Set the submitter (required)
                 set(sysmeta, 'submitter', char(session.account_subject));
