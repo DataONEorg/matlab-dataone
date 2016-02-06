@@ -171,6 +171,7 @@ classdef DataONENode < hgsetget
             d1FileName = j_sysmeta.getFileName();
             if isempty(d1FileName)
                 d1FileName = char(java.util.UUID.randomUUID());
+                j_sysmeta.setFileName(d1FileName);
                 
             end
             
@@ -199,7 +200,7 @@ classdef DataONENode < hgsetget
                 if ( isempty(existing_id) )
                     % Add this object to the execution objects map
                     dataObject = ...
-                        DataObject(char(j_pid.getValue()), formatId, d1FileFullPath);
+                        DataObject(char(j_pid.getValue()), char(formatId), d1FileFullPath);
                     % Set the system metadata downloaded from the given
                     % mnode for the current dataObject
                     set(dataObject, 'system_metadata', j_sysmeta);
