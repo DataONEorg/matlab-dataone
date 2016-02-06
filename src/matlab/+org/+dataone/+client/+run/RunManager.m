@@ -2191,7 +2191,7 @@ classdef RunManager < hgsetget
                     
                     d1_object_id = identifiers{k};
                     d1_object = d1objects{k};
-                    d1_object_format = d1_object.format_id;
+                    d1_object_format = char(d1_object.format_id);
                     
                     if true % runManager.configuration.debug
                         fprintf( ...
