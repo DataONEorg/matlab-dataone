@@ -108,7 +108,7 @@ Basic metadata are generated for each run.  The toolbox provides a template meta
     mgr.configuration.science_metadata_config.keyword2 = 'temperature';
     mgr.configuration.science_metadata_config.keyword3 = 'Santa Cruz Island';
     mgr.configuration.science_metadata_config.keyword4 = 'California';
-    mgr.configuration.science_metadata_config.keyword5 = 'global';
+    mgr.configuration.science_metadata_config.keyword5 = 'USA';
     mgr.configuration.science_metadata_config.intellectual_rights = ...
         ['Please cite PISCO in all publications containing these data.   ' ...
         'The citation should take the form: "This study utilized data    ' ...
@@ -118,9 +118,6 @@ Basic metadata are generated for each run.  The toolbox provides a template meta
         'Moore Foundation."'];
     mgr.configuration.saveConfig();
       
-
-Publishing an execution
-~~~~~~~~~~~~~~~~~~~~~~~
 With the metadata populated, you may choose to publish a run and its artifacts to a DataONE Member Node.  To do so, use the *RunManager.publish()* function.  First, set the appropriate Member Node and Coordinating Node configuration properties, along with authentication properties.
 
 .. code:: matlab
