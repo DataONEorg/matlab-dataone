@@ -1537,7 +1537,7 @@ classdef RunManager < hgsetget
                 addParameter(listRunsParser,'quiet', false, @islogical);
                 addParameter(listRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
-                addParameter(listRunsParser,'tag', '', @iscell);
+                addParameter(listRunsParser,'tag', '', @(x) iscell(x) || ischar(x)); % accept both a single char array and a cell array
                 checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
                 addParameter(listRunsParser,'runNumber', '', checkSequenceNumber);
             end
