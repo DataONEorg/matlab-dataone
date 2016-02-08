@@ -43,7 +43,7 @@ assigned to each run to assist in easily specifying a particular run.
 
 .. code:: matlab
 
-  mgr.listRuns('tag', {'First run'});
+  mgr.listRuns('tag', 'First run');
   
 
 If no search parameters are specified to *listRuns()*, then all recorded runs are listed.
