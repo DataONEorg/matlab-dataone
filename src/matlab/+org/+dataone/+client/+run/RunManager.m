@@ -1970,10 +1970,10 @@ classdef RunManager < hgsetget
                in_file_size = in_d1_sysmeta.getSize;
                in_file_name = char(in_d1_sysmeta.getFileName());
                in_file_metadata = dir(inDataObject.full_file_path);
-
-               usedFileStruct(i,1).LocalName = {in_file_name};
+               
+               usedFileStruct(i,1).LocalName = {char(in_file_name)}; % Convert java string to cell so that the usedFile table can be displayed Dec-8-2015    
                fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
-               usedFileStruct(i,1).Size = {char(fsize)}; 
+               usedFileStruct(i,1).Size = char(fsize); 
                usedFileStruct(i,1).ModifiedTime = {in_file_metadata.date}; 
            end
                       
@@ -1987,9 +1987,9 @@ classdef RunManager < hgsetget
                out_file_name = char(out_d1_sysmeta.getFileName());
                out_file_metadata = dir(outDataObject.full_file_path);
    
-               generatedFileStruct(j,1).LocalName = {out_file_name}; % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
+               generatedFileStruct(j,1).LocalName = {char(out_file_name)}; % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
                fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
-               generatedFileStruct(j,1).Size = {char(fsize)}; 
+               generatedFileStruct(j,1).Size = char(fsize); 
                generatedFileStruct(j,1).ModifiedTime = {out_file_metadata.date};     
            end
         
@@ -2019,7 +2019,7 @@ classdef RunManager < hgsetget
                     
            if showUsed == 1    
                fprintf('\n\n[USED]: %d Items used by this run\n', length(usedFileStruct));
-               fprintf('------------------------------------\n');
+               fprintf('------------------------------------\n');               
                TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
                disp(TableForFileUsed);
            end 
