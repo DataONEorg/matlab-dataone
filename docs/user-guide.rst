@@ -43,7 +43,7 @@ assigned to each run to assist in easily specifying a particular run.
 
 .. code:: matlab
 
-  mgr.listRuns('tag', 'First run');
+  mgr.listRuns('tag', {'First run'});
   
 
 If no search parameters are specified to *listRuns()*, then all recorded runs are listed.
@@ -122,9 +122,9 @@ With the metadata populated, you may choose to publish a run and its artifacts t
 
 .. code:: matlab
 
-  mgr.configuration.target_member_node_id = 'urn:node:KNB'); % Or another repository
-  mgr.configuration.coordinating_node_base_url = 'https://cn.dataone.org/cn');
-  mgr.configuration.authentication_token = 'eyJhbGciOiJSUzI1Ni ...'); % Add your token here
+  mgr.configuration.target_member_node_id = 'urn:node:KNB'; % Or another repository
+  mgr.configuration.coordinating_node_base_url = 'https://cn.dataone.org/cn';
+  mgr.configuration.authentication_token = 'eyJhbGciOiJSUzI1Ni ...'; % Add your token here
   mgr.configuration.saveConfig();
   mgr.publish('86ac27de-f45c-4bc2-ba09-d4bedcec9546'); % Replace the packageId here
 
