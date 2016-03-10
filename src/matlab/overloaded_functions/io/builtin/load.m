@@ -79,7 +79,7 @@ function varargout = load( varargin )
     
     source = '';
     if nargin == 0
-        % TODO: load all variables from the mat-file matlab.mat if it exists. Returns an error if it doesn't exist.
+        % Load all variables from the mat-file matlab.mat if it exists. Returns an error if it doesn't exist.
         
         str = which('-file', 'matlab.mat');
         if isempty(str) % 'matlab.mat' file does not exist
