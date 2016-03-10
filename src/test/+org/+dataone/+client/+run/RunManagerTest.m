@@ -161,11 +161,16 @@ classdef RunManagerTest < matlab.unittest.TestCase
         function testRecord(testCase)
             fprintf('\nIn testRecord() ...\n');
             
+%             testCase.filename = ...
+%                 fullfile( ...
+%                 testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+%                     'src', 'test', 'resources', 'C3_C4_map_present_NA_Markup_v2_7.m');
+            
             testCase.filename = ...
                 fullfile( ...
                 testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
-                    'src', 'test', 'resources', 'C3_C4_map_present_NA_Markup_v2_7.m');
-            
+                'src', 'test', 'resources', 'myScript7.m');
+                
             scriptPath = which(testCase.filename); % get the absolute path of the script
             if isempty(scriptPath)
                 [status, struc] = fileattrib(testCase.filename);
@@ -194,7 +199,9 @@ classdef RunManagerTest < matlab.unittest.TestCase
                 total = sum(~cellfun('isempty', matches));
                 assertEqual(testCase, total, 3);
             end
-            
+
+%           sections = {'details', 'used', 'generated'};
+%           testCase.mgr.view('packageId', testCase.mgr.execution.execution_id, 'sections', sections);
         end
         
         function testPutMetadataWithSalutationConfigAndDomElement(testCase)
@@ -1000,7 +1007,7 @@ classdef RunManagerTest < matlab.unittest.TestCase
            
             run(scriptPath);
             
-            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 5);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 4);
             assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids), 2);
 
         end        

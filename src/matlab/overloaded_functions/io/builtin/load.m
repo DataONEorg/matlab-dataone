@@ -81,6 +81,35 @@ function varargout = load( varargin )
     if nargin == 0
         % TODO: load all variables from the mat-file matlab.mat if it exists. Returns an error if it doesn't exist.
         
+        str = which('-file', 'matlab.mat');
+        if isempty(str) % 'matlab.mat' file does not exist
+            try
+                load % call built-in load function and an error message will be displayed 
+            catch ME
+                % Add the wrapper load back to the Matlab path
+                warning off MATLAB:dispatcher:nameConflict;
+                addpath(overloaded_func_path, '-begin');
+                warning on MATLAB:dispatcher:nameConflict;
+                
+                if ( runManager.configuration.debug)
+                    disp('add the path of the overloaded load function back.');
+                end
+                
+                rethrow(ME)
+            end
+            
+            % Add the wrapper load back to the Matlab path
+            warning off MATLAB:dispatcher:nameConflict;
+            addpath(overloaded_func_path, '-begin');
+            warning on MATLAB:dispatcher:nameConflict;
+            
+            if ( runManager.configuration.debug)
+                disp('add the path of the overloaded load function back.');
+            end
+            
+            return;
+        end
+        
         % Call builtin load with any input arguments
         load_returned_struct = load; % Assign the returned results to a struct
         
