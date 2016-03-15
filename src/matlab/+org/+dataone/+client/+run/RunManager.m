@@ -2166,6 +2166,7 @@ classdef RunManager < hgsetget
                         'encounted an error on the getCN() request.']);
                 end
                 
+                                
                 % Set the MNode ID
                 mnRef = NodeReference();
                 mnRef.setValue(runManager.configuration.target_member_node_id);
@@ -2202,7 +2203,7 @@ classdef RunManager < hgsetget
                             d1_object_format, ...
                             d1_object.full_file_path);
                     end
-                    
+                                          
                     % build d1 object
                     dataObj = runManager.buildD1Object(d1_object.full_file_path, ...
                         d1_object_format, d1_object_id, submitter.getValue(), targetMNodeStr);
@@ -2255,19 +2256,25 @@ classdef RunManager < hgsetget
                     pid = v2SysMeta.getIdentifier();
                     j_session = session.getJavaSession();
                     
-                    returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);  
-                    if isempty(returnPid) ~= 1
-                        fprintf('Success      : Uploaded %s\n\n', char(v2SysMeta.getFileName()));
+                    try
+                        % Check if the identifier has been used. If so,
+                        % skip uploading the current file object
+                        returnPid = cnNode.reserveIdentifier(j_session, pid);
                         
-                    else
-                        % TODO: Process the error correctly.
-                        error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));
+                        returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);
+                        if isempty(returnPid) ~= 1
+                            fprintf('Success      : Uploaded %s\n\n', char(v2SysMeta.getFileName()));
+                            
+                        else
+                            % TODO: Process the error correctly.
+                            error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));                            
+                        end
+                    catch
+                        msg = ['Error on duplicate identifier' char(v2SysMeta.getIdentifier().getValue())];
+                        warning(msg);
                         
+                        continue; % Ignore the duplicate error and upload the next file object
                     end
-                    % else
-                        % TODO: Process the error correctly.
-                        % error('Error on duplicate identifier %s', v2SysMeta.getIdentifier());
-                    % end
                 end
                 
                 package_id = packageId; 

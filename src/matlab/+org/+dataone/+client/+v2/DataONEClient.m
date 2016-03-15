@@ -78,7 +78,7 @@ classdef DataONEClient < hgsetget
             import org.dataone.client.v2.itk.D1Client;
             
             import org.dataone.client.v2.CoordinatingNode;
-            coordinating_node = CoordinatingNode();
+            coordinating_node = CoordinatingNode(''); % March-15-2016
             import org.dataone.client.configure.Configuration;
             config = Configuration.loadConfig(''); % Use client's saved configuration
             
