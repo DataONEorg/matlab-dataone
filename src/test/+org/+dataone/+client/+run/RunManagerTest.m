@@ -507,6 +507,28 @@ classdef RunManagerTest < matlab.unittest.TestCase
             assert(~isempty(eml_string));
         end
         
+        
+        function testOverloadedPrint(testCase)
+            fprintf('\nIn testOverloadedPrint() ...\n');
+            testCase.filename = ...
+                fullfile( ...
+                testCase.mgr.configuration.matlab_dataone_toolbox_directory, ...
+                'src', 'test', 'resources', 'myScript29.m');
+            
+            scriptPath = which(testCase.filename);
+            if isempty(scriptPath)
+                [status, struc] = fileattrib(testCase.filename);
+                scriptPath = struc.Name;
+            end
+            
+            run(scriptPath);
+            
+            assertEqual(testCase, length(testCase.mgr.execution.execution_input_ids), 0);
+            assertEqual(testCase, length(testCase.mgr.execution.execution_output_ids),1);
+            
+        end
+        
+        
         function testOverloadedXlsread(testCase)
             if ispc
                 fprintf('\nIn testOverloadedXlsread() ...\n');
