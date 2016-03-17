@@ -196,17 +196,17 @@ for i=1:nargin
                         matched_format_type = varargin{j};
                         
                         if strcmp(matched_format_type, '-dbmp')
-                            ext = 'bmp';
+                            file_ext = 'bmp';
                         elseif strcmp(matched_format_type, '-djpeg')
-                            ext = 'jpeg';
+                            file_ext = 'jpeg';
                         elseif strcmp(matched_format_type, '-dpng')
-                            ext = 'png';
+                            file_ext = 'png';
                         elseif strcmp(matched_format_type, '-dsvg')
-                            ext = 'svg';
+                            file_ext = 'svg';
                         elseif strcmp(matched_format_type, '-dtiff')
-                            ext = 'tiff';
+                            file_ext = 'tiff';
                         end
-                        source = [name '.' ext ];
+                        source = [name '.' file_ext ];
                         break;
                     end
                 end
@@ -232,15 +232,15 @@ for i=1:nargin
         % Identifiy the file being used and add a prov:wasGeneratedBy statement
         % in the RunManager DataPackage instance
         if ( runManager.configuration.capture_file_writes )
-            if strcmp(ext, 'bmp')
+            if strcmp(file_ext, 'bmp')
                 formatId = 'image/bmp';
-            elseif strcmp(ext, 'jpeg')
+            elseif strcmp(file_ext, 'jpeg')
                 formatId = 'image/jpeg';
-            elseif strcmp(ext, 'png')
+            elseif strcmp(file_ext, 'png')
                 formatId = 'image/png';
-            elseif strcmp(ext, 'svg')
+            elseif strcmp(file_ext, 'svg')
                 formatId = 'image/svg xml';
-            elseif strcmp(ext, 'tiff')
+            elseif strcmp(file_ext, 'tiff')
                 formatId = 'image/tiff';
             else
                 formatId = 'application/octet-stream';
