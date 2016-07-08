@@ -27,7 +27,7 @@ classdef FileMetadata < hgsetget
     end
     
     properties (Access = private)
-        
+        sqlite_db_helper = SqliteHelper();
     end
     
     
@@ -95,17 +95,18 @@ classdef FileMetadata < hgsetget
                 warningMessage =['Warning: file does not exist:\n%s', dataObject.full_file_path];
                 disp(warningMessage);
                
-            end
-
-            
+            end            
         end
         
-        function createFileMetadataTable()
+        function createFileMetadataTable(fileMetadata)
             % CREATEFILEMETADATATABLE Create a file metadata table
             
-            db_conn = database('prov.db', '', '', 'org.sqlite.JDBC', 'jdbc:sqlite:/Users/syc/Documents/matlab-dataone/prov.db');
-            
-            create_statement = ['create table filemeta' ...
+            if isempty(fileMetadata.sqlite_db_helper.db_conn)               
+                prov_db_name_str = 'prov.db';
+                db_conn = fileMetadata.sqlite_db_helper.openDBConnection(prov_db_name_str);
+            end
+         
+            create_table_statement = ['create table filemeta' ...
                 '(' ...
                 'fileId TEXT PRIMARY KEY,' ...
                 'executionId TEXT not null,' ...
@@ -121,20 +122,84 @@ classdef FileMetadata < hgsetget
                 'foreign key(executionId) references execmeta(executionId),' ...
                 'unique(fileId));'];
             
-            curs = exec(db_conn, create_statement);
+            if isemtpy(db_conn) ~= 1
+                curs = exec(db_conn, create_table_statement);                
+                close(db_conn);                
+            end
             
-            close(db_conn);
         end
         
-        function result = writeFileMeta(varargin)
+        function status = writeFileMeta(fileMetadata)
             % WRITEFILEMETA Save metadata for a single file
             
-            
+            % Check if the connection to the database is still working
+            if isempty(fileMetadata.sqlite_db_helper.db_conn) ~= 1
+                db_conn = fileMetadata.sqlite_db_helper.db_conn;
+                                
+                % Get the database connection and check if the filemeta table
+                % exists
+                get_table_sql_statement = ['SELECT count(*) FROM sqlite_master' ...
+                    'WHERE type=', 'table', 'AND name=filemeta'];
+                count = fileMetadata.sqlite_db_helper.getTable(get_table_sql_statement);
+                if count > 1                   
+                    % Get values from the input argument 'fileMetadata' record
+                    filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
+                        'size', 'user', 'modifyTime', 'createTime', 'access', 'format'};
+                    
+                    % Convert fileMetadata object to fileMeta struct
+                    filemeta_props = properties(fileMetadata); % displays the names of the public properties for the class of fileMetadata
+                    data_row = cell(1, length(filemeta_props));
+                    for i = 1:length(filemeta_props)
+                        % Todo: need to check if the order is the same as
+                        % the filemetadata schema order
+                        data_row{i} = fileMetadata.get(filemeta_props{i});
+                    end
+                    
+                    % Call SQL insert statement to insert to the filemeta table
+                    insert_sql_statement = ['INSERT INTO filemeta (', ...
+                        filemeta_colnames, 'VALUES (', data_row, ')'];
+                    
+                    curs = exec(db_conn, insert_sql_statement); 
+                    
+                    % Disconnect the data base connection
+                    close(db_conn);
+                    % Interpret result status and set true or false
+                    status = true;
+                else
+                   % First create a filemeta table
+                   
+                end
+                
+            else
+                status = false;
+            end
         end
         
-        function result = readFileMeta(varargin)
+%         function status = writeFileMeta(varargin)
+%             
+%         end
+                
+        function result = readFileMeta(fileMetadata)
             % READFILEMETA Retrieve saved file metadata for one or more
             % files
+            
+            % Check if the connection to the database is still working
+            
+            % If the 'execmeta' table doesn's exist yet, then there is no
+            % exec metadata for this executionId, so just return a blank
+            % data record
+            
+            % Construct a SELECT statement to retrieve the runs that match
+            % the specified search criteria
+            
+            % If the user specified 'delete=TRUE', so first fetch the
+            % matching records, then delete them.
+            
+            % Retrieve records taht match search criteria
+            
+            % Now delete records if requested
+            
+            % Disconnect the database connection
             
             
         end
