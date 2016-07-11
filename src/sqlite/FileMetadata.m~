@@ -126,8 +126,7 @@ classdef FileMetadata < hgsetget
                 'unique(fileId));'];
             
             if isemtpy(db_conn) ~= 1
-                curs = exec(db_conn, create_table_statement); 
-                close(curs);
+                curs = exec(db_conn, create_table_statement);                
                 close(db_conn);                
             end
             
@@ -153,7 +152,7 @@ classdef FileMetadata < hgsetget
                 if count >= 1                   
                     % Get values from the input argument 'fileMetadata' record
                     filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
-                        'size', 'user', 'modifyTime', 'createTime', 'access', 'format', 'archivedFilePath'};
+                        'size', 'user', 'modifyTime', 'createTime', 'access', 'format'};
                                       
                     data_row = cell(1, length(filemeta_colnames));
                     for i = 1:length(filemeta_colnames)
@@ -165,7 +164,6 @@ classdef FileMetadata < hgsetget
                     curs = exec(db_conn, insert_sql_statement); 
                     
                     % Disconnect the data base connection
-                    close(curs);
                     close(db_conn);
                     % Interpret result status and set true or false
                     status = true;
@@ -232,81 +230,78 @@ classdef FileMetadata < hgsetget
                 row_fileId = fileMetadata.get('fileId');
                 if isempty(row_fileId) ~= 1
                     if isempty(where_clause)
-                        where_clause = ['where fileId=', row_fileId];
+                        where_clause = ['where fileId=', fileId];
                     else
-                        where_clause = [where_clause, ' and fileId = ', row_fileId];
+                        where_clause = [where_clause, ' and fileId = ', fileId];
                     end
                 end
                                
-                row_executionId = fileMetadata.get('executionId');
-                if isempty(row_executionId) ~= 1
+                executionId = fileMetadata.get('executionId');
+                if isempty(executionId) ~= 1
                     if isempty(where_clause)
-                        where_clause = ['where executionId=', row_executionId];
+                        where_clause = ['where executionId=', executionId];
                     else
-                        where_clause = [where_clause, ' and executionId = ', row_executionId];
+                        where_clause = [where_clause, ' and executionId = ', executionId];
                     end
                 end
                 
-                row_sha256 = fileMetadata.get('sha256');
-                if isempty(row_sha256) ~= 1
+                sha256 = fileMetadata.get('sha256');
+                if isempty(sha256) ~= 1
                     if isempty(where_clause)
-                        where_clause = ['where sha256=', row_sha256];
+                        where_clause = ['where sha256=', sha256];
                     else
-                        where_clause = [where_clause, ' and sha256 = ', row_sha256];
+                        where_clause = [where_clause, ' and sha256 = ', sha256];
                     end
                 end
                 
-                row_filePath = fileMetadata.get('filePath');
-                if isempty(row_filePath) ~= 1
+                filePath = fileMetadata.get('filePath');
+                if isempty(filePath) ~= 1
                     if isempty(where_clause)
-                        where_clause = ['where filePath=', row_filePath];
+                        where_clause = ['where filePath=', filePath];
                     else
-                        where_clause = [where_clause, ' and filePath = ', row_filePath];
+                        where_clause = [where_clause, ' and filePath = ', filePath];
                     end
                 end
                 
-                row_user = fileMetadata.get('user');
-                if isempty(row_user) ~= 1
+                user = fileMetadata.get('user');
+                if isempty(filePath) ~= 1
                     if isempty(where_clause)
-                        where_clause = ['where user=', row_user];
+                        where_clause = ['where user=', user];
                     else
-                        where_clause = [where_clause, ' and user = ', row_user];
+                        where_clause = [where_clause, ' and user = ', user];
                     end
                 end
                 
-                row_access = fileMetadata.get('access');
-                if isempty(row_access) ~= 1
+                access = fileMetadata.get('access');
+                if isempty(filePath) ~= 1
                     if isempty(where_clause)
-                        where_clause = ['where access=', row_access];
+                        where_clause = ['where access=', access];
                     else
-                        where_clause = [where_clause, ' and access = ', row_access];
+                        where_clause = [where_clause, ' and access = ', access];
                     end
                 end
                 
-                row_format = fileMetadata.get('format');
-                if isempty(row_format) ~= 1
+                format = fileMetadata.get('format');
+                if isempty(format) ~= 1
                     if isempty(where_clause)
-                        where_clause = ['where format=', row_format];
+                        where_clause = ['where format=', format];
                     else
-                        where_clause = [where_clause, ' and format = ', row_format];
+                        where_clause = [where_clause, ' and format = ', format];
                     end
                 end
-                               
+                
                 % If the user specified 'delete=TRUE', so first fetch the
                 % matching records, then delete them.
                 
                 
                 % Retrieve records that match search criteria
-                select_statement = [select_statement, where_clause, order_by_clause];
                 curs = exec(db_conn, select_statement); 
                 curs = fetch(curs);
-                result = curs.Data;
                 
                 % Now delete records if requested
                 
                 
                 % Disconnect the database connection
-                close(curs);
                 close(db_conn);
                 
             else

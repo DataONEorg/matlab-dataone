@@ -41,8 +41,8 @@ classdef SqliteHelper < hgsetget
             
         end
         
-        function count = getTable(sqlhelper, sql_statement)
-            count = exec(sqlhelper.db_conn, sql_statement); 
+        function curs = getTable(sqlhelper, sql_statement)
+            curs = exec(sqlhelper.db_conn, sql_statement); 
         end
     end
     
