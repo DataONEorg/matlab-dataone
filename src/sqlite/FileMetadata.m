@@ -145,14 +145,10 @@ classdef FileMetadata < hgsetget
                     % Get values from the input argument 'fileMetadata' record
                     filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
                         'size', 'user', 'modifyTime', 'createTime', 'access', 'format'};
-                    
-                    % Convert fileMetadata object to fileMeta struct
-                    filemeta_props = properties(fileMetadata); % displays the names of the public properties for the class of fileMetadata
-                    data_row = cell(1, length(filemeta_props));
-                    for i = 1:length(filemeta_props)
-                        % Todo: need to check if the order is the same as
-                        % the filemetadata schema order
-                        data_row{i} = fileMetadata.get(filemeta_props{i});
+                                      
+                    data_row = cell(1, length(filemeta_colnames));
+                    for i = 1:length(filemeta_colnames)
+                        data_row{i} = fileMetadata.get(filemeta_colnames{i});
                     end
                     
                     % Call SQL insert statement to insert to the filemeta table
