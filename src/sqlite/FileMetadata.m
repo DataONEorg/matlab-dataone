@@ -139,9 +139,12 @@ classdef FileMetadata < hgsetget
                 % Get the database connection and check if the filemeta table
                 % exists
                 get_table_sql_statement = ['SELECT count(*) FROM sqlite_master' ...
-                    'WHERE type=', 'table', 'AND name=filemeta'];
-                count = fileMetadata.sqlite_db_helper.getTable(get_table_sql_statement);
-                if count > 1                   
+                    ' WHERE type=', '"table"', ' AND name="filemeta"'];
+                curs = fileMetadata.sqlite_db_helper.getTable(get_table_sql_statement);
+                curs = fetch(curs);
+                count =rows(curs);
+                
+                if count >= 1                   
                     % Get values from the input argument 'fileMetadata' record
                     filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
                         'size', 'user', 'modifyTime', 'createTime', 'access', 'format'};
@@ -151,10 +154,8 @@ classdef FileMetadata < hgsetget
                         data_row{i} = fileMetadata.get(filemeta_colnames{i});
                     end
                     
-                    % Call SQL insert statement to insert to the filemeta table
-                    insert_sql_statement = ['INSERT INTO filemeta (', ...
-                        filemeta_colnames, 'VALUES (', data_row, ')'];
-                    
+                    % Insert the current data record to the filemeta table                  
+                    insert(db_conn,'filemeta',filemeta_colnames, data_row);
                     curs = exec(db_conn, insert_sql_statement); 
                     
                     % Disconnect the data base connection
