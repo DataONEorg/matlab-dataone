@@ -61,7 +61,7 @@ classdef ExecMetadata < hgsetget
        function createExecMetaTable()
            % CREATEEXECMETATABLE Create an execution metadata table
            
-           conn = database('prov.db', '', '', 'org.sqlite.JDBC', 'jdbc:sqlite:/Users/syc/Documents/matlab-dataone/prov.db');
+           db_conn = database('prov.db', '', '', 'org.sqlite.JDBC', 'jdbc:sqlite:/Users/syc/Documents/matlab-dataone/prov.db');
            
            create_statement = ['create table execmeta' ...
                '(' ...
@@ -85,23 +85,26 @@ classdef ExecMetadata < hgsetget
                'console INTEGER,' ...
                'unique(executionId));'];
            
-            curs=exec(conn, create_statement);
+            curs=exec(db_conn, create_statement);
             
-            close(conn);
+            close(db_conn);
        end
        
        function result = writeExecMeta(varargin)
            % WRITEEXECMETA Save a single execution metadata
            
+           
        end
        
        function result = updateExecMeta(varargin)
            % UPDATEEXECMETA Update a single execution metadata object
+        
            
        end
        
        function result = readExecMeta(varargin)
            % READEXECMETA Retrieve saved execution metadata
+          
            
        end
    end
