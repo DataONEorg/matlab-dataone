@@ -104,7 +104,7 @@ classdef FileMetadata < hgsetget
             
             if isempty(dataObject) ~= 1
                 % Input is an instance of DataObject and get information
-                % from the input dataObject argument
+                % from the input dataObject argument (Todo: need to test this condition)
                 if exist(dataObject.full_file_path, 'file')
                     % File exists.
                     
@@ -139,7 +139,7 @@ classdef FileMetadata < hgsetget
                     
                 end
             else
-                % Input is a list of arguments
+                % Input is a list of arguments (tested)
                 
                 if isempty(execution_id) ~= 1
                    fileMetadata.executionId = execution_id;
@@ -194,7 +194,7 @@ classdef FileMetadata < hgsetget
             % CREATEFILEMETADATATABLE Creates a file metadata table
             % fileMetadata - ?
             
-            db_conn = fileMetadata.dbObj.dbConn;
+            db_conn = fileMetadata.dbObj.openDBConnection();
                      
             create_table_statement = ['create table filemeta' ...
                 '(' ...
@@ -212,7 +212,7 @@ classdef FileMetadata < hgsetget
                 'foreign key(executionId) references execmeta(executionId),' ...
                 'unique(fileId));'];
             
-            if isemtpy(db_conn) ~= 1
+            if isempty(db_conn) ~= 1
                 curs = exec(db_conn, create_table_statement); 
                 close(curs);
                 close(db_conn);                
