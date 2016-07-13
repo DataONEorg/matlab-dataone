@@ -25,12 +25,8 @@ classdef FileMetadata < hgsetget
         format;
         % The location of the archived file
         archivedFilePath;
-        
-        % A database wrapper class
-        dbObj; 
-    
-        % Database name
-        dbname = 'prov.db';
+        % The table name
+        tableName = 'filemeta';
     end
     
     methods (Static)
@@ -51,6 +47,122 @@ classdef FileMetadata < hgsetget
         
     end
     
+    methods(Static)
+        function create_table_statement = createFileMetadataTable()
+            % CREATEFILEMETADATATABLE Creates a file metadata table
+            
+            create_table_statement = ['create table filemeta' ...
+                '(' ...
+                'fileId TEXT PRIMARY KEY,' ...
+                'executionId TEXT not null,' ...
+                'filePath TEXT not null,' ...
+                'sha256 TEXT not null,' ...
+                'size INTEGER not null,' ...
+                'user TEXT not null,' ...
+                'modifyTime TEXT not null,' ...
+                'createTime TEXT not null,' ...
+                'access TEXT not null,' ...
+                'format TEXT,' ...
+                'archivedFilePath TEXT,' ...
+                'foreign key(executionId) references execmeta(executionId),' ...
+                'unique(fileId));'];
+            
+        end
+        
+        function readQuery = readFileMeta(metaObj, orderBy, sortOrder)
+            % READFILEMETA Retrieves saved file metadata for one or more
+            % files
+            % metaObj - a fileMetadata object or struct to be retrieved
+            
+            % Construct a SELECT statement to retrieve the runs that match
+            % the specified search criteria
+            select_statement = 'SELECT * FROM filemeta ';
+            where_clause = '';
+            order_by_clause = '';
+            
+            % Process the orderBy clause
+            if isempty(orderBy) ~= 1
+                if ismember(lower(sortOrder), {'descending', 'desc'})
+                    sortOrder = 'DESC';
+                else
+                    sortOrder = 'ASC';
+                end
+                order_by_clause = [' order by ', orderBy, sortOrder];
+            end
+            
+            % Process the fileMetadata object and construct the WHERE clause
+            if isempty(metaObj) ~= 1
+                row_fileId =  metaObj.get('fileId');
+                if isempty(row_fileId) ~= 1
+                    if isempty(where_clause)
+                        where_clause = ['where fileId=', row_fileId];
+                    else
+                        where_clause = [where_clause, ' and fileId = ', row_fileId];
+                    end
+                end
+                
+                row_executionId =  metaObj.get('executionId');
+                if isempty(row_executionId) ~= 1
+                    if isempty(where_clause)
+                        where_clause = ['where executionId=', row_executionId];
+                    else
+                        where_clause = [where_clause, ' and executionId = ', row_executionId];
+                    end
+                end
+                
+                row_sha256 =  metaObj.get('sha256');
+                if isempty(row_sha256) ~= 1
+                    if isempty(where_clause)
+                        where_clause = ['where sha256=', row_sha256];
+                    else
+                        where_clause = [where_clause, ' and sha256 = ', row_sha256];
+                    end
+                end
+                
+                row_filePath =  metaObj.get('filePath');
+                if isempty(row_filePath) ~= 1
+                    if isempty(where_clause)
+                        where_clause = ['where filePath=', row_filePath];
+                    else
+                        where_clause = [where_clause, ' and filePath = ', row_filePath];
+                    end
+                end
+                
+                row_user =  metaObj.get('user');
+                if isempty(row_user) ~= 1
+                    if isempty(where_clause)
+                        where_clause = ['where user=', row_user];
+                    else
+                        where_clause = [where_clause, ' and user = ', row_user];
+                    end
+                end
+                
+                row_access =  metaObj.get('access');
+                if isempty(row_access) ~= 1
+                    if isempty(where_clause)
+                        where_clause = ['where access=', row_access];
+                    else
+                        where_clause = [where_clause, ' and access = ', row_access];
+                    end
+                end
+                
+                row_format =  metaObj.get('format');
+                if isempty(row_format) ~= 1
+                    if isempty(where_clause)
+                        where_clause = ['where format=', row_format];
+                    else
+                        where_clause = [where_clause, ' and format = ', row_format];
+                    end
+                end
+                
+            end
+                        
+            % Retrieve records that match search criteria
+            select_statement = [select_statement, where_clause, order_by_clause, ';'];
+            readQuery = select_statement;
+                        
+        end
+    end
     
     methods
         function fileMetadata = FileMetadata( varargin )
@@ -60,7 +172,7 @@ classdef FileMetadata < hgsetget
             
             import java.io.File;
             import javax.activation.FileDataSource;
-
+            
             persistent filemetaParser;
             if isempty(filemetaParser)
                 filemetaParser = inputParser;
@@ -76,11 +188,11 @@ classdef FileMetadata < hgsetget
                 addParameter(filemetaParser, 'modifyTime', '', @ischar);
                 addParameter(filemetaParser, 'access', '', @ischar);
                 addParameter(filemetaParser, 'format', '', @ischar);
-                addParameter(filemetaParser, 'archivedFilePath', '', @ischar);                
+                addParameter(filemetaParser, 'archivedFilePath', '', @ischar);
             end
             
             parse(filemetaParser, varargin{:});
-
+            
             dataObject = filemetaParser.Results.dataObject;
             execution_id = filemetaParser.Results.executionId;
             file_id = filemetaParser.Results.fileId;
@@ -98,9 +210,9 @@ classdef FileMetadata < hgsetget
                 fileMetadata.executionId = execution_id;
             end
             
-            import org.dataone.client.sqlite.SqliteHelper;
+            import org.dataone.client.sqlite.SqliteDatabase;
             
-            fileMetadata.dbObj = SqliteHelper('prov.db');
+            %             fileMetadata.dbObj = SqliteDatabase('prov.db');
             
             if isempty(dataObject) ~= 1
                 % Input is an instance of DataObject and get information
@@ -142,13 +254,13 @@ classdef FileMetadata < hgsetget
                 % Input is a list of arguments (tested)
                 
                 if isempty(execution_id) ~= 1
-                   fileMetadata.executionId = execution_id;
+                    fileMetadata.executionId = execution_id;
                 end
                 
                 if isempty(file_id) ~= 1
                     fileMetadata.fileId = file_id;
                 end
-                                
+                
                 if isempty(file_path) ~= 1
                     fileMetadata.filePath = file_path;
                 end
@@ -184,231 +296,33 @@ classdef FileMetadata < hgsetget
                 if isempty(archivedFilePath_str) ~= 1
                     fileMetadata.archivedFilePath = archivedFilePath_str;
                 end
-                     
-            end
-            
-        end
-                     
-        
-        function createFileMetadataTable(fileMetadata)
-            % CREATEFILEMETADATATABLE Creates a file metadata table
-            % fileMetadata - ?
-            
-            db_conn = fileMetadata.dbObj.openDBConnection();
-                     
-            create_table_statement = ['create table filemeta' ...
-                '(' ...
-                'fileId TEXT PRIMARY KEY,' ...
-                'executionId TEXT not null,' ...
-                'filePath TEXT not null,' ...
-                'sha256 TEXT not null,' ...
-                'size INTEGER not null,' ...
-                'user TEXT not null,' ...
-                'modifyTime TEXT not null,' ...
-                'createTime TEXT not null,' ...
-                'access TEXT not null,' ...
-                'format TEXT,' ...
-                'archivedFilePath TEXT,' ...
-                'foreign key(executionId) references execmeta(executionId),' ...
-                'unique(fileId));'];
-            
-            if isempty(db_conn) ~= 1
-                curs = exec(db_conn, create_table_statement); 
-                close(curs);
-                close(db_conn);                
+                
             end
             
         end
         
-        function status = writeFileMeta(fileMetadata)
+        function insertQuery = writeFileMeta(fileMetadata)
             % WRITEFILEMETA Saves metadata for a single file
             % fileMetadata - a filemetadata object to be added to the
             % filemetadata table
             
-            import org.dataone.client.sqlite.SqliteHelper;
+            import org.dataone.client.sqlite.SqliteDatabase;
             
-            
-            % Check if the connection to the database is still working
-            db_conn = fileMetadata.dbObj.openDBConnection();
-            if isempty(db_conn) ~= 1
-                                                
-                % Get the database connection and check if the filemeta table
-                % exists
-                get_table_sql_statement = ['SELECT count(*) FROM sqlite_master' ...
-                    ' WHERE type=', '"table"', ' AND name="filemeta"'];
-                
-                import org.dataone.client.sqlite.SqliteHelper;
-                db_obj = fileMetadata.dbObj;
-                curs = db_obj.getTable(get_table_sql_statement);
-                curs = fetch(curs);
-                count = rows(curs);
-                
-                if count >= 1                   
-                    % Get values from the input argument 'fileMetadata' record
-                    filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
-                        'size', 'user', 'modifyTime', 'createTime', 'access', 'format', 'archivedFilePath'};
-                                      
-                    data_row = cell(1, length(filemeta_colnames));
-                    for i = 1:length(filemeta_colnames)
-                        data_row{i} = fileMetadata.get(filemeta_colnames{i});
-                    end
-                    
-                    % Insert the current data record to the filemeta table                  
-                    insert(db_conn,'filemeta',filemeta_colnames, data_row);
-                                        
-                    % Disconnect the data base connection
-                    close(curs);
-                    close(db_conn);
-                    % Interpret result status and set true or false
-                    status = true;
-                else
-                   % First create a filemeta table
-                   
-                end
-                
-            else
-                status = false;
-            end
-        end
-        
-%         function status = writeFileMeta(varargin)
-%             % WRITEFILEMETA Save metadata for a single file
-%             % fileMetadata_struct - a filemetadata struct to be added to the
-%             % filemetadata table
-%         end
-                
-        function result = readFileMeta(fileMetadata, metaObj, orderBy, sortOrder, delete)
-            % READFILEMETA Retrieves saved file metadata for one or more
-            % files
-            % fileMetadata - a fileMetadata object or struct to be retrieved
-            
-            % Check if the connection to the database is still working
-            db_conn = fileMetadata.dbObj.openDBConnection();
-            if isempty(db_conn) ~= 1
-                                
-                % If the 'execmeta' table doesn's exist yet, then there is no
-                % exec metadata for this executionId, so just return a blank
-                % data record (Todo: do we need this step?)
-                get_table_sql_statement = ['SELECT count(*) FROM sqlite_master' ...
-                    ' WHERE type=', '"table"', ' AND name="execemeta"'];
-                curs = fileMetadata.dbObj.getTable(get_table_sql_statement);
-                curs = fetch(curs);
-                count = rows(curs);
-                if count < 1
-                    result = [];
-                    return;
-                end
-                
-                % Construct a SELECT statement to retrieve the runs that match
-                % the specified search criteria
-                select_statement = 'SELECT * FROM filemeta ';
-                where_clause = '';
-                order_by_clause = '';
-                
-                % Process the orderBy clause
-                if isempty(orderBy) ~= 1
-                    if ismember(lower(sortOrder), {'descending', 'desc'})
-                        sortOrder = 'DESC';
-                    else
-                        sortOrder = 'ASC';
-                    end
-                    order_by_clause = [' order by ', orderBy, sortOrder];
-                end
-                                
-%                 fileMetadataProps = properties(fileMetadata);
-%                 for i = 1:length(fileMetadataProps)
-%                     pvals{i} = fileMetadata.get(fileMetadataProps{i});
-%                 end
 
-                % Process the fileMetadata object and construct the WHERE clause 
-                if isempty(metaObj) ~= 1
-                    row_fileId =  metaObj.get('fileId');
-                    if isempty(row_fileId) ~= 1
-                        if isempty(where_clause)
-                            where_clause = ['where fileId=', row_fileId];
-                        else
-                            where_clause = [where_clause, ' and fileId = ', row_fileId];
-                        end
-                    end
-                    
-                    row_executionId =  metaObj.get('executionId');
-                    if isempty(row_executionId) ~= 1
-                        if isempty(where_clause)
-                            where_clause = ['where executionId=', row_executionId];
-                        else
-                            where_clause = [where_clause, ' and executionId = ', row_executionId];
-                        end
-                    end
-                    
-                    row_sha256 =  metaObj.get('sha256');
-                    if isempty(row_sha256) ~= 1
-                        if isempty(where_clause)
-                            where_clause = ['where sha256=', row_sha256];
-                        else
-                            where_clause = [where_clause, ' and sha256 = ', row_sha256];
-                        end
-                    end
-                    
-                    row_filePath =  metaObj.get('filePath');
-                    if isempty(row_filePath) ~= 1
-                        if isempty(where_clause)
-                            where_clause = ['where filePath=', row_filePath];
-                        else
-                            where_clause = [where_clause, ' and filePath = ', row_filePath];
-                        end
-                    end
-                    
-                    row_user =  metaObj.get('user');
-                    if isempty(row_user) ~= 1
-                        if isempty(where_clause)
-                            where_clause = ['where user=', row_user];
-                        else
-                            where_clause = [where_clause, ' and user = ', row_user];
-                        end
-                    end
-                    
-                    row_access =  metaObj.get('access');
-                    if isempty(row_access) ~= 1
-                        if isempty(where_clause)
-                            where_clause = ['where access=', row_access];
-                        else
-                            where_clause = [where_clause, ' and access = ', row_access];
-                        end
-                    end
-                    
-                    row_format =  metaObj.get('format');
-                    if isempty(row_format) ~= 1
-                        if isempty(where_clause)
-                            where_clause = ['where format=', row_format];
-                        else
-                            where_clause = [where_clause, ' and format = ', row_format];
-                        end
-                    end
-                    
-                end
-                
-                % If the user specified 'delete=TRUE', so first fetch the
-                % matching records, then delete them.
-                
-                
-                % Retrieve records that match search criteria
-                select_statement = [select_statement, where_clause, order_by_clause];
-                curs = exec(db_conn, select_statement); 
-                curs = fetch(curs);
-                result = curs.Data;
-                
-                % Now delete records if requested
-                
-                
-                % Disconnect the database connection
-                close(curs);
-                close(db_conn);
-                
-            else
-                % not yet connected to database 
+            filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
+                'size', 'user', 'modifyTime', 'createTime', 'access', 'format', 'archivedFilePath'};
+            
+            data_row = cell(1, length(filemeta_colnames));
+            for i = 1:length(filemeta_colnames)
+                data_row{i} = fileMetadata.get(filemeta_colnames{i});
             end
-                         
+            
+            % construct a SQL INSERT statement for fast insert
+            insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', fileMetadata.tableName, filemeta_colnames{:});
+            insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s","%s");', data_row{:});
+            insertQuery = [insertQuery , insertQueryData];
         end
+
         
     end
 end
