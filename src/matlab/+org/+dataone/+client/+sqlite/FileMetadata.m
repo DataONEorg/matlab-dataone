@@ -45,9 +45,6 @@ classdef FileMetadata < hgsetget
             hash = sprintf('%2.2x', typecast(md.digest(uint8(string)), 'uint8')');
         end
         
-    end
-    
-    methods(Static)
         function create_table_statement = createFileMetadataTable()
             % CREATEFILEMETADATATABLE Creates a file metadata table
             
