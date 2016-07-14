@@ -162,73 +162,28 @@ classdef FileMetadata < hgsetget
     end
     
     methods
-        function fileMetadata = FileMetadata( varargin )
+        function this = FileMetadata( varargin )
             % FILEMETADATA Constructor: initializes a file metadata object
             % varargin - the input arguments could be a dataObject or a
             % list of arguments describing a file metadata
             
             import java.io.File;
             import javax.activation.FileDataSource;
-            
-            persistent filemetaParser;
-            if isempty(filemetaParser)
-                filemetaParser = inputParser;
-                
-                addParameter(filemetaParser, 'dataObject', '', @(x)isa(x, org.dataone.client.v2.DataObject));
-                addParameter(filemetaParser, 'executionId', '', @ischar);
-                addParameter(filemetaParser, 'fileId', '', @ischar);
-                addParameter(filemetaParser, 'filePath', '', @ischar);
-                addParameter(filemetaParser, 'sha256', '', @ischar);
-                addParameter(filemetaParser, 'size', '', @isnumeric);
-                addParameter(filemetaParser, 'user', '', @ischar);
-                addParameter(filemetaParser, 'createTime', '', @ischar);
-                addParameter(filemetaParser, 'modifyTime', '', @ischar);
-                addParameter(filemetaParser, 'access', '', @ischar);
-                addParameter(filemetaParser, 'format', '', @ischar);
-                addParameter(filemetaParser, 'archivedFilePath', '', @ischar);
-            end
-            
-            parse(filemetaParser, varargin{:});
-            
-            dataObject = filemetaParser.Results.dataObject;
-            execution_id = filemetaParser.Results.executionId;
-            file_id = filemetaParser.Results.fileId;
-            file_path = filemetaParser.Results.filePath;
-            sha256_str = filemetaParser.Results.sha256;
-            size_num = filemetaParser.Results.size;
-            user_str = filemetaParser.Results.user;
-            createTime_str = filemetaParser.Results.createTime;
-            modifyTime_str = filemetaParser.Results.modifyTime;
-            access_str = filemetaParser.Results.access;
-            format_str = filemetaParser.Results.format;
-            archivedFilePath_str = filemetaParser.Results.archivedFilePath;
-            
-            if isempty(execution_id)
-                fileMetadata.executionId = execution_id;
-            end
-            
-            import org.dataone.client.sqlite.SqliteDatabase;
-            
-            %             fileMetadata.dbObj = SqliteDatabase('prov.db');
-            
-            if isempty(dataObject) ~= 1
-                % Input is an instance of DataObject and get information
-                % from the input dataObject argument (Todo: need to test this condition)
-                if exist(dataObject.full_file_path, 'file')
-                    % File exists.
+                        
+            switch nargin
+                case 2
+                    this.fileId = varargin{1}.identifier;
+                    this.filePath = varargin{1}.full_file_path;
+                    this.format = varargin{1}.format_id;
                     
-                    fileMetadata.fileId = dataObject.identifier;
-                    fileMetadata.filePath = dataObject.full_file_path;
-                    fileMetadata.format = dataObject.format_id;
+                    dataObj_sysmeta = varargin{1}.system_metadata;
                     
-                    dataObj_sysmeta = dataObject.system_metadata;
+                    this.size = dataObj_sysmeta.size;
+                    this.user = dataObj_sysmeta.submitter;
                     
-                    fileMetadata.size = dataObj_sysmeta.size;
-                    fileMetadata.user = dataObj_sysmeta.submitter;
-                    
-                    fileInfo = dir(dataObject.full_file_path);
+                    fileInfo = dir(varargin{1}.full_file_path);
                     last_modified = fileInfo.date;
-                    fileMetadata.modifyTime = last_modified;
+                    this.modifyTime = last_modified;
                     
                     % Add the SHA-256 checksum
                     import org.apache.commons.io.IOUtils;
@@ -237,66 +192,35 @@ classdef FileMetadata < hgsetget
                     fileInputStream = FileInputStream(objectFile);
                     data = IOUtils.toString(fileInputStream, 'UTF-8');
                     sha256_hash_value = FileMetadata.string2hash(data);
-                    fileMetadata.sha256 = sha256_hash_value;
+                    this.sha256 = sha256_hash_value;
                     
-                    % Archived file path
+                    this.executionId = varargin{2};
                     
-                else
-                    % File does not exist.
-                    warningMessage =['Warning: file does not exist:\n%s', dataObject.full_file_path];
-                    disp(warningMessage);
+                     % Archived file path
+                     
+                     % createTime
+                     
+                     % access
+                                          
+                case 11
+                    this.fileId = varargin{1};
+                    this.executionId = varargin{2};
+                    this.filePath = varargin{3};
+                    this.sha256 = varargin{4};
+                    this.size = varargin{5};
+                    this.user = varargin{6};
+                    this.modifyTime = varargin{7};
+                    this.createTime = varargin{8};
+                    this.access = varargin{9};
+                    this.format = varargin{10};
+                    this.archivedFilePath = varargin{11};
                     
-                end
-            else
-                % Input is a list of arguments (tested)
-                
-                if isempty(execution_id) ~= 1
-                    fileMetadata.executionId = execution_id;
-                end
-                
-                if isempty(file_id) ~= 1
-                    fileMetadata.fileId = file_id;
-                end
-                
-                if isempty(file_path) ~= 1
-                    fileMetadata.filePath = file_path;
-                end
-                
-                if isempty(sha256_str) ~= 1
-                    fileMetadata.sha256 = sha256_str;
-                end
-                
-                if isempty(size_num) ~= 1
-                    fileMetadata.size = size_num;
-                end
-                
-                if isempty(user_str) ~= 1
-                    fileMetadata.user = user_str;
-                end
-                
-                if isempty(createTime_str) ~= 1
-                    fileMetadata.createTime = createTime_str;
-                end
-                
-                if isempty(modifyTime_str) ~= 1
-                    fileMetadata.modifyTime = modifyTime_str;
-                end
-                
-                if isempty(access_str) ~= 1
-                    fileMetadata.access = access_str;
-                end
-                
-                if isempty(format_str) ~= 1
-                    fileMetadata.format = format_str;
-                end
-                
-                if isempty(archivedFilePath_str) ~= 1
-                    fileMetadata.archivedFilePath = archivedFilePath_str;
-                end
-                
+                otherwise
+                    throw(MException('FileMetadata:error', 'invalid options'));
             end
-            
+                     
         end
+        
         
         function insertQuery = writeFileMeta(fileMetadata)
             % WRITEFILEMETA Saves metadata for a single file
@@ -319,7 +243,6 @@ classdef FileMetadata < hgsetget
             insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s","%s");', data_row{:});
             insertQuery = [insertQuery , insertQueryData];
         end
-
-        
+      
     end
 end
