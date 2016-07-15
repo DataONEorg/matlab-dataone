@@ -66,14 +66,21 @@ classdef FileMetadata < hgsetget
             
         end
         
-        function readQuery = readFileMeta(metaObj, orderBy, sortOrder)
+        function readQuery = readFileMeta(filemetaObj, orderBy, sortOrder)
             % READFILEMETA Retrieves saved file metadata for one or more
             % files
-            % metaObj - a fileMetadata object or struct to be retrieved
+            % filemetaObj - a fileMetadata object or struct to be retrieved
             
+            if isempty(filemetaObj) == 1
+                % If the 'filemetaObj' doesn't exist yet, then there is
+                % no filemetadata for read, so just return a blank string
+                readQuery = [];
+                return;
+            end
+           
             % Construct a SELECT statement to retrieve the runs that match
             % the specified search criteria
-            select_statement = 'SELECT * FROM filemeta ';
+            select_statement = sprintf('SELECT * FROM %s ', filemetaObj.tableName);
             where_clause = '';
             order_by_clause = '';
             
@@ -88,8 +95,8 @@ classdef FileMetadata < hgsetget
             end
             
             % Process the fileMetadata object and construct the WHERE clause
-            if isempty(metaObj) ~= 1
-                row_fileId =  metaObj.get('fileId');
+            if isempty(filemetaObj) ~= 1
+                row_fileId = filemetaObj.get('fileId');
                 if isempty(row_fileId) ~= 1
                     if isempty(where_clause)
                         where_clause = ['where fileId=', row_fileId];
@@ -98,7 +105,7 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
-                row_executionId =  metaObj.get('executionId');
+                row_executionId = filemetaObj.get('executionId');
                 if isempty(row_executionId) ~= 1
                     if isempty(where_clause)
                         where_clause = ['where executionId=', row_executionId];
@@ -107,7 +114,7 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
-                row_sha256 =  metaObj.get('sha256');
+                row_sha256 = filemetaObj.get('sha256');
                 if isempty(row_sha256) ~= 1
                     if isempty(where_clause)
                         where_clause = ['where sha256=', row_sha256];
@@ -116,7 +123,7 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
-                row_filePath =  metaObj.get('filePath');
+                row_filePath = filemetaObj.get('filePath');
                 if isempty(row_filePath) ~= 1
                     if isempty(where_clause)
                         where_clause = ['where filePath=', row_filePath];
@@ -125,7 +132,7 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
-                row_user =  metaObj.get('user');
+                row_user = filemetaObj.get('user');
                 if isempty(row_user) ~= 1
                     if isempty(where_clause)
                         where_clause = ['where user=', row_user];
@@ -134,7 +141,7 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
-                row_access =  metaObj.get('access');
+                row_access = filemetaObj.get('access');
                 if isempty(row_access) ~= 1
                     if isempty(where_clause)
                         where_clause = ['where access=', row_access];
@@ -143,7 +150,7 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
-                row_format =  metaObj.get('format');
+                row_format = filemetaObj.get('format');
                 if isempty(row_format) ~= 1
                     if isempty(where_clause)
                         where_clause = ['where format=', row_format];

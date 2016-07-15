@@ -44,7 +44,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
         
         function count = getTable(sqldb_obj, table_name)
             
-            sqldb_obj. openDBConnection();
+            sqldb_obj.openDBConnection();
             sql_statement = sprintf('SELECT count(*) FROM sqlite_master WHERE type= "table" AND name="%s"', table_name);
                        
             curs = exec(sqldb_obj.dbConn, sql_statement);          
@@ -63,12 +63,12 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
         
         function result = execute(sqldb_obj, sql_statement, tableName)
             
-            % Get the database connection and check if the acess table
+            % Get the database connection and check if the table
             % exists
             count = sqldb_obj.getTable(tableName);
             
             if count >= 1
-                sqldb_obj. openDBConnection();
+                sqldb_obj.openDBConnection();
                 
                 curs = exec(sqldb_obj.dbConn, sql_statement);
                 curs = fetch(curs);

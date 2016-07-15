@@ -1,3 +1,4 @@
+
 classdef ExecMetadata < hgsetget
     
    properties
@@ -39,24 +40,21 @@ classdef ExecMetadata < hgsetget
        % a logical variable that indicates whether this was a console
        % session
        console;
-       % A simple integer value associated with this execution
+       % A simple integer value associated with this execution (Todo: do I need to keep this property?)
        seq;
-       % The table name
-       tableName;
-   end
-   
-   properties (Access = private)
-       
+        % The table name
+       tableName = 'ExecMetadata2';
    end
    
    methods (Static)
        function create_statement = createExecMetaTable()
-           % CREATEEXECMETATABLE Create an execution metadata table
+           % CREATEEXECMETATABLE Creates an execution metadata table
            
-           create_statement = ['create table execmeta' ...
+           create_statement = ['create table ExecMetadata2' ...
                '(' ...
                'executionId TEXT PRIMARY KEY not null,' ...
                'metadataId TEXT,' ...
+               'tag TEXT,' ...
                'datapackageId TEXT,' ...
                'user TEXT,' ...
                'subject TEXT,' ...
@@ -76,17 +74,228 @@ classdef ExecMetadata < hgsetget
        end
        
              
-       function result = readExecMeta(varargin)
-           % READEXECMETA Retrieve saved execution metadata
+       function readQuery = readExecMeta(execmetaObj, orderBy, sortOrder)
+           % READEXECMETA Retrieves saved execution metadata
+           % execmetaObj - a fileMetadata object or struct to be retrieved
            
+           if isempty(execmetaObj) == 1
+               % If the 'execmetaObj' doesn't exist yet, then there is
+               % no execmetadata for read, so just return a blank string
+               readQuery = [];
+               return;
+           end
            
+           % Construct a SELECT statement to retrieve the runs that match
+           % the specified search criteria
+           select_statement = sprintf('SELECT * FROM %s e ', execmetaObj.tableName);
+           where_clause = '';
+           order_by_clause = '';
+           
+           % Process the orderBy clause
+           if isempty(orderBy) ~= 1
+               if ismember(lower(sortOrder), {'descending', 'desc'})
+                   sortOrder = 'DESC';
+               else
+                   sortOrder = 'ASC';
+               end
+               order_by_clause = [' order by ', orderBy, sortOrder];
+           end
+           
+           % Process the execMetadata object and construct the WHERE clause
+           if isempty(execmetaObj) ~= 1
+               
+               row_executionId = execmetaObj.get('executionId');
+               if isempty(row_executionId) ~= 1
+                   match_clause = 'e.executionId=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_executionId);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_executionId);
+                   end
+               end
+               
+               row_metadataId = execmetaObj.get('metadataId');
+               if isempty(row_metadataId) ~= 1
+                   match_clause = 'e.metadataId=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_metadataId);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_metadataId);
+                   end
+               end
+               
+               row_tag = execmetaObj.get('tag');
+               if isempty(row_tag) ~= 1                   
+                   match_clause = 'e.tag LIKE ';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_tag);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_tag);
+                   end
+               end
+               
+               row_datapackageId = execmetaObj.get('datapackageId');
+               if isempty(row_datapackageId) ~= 1
+                   match_clause = 'e.datapackageId LIKE ';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_datapackageId);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_datapackageId);
+                   end
+               end
+               
+               row_user = execmetaObj.get('user');               
+               if isempty(row_user) ~= 1
+                   match_clause = 'e.user=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_user);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_user);
+                   end
+               end
+               
+               row_subject = execmetaObj.get('subject');
+               if isempty(row_subject) ~= 1
+                   match_clause = 'e.subject=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_subject);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_subject);
+                   end
+               end
+                                            
+               row_hostId = execmetaObj.get('hostId');              
+               if isempty(row_hostId) ~= 1
+                   match_clause = 'e.hostId=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_hostId);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_hostId);
+                   end
+               end
+               
+               row_startTime = execmetaObj.get('startTime');
+               if isempty(row_startTime) ~= 1
+                   match_clause = 'e.startTime=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_startTime);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_startTime);
+                   end
+               end
+               
+               row_operatingSystem = execmetaObj.get('operatingSystem');
+               if isempty(row_operatingSystem) ~= 1
+                   match_clause = 'e.operatingSystem=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_operatingSystem);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_operatingSystem);
+                   end
+               end
+               
+               row_runtime = execmetaObj.get('runtime');
+               if isempty(row_runtime) ~= 1
+                   match_clause = 'e.runtime=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_runtime);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_runtime);
+                   end
+               end
+               
+               row_softwareApplication = execmetaObj.get('softwareApplication');
+               if isempty(row_softwareApplication) ~= 1
+                   match_clause = 'e.softwareApplication=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_softwareApplication);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_softwareApplication);
+                   end
+               end
+               
+               row_moduleDependencies = execmetaObj.get('moduleDependencies');
+               if isempty(row_moduleDependencies) ~= 1
+                   match_clause = 'e.moduleDependencies=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_moduleDependencies);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_moduleDependencies);
+                   end
+               end
+               
+               row_endTime = execmetaObj.get('endTime');
+               if isempty(row_endTime) ~= 1
+                   match_clause = 'e.endTime=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_endTime);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_endTime);
+                   end
+               end
+              
+               row_errorMessage = execmetaObj.get('errorMessage');
+               if isempty(row_errorMessage) ~= 1
+                   match_clause = 'e.errorMessage=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_errorMessage);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_errorMessage);
+                   end
+               end
+               
+               row_publishTime = execmetaObj.get('publishTime');
+               if isempty(row_publishTime) ~= 1
+                   match_clause = 'e.publishTime=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_publishTime);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_publishTime);
+                   end
+               end
+               
+               row_publishNodeId = execmetaObj.get('publishNodeId');
+               if isempty(row_publishNodeId) ~= 1
+                   match_clause = 'e.publishNodeId=';
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_publishNodeId);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_publishNodeId);
+                   end
+               end
+               
+               row_publishId = execmetaObj.get('publishId');
+               if isempty(row_publishId) ~= 1
+                   match_clause = 'e.publishId=';                  
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%s" ', match_clause, row_publishId);
+                   else
+                       where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_publishId);
+                   end
+               end
+               
+               row_console = execmetaObj.get('console');
+               if isempty(row_console) ~= 1
+                   match_clause = 'e.console=';  
+                   if isempty(where_clause)
+                       where_clause = sprintf('where %s "%d" ', match_clause, row_console);
+                   else
+                       where_clause = sprintf('%s and %s "%d" ', where_clause, match_clause, row_console);
+                   end
+               end
+           end
+           
+           % Retrieve records that match search criteria
+           select_statement = [select_statement, where_clause, order_by_clause, ';'];
+           readQuery = select_statement;
        end
+             
    end
    
    
    methods
        function this = ExecMetadata(varargin)
-           % EXECMETADATA Initialize an execution metadata object
+           % EXECMETADATA Constructor Initializes an execution metadata object
            
            switch nargin
                case 1
@@ -132,10 +341,9 @@ classdef ExecMetadata < hgsetget
                    throw(MException('ExecMetadata:error', 'invalid options'));
            end           
        end
-       
-      
+            
        function insertQuery = writeExecMeta(execMetadata)
-           % WRITEEXECMETA Save a single execution metadata
+           % WRITEEXECMETA Saves a single execution metadata
            
            import org.dataone.client.sqlite.SqliteDatabase;
                      
@@ -151,17 +359,17 @@ classdef ExecMetadata < hgsetget
            
            % construct a SQL INSERT statement for fast insert
            insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', execMetadata.tableName, execemeta_colnames{:});
-           insertQueryData = sprintf('("%s","%s","%s","%s",%s,"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s",%d);', data_row{:});
+           insertQueryData = sprintf('("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s",%d);', data_row{:});
            insertQuery = [insertQuery , insertQueryData];
            
        end
        
-       function result = updateExecMeta(varargin)
-           % UPDATEEXECMETA Update a single execution metadata object
+       function updateQuery = updateExecMeta(varargin)
+           % UPDATEEXECMETA Updates a single execution metadata object
         
            
        end
+       
    end
-   
-     
+        
 end
