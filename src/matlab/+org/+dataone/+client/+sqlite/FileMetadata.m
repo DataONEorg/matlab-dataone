@@ -45,11 +45,10 @@ classdef FileMetadata < hgsetget
             hash = sprintf('%2.2x', typecast(md.digest(uint8(string)), 'uint8')');
         end
         
-        function create_table_statement = createFileMetadataTable()
+        function create_table_statement = createFileMetadataTable(tableName)
             % CREATEFILEMETADATATABLE Creates a file metadata table
-            
-            create_table_statement = ['create table filemeta' ...
-                '(' ...
+            create_table_statement = ['create table if not exists ' tableName '('];
+            create_table_statement = [create_table_statement ...                
                 'fileId TEXT PRIMARY KEY,' ...
                 'executionId TEXT not null,' ...
                 'filePath TEXT not null,' ...
@@ -234,9 +233,6 @@ classdef FileMetadata < hgsetget
             % fileMetadata - a filemetadata object to be added to the
             % filemetadata table
             
-            import org.dataone.client.sqlite.SqliteDatabase;
-            
-
             filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
                 'size', 'user', 'modifyTime', 'createTime', 'access', 'format', 'archivedFilePath'};
             
