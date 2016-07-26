@@ -1562,7 +1562,9 @@ classdef RunManager < hgsetget
             munlock('RunManager');            
             % clear RunManager;
         end
-            
+         
+ 
+        
         function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
@@ -1576,9 +1578,10 @@ classdef RunManager < hgsetget
                 listRunsParser = inputParser;
                
                 addParameter(listRunsParser,'quiet', false, @islogical);
-                checkDateFormat = @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}'));
-                addParameter(listRunsParser,'startDate', '', checkDateFormat);
-                addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+%               checkDateFormat = @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}'));
+                                  
+                addParameter(listRunsParser,'startDate', '', @iscell);
+                addParameter(listRunsParser,'endDate', '', @iscell);
                 addParameter(listRunsParser,'tag', '', @(x) iscell(x) || ischar(x)); % accept both a single char array and a cell array
                 checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
                 addParameter(listRunsParser,'runNumber', '', checkSequenceNumber);
@@ -1666,6 +1669,25 @@ classdef RunManager < hgsetget
             select_query = sprintf('SELECT e.* from %s e', 'ExecMetadata2');
             
             if isempty(startDate) ~= 1
+                for i=1:length(startDate)
+                    res = any(regexp(startDate{i}, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}'));
+                    if res ~= 1
+                        error('Input Date format is \d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}');
+                    end
+                end
+                
+                if length(startDate) == 1
+                    start_date_num = datenum(startDate{1},'yyyymmddTHHMMSS');
+                    start_begin_date = datestr(start_date_num , 'yyyy-mm-dd HH:MM:SS');
+                    start_end_date = '9999-99-99';
+                elseif length(startDate) == 2
+                    start_begin_date = startDate{1};
+                    start_end_date = startDate{2};
+                else
+                    message = 'Error: the number of dates is more than 2.';
+                    error(message);
+                end
+                
                 if isempty(where_clause)
                     where_clause = sprintf('where e.startTime BETWEEN "%s" AND "%s" ', start_begin_date, start_end_date);
                 else
@@ -1674,6 +1696,25 @@ classdef RunManager < hgsetget
             end
             
             if isempty(endDate) ~= 1
+                for i=1:length(endDate)
+                    res = any(regexp(endtDate{i}, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}'));
+                    if res ~= 1
+                        error('Input Date format is \d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}');
+                    end
+                end
+                
+                if length(endDate) == 1
+                    end_date_num = datenum(endDate{1},'yyyymmddTHHMMSS');
+                    end_begin_date = datestr(end_date_num , 'yyyy-mm-dd HH:MM:SS');
+                    end_end_date = '9999-99-99';
+                elseif length(startDate) == 2
+                    end_begin_date = endDate{1};
+                    end_end_date = endDate{2};
+                else
+                    message = 'Error: the number of dates is more than 2.';
+                    error(message);
+                end
+                
                 if isempty(where_clause)
                     where_clause = sprintf('where e.endTime BETWEEN "%s" AND "%s" ', end_begin_date, end_end_date);
                 else
@@ -1701,34 +1742,36 @@ classdef RunManager < hgsetget
             
             exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'ExecMetadata2');
             
-            % Convert the cell array to a char matrix (order of columns
-            % changed on 072516)
-            numOfRows = size(exec_metadata_cell, 1);
-            for i=1:numOfRows
-                exec_metadata_cell{i,18} = num2str(exec_metadata_cell{i,18});
+            if ~isempty(exec_metadata_cell)
+                % Convert the cell array to a char matrix (order of columns
+                % changed on 072516)
+                numOfRows = size(exec_metadata_cell, 1);
+                for i=1:numOfRows
+                    exec_metadata_cell{i,18} = num2str(exec_metadata_cell{i,18});
+                end
+                
+                execMetaMatrix = exec_metadata_cell;
+                
+                % Extract multiple rows from a matrix satisfying the allCondition
+                runsToDisplay = execMetaMatrix(:, [1,4,11,3,8,13,15]);
+                
+                % Convert the full path of a script to a base file name in
+                % listRus(). The full path is displayed in viewRun()
+                numOfRows = size(runsToDisplay, 1);
+                for i=1:numOfRows
+                    fullName = runsToDisplay{i,3};
+                    name_array = strsplit(fullName, filesep);
+                    runsToDisplay{i,3} = name_array(end);
+                end
+                
+                % Display
+                if isempty(quiet) ~= 1 && quiet ~= 1
+                    % Convert a cell array to a table with headers
+                    % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);
+                    tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tag', 'startDate', 'endDate', 'publishDate'});
+                    disp(tableForSelectedRuns);
+                end
             end
-            
-            execMetaMatrix = exec_metadata_cell;
-                                 
-            % Extract multiple rows from a matrix satisfying the allCondition
-            runsToDisplay = execMetaMatrix(:, [1,4,11,3,8,13,15]);
-               
-            % Convert the full path of a script to a base file name in
-            % listRus(). The full path is displayed in viewRun()
-            numOfRows = size(runsToDisplay, 1);
-            for i=1:numOfRows
-               fullName = runsToDisplay{i,3};
-               name_array = strsplit(fullName, filesep);
-               runsToDisplay{i,3} = name_array(end);
-            end
-            
-            % Display
-            if isempty(quiet) ~= 1 && quiet ~= 1
-                % Convert a cell array to a table with headers                 
-               % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tag', 'startDate', 'endDate', 'publishDate'}); 
-                disp(tableForSelectedRuns);                      
-            end          
         end
         
         function deleted_runs = deleteRuns(runManager, varargin)
