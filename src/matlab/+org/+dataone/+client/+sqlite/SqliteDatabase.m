@@ -63,6 +63,8 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
         
         function result = execute(sqldb_obj, sql_statement, tableName)
             
+            setdbprefs('DataReturnFormat','cellarray');
+            
             % Get the database connection and check if the table
             % exists
             count = sqldb_obj.getTable(tableName);
@@ -72,15 +74,16 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                 
                 curs = exec(sqldb_obj.dbConn, sql_statement);
                 curs = fetch(curs);
-                result = curs.Data;
                 
+                result = curs.Data;
+%               columnlist = columnnames(curs);
+
                 % Disconnect the database connection
                 close(curs);
                 sqldb_obj.closeDBConnection();
             end
         end
-
-    
+  
     end
     
 end

@@ -32,6 +32,9 @@ classdef RunManager < hgsetget
       
         % The generated workflow object built by YesWorkflow 
         workflow;
+        
+        % A database storing the prospective and retrospective provenance information
+        provenanceDB;
                
     end
 
@@ -97,11 +100,19 @@ classdef RunManager < hgsetget
             % The RunManager class manages outputs of a script based on the
             % settings in the given configuration passed in.
             import org.dataone.client.configure.Configuration;
-            
+            import org.dataone.client.sqlite.Database;
+            import org.dataone.client.sqlite.SqliteDatabase;
+
             warning('off','backtrace');
             
             manager.configuration = configuration;
-            % configuration.saveConfig();            
+            
+            % runManager.configuration.execution_db_name
+            db_path = '/Users/syc/Documents/matlab-dataone/';
+            db_file = 'prov.sqlite'; 
+            db_url = sprintf('jdbc:sqlite:%s%s', db_path, db_file);
+            manager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+       
             manager.init();  
             mlock; % Lock the RunManager instance to prevent clears          
         end
@@ -355,7 +366,7 @@ classdef RunManager < hgsetget
             d1Obj = D1Object(d1ObjIdentifier, data, D1TypeBuilder.buildFormatIdentifier(fileFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId)); 
         end
                
-   function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
+        function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
             %import org.dataone.client.run.NamedConstant;
@@ -491,7 +502,7 @@ classdef RunManager < hgsetget
                 hadPlanPredicate, ...
                 programURI);
 
-            %Record the prov relationship: 
+            % Record the prov relationship: 
             % execution->prov:qualifiedAssociation->association
             runManager.dataPackage.insertRelationship( ...
                 runManager.execution.execution_uri, ...
@@ -808,7 +819,7 @@ classdef RunManager < hgsetget
             
             data_package = runManager.dataPackage;
             
-   end
+        end
                
         
         function saveExecution(runManager, fileName)
@@ -820,16 +831,16 @@ classdef RunManager < hgsetget
             % console, errorMessage.
             %   fileName - the name of the execution database
            
+            import org.dataone.client.sqlite.ExecMetadata;
+            
             runID = char(runManager.execution.execution_id);
             filePath = char(runManager.execution.software_application);
             startTime = char(runManager.execution.start_time);
             endTime = char(runManager.execution.end_time);
             publishedTime = char(runManager.execution.publish_time);
             packageId = char(runManager.execution.execution_id);
-            tag = runManager.execution.tag; % Todo: a set of tag values         
-            % added on Sept-17-2015
-            user = char(runManager.execution.account_name);
-            % changed on Oct-20-2015
+            tag = runManager.execution.tag; % Todo: a set of tag values                   
+            user = char(runManager.execution.account_name);            
             subject = '';
             auth_token = runManager.configuration.get('authentication_token');
             if isempty(auth_token)
@@ -845,61 +856,94 @@ classdef RunManager < hgsetget
             operatingSystem = char(runManager.execution.operating_system);
             runtime = char(runManager.execution.runtime);
             moduleDependencies = char(runManager.execution.module_dependencies); % Todo:
-            console = ''; % Todo:
+            publishNodeId = char(runManager.configuration.target_member_node_id);
+            console = ''; 
             errorMessage = char(runManager.execution.error_message);
             % added on Oct-13-2015
             runManager.last_sequence_number = runManager.last_sequence_number+1;
             seqNo = num2str(runManager.last_sequence_number);
             
-            formatSpec = runManager.configuration.execution_db_write_format;
-           
-            if exist(fileName, 'file') ~= 2
-                [fileId, message] = fopen(fileName,'w');
-                if fileId == -1
-                    disp(message);
-                end
-                fprintf(fileId, formatSpec, ...,
-                    'runId', 'filePath', 'startTime', 'endTime', ...,
-                    'publishedTime', 'packageId', 'tag', 'user', ...,
-                    'subject', 'hostId', 'operatingSystem', 'runtime', ...,
-                    'moduleDependencies', 'console', 'errorMessage', 'runNumber'); % write header
-                fprintf(fileId,formatSpec, ...,
-                    runID, filePath, startTime, endTime, ...,
-                    publishedTime, packageId, tag, user, ...,
-                    subject, hostId, operatingSystem, runtime, ...,
-                    moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution
-                fclose(fileId); 
+            % Write execution runtime informaiton to execmeta table in the
+            % provenance database (July-25-2016)
+            exec_obj = ExecMetadata(runID,'metadataId',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,moduleDependencies,endTime,errorMessage,publishedTime,publishNodeId, 'publishId', console);
+            insert_query = exec_obj.writeExecMeta();
+            status = runManager.provenanceDB.execute(insert_query, exec_obj.tableName);
+            if status == 0
+                message = 'Insert a record to the ExecMetadata table.';
+                disp(message);
             else
-                [fileId, message] = fopen(fileName,'a');
-                if fileId == -1
-                    disp(message);
-                end
-                fprintf(fileId,formatSpec, ...,
-                    runID, filePath, startTime, endTime, ...,
-                    publishedTime, packageId, tag, user, ...,
-                    subject, hostId, operatingSystem, runtime, ...,
-                    moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
-                fclose(fileId); 
-            end           
+                errorMessage = [errorMessage, 'SQLiteDatabaseError: Insert record failed.'];
+                error(errorMessage);
+            end
+            
+%             formatSpec = runManager.configuration.execution_db_write_format;           
+%             if exist(fileName, 'file') ~= 2
+%                 [fileId, message] = fopen(fileName,'w');
+%                 if fileId == -1
+%                     disp(message);
+%                 end
+%                 fprintf(fileId, formatSpec, ...,
+%                     'runId', 'filePath', 'startTime', 'endTime', ...,
+%                     'publishedTime', 'packageId', 'tag', 'user', ...,
+%                     'subject', 'hostId', 'operatingSystem', 'runtime', ...,
+%                     'moduleDependencies', 'console', 'errorMessage', 'runNumber'); % write header
+%                 fprintf(fileId,formatSpec, ...,
+%                     runID, filePath, startTime, endTime, ...,
+%                     publishedTime, packageId, tag, user, ...,
+%                     subject, hostId, operatingSystem, runtime, ...,
+%                     moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution
+%                 fclose(fileId); 
+%             else
+%                 [fileId, message] = fopen(fileName,'a');
+%                 if fileId == -1
+%                     disp(message);
+%                 end
+%                 fprintf(fileId,formatSpec, ...,
+%                     runID, filePath, startTime, endTime, ...,
+%                     publishedTime, packageId, tag, user, ...,
+%                     subject, hostId, operatingSystem, runtime, ...,
+%                     moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
+%                 fclose(fileId); 
+%             end   
+
         end
                
-        function [execMetaMatrix, header] = getExecMetadataMatrix(runManager)
+        
+%         function [execMetaMatrix, header] = getExecMetadataMatrix(runManager)
+          function execMetaMatrix = getExecMetadataMatrix(runManager)
+            
             % GETEXECMETADATAMATRIX returns a matrix storing the
             % metadata summary for all executions from the exeucton
             % database.
             %   runManager - 
-            formatSpec = runManager.configuration.execution_db_read_format;
-            [fileId, message] = fopen(runManager.configuration.execution_db_name, 'r');
-            if fileId == -1
-                disp(message); 
-            else
-                header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
-                execMetaData = textscan(fileId, formatSpec, 'Delimiter',',');
-                fclose(fileId);
- 
-                % Convert a cell array to a matrix
-                execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]}];
+            
+%             formatSpec = runManager.configuration.execution_db_read_format;
+%             [fileId, message] = fopen(runManager.configuration.execution_db_name, 'r');
+%             if fileId == -1
+%                 disp(message); 
+%             else
+%                 header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
+%                 execMetaData = textscan(fileId, formatSpec, 'Delimiter',',');
+%                 fclose(fileId);
+%  
+%                 % Convert a cell array to a matrix
+%                 execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]}];
+%             end
+
+            select_all_query = 'SELECT * from ExecMetadata2;';
+            exec_metadata_cell = runManager.provenanceDB.execute(select_all_query, 'ExecMetadata2');
+            
+            % Convert the cell array to a char matrix (order of columns
+            % changed on 072516)
+            numOfRows = size(exec_metadata_cell, 1);
+            for i=1:numOfRows
+               exec_metadata_cell{i,18} = num2str(exec_metadata_cell{i,18});
             end
+            
+            execMetaMatrix = exec_metadata_cell;
+            
+            % Todo: Return database table column names
+            
         end
         
         function stmtStruct = getRDFTriple(runManager, filePath, p)
@@ -1011,11 +1055,7 @@ classdef RunManager < hgsetget
                         
             import org.dataone.client.configure.Configuration;
             import org.dataone.client.run.RunManager;
-           
-            % Set all jars under lib/java/ to the java dynamic class path
-            % (double check !)
-            % RunManager.setJavaClassPath();
-                       
+                                  
             warning off MATLAB:dispatcher:nameConflict;
             java.util.logging.LogManager.getLogManager().reset();
              
@@ -1166,7 +1206,8 @@ classdef RunManager < hgsetget
                 if ( exist(runManager.configuration.execution_db_name, 'file') ~= 2 )
                     runManager.last_sequence_number = 0; 
                 else
-                    [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+%                   [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+                    execMetaMatrix = runManager.getExecMetadataMatrix();
                     if ~isempty(execMetaMatrix)
                         lastRow = execMetaMatrix(end,:);
                         lastSeqNum = lastRow{1,end};
@@ -1535,7 +1576,8 @@ classdef RunManager < hgsetget
                 listRunsParser = inputParser;
                
                 addParameter(listRunsParser,'quiet', false, @islogical);
-                addParameter(listRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+                checkDateFormat = @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}'));
+                addParameter(listRunsParser,'startDate', '', checkDateFormat);
                 addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(listRunsParser,'tag', '', @(x) iscell(x) || ischar(x)); % accept both a single char array and a cell array
                 checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
@@ -1553,73 +1595,123 @@ classdef RunManager < hgsetget
                 listRunsParser.Results
             end
             
-            % Read the exeuction metadata summary from the exeuction
-            % metadata database
-            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+%             % Read the exeuction metadata summary from the exeuction
+%             % metadata database
+%             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
            
-            % When the database is empty, show no rows and return
-            if ( isempty(execMetaMatrix) )
-                runs = {};
-                
-                if ~quiet
-                    fprintf('\n%s\n', 'There are no runs to display yet.');
-                end
-                return;                
-            end
-            % Initialize the logical cell arrays for the next call for listRuns()
-            dateCondition = false(size(execMetaMatrix, 1), 1);
-            tagsCondition = false(size(execMetaMatrix, 1), 1);
-            runNumberCondition = false(size(execMetaMatrix, 1), 1);
-            allCondition = true(size(execMetaMatrix, 1), 1);
+%             % When the database is empty, show no rows and return
+%             if ( isempty(execMetaMatrix) )
+%                 runs = {};
+%                 
+%                 if ~quiet
+%                     fprintf('\n%s\n', 'There are no runs to display yet.');
+%                 end
+%                 return;                
+%             end
             
-            % Process the query constraints
-            startDateFlag = false;
-            endDateFlag = false;
-                
-            if isempty(startDate) ~= 1                
-                startDateFlag = true;
+%             % Initialize the logical cell arrays for the next call for listRuns()
+%             dateCondition = false(size(execMetaMatrix, 1), 1);
+%             tagsCondition = false(size(execMetaMatrix, 1), 1);
+%             runNumberCondition = false(size(execMetaMatrix, 1), 1);
+%             allCondition = true(size(execMetaMatrix, 1), 1);
+            
+%             % Process the query constraints
+%             startDateFlag = false;
+%             endDateFlag = false;
+%                 
+%             if isempty(startDate) ~= 1                
+%                 startDateFlag = true;
+%             end
+%                             
+%             if isempty(endDate) ~= 1                
+%                 endDateFlag = true;
+%             end
+%                 
+%             if startDateFlag && endDateFlag
+%                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+%                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
+%                 % Extract multiple rows from a matrix 
+%                 startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
+%                 endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
+%                 dateCondition = startCondition & endColCondition;
+%                 allCondition = allCondition & dateCondition;
+%             elseif startDateFlag == 1
+%                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
+%                 % Extract multiple rows from a matrix 
+%                 dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % Column 3 for startDate
+%                 allCondition = allCondition & dateCondition;
+%             elseif endDateFlag == 1
+%                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
+%                 dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum; % Column 4 for endDate
+%                 allCondition = allCondition & dateCondition;
+%             end
+%                         
+%             % Process the query parameter "tags"            
+%             if ~isempty(tags)               
+%                 tagsArray = char(tags);
+%                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
+%                 % allCondition = dateCondition & tagsCondition; % Logical and operator
+%                 allCondition = allCondition & tagsCondition;
+%             end
+% 
+%             if ~isempty(runNumber)
+%                 snValue = num2str(runNumber);
+%                 runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+%                 allCondition = allCondition & runNumberCondition;
+%             end
+            
+            % Create a SQL statement to retrieve all records satisfying the
+            % selection criteria 072616
+            where_clause = '';
+            select_query = sprintf('SELECT e.* from %s e', 'ExecMetadata2');
+            
+            if isempty(startDate) ~= 1
+                if isempty(where_clause)
+                    where_clause = sprintf('where e.startTime BETWEEN "%s" AND "%s" ', start_begin_date, start_end_date);
+                else
+                    where_clause = sprintf('%s and e.startTime BETWEEN "%s" AND "%s" ', where_clause, start_begin_date, start_end_date);
+                end
             end
-                            
-            if isempty(endDate) ~= 1                
-                endDateFlag = true;
-            end
-                
-            if startDateFlag && endDateFlag
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
-                % Extract multiple rows from a matrix 
-                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
-                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
-                dateCondition = startCondition & endColCondition;
-                allCondition = allCondition & dateCondition;
-            elseif startDateFlag == 1
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                % Extract multiple rows from a matrix 
-                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % Column 3 for startDate
-                allCondition = allCondition & dateCondition;
-            elseif endDateFlag == 1
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum; % Column 4 for endDate
-                allCondition = allCondition & dateCondition;
+            
+            if isempty(endDate) ~= 1
+                if isempty(where_clause)
+                    where_clause = sprintf('where e.endTime BETWEEN "%s" AND "%s" ', end_begin_date, end_end_date);
+                else
+                    where_clause = sprintf('%s and e.endTime BETWEEN "%s" AND "%s" ', where_clause, end_begin_date, end_end_date);
+                end
             end
                         
-            % Process the query parameter "tags"            
-            if ~isempty(tags)               
-                tagsArray = char(tags);
-                tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-                % allCondition = dateCondition & tagsCondition; % Logical and operator
-                allCondition = allCondition & tagsCondition;
-            end
-
-            if ~isempty(runNumber)
-                snValue = num2str(runNumber);
-                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
-                allCondition = allCondition & runNumberCondition;
+            if isempty(tags) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('where e.tag="%s"', tags);
+               else
+                   where_clause = sprintf('%s and e.tag="%s"', where_clause, tags);
+               end
             end
             
+            if isempty(runNumber) ~= 1
+                if isempty(where_clause)
+                    where_clause = sprintf('where e.seqId="%s"', runNumber);
+                else
+                    where_clause = sprintf('%s and e.seqId="%s"', where_clause, runNumber);
+                end              
+            end
+            
+            select_query = sprintf('%s %s ;', select_query, where_clause);
+            
+            exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'ExecMetadata2');
+            
+            % Convert the cell array to a char matrix (order of columns
+            % changed on 072516)
+            numOfRows = size(exec_metadata_cell, 1);
+            for i=1:numOfRows
+                exec_metadata_cell{i,18} = num2str(exec_metadata_cell{i,18});
+            end
+            
+            execMetaMatrix = exec_metadata_cell;
+                                 
             % Extract multiple rows from a matrix satisfying the allCondition
-            runs = execMetaMatrix(allCondition, :);
-            runsToDisplay = execMetaMatrix(allCondition, [16,6,2,7,3,4,5]);
+            runsToDisplay = execMetaMatrix(:, [1,4,11,3,8,13,15]);
                
             % Convert the full path of a script to a base file name in
             % listRus(). The full path is displayed in viewRun()

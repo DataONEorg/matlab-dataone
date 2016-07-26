@@ -41,7 +41,7 @@ classdef ExecMetadata < hgsetget
         % session
         console;
         % A simple integer value associated with this execution (Todo: do I need to keep this property?)
-        seq;
+        % seq;
         % The table name
         tableName = 'ExecMetadata2';
     end
