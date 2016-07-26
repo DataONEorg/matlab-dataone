@@ -1578,8 +1578,6 @@ classdef RunManager < hgsetget
                 listRunsParser = inputParser;
                
                 addParameter(listRunsParser,'quiet', false, @islogical);
-%               checkDateFormat = @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}'));
-                                  
                 addParameter(listRunsParser,'startDate', '', @iscell);
                 addParameter(listRunsParser,'endDate', '', @iscell);
                 addParameter(listRunsParser,'tag', '', @(x) iscell(x) || ischar(x)); % accept both a single char array and a cell array
@@ -1670,15 +1668,14 @@ classdef RunManager < hgsetget
             
             if isempty(startDate) ~= 1
                 for i=1:length(startDate)
-                    res = any(regexp(startDate{i}, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}'));
+                    res = any(regexp(startDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?')); % Sqlite only understand a small set of date formats. Todo: include other supported date formats. 072616
                     if res ~= 1
-                        error('Input Date format is \d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}');
+                        error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
                     end
                 end
                 
-                if length(startDate) == 1
-                    start_date_num = datenum(startDate{1},'yyyymmddTHHMMSS');
-                    start_begin_date = datestr(start_date_num , 'yyyy-mm-dd HH:MM:SS');
+                if length(startDate) == 1                    
+                    start_begin_date = startDate{1};
                     start_end_date = '9999-99-99';
                 elseif length(startDate) == 2
                     start_begin_date = startDate{1};
@@ -1697,15 +1694,14 @@ classdef RunManager < hgsetget
             
             if isempty(endDate) ~= 1
                 for i=1:length(endDate)
-                    res = any(regexp(endtDate{i}, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}'));
+                    res = any(regexp(endtDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?'));
                     if res ~= 1
-                        error('Input Date format is \d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}');
+                        error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
                     end
                 end
                 
-                if length(endDate) == 1
-                    end_date_num = datenum(endDate{1},'yyyymmddTHHMMSS');
-                    end_begin_date = datestr(end_date_num , 'yyyy-mm-dd HH:MM:SS');
+                if length(endDate) == 1                   
+                    end_begin_date = endDate{1};
                     end_end_date = '9999-99-99';
                 elseif length(startDate) == 2
                     end_begin_date = endDate{1};
@@ -1742,6 +1738,8 @@ classdef RunManager < hgsetget
             
             exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'ExecMetadata2');
             
+            % Display only when the returned data is a cell; no display for
+            % 'No Data' returned
             if ~isempty(exec_metadata_cell)
                 % Convert the cell array to a char matrix (order of columns
                 % changed on 072516)
@@ -1771,6 +1769,9 @@ classdef RunManager < hgsetget
                     tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tag', 'startDate', 'endDate', 'publishDate'});
                     disp(tableForSelectedRuns);
                 end
+            else
+                message = 'There is no data matched.';
+                warning(message);
             end
         end
         

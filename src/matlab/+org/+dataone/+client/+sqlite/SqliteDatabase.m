@@ -75,9 +75,12 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                 curs = exec(sqldb_obj.dbConn, sql_statement);
                 curs = fetch(curs);
                 
-                result = curs.Data;
-%               columnlist = columnnames(curs);
-
+                if rows(curs) == 0
+                    result = [];
+                else
+                    result = curs.Data;
+                end
+                
                 % Disconnect the database connection
                 close(curs);
                 sqldb_obj.closeDBConnection();
