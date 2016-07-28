@@ -1555,9 +1555,7 @@ classdef RunManager < hgsetget
             if ( runManager.console ~= 1 )
                 runManager.console = true; 
             end
-            
-
-            
+                      
             % Unlock the RunManager instance
             munlock('RunManager');            
             % clear RunManager;
@@ -1595,74 +1593,9 @@ classdef RunManager < hgsetget
             if runManager.configuration.debug
                 listRunsParser.Results
             end
-            
-%             % Read the exeuction metadata summary from the exeuction
-%             % metadata database
-%             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-           
-%             % When the database is empty, show no rows and return
-%             if ( isempty(execMetaMatrix) )
-%                 runs = {};
-%                 
-%                 if ~quiet
-%                     fprintf('\n%s\n', 'There are no runs to display yet.');
-%                 end
-%                 return;                
-%             end
-            
-%             % Initialize the logical cell arrays for the next call for listRuns()
-%             dateCondition = false(size(execMetaMatrix, 1), 1);
-%             tagsCondition = false(size(execMetaMatrix, 1), 1);
-%             runNumberCondition = false(size(execMetaMatrix, 1), 1);
-%             allCondition = true(size(execMetaMatrix, 1), 1);
-            
-%             % Process the query constraints
-%             startDateFlag = false;
-%             endDateFlag = false;
-%                 
-%             if isempty(startDate) ~= 1                
-%                 startDateFlag = true;
-%             end
-%                             
-%             if isempty(endDate) ~= 1                
-%                 endDateFlag = true;
-%             end
-%                 
-%             if startDateFlag && endDateFlag
-%                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-%                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
-%                 % Extract multiple rows from a matrix 
-%                 startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
-%                 endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
-%                 dateCondition = startCondition & endColCondition;
-%                 allCondition = allCondition & dateCondition;
-%             elseif startDateFlag == 1
-%                 startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-%                 % Extract multiple rows from a matrix 
-%                 dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % Column 3 for startDate
-%                 allCondition = allCondition & dateCondition;
-%             elseif endDateFlag == 1
-%                 endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-%                 dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum; % Column 4 for endDate
-%                 allCondition = allCondition & dateCondition;
-%             end
-%                         
-%             % Process the query parameter "tags"            
-%             if ~isempty(tags)               
-%                 tagsArray = char(tags);
-%                 tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-%                 % allCondition = dateCondition & tagsCondition; % Logical and operator
-%                 allCondition = allCondition & tagsCondition;
-%             end
-% 
-%             if ~isempty(runNumber)
-%                 snValue = num2str(runNumber);
-%                 runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
-%                 allCondition = allCondition & runNumberCondition;
-%             end
-            
+
             % Create a SQL statement to retrieve all records satisfying the
-            % selection criteria 072616
+            % selection criteria (072616)
             where_clause = '';
             select_query = sprintf('SELECT e.* from %s e', 'ExecMetadata2');
             
@@ -1726,6 +1659,9 @@ classdef RunManager < hgsetget
                end
             end
             
+            % Todo: Discuss if the column "seq" should be kept. And which
+            % should be used as the primary key between "seq" and
+            % "executionId"? (072716)
             if isempty(runNumber) ~= 1
                 if isempty(where_clause)
                     where_clause = sprintf('where e.seqId="%s"', runNumber);
@@ -1741,17 +1677,9 @@ classdef RunManager < hgsetget
             % Display only when the returned data is a cell; no display for
             % 'No Data' returned
             if ~isempty(exec_metadata_cell)
-                % Convert the cell array to a char matrix (order of columns
-                % changed on 072516)
-                numOfRows = size(exec_metadata_cell, 1);
-                for i=1:numOfRows
-                    exec_metadata_cell{i,18} = num2str(exec_metadata_cell{i,18});
-                end
-                
-                execMetaMatrix = exec_metadata_cell;
-                
+               
                 % Extract multiple rows from a matrix satisfying the allCondition
-                runsToDisplay = execMetaMatrix(:, [1,4,11,3,8,13,15]);
+                runsToDisplay = exec_metadata_cell(:, [1,4,11,3,8,13,15]);
                 
                 % Convert the full path of a script to a base file name in
                 % listRus(). The full path is displayed in viewRun()
@@ -1764,8 +1692,7 @@ classdef RunManager < hgsetget
                 
                 % Display
                 if isempty(quiet) ~= 1 && quiet ~= 1
-                    % Convert a cell array to a table with headers
-                    % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);
+                    % Convert a cell array to a table with headers                    
                     tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tag', 'startDate', 'endDate', 'publishDate'});
                     disp(tableForSelectedRuns);
                 end
@@ -1980,19 +1907,21 @@ classdef RunManager < hgsetget
                disp('Warning: There is no scientific metadata in this data package.');
            end
            
-           persistent viewRunsParser
+           persistent viewRunsParser;
            if isempty(viewRunsParser)
                viewRunsParser = inputParser;
                
                addParameter(viewRunsParser,'packageId', '', @ischar);   
+               addParameter(viewRunsParser, 'executionId', '', @(x) ~isempty(x)); % revised on 072816
                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
                addParameter(viewRunsParser,'runNumber', '', checkSequenceNumber);
                addParameter(viewRunsParser,'tag', '', @iscell);
                addParameter(viewRunsParser,'sections', '', @iscell);
            end
-           parse(viewRunsParser,varargin{:})
+           parse(viewRunsParser,varargin{:});
             
            packageId = viewRunsParser.Results.packageId;
+           executionId = viewRunsParser.Results.executionId;
            runNumber = viewRunsParser.Results.runNumber;
            tags = viewRunsParser.Results.tag;
            sections = viewRunsParser.Results.sections;
@@ -2000,138 +1929,58 @@ classdef RunManager < hgsetget
            if runManager.configuration.debug
                viewRunsParser.Results
            end
+                       
+           where_clause = '';
+           select_query = sprintf('SELECT e.* from %s e', 'ExecMetadata2');
            
-           % Read the exeuction metadata summary from the exeuction metadata database
-           [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-           
-           % Initialize the logical cell arrays for the next call for listRuns() 
-           packageIdCondition = false(size(execMetaMatrix, 1), 1);          
-           runNumberCondition = false(size(execMetaMatrix, 1), 1);   
-           tagsCondition = false(size(execMetaMatrix, 1), 1);
-           allCondition = true(size(execMetaMatrix, 1), 1);
-                   
-           % Select runs based on the packageID. 
-           if(isempty(packageId) ~= 1)
-               packageIdCondition = strcmp(execMetaMatrix(:,6), packageId); % Column 6 in the execution matrix for packageId
-               allCondition = allCondition & packageIdCondition;
-           end
-           
-           % Process the query parameter "tags"            
-           if ~isempty(tags)               
-               tagsArray = char(tags);
-               tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-               allCondition = allCondition & tagsCondition; % Logical and operator
-           end
-
-           if ~isempty(runNumber)              
-               snValue = num2str(runNumber);
-               runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                              
-               allCondition = allCondition & runNumberCondition;
-           end
-            
-           % Extract multiple rows from a matrix satisfying the allCondition
-           selectedRuns = execMetaMatrix(allCondition, :);
-           if isempty(selectedRuns)
-               error('No runs can be found as a match.');
-           end
-            
-           seqNo = selectedRuns{1, 16}; % Todo: handle multiple views returned. Now assum only one run is returned
-           packageId = selectedRuns{1, 6};
-
-           % Read information from the selectedRuns returned by the execution summary database
-           filePath = selectedRuns{1, 2};
-           [pathstr,scriptName,ext] = fileparts(filePath);
-           
-           if isempty(selectedRuns{1,5} ) ~= 1              
-               % publishedTime = datetime( selectedRuns{1,5}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-               dateNum = datenum(selectedRuns{1,5}, 'yyyymmddTHHMMSS');
-               publishedTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS');
-           else
-               publishedTime = 'Not Published';
-           end
-           
-           dateNum = datenum( selectedRuns{1,3}, 'yyyymmddTHHMMSS' ); 
-           startTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS'); % todo: add time zone and datetime is not available in R2014b version
-           dateNum = datenum(selectedRuns{1,4} , 'yyyymmddTHHMMSS');
-           endTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS');
-           % startTime = datetime( selectedRuns{1,3}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-           % endTime = datetime( selectedRuns{1,4}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ' );
-                 
-           % Compute the detailStruct for the details_section 
-           fieldnames = {'Tag', 'RunSequenceNumber', 'PublishedDate', 'PublishedTo', ...
-                         'RunByUser', 'AccountSubject', 'RunId', 'DataPackageId', ...
-                         'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
-                         'RunStartTime','RunEndingTime', 'ErrorMessageFromThisRun'};
-           values = {selectedRuns{1,7}, seqNo, publishedTime, runManager.configuration.target_member_node_id, ...
-                     selectedRuns{1,8}, selectedRuns{1,9}, selectedRuns{1,1}, selectedRuns{1,6}, ...
-                     selectedRuns{1,10}, selectedRuns{1,11}, selectedRuns{1,12}, selectedRuns{1,13}, ...
-                     char(startTime), char(endTime), selectedRuns{1,15}};                   
-           detailStruct = struct;
-           for i=1:length(fieldnames)
-               detailStruct.(fieldnames{i}) = values{i};
-           end
-
-           % Deserialize the execution object from the disk
-           
-           % Remove the path to the overloaded load() from the Matlab path
-           overloadedFunctPath = which('load');
-           [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
-           rmpath(overloaded_func_path);
-            
-           % Load the stored execution given the directory name
-           exec_file_base_name = [packageId '.mat'];
-           stored_execution = load(fullfile( ...
-               runManager.configuration.provenance_storage_directory, ...
-               'runs', ...
-               packageId, ...
-               exec_file_base_name));
-           
-           % Add the path to the overloaded load() back to the Matlab path
-           warning off MATLAB:dispatcher:nameConflict;
-           addpath(overloaded_func_path, '-begin');
-           warning on MATLAB:dispatcher:nameConflict;
-           
-           % Assign deserialized execution to runManager.execution
-           runManager.execution = stored_execution.executionObj(1);
-           
-           import org.apache.commons.io.FileUtils;
-           
-           % Compute the used struct for the used_section
-           usedFileStruct = struct;
-           for i=1:length(runManager.execution.execution_input_ids)
-               inId = runManager.execution.execution_input_ids{i};
+           if isempty(packageId) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE e.datapackageId="%s"', packageId);
+               else
+                   where_clause = sprintf('%s and e.datapackageId="%s"', where_clause, packageId);
+               end
                
-               inDataObject = runManager.execution.execution_objects(inId);
-               in_d1_sysmeta = inDataObject.system_metadata;
-               in_file_size = in_d1_sysmeta.getSize;
-               in_file_name = char(in_d1_sysmeta.getFileName());
-               in_file_metadata = dir(inDataObject.full_file_path);
-
-               usedFileStruct(i,1).LocalName = {in_file_name};
-               fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
-               usedFileStruct(i,1).Size = {char(fsize)}; 
-               usedFileStruct(i,1).ModifiedTime = {in_file_metadata.date}; 
            end
-                      
-           % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
-           generatedFileStruct = struct;
-           for j=1:length(runManager.execution.execution_output_ids)
-               outId = runManager.execution.execution_output_ids{j};              
-               outDataObject = runManager.execution.execution_objects(outId);
-               out_d1_sysmeta = outDataObject.system_metadata;
-               out_file_size = out_d1_sysmeta.getSize;
-               out_file_name = char(out_d1_sysmeta.getFileName());
-               out_file_metadata = dir(outDataObject.full_file_path);
-   
-               generatedFileStruct(j,1).LocalName = {out_file_name}; % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
-               fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
-               generatedFileStruct(j,1).Size = {char(fsize)}; 
-               generatedFileStruct(j,1).ModifiedTime = {out_file_metadata.date};     
+           
+           if isempty(executionId) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE e.executionId="%s"', executionId);
+               else
+                   where_clause = sprintf('%s and e.executionId="%s"', where_clause, executionId);
+               end
+               
            end
-        
-           results = {detailStruct, usedFileStruct, generatedFileStruct};
- 
-           more on; % Enable more for page control
+           
+           if isempty(tags) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE e.tag="%s"', tags);
+               else
+                   where_clause = sprintf('%s and e.tag="%s"', where_clause, tags);
+               end
+           end
+           
+           if isempty(runNumber) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE e.seq="%s"', runNumber);
+               else
+                   where_clause = sprintf('%s and e.seq="%s"', where_clause, runNumber);
+               end
+           end
+           
+           select_query = sprintf('%s %s', select_query, where_clause);
+           exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'ExecMetadata2');
+           
+           % Display only when the returned data is a cell
+           if ~isempty(exec_metadata_cell)
+               % Get the short script name and starting timestamp
+               script_full_path = exec_metadata_cell{1, 11};
+               script_name_array = strsplit(script_full_path, filesep);
+               scriptName = char(script_name_array(end));
+               startTime = exec_metadata_cell{1, 8};
+               
+               % Extract multiple rows from a matrix satisfying the allCondition
+               details_execmeta = exec_metadata_cell(:, [3,1,15,16,5,6,1,4,7,9,10,12,8,13,14]);
+           end
            
            % Decide the sections to be displayed based on values of sections
            if ~isempty(sections)
@@ -2145,29 +1994,62 @@ classdef RunManager < hgsetget
                showGenerated = 0;
            end
            
+           import org.dataone.client.sqlite.FileMetadata;
+           
+           used_file_stats = {};
+           generated_file_stats = {};
+           
+           if showUsed == 1
+               used_file_metadata = FileMetadata('', executionId, '','','','','','', 'read','','');
+               used_file_query = used_file_metadata.readFileMeta('', '');
+               used_file_stats = runManager.provenanceDB.execute(used_file_query, used_file_metadata.tableName);
+           end
+           
+           if showGenerated == 1
+               generated_file_metadata = FileMetadata('', executionId, '','','','','','', 'write','','');
+               generated_file_query = used_file_metadata.readFileMeta('', '');
+               generated_file_stats = runManager.provenanceDB.execute(generated_file_query, generated_file_metadata.tableName);
+           end
+           
+           results = {details_execmeta, used_file_stats, generated_file_stats};
+           
+           more on; % Enable more for page control
+           
            % Display different sections
            if showDetails == 1
                fprintf('\n[DETAILS]: Run details\n');
-               fprintf('-------------------------\n');
-               fprintf('"%s" was executed on %s\n', scriptName, char(startTime));           
-               disp(detailStruct);
+               fprintf('-------------------------\n');               
+               fprintf('"%s" was executed on %s\n', scriptName, char(startTime));
+              
+               % Compute the detailStruct for the details_section
+               fieldnames = {'Tag', 'RunSequenceNumber', 'PublishedDate', 'PublishedTo', ...
+                   'RunByUser', 'AccountSubject', 'ExecutionId', 'DataPackageId', ...
+                   'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
+                   'RunStartTime','RunEndingTime', 'ErrorMessageFromThisRun'};
+               
+               % Convert a cell array to a table with headers              
+               tableForDetailsSection = cell2table(details_execmeta,'VariableNames', fieldnames);
+               disp(tableForDetailsSection);
            end
-                    
-           if showUsed == 1    
-               fprintf('\n\n[USED]: %d Items used by this run\n', length(usedFileStruct));
+           
+           if showUsed == 1
+               fprintf('\n\n[USED]: %d Items used by this run\n', size(used_file_stats,1));
                fprintf('------------------------------------\n');
-               TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
+               used_file_to_display = used_file_stats(:, [3,5,7]);
+               TableForFileUsed = cell2table(used_file_to_display, 'VariableNames', {'FilePath','Size','ModifiedTime'}); % Convert a struct to a table
                disp(TableForFileUsed);
-           end 
-           
-           if showGenerated == 1                    
-               fprintf('\n\n[GENERATED]: %d Items generated by this run\n', length(generatedFileStruct));
-               fprintf('------------------------------------------\n');              
-               TableForFileWasGeneratedBy = struct2table(generatedFileStruct); % Convert a struct to a table
-               disp(TableForFileWasGeneratedBy);               
            end
            
-           more off; % terminate more           
+           if showGenerated == 1
+               fprintf('\n\n[GENERATED]: %d Items generated by this run\n', size(generated_file_stats,1));
+               fprintf('------------------------------------------\n');
+               generated_file_to_display = generated_file_stats(:, [3,5,7]);
+               TableForFileWasGeneratedBy = cell2table(generated_file_to_display, 'VariableNames', {'FilePath','Size','ModifiedTime'}); % Convert a struct to a table
+               disp(TableForFileWasGeneratedBy);
+           end
+           
+           more off; % terminate more
+                      
         end
         
         function package_id = publish(runManager, packageId)

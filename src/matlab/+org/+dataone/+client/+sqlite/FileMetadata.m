@@ -65,106 +65,7 @@ classdef FileMetadata < hgsetget
             
         end
         
-        function readQuery = readFileMeta(filemetaObj, orderBy, sortOrder)
-            % READFILEMETA Retrieves saved file metadata for one or more
-            % files
-            % filemetaObj - a fileMetadata object or struct to be retrieved
-            
-            if isempty(filemetaObj) == 1
-                % If the 'filemetaObj' doesn't exist yet, then there is
-                % no filemetadata for read, so just return a blank string
-                readQuery = [];
-                return;
-            end
-           
-            % Construct a SELECT statement to retrieve the runs that match
-            % the specified search criteria
-            select_statement = sprintf('SELECT * FROM %s ', filemetaObj.tableName);
-            where_clause = '';
-            order_by_clause = '';
-            
-            % Process the orderBy clause
-            if isempty(orderBy) ~= 1
-                if ismember(lower(sortOrder), {'descending', 'desc'})
-                    sortOrder = 'DESC';
-                else
-                    sortOrder = 'ASC';
-                end
-                order_by_clause = [' order by ', orderBy, sortOrder];
-            end
-            
-            % Process the fileMetadata object and construct the WHERE clause
-            if isempty(filemetaObj) ~= 1
-                row_fileId = filemetaObj.get('fileId');
-                if isempty(row_fileId) ~= 1
-                    if isempty(where_clause)
-                        where_clause = ['where fileId=', row_fileId];
-                    else
-                        where_clause = [where_clause, ' and fileId = ', row_fileId];
-                    end
-                end
-                
-                row_executionId = filemetaObj.get('executionId');
-                if isempty(row_executionId) ~= 1
-                    if isempty(where_clause)
-                        where_clause = ['where executionId=', row_executionId];
-                    else
-                        where_clause = [where_clause, ' and executionId = ', row_executionId];
-                    end
-                end
-                
-                row_sha256 = filemetaObj.get('sha256');
-                if isempty(row_sha256) ~= 1
-                    if isempty(where_clause)
-                        where_clause = ['where sha256=', row_sha256];
-                    else
-                        where_clause = [where_clause, ' and sha256 = ', row_sha256];
-                    end
-                end
-                
-                row_filePath = filemetaObj.get('filePath');
-                if isempty(row_filePath) ~= 1
-                    if isempty(where_clause)
-                        where_clause = ['where filePath=', row_filePath];
-                    else
-                        where_clause = [where_clause, ' and filePath = ', row_filePath];
-                    end
-                end
-                
-                row_user = filemetaObj.get('user');
-                if isempty(row_user) ~= 1
-                    if isempty(where_clause)
-                        where_clause = ['where user=', row_user];
-                    else
-                        where_clause = [where_clause, ' and user = ', row_user];
-                    end
-                end
-                
-                row_access = filemetaObj.get('access');
-                if isempty(row_access) ~= 1
-                    if isempty(where_clause)
-                        where_clause = ['where access=', row_access];
-                    else
-                        where_clause = [where_clause, ' and access = ', row_access];
-                    end
-                end
-                
-                row_format = filemetaObj.get('format');
-                if isempty(row_format) ~= 1
-                    if isempty(where_clause)
-                        where_clause = ['where format=', row_format];
-                    else
-                        where_clause = [where_clause, ' and format = ', row_format];
-                    end
-                end
-                
-            end
-                        
-            % Retrieve records that match search criteria
-            select_statement = [select_statement, where_clause, order_by_clause, ';'];
-            readQuery = select_statement;
-                        
-        end
+
     end
     
     methods
@@ -245,6 +146,107 @@ classdef FileMetadata < hgsetget
             insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', fileMetadata.tableName, filemeta_colnames{:});
             insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s","%s");', data_row{:});
             insertQuery = [insertQuery , insertQueryData];
+        end
+        
+                function readQuery = readFileMeta(filemetaObj, orderBy, sortOrder)
+            % READFILEMETA Retrieves saved file metadata for one or more
+            % files
+            % filemetaObj - a fileMetadata object or struct to be retrieved
+            
+            if isempty(filemetaObj) == 1
+                % If the 'filemetaObj' doesn't exist yet, then there is
+                % no filemetadata for read, so just return a blank string
+                readQuery = [];
+                return;
+            end
+           
+            % Construct a SELECT statement to retrieve the runs that match
+            % the specified search criteria
+            select_statement = sprintf('SELECT * FROM %s ', filemetaObj.tableName);
+            where_clause = '';
+            order_by_clause = '';
+            
+            % Process the orderBy clause
+            if isempty(orderBy) ~= 1
+                if ismember(lower(sortOrder), {'descending', 'desc'})
+                    sortOrder = 'DESC';
+                else
+                    sortOrder = 'ASC';
+                end
+                order_by_clause = [' order by ', orderBy, sortOrder];
+            end
+            
+            % Process the fileMetadata object and construct the WHERE clause
+            if isempty(filemetaObj) ~= 1
+                row_fileId = filemetaObj.get('fileId');
+                if isempty(row_fileId) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where fileId="%s"', row_fileId);
+                    else
+                        where_clause = sprintf('%s and fileId="%s" ', where_clause, row_fileId);
+                    end
+                end
+                
+                row_executionId = filemetaObj.get('executionId');
+                if isempty(row_executionId) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where executionId="%s"', row_executionId);
+                    else
+                        where_clause = sprintf('%s and executionId="%s"', where_clause, row_executionId);
+                    end
+                end
+                
+                row_sha256 = filemetaObj.get('sha256');
+                if isempty(row_sha256) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where sha256="%s"', row_sha256);
+                    else
+                        where_clause = sprintf('%s and sha256="%s"', where_clause, row_sha256);
+                    end
+                end
+                
+                row_filePath = filemetaObj.get('filePath');
+                if isempty(row_filePath) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where filePath="%s"', row_filePath);
+                    else
+                        where_clause = sprintf( '%s and filePath="%s"', where_clause, row_filePath);
+                    end
+                end
+                
+                row_user = filemetaObj.get('user');
+                if isempty(row_user) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where user="%s"', row_user);
+                    else
+                        where_clause = sprintf( '%s and user="%s"', where_clause, row_user);
+                    end
+                end
+                
+                row_access = filemetaObj.get('access');
+                if isempty(row_access) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where access="%s"', row_access);
+                    else
+                        where_clause = sprintf('%s and access="%s"', where_clause, row_access);
+                    end
+                end
+                
+                row_format = filemetaObj.get('format');
+                if isempty(row_format) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where format="%s"', row_format);
+                    else
+                        where_clause = sprintf('%s and format="%s"', where_clause, row_format);
+                    end
+                end
+                
+            end
+                        
+            % Retrieve records that match search criteria
+            select_statement = sprintf('%s %s %s;', select_statement, where_clause, order_by_clause);
+            readQuery = select_statement;
+                        
         end
       
     end
