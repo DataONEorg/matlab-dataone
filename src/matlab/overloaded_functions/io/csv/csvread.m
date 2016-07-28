@@ -70,7 +70,9 @@ function m = csvread(source, varargin)
     % in the RunManager DataPackage instance  
     if ( runManager.configuration.capture_file_reads )
         formatId = 'text/csv';
+        
         import org.dataone.client.v2.DataObject;
+        import org.dataone.client.sqlite.FileMetadata;
 
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
@@ -84,12 +86,24 @@ function m = csvread(source, varargin)
             % Add this object to the execution objects map
             pid = char(java.util.UUID.randomUUID()); % generate an id
             dataObject = DataObject(pid, formatId, fullSourcePath);
+                 
+            % Write to filemeta table in the provenance database on 072816
+            file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read'); 
+            write_query = file_meta_obj.writeFileMeta;
+            status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+            
             runManager.execution.execution_objects(dataObject.identifier) = ...
                 dataObject;
         else
             % Update the existing map entry with a new DataObject
             pid = existing_id;
             dataObject = DataObject(pid, formatId, fullSourcePath);
+            
+            % Write to filemeta table in the provenance database on 072816
+            file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');
+            write_query = file_meta_obj.writeFileMeta;
+            status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+            
             runManager.execution.execution_objects(dataObject.identifier) = ...
                 dataObject;
         end

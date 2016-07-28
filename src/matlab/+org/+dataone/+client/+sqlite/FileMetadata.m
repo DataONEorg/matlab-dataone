@@ -30,25 +30,11 @@ classdef FileMetadata < hgsetget
     end
     
     methods (Static)
-        
-        function hash = string2hash(string)
-            % STRING2HASH Converts a string to a 64 char hex hash string (256 bit hash)
-            % string - a string
-            % hash - a 64 character string, encoding the 256 bit SHA hash of string
-            %        in hexadecimal.
-            
-            persistent md;
-            
-            if isempty(md)
-                md = java.security.MessageDigest.getInstance('SHA-256');
-            end
-            hash = sprintf('%2.2x', typecast(md.digest(uint8(string)), 'uint8')');
-        end
-        
+               
         function create_table_statement = createFileMetadataTable(tableName)
             % CREATEFILEMETADATATABLE Creates a file metadata table
             create_table_statement = ['create table if not exists ' tableName '('];
-            create_table_statement = [create_table_statement ...                
+            create_table_statement = [create_table_statement ...
                 'fileId TEXT PRIMARY KEY,' ...
                 'executionId TEXT not null,' ...
                 'filePath TEXT not null,' ...
@@ -63,9 +49,7 @@ classdef FileMetadata < hgsetget
                 'foreign key(executionId) references execmeta(executionId),' ...
                 'unique(fileId));'];
             
-        end
-        
-
+        end        
     end
     
     methods
@@ -75,18 +59,18 @@ classdef FileMetadata < hgsetget
             % list of arguments describing a file metadata
             
             import java.io.File;
-            import javax.activation.FileDataSource;
-                        
+            import java.io.FileInputStream;
+            
             switch nargin
-                case 2
+                case 3
                     this.fileId = varargin{1}.identifier;
                     this.filePath = varargin{1}.full_file_path;
                     this.format = varargin{1}.format_id;
                     
                     dataObj_sysmeta = varargin{1}.system_metadata;
                     
-                    this.size = dataObj_sysmeta.size;
-                    this.user = dataObj_sysmeta.submitter;
+                    this.size = dataObj_sysmeta.getSize().longValue();
+                    this.user = dataObj_sysmeta.getSubmitter();
                     
                     fileInfo = dir(varargin{1}.full_file_path);
                     last_modified = fileInfo.date;
@@ -95,20 +79,23 @@ classdef FileMetadata < hgsetget
                     % Add the SHA-256 checksum
                     import org.apache.commons.io.IOUtils;
                     
-                    objectFile = File(full_file_path);
+                    objectFile = File(this.filePath);
                     fileInputStream = FileInputStream(objectFile);
                     data = IOUtils.toString(fileInputStream, 'UTF-8');
-                    sha256_hash_value = FileMetadata.string2hash(data);
-                    this.sha256 = sha256_hash_value;
+                    
+                    % Todo: compute the sha256 value
+%                   sha256_hash_value = this.string2hash(data); 
+%                   this.sha256 = sha256_hash_value;
                     
                     this.executionId = varargin{2};
+ 
+                    % Archived file path
                     
-                     % Archived file path
-                     
-                     % createTime
-                     
-                     % access
-                                          
+                    % createTime
+                    
+                    % access
+                    this.access = varargin{3};
+                    
                 case 11
                     this.fileId = varargin{1};
                     this.executionId = varargin{2};
@@ -125,7 +112,7 @@ classdef FileMetadata < hgsetget
                 otherwise
                     throw(MException('FileMetadata:error', 'invalid options'));
             end
-                     
+            
         end
         
         
@@ -148,7 +135,7 @@ classdef FileMetadata < hgsetget
             insertQuery = [insertQuery , insertQueryData];
         end
         
-                function readQuery = readFileMeta(filemetaObj, orderBy, sortOrder)
+        function readQuery = readFileMeta(filemetaObj, orderBy, sortOrder)
             % READFILEMETA Retrieves saved file metadata for one or more
             % files
             % filemetaObj - a fileMetadata object or struct to be retrieved
@@ -159,7 +146,7 @@ classdef FileMetadata < hgsetget
                 readQuery = [];
                 return;
             end
-           
+            
             % Construct a SELECT statement to retrieve the runs that match
             % the specified search criteria
             select_statement = sprintf('SELECT * FROM %s ', filemetaObj.tableName);
@@ -242,12 +229,24 @@ classdef FileMetadata < hgsetget
                 end
                 
             end
-                        
+            
             % Retrieve records that match search criteria
             select_statement = sprintf('%s %s %s;', select_statement, where_clause, order_by_clause);
-            readQuery = select_statement;
-                        
+            readQuery = select_statement;            
         end
-      
+                
+        function hash = string2hash(this, data)
+            % STRING2HASH Converts a string to a 64 char hex hash string (256 bit hash)
+            % data - a string
+            % hash - a 64 character string, encoding the 256 bit SHA hash of string
+            %        in hexadecimal.
+            
+            persistent md;
+            
+            if isempty(md)
+                md = java.security.MessageDigest.getInstance('SHA-256');
+            end
+            hash = sprintf('%2.2x', typecast(md.digest(uint8(data)), 'uint8')');
+        end
     end
 end
