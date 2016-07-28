@@ -875,37 +875,6 @@ classdef RunManager < hgsetget
                 errorMessage = [errorMessage, 'SQLiteDatabaseError: Insert record failed.'];
                 error(errorMessage);
             end
-            
-%             formatSpec = runManager.configuration.execution_db_write_format;           
-%             if exist(fileName, 'file') ~= 2
-%                 [fileId, message] = fopen(fileName,'w');
-%                 if fileId == -1
-%                     disp(message);
-%                 end
-%                 fprintf(fileId, formatSpec, ...,
-%                     'runId', 'filePath', 'startTime', 'endTime', ...,
-%                     'publishedTime', 'packageId', 'tag', 'user', ...,
-%                     'subject', 'hostId', 'operatingSystem', 'runtime', ...,
-%                     'moduleDependencies', 'console', 'errorMessage', 'runNumber'); % write header
-%                 fprintf(fileId,formatSpec, ...,
-%                     runID, filePath, startTime, endTime, ...,
-%                     publishedTime, packageId, tag, user, ...,
-%                     subject, hostId, operatingSystem, runtime, ...,
-%                     moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution
-%                 fclose(fileId); 
-%             else
-%                 [fileId, message] = fopen(fileName,'a');
-%                 if fileId == -1
-%                     disp(message);
-%                 end
-%                 fprintf(fileId,formatSpec, ...,
-%                     runID, filePath, startTime, endTime, ...,
-%                     publishedTime, packageId, tag, user, ...,
-%                     subject, hostId, operatingSystem, runtime, ...,
-%                     moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
-%                 fclose(fileId); 
-%             end   
-
         end
                
         
@@ -917,20 +886,7 @@ classdef RunManager < hgsetget
             % database.
             %   runManager - 
             
-%             formatSpec = runManager.configuration.execution_db_read_format;
-%             [fileId, message] = fopen(runManager.configuration.execution_db_name, 'r');
-%             if fileId == -1
-%                 disp(message); 
-%             else
-%                 header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
-%                 execMetaData = textscan(fileId, formatSpec, 'Delimiter',',');
-%                 fclose(fileId);
-%  
-%                 % Convert a cell array to a matrix
-%                 execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]}];
-%             end
-
-            select_all_query = 'SELECT * from ExecMetadata2;';
+            select_all_query = sprintf('SELECT * from %s;', 'ExecMetadata2');
             exec_metadata_cell = runManager.provenanceDB.execute(select_all_query, 'ExecMetadata2');
             
             % Convert the cell array to a char matrix (order of columns
