@@ -57,9 +57,7 @@ classdef RunManager < hgsetget
         combinedViewPdfFileName = '';
         
         wfMetaFileName = '';
-%         mfilename = '';
-%         efilename = '';
-        
+
         % DataONE CN URI resolve endpoint 
         D1_CN_Resolve_Endpoint;
         
@@ -102,17 +100,24 @@ classdef RunManager < hgsetget
             import org.dataone.client.configure.Configuration;
             import org.dataone.client.sqlite.Database;
             import org.dataone.client.sqlite.SqliteDatabase;
-
+            import org.dataone.client.sqlite.ExecMetadata;
+            import org.dataone.client.sqlite.FileMetadata;
+            
             warning('off','backtrace');
             
             manager.configuration = configuration;
             
             % runManager.configuration.execution_db_name
-            db_path = '/Users/syc/Documents/matlab-dataone/';
+            db_path = manager.configuration.provenance_storage_directory;
             db_file = 'prov.sqlite'; 
-            db_url = sprintf('jdbc:sqlite:%s%s', db_path, db_file);
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
             manager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
        
+            create_exec_meta_table_statement = ExecMetadata.createExecMetaTable('ExecMetadata2');
+            create_file_meta_table_statement = FileMetadata.createFileMetadataTable('filemeta');
+            manager.provenanceDB.execute(create_exec_meta_table_statement, 'ExecMetadata2');
+            manager.provenanceDB.execute(create_file_meta_table_statement, 'filemeta');
+            
             manager.init();  
             mlock; % Lock the RunManager instance to prevent clears          
         end
@@ -864,7 +869,7 @@ classdef RunManager < hgsetget
             seqNo = num2str(runManager.last_sequence_number);
             
             % Write execution runtime informaiton to execmeta table in the
-            % provenance database (July-25-2016)
+            % provenance database (072516)
             exec_obj = ExecMetadata(runID,'metadataId',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,moduleDependencies,endTime,errorMessage,publishedTime,publishNodeId, 'publishId', console);
             insert_query = exec_obj.writeExecMeta();
             status = runManager.provenanceDB.execute(insert_query, exec_obj.tableName);
@@ -1157,21 +1162,22 @@ classdef RunManager < hgsetget
                 runManager.execution.execution_input_ids = {};
                 runManager.execution.execution_output_ids = {};
             
-                % Set the manager.last_sequence_number based on execution_db_name last
-                % sequence number
-                if ( exist(runManager.configuration.execution_db_name, 'file') ~= 2 )
-                    runManager.last_sequence_number = 0; 
-                else
-%                   [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-                    execMetaMatrix = runManager.getExecMetadataMatrix();
-                    if ~isempty(execMetaMatrix)
-                        lastRow = execMetaMatrix(end,:);
-                        lastSeqNum = lastRow{1,end};
-                        runManager.last_sequence_number = str2num(lastSeqNum);
-                    else
-                        runManager.last_sequence_number = 0; 
-                    end
-                end
+                % There is no seq column in the ExecMetadata table. Changed on 072916
+%                 % Set the manager.last_sequence_number based on execution_db_name last
+%                 % sequence number
+%                 if ( exist(runManager.configuration.execution_db_name, 'file') ~= 2 )
+%                     runManager.last_sequence_number = 0; 
+%                 else
+% %                   [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+%                     execMetaMatrix = runManager.getExecMetadataMatrix();
+%                     if ~isempty(execMetaMatrix)
+%                         lastRow = execMetaMatrix(end,:);
+%                         lastSeqNum = lastRow{1,end};
+%                         runManager.last_sequence_number = str2num(lastSeqNum);
+%                     else
+%                         runManager.last_sequence_number = 0; 
+%                     end
+%                 end
             end
         end
                 

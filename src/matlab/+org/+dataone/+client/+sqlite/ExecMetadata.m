@@ -296,7 +296,7 @@ classdef ExecMetadata < hgsetget
     methods
         function this = ExecMetadata(varargin)
             % EXECMETADATA Constructor Initializes an execution metadata object
-            
+                        
             switch nargin
                 case 1
                     this.executionId = varargin{1}.execution_id;

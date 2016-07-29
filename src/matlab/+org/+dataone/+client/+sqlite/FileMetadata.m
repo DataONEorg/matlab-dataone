@@ -70,7 +70,10 @@ classdef FileMetadata < hgsetget
                     dataObj_sysmeta = varargin{1}.system_metadata;
                     
                     this.size = dataObj_sysmeta.getSize().longValue();
-                    this.user = dataObj_sysmeta.getSubmitter();
+                    
+                    if ~isempty(dataObj_sysmeta.getSubmitter())
+                        this.user = dataObj_sysmeta.getSubmitter().getValue();
+                    end
                     
                     fileInfo = dir(varargin{1}.full_file_path);
                     last_modified = fileInfo.date;
@@ -89,9 +92,9 @@ classdef FileMetadata < hgsetget
                     
                     this.executionId = varargin{2};
  
-                    % Archived file path
+                    % Todo: Archived file path
                     
-                    % createTime
+                    % Todo: get the create time of a file
                     
                     % access
                     this.access = varargin{3};
@@ -114,8 +117,7 @@ classdef FileMetadata < hgsetget
             end
             
         end
-        
-        
+                
         function insertQuery = writeFileMeta(fileMetadata)
             % WRITEFILEMETA Saves metadata for a single file
             % fileMetadata - a filemetadata object to be added to the
