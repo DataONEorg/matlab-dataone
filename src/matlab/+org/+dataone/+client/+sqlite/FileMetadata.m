@@ -96,7 +96,7 @@ classdef FileMetadata < hgsetget
                     
                     % Todo: get the create time of a file
                     
-                    % access
+                    % Set the access mode {'read','write', 'execute'}
                     this.access = varargin{3};
                     
                 case 11

@@ -370,11 +370,12 @@ classdef RunManager < hgsetget
             d1ObjIdentifier.setValue(idValue);
             d1Obj = D1Object(d1ObjIdentifier, data, D1TypeBuilder.buildFormatIdentifier(fileFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId)); 
         end
-               
+          
+        
         function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
+            
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
-            %import org.dataone.client.run.NamedConstant;
             import org.dataone.util.ArrayListWrapper;
             import org.dataone.client.v2.itk.D1Object;
             import com.hp.hpl.jena.vocabulary.RDF;
@@ -388,37 +389,55 @@ classdef RunManager < hgsetget
             import java.math.BigInteger;
             
             import org.dataone.client.v2.DataObject;
-                       
+            import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ExecMetadata;
+            
             if runManager.configuration.debug
                 disp('====== buildPackage ======');
             end
            
-            % Get the run identifier from the directory name
+            em_fields = {'executionId','metadataId','tag','datapackageId','user','subject','hostId','startTime','operatingSystem','runtime','softwareApplication','moduleDependencies','endTime','errorMessage','publishTime','publishNodeId','publishId','console'};
+            fm_fields = {'fileId','executionId','filePath','sha256','size','user','modifyTime','createTime','access','format','archivedFilePath'};
+            
+            % Get the run identifier from the directory name (execution_id)
             path_array = strsplit(dirPath, filesep);
-            identifier = char(path_array(end));
+            cur_exec_id = char(path_array(end)); %080116
+                                 
+            % Query the ExecMetadata table using the given execution_id
+            % 080116            
+            read_exec_query = sprintf('select * from %s e where e.executionId="%s";', 'ExecMetadata2', cur_exec_id);            
+            row_exec_meta = runManager.provenanceDB.execute(read_exec_query, 'ExecMetadata2');
+            row_exec_meta_struct = cell2struct(row_exec_meta, em_fields, 2);
+            if isempty(row_exec_meta)               
+                warning('There is no record for the %s in the %s table', cur_exec_id, 'ExecMetadata2');
+            else
+                % The following information are required by EML.update()
+                runManager.execution.start_time = row_exec_meta_struct.startTime; % get the value of startTime 080116
+                runManager.execution.software_application = row_exec_meta_struct.softwareApplication; % get the value of sofware_application 080116
+                runManager.execution.execution_id = cur_exec_id; %080116
+            end
             
-            % Load the stored execution given the directory name
-            exec_file_base_name = [identifier '.mat'];
-            stored_execution = load(fullfile( ...
-                runManager.configuration.provenance_storage_directory, ...
-                'runs', ...
-                identifier, ...
-                exec_file_base_name));
-
-            % Assign deserialized execution to runManager.execution
-            runManager.execution = stored_execution.executionObj(1);
-            
-            % Initialize a dataPackage to manage the run
-            program_id = runManager.execution.getIdByFullFilePath( ...
-                runManager.execution.software_application);
+            % Get the identifier for the script file object from the
+            % filemeta table by searching for "access='execute'" 080116            
+            program_id = '';
+            program_metadata_obj = FileMetadata('', cur_exec_id, '','',0,'','','','execute','','');
+            read_program_query = program_metadata_obj.readFileMeta('','');
+            rows_program_meta = runManager.provenanceDB.execute(read_program_query, program_metadata_obj.tableName);
+            rows_program_meta_struct = struct;
+            if ~isempty(rows_program_meta)
+                rows_program_meta_struct = cell2struct(rows_program_meta, fm_fields, 2);               
+                program_id = rows_program_meta_struct.fileId;
+            end
         
-            packageIdentifier = Identifier();
+            % Initialize a dataPackage to manage the run
+            packageIdentifier = Identifier();            
             packageIdentifier.setValue(runManager.execution.execution_id);      
            
             % Create a resourceMap identifier
             resourceMapId = Identifier();
             resourceMapId.setValue(['resourceMap_' ...
                 runManager.execution.execution_id '.rdf']);
+
             % Create an empty datapackage with resourceMapId
             import org.dataone.configuration.Settings;
             Settings.getConfiguration().setProperty( ...
@@ -461,19 +480,17 @@ classdef RunManager < hgsetget
             isAggregatedByPredicate = ORE.predicate('isAggregatedBy');
             
             % Create a DataObject for the program that we are running and
-            %    update the resulting sysmeta in the stored exucution matlab DataObject
-            programDataObject = runManager.execution.execution_objects(program_id);
+            %    update the resulting sysmeta in the stored exucution
+            %    matlab DataObject 080116
             programD1JavaObj = runManager.buildD1Object( ...
-                programDataObject.full_file_path, programDataObject.format_id, ...
-                programDataObject.identifier, submitter, mnNodeId);
+                rows_program_meta_struct.filePath, rows_program_meta_struct.format, ...
+                rows_program_meta_struct.fileId, submitter, mnNodeId);
             runManager.dataPackage.addData(programD1JavaObj);
-            set(programDataObject, 'system_metadata', programD1JavaObj.getSystemMetadata());
-            runManager.execution.execution_objects(program_id) = programDataObject;
-            
+                       
             % Create a D1 identifier for the workflow script  
-            runManager.wfIdentifier = Identifier();                   
-            runManager.wfIdentifier.setValue(programDataObject.identifier);
-                                  
+            runManager.wfIdentifier = Identifier();     
+            runManager.wfIdentifier.setValue(rows_program_meta_struct.fileId);
+
             % The workflow program URI
             programURI = URI([runManager.D1_CN_Resolve_Endpoint ...
                 char(runManager.wfIdentifier.getValue())]);
@@ -549,11 +566,11 @@ classdef RunManager < hgsetget
                 provONEUserURI); 
 
             % Create a science metadata object and add it to the package
-            metadata_file_base_name = ['metadata_' identifier '.xml'];
+            metadata_file_base_name = ['metadata_' runManager.execution.execution_id '.xml'];
             metadataExists = exist(fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
                 'runs', ...
-                identifier, ...
+                runManager.execution.execution_id, ...
                 metadata_file_base_name), 'file') == 2;
             
             if ( ~ metadataExists )
@@ -574,19 +591,19 @@ classdef RunManager < hgsetget
             end
             
             % Update the EML science metadata with the program (script) entity
-            [path, file_name, ext] = fileparts(programDataObject.full_file_path);
-            program_file_metadata = dir(programDataObject.full_file_path);
-            
+            [path, file_name, ext] = fileparts(rows_program_meta_struct.filePath);
+            program_file_metadata = dir(rows_program_meta_struct.filePath);
+
             if ( ~ metadataExists )
                 emlDataset.appendOtherEntity([], [file_name ext], [], ...
                     [file_name ext], program_file_metadata.bytes, ...
-                    programDataObject.format_id, ...
+                    rows_program_meta_struct.fileId, ...
                     [runManager.D1_CN_Resolve_Endpoint ...
-                    programDataObject.identifier], ...
-                    programDataObject.format_id);
+                    rows_program_meta_struct.fileId], ...
+                    rows_program_meta_struct.format);
                 
             end
-            
+           
             % Associate the science metadata with the program in the
             % aggregation
             import org.dataone.util.ArrayListWrapper;
@@ -596,50 +613,64 @@ classdef RunManager < hgsetget
             runManager.dataPackage.insertRelationship( ...
                 scienceMetadataId, programList);
 
-            % Process execution_output_ids
-            for i=1:length(runManager.execution.execution_output_ids)
-                outputId = runManager.execution.execution_output_ids{i};
-                
-                outputDataObject = runManager.execution.execution_objects(outputId);
-                
-                submitter = runManager.execution.account_name;
-                mnNodeId = runManager.configuration.target_member_node_id;
+            % Find the execution_output_ids and execution_input_ids lists
+            % 080216
+            runManager.execution.execution_input_ids = {};
+            runManager.execution.execution_output_ids = {};
+            
+            read_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'read','','');
+            read_files_query = read_files_metadata.readFileMeta('', '');
+            read_files_array = runManager.provenanceDB.execute(read_files_query, read_files_metadata.tableName);
+            if ~isempty(read_files_array)
+                runManager.execution.execution_input_ids = read_files_array(:, 1);
+            end
+            
+            write_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'write','','');
+            write_files_query = write_files_metadata.readFileMeta('', '');
+            write_files_array = runManager.provenanceDB.execute(write_files_query, write_files_metadata.tableName);
+            if ~isempty(write_files_array)
+                runManager.execution.execution_output_ids = write_files_array(:, 1);
+            end
+            
+            for i=1:size(write_files_array,1)
+                row_out_file_metadata = write_files_array(i,:);
+                row_out_fm_struct = cell2struct(row_out_file_metadata, fm_fields, 2);
                 
                 if runManager.configuration.debug
-                    outputDataObject.full_file_path
-                    
+                    row_out_fm_struct.filePath                   
                 end
                 
-                [path, file_name, ext] = fileparts(outputDataObject.full_file_path);
+                [path, file_name, ext] = fileparts(row_out_fm_struct.filePath);
                 
                 j_outputD1Object = runManager.buildD1Object( ...
-                    outputDataObject.full_file_path, outputDataObject.format_id, ...
-                    outputDataObject.identifier, submitter, mnNodeId);
+                    row_out_fm_struct.filePath, row_out_fm_struct.format, ...
+                    row_out_fm_struct.fileId, submitter, mnNodeId);
                 
                 runManager.dataPackage.addData(j_outputD1Object);
                 
                 j_sysmeta = j_outputD1Object.getSystemMetadata(); % java version sysmeta
-                out_file_metadata = dir(outputDataObject.full_file_path);
-                j_sysmeta.setFileName(outputDataObject.system_metadata.getFileName());
+                out_file_metadata = dir(row_out_fm_struct.filePath);
+                out_file_path_array = strsplit(row_out_fm_struct.filePath, filesep);
+                out_file_short_name = char(out_file_path_array(end));
+                j_sysmeta.setFileName(out_file_short_name);
                 j_sysmeta.setSize(BigInteger.valueOf(out_file_metadata.bytes));
-                set(outputDataObject, 'system_metadata', j_sysmeta);
+                
+                %Todo: need to update row_out_file_metadata in the
+                %filemeta table 080216
+%                 set(outputDataObject, 'system_metadata', j_sysmeta);
                 
                 % Update the EML science metadata with the output entity
                 if ( ~ metadataExists )
                     emlDataset.appendOtherEntity([], [file_name ext], [], ...
                         [file_name ext], out_file_metadata.bytes, ...
-                        outputDataObject.format_id, ...
+                        row_out_fm_struct.format, ...
                         [runManager.D1_CN_Resolve_Endpoint ...
-                        outputDataObject.identifier], ...
-                        outputDataObject.format_id);
-                    
+                        row_out_fm_struct.fileId], ...
+                        row_out_fm_struct.format);                    
                 end
                 
-                runManager.execution.execution_objects( ...
-                    outputDataObject.identifier) = outputDataObject;
-                
                 outSourceURI = URI( ...
-                    [runManager.D1_CN_Resolve_Endpoint outputDataObject.identifier]);
+                    [runManager.D1_CN_Resolve_Endpoint row_out_fm_struct.fileId]);
                 runManager.dataPackage.insertRelationship( ...
                     outSourceURI, ...
                     wasGeneratedByPredicate, ...
@@ -652,14 +683,13 @@ classdef RunManager < hgsetget
                 
                 % Record the provone:data->prov:wasDerivedFrom->provone:Data
                 % relationship from each input object
-                for i=1:length(runManager.execution.execution_input_ids)
+                for i=1:size(read_files_array,1)
+                    row_in_file_metadata = read_files_array(i,:);
+                    row_in_fm_struct = cell2struct(row_in_file_metadata, fm_fields, 2);
                     
-                    inputId = runManager.execution.execution_input_ids{i};
-                    inputDataObject = ...
-                        runManager.execution.execution_objects(inputId);
                     inSourceURI = ...
                         URI([runManager.D1_CN_Resolve_Endpoint ...
-                        inputDataObject.identifier]);
+                        row_in_fm_struct.identifier]);
                     runManager.dataPackage.insertRelationship( ...
                         outSourceURI, ...
                         wasDerivedFromPredicate, ...
@@ -668,48 +698,45 @@ classdef RunManager < hgsetget
             end
             
             % Process execution_input_ids
-            for i=1:length(runManager.execution.execution_input_ids)
-                inputId = runManager.execution.execution_input_ids{i};
-                
-                startIndex = regexp( inputId, 'http', 'once' );
-                if isempty(startIndex)
-                    inputDataObject = ...
-                        runManager.execution.execution_objects(inputId);
+            for i=1:size(read_files_array,1)
+                %    inputId = runManager.execution.execution_input_ids{i};
+                row_in_file_metadata = read_files_array(i,:);
+                row_in_fm_struct = cell2struct(row_in_file_metadata, fm_fields, 2);
                     
-                    submitter = runManager.execution.account_name;
-                    mnNodeId = runManager.configuration.target_member_node_id;
-                    
-                    [path, file_name, ext] = fileparts(inputDataObject.full_file_path);
+                startIndex = regexp( row_in_fm_struct.fileId, 'http', 'once' );
+                if isempty(startIndex)                    
+                    [path, file_name, ext] = fileparts(row_in_fm_struct.filePath);
                     
                     j_inputD1Object = runManager.buildD1Object( ...
-                        inputDataObject.full_file_path, inputDataObject.format_id, ...
-                        inputDataObject.identifier, submitter, mnNodeId);
+                        row_in_fm_struct.filePath, row_in_fm_struct.format, ...
+                        row_in_fm_struct.fileId, submitter, mnNodeId);
                     
                     runManager.dataPackage.addData(j_inputD1Object);
                     j_sysmeta = j_inputD1Object.getSystemMetadata();
-                    in_file_metadata = dir(inputDataObject.full_file_path);
+                    in_file_metadata = dir(row_in_fm_struct.filePath);
                     j_sysmeta.setSize(BigInteger.valueOf(in_file_metadata.bytes));
-                    j_sysmeta.setFileName(inputDataObject.system_metadata.getFileName());
+                    in_file_path_array = strsplit(row_in_fm_struct.filePath, filesep);
+                    in_file_short_name = char(in_file_path_array(end));
+                    j_sysmeta.setFileName(in_file_short_name);
                     
-                    set(inputDataObject, 'system_metadata', j_sysmeta);
+                    %Todo: need to update row_in_file_metadata in the
+                    %filemeta table 080216
+%                     set(inputDataObject, 'system_metadata', j_sysmeta);
                     
                     % Update the EML science metadata with the input entity
                     if ( ~ metadataExists )
                         emlDataset.appendOtherEntity([], [file_name ext], [], ...
                             [file_name ext], in_file_metadata.bytes, ...
-                            inputDataObject.format_id, ...
+                            row_in_fm_struct.format, ...
                             [runManager.D1_CN_Resolve_Endpoint ...
-                            inputDataObject.identifier], ...
-                            inputDataObject.format_id);
+                            row_in_fm_struct.fileId], ...
+                            row_in_fm_struct.format);
                         
                     end
                     
-                    runManager.execution.execution_objects( ...
-                        inputDataObject.identifier) = inputDataObject;
-                    
                     inSourceURI = ...
                         URI([runManager.D1_CN_Resolve_Endpoint ...
-                        inputDataObject.identifier]);
+                        row_in_fm_struct.fileId]);
                     runManager.dataPackage.insertRelationship( ...
                         runManager.execution.execution_uri, ...
                         usedPredicate, ...
@@ -723,6 +750,7 @@ classdef RunManager < hgsetget
             end
             
             % Write the science metadata to the execution directory
+            runManager.execution.execution_directory = fullfile(runManager.configuration.provenance_storage_directory, 'runs',runManager.execution.execution_id);
             if ( ~ metadataExists )
                 scienceMetadataFile = ...
                     fopen(fullfile( ...
@@ -736,7 +764,7 @@ classdef RunManager < hgsetget
                 fprintf(scienceMetadataFile, '%s', emlDataset.toXML());
                 fclose(scienceMetadataFile);
             end
-
+            
             % Create the science metadata DataObject
             scienceMetadataDataObject = org.dataone.client.v2.DataObject( ...
                 scienceMetadataIdStr, ...
@@ -744,12 +772,12 @@ classdef RunManager < hgsetget
                 fullfile( ...
                 runManager.execution.execution_directory, ...
                 scienceMetadataIdStr));
-           
+            
             % Add the science metadata to the Java DataPackage
             scienceMetadataD1JavaObject = runManager.buildD1Object( ...
                 scienceMetadataDataObject.full_file_path, ...
                 scienceMetadataDataObject.format_id, ...
-                scienceMetadataDataObject.identifier, submitter, mnNodeId); 
+                scienceMetadataDataObject.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(scienceMetadataD1JavaObject);
             
             % Update the property "fileName" for the java system metadata.
@@ -759,15 +787,20 @@ classdef RunManager < hgsetget
                 scienceMetadataD1JavaObject.getSystemMetadata();
             j_sysmeta.setFileName( ...
                 scienceMetadataIdStr); % use base name in system metadata Feb-1-2016
-            set(scienceMetadataDataObject, 'system_metadata', j_sysmeta);            
-                        
-            % Add the science metadata DataObject to the execution_objects map
-            runManager.execution.execution_objects( ...
-                scienceMetadataDataObject.identifier) = scienceMetadataDataObject;
             
-            % Add the science metadata to the execution outputs list
-            runManager.execution.execution_output_ids{end + 1} = ...
-                scienceMetadataDataObject.identifier;
+            %Todo: need to update row_in_file_metadata in the
+            %filemeta table 080216
+%             set(scienceMetadataDataObject, 'system_metadata', j_sysmeta);
+            
+            % Add the science metadata to the filemeta table
+            science_metadata = FileMetadata(scienceMetadataDataObject, runManager.execution.execution_id, 'write');
+            insert_scimeta_query = science_metadata.writeFileMeta();
+            status = runManager.provenanceDB.execute(insert_scimeta_query, science_metadata.tableName);
+%             runManager.execution.execution_output_ids(end) = scienceMetadataDataObject.identifier; % add the new id to the output_id list 080216
+            if status == -1
+                message = 'DBError for inserting sciencee metadata file to the filemeta table.';
+                error(message);
+            end
             
             % Associate science metadata with the data objects of the
             % package
@@ -789,38 +822,36 @@ classdef RunManager < hgsetget
             
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
-         
+            
             % Write to a resourceMap file
             resourceMapName = [char(resourceMapId.getValue())];
             resourceMapFullPath = fullfile( ...
                 runManager.execution.execution_directory, ...
                 resourceMapName);
-            fw = fopen(resourceMapFullPath, 'w'); 
+            fw = fopen(resourceMapFullPath, 'w');
             if fw == -1, error('Cannot write "%s%".',resourceMapFullPath); end
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
-
-            % Add resourceMap D1Object to the DataPackage                      
-            resMapFmt = 'http://www.openarchives.org/ore/terms'; 
+            
+            % Add resourceMap D1Object to the DataPackage
+            resMapFmt = 'http://www.openarchives.org/ore/terms';
             resourceMapD1Object = ...
                 runManager.buildD1Object( ...
-                resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);            
+                resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
             j_sysmeta = resourceMapD1Object.getSystemMetadata();
             j_sysmeta.setFileName(resourceMapName);
             resourceMapD1Object.setSystemMetadata(j_sysmeta);
             
-            runManager.dataPackage.addData(resourceMapD1Object);     
-
+            runManager.dataPackage.addData(resourceMapD1Object);
+            
             % Create the resource map DataObject
             resourceMapDataObject = org.dataone.client.v2.DataObject( ...
                 char(resourceMapId.getValue()), ...
                 resMapFmt, ...
                 resourceMapFullPath);
-            set(resourceMapDataObject, 'system_metadata', j_sysmeta);
-            
-            % Add the resource map DataObject to the execution_objects map
-            runManager.execution.execution_objects(resourceMapName) = ...
-                resourceMapDataObject;
+            %Todo: need to update row_in_file_metadata in the
+            %filemeta table 080216
+%             set(resourceMapDataObject, 'system_metadata', j_sysmeta);
             
             data_package = runManager.dataPackage;
             
@@ -1364,17 +1395,26 @@ classdef RunManager < hgsetget
             % itself
             if (runManager.console ~= 1) % (Non-interactive mode) (Dec-7-2015)
                 import org.dataone.client.v2.DataObject;
+                import org.dataone.client.sqlite.FileMetadata;
+                 
                 pid = ['program_' char(java.util.UUID.randomUUID())];
                 dataObject = DataObject(pid, 'text/plain', ...
                     runManager.execution.software_application);
-                runManager.execution.execution_objects(dataObject.identifier) = ...
-                    dataObject;
+                program_metadata = FileMetadata(dataObject, runManager.execution.execution_id, 'execute'); % changed on 080216
+                insert_program_query = program_metadata.writeFileMeta();
+                status = runManager.provenanceDB.execute(insert_program_query, program_metadata.tableName);
+                if status== -1
+                   message= 'DBError: insert a program metadata to the filemeta table.';
+                   error(message);
+                end
+%                 runManager.execution.execution_objects(dataObject.identifier) = ...
+%                     dataObject;
                 
                 % Run the script and collect provenance information
                 runManager.prov_capture_enabled = true;
                 [pathstr, script_name, ext] = ...
                     fileparts(runManager.execution.software_application);
-                
+                               
                 warning off MATLAB:dispatcher:nameConflict;
                 addpath(pathstr);
                 warning on MATLAB:dispatcher:nameConflict;
@@ -1477,36 +1517,36 @@ classdef RunManager < hgsetget
             
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.configuration.execution_db_name);   
-                       
-            % Remove the path to the overloaded save()
-            overloadedFunctPath = which('save');
-            [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
-            rmpath(overloaded_func_path);
-    
-            % Serialize the execution object to local file system in the
-            % execution_directory
-            execution_serialized_object = [runManager.execution.execution_id '.mat'];
-            exec_destination = [runManager.execution.execution_directory filesep execution_serialized_object];
-            executionObj = runManager.execution;
-            save(char(exec_destination), 'executionObj');
-                      
-            % Build a D1 datapackage
+            
+             % Build a D1 datapackage
             pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );
             
-            % Remove the path to the overloaded save() before calling the
-            % original save()
-            rmpath(overloaded_func_path);
+%             % Remove the path to the overloaded save()
+%             overloadedFunctPath = which('save');
+%             [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
+%             rmpath(overloaded_func_path);
+    
+%             % Serialize the execution object to local file system in the
+%             % execution_directory
+%             execution_serialized_object = [runManager.execution.execution_id '.mat'];
+%             exec_destination = [runManager.execution.execution_directory filesep execution_serialized_object];
+%             executionObj = runManager.execution;
+%             save(char(exec_destination), 'executionObj');
+                                  
+%             % Remove the path to the overloaded save() before calling the
+%             % original save()
+%             rmpath(overloaded_func_path);
             
-            % Re-serialize the execution object to local file system in the
-            % execution_directory because we need to set the actual file
-            % size for the generated files during a run Dec-4-2015
-            executionObj = runManager.execution;
-            save(char(exec_destination), 'executionObj');
+%             % Re-serialize the execution object to local file system in the
+%             % execution_directory because we need to set the actual file
+%             % size for the generated files during a run Dec-4-2015
+%             executionObj = runManager.execution;
+%             save(char(exec_destination), 'executionObj');
             
-            % Add the path to the overloaded save() back to the Matlab path
-            warning off MATLAB:dispatcher:nameConflict;
-            addpath(overloaded_func_path, '-begin');
-            warning on MATLAB:dispatcher:nameConflict;
+%             % Add the path to the overloaded save() back to the Matlab path
+%             warning off MATLAB:dispatcher:nameConflict;
+%             addpath(overloaded_func_path, '-begin');
+%             warning on MATLAB:dispatcher:nameConflict;
             
             % Clear runtime input/output sources
             runManager.execution.execution_input_ids = {};
