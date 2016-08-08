@@ -49,7 +49,28 @@ classdef FileMetadata < hgsetget
                 'foreign key(executionId) references execmeta(executionId),' ...
                 'unique(fileId));'];
             
-        end        
+        end   
+        
+        function sha256hash = getSHA256Hash(data)
+            % getSHA256Hash Converts a string to a 64 char hex hash string (256 bit hash)
+            % data - a string
+            % hash - a 64 character string, encoding the 256 bit SHA hash of string
+            %        in hexadecimal.
+            
+            persistent digest;
+            
+            import java.security.MessageDigest;
+            import javax.xml.bind.DatatypeConverter;
+            
+            if isempty(digest)
+                digest = MessageDigest.getInstance('SHA-256');
+            end
+            hash = digest.digest(java.lang.String(data).getBytes('UTF-8'));
+            % Use javax.xml.bind.DatatypeConverter class in JDK to convert
+            % byte array to a hexadecimal string. Note that this generated
+            % hexadecimal in upper case
+            sha256hash =  DatatypeConverter.printHexBinary(hash);
+        end
     end
     
     methods
@@ -60,9 +81,12 @@ classdef FileMetadata < hgsetget
             
             import java.io.File;
             import java.io.FileInputStream;
+            import org.apache.commons.io.IOUtils;
             
             switch nargin
                 case 3
+                    % The arguments order is defined as: dataObject, executionId,
+                    % access
                     this.fileId = varargin{1}.identifier;
                     this.filePath = varargin{1}.full_file_path;
                     this.format = varargin{1}.format_id;
@@ -79,26 +103,22 @@ classdef FileMetadata < hgsetget
                     last_modified = fileInfo.date;
                     this.modifyTime = last_modified;
                     
-                    % Add the SHA-256 checksum
-                    import org.apache.commons.io.IOUtils;
-                    
+                    this.executionId = varargin{2};
+                                        
+                    % Compute the SHA-256 checksum
                     objectFile = File(this.filePath);
                     fileInputStream = FileInputStream(objectFile);
                     data = IOUtils.toString(fileInputStream, 'UTF-8');
-                    
-                    % Todo: compute the sha256 value
-%                   sha256_hash_value = this.string2hash(data); 
-%                   this.sha256 = sha256_hash_value;
-                    
-                    this.executionId = varargin{2};
- 
-                    % Todo: Archived file path
-                    
-                    % Todo: get the create time of a file
-                    
+                    this.sha256= FileMetadata.getSHA256Hash(data);
+                   
                     % Set the access mode {'read','write', 'execute'}
                     this.access = varargin{3};
                     
+                    % Todo: Archived file path
+                    this.archivedFilePath = '';
+                    
+                    % Todo: get the create time of a file
+                                    
                 case 11
                     this.fileId = varargin{1};
                     this.executionId = varargin{2};
@@ -237,18 +257,6 @@ classdef FileMetadata < hgsetget
             readQuery = select_statement;            
         end
                 
-        function hash = string2hash(this, data)
-            % STRING2HASH Converts a string to a 64 char hex hash string (256 bit hash)
-            % data - a string
-            % hash - a 64 character string, encoding the 256 bit SHA hash of string
-            %        in hexadecimal.
-            
-            persistent md;
-            
-            if isempty(md)
-                md = java.security.MessageDigest.getInstance('SHA-256');
-            end
-            hash = sprintf('%2.2x', typecast(md.digest(uint8(data)), 'uint8')');
-        end
+
     end
 end
