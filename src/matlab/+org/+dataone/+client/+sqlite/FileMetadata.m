@@ -69,7 +69,7 @@ classdef FileMetadata < hgsetget
             % Use javax.xml.bind.DatatypeConverter class in JDK to convert
             % byte array to a hexadecimal string. Note that this generated
             % hexadecimal in upper case
-            sha256hash =  DatatypeConverter.printHexBinary(hash);
+            sha256hash =  char(DatatypeConverter.printHexBinary(hash));
         end
     end
     
@@ -109,7 +109,7 @@ classdef FileMetadata < hgsetget
                     objectFile = File(this.filePath);
                     fileInputStream = FileInputStream(objectFile);
                     data = IOUtils.toString(fileInputStream, 'UTF-8');
-                    this.sha256= FileMetadata.getSHA256Hash(data);
+                    this.sha256= this.getSHA256Hash(data);
                    
                     % Set the access mode {'read','write', 'execute'}
                     this.access = varargin{3};
@@ -257,6 +257,5 @@ classdef FileMetadata < hgsetget
             readQuery = select_statement;            
         end
                 
-
     end
 end
