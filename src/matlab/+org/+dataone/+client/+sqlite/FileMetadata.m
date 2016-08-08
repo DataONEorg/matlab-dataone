@@ -54,7 +54,7 @@ classdef FileMetadata < hgsetget
         function sha256hash = getSHA256Hash(data)
             % getSHA256Hash Converts a string to a 64 char hex hash string (256 bit hash)
             % data - a string
-            % hash - a 64 character string, encoding the 256 bit SHA hash of string
+            % sha256hash - a 64 character string, encoding the 256 bit SHA hash of string
             %        in hexadecimal.
             
             persistent digest;
