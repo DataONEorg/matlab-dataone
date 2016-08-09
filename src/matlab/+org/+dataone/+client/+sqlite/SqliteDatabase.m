@@ -74,7 +74,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                         result = curs.Data;
                     end
                 else
-                    % for read query (changed on 080816)
+                    % for the insert query (changed on 080816)
                     result = curs.Data;
                 end
                 
