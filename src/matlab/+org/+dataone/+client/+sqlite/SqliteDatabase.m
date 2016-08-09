@@ -65,9 +65,9 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                 
                 curs = exec(sqldb_obj.dbConn, sql_statement);
                 
-                if curs.ResultSet ~= 0 % for select query (changed on 080816)
-                    curs = fetch(curs);
-                    
+                if curs.ResultSet ~= 0 
+                    % for select query (changed on 080816)
+                    curs = fetch(curs);                   
                     if rows(curs) == 0
                         result = [];
                     else
