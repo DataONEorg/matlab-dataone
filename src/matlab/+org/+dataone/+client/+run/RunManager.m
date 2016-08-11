@@ -102,6 +102,7 @@ classdef RunManager < hgsetget
             import org.dataone.client.sqlite.SqliteDatabase;
             import org.dataone.client.sqlite.ExecMetadata;
             import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ArchiveMetadata;
             
             warning('off','backtrace');
             
@@ -113,10 +114,18 @@ classdef RunManager < hgsetget
             db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
             manager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
        
-            create_exec_meta_table_statement = ExecMetadata.createExecMetaTable('ExecMetadata2');
+            create_exec_meta_table_statement = ExecMetadata.createExecMetaTable('execmeta');
             create_file_meta_table_statement = FileMetadata.createFileMetadataTable('filemeta');
-            manager.provenanceDB.execute(create_exec_meta_table_statement, 'ExecMetadata2');
+            create_archive_meta_table_statement = ArchiveMetadata.createArchiveMetadataTable('archivemeta');
+            
+            manager.provenanceDB.execute(create_exec_meta_table_statement, 'execmeta');
             manager.provenanceDB.execute(create_file_meta_table_statement, 'filemeta');
+            manager.provenanceDB.execute(create_archive_meta_table_statement, 'archivemeta');
+            
+            archive_dir = sprintf('%s/archive', manager.configuration.provenance_storage_directory);
+            if ~exist(archive_dir, 'dir' )
+                mkdir(archive_dir);
+            end
             
             manager.init();  
             mlock; % Lock the RunManager instance to prevent clears          
@@ -405,11 +414,11 @@ classdef RunManager < hgsetget
                                  
             % Query the ExecMetadata table using the given execution_id
             % 080116            
-            read_exec_query = sprintf('select * from %s e where e.executionId="%s";', 'ExecMetadata2', cur_exec_id);            
-            row_exec_meta = runManager.provenanceDB.execute(read_exec_query, 'ExecMetadata2');
+            read_exec_query = sprintf('select * from %s e where e.executionId="%s";', 'execmeta', cur_exec_id);            
+            row_exec_meta = runManager.provenanceDB.execute(read_exec_query, 'execmeta');
             row_exec_meta_struct = cell2struct(row_exec_meta, em_fields, 2);
             if isempty(row_exec_meta)               
-                warning('There is no record for the %s in the %s table', cur_exec_id, 'ExecMetadata2');
+                warning('There is no record for the %s in the %s table', cur_exec_id, 'execmeta');
             else
                 % The following information are required by EML.update()
                 runManager.execution.start_time = row_exec_meta_struct.startTime; % get the value of startTime 080116
@@ -922,8 +931,8 @@ classdef RunManager < hgsetget
             % database.
             %   runManager - 
             
-            select_all_query = sprintf('SELECT * from %s;', 'ExecMetadata2');
-            exec_metadata_cell = runManager.provenanceDB.execute(select_all_query, 'ExecMetadata2');
+            select_all_query = sprintf('SELECT * from %s;', 'execmeta');
+            exec_metadata_cell = runManager.provenanceDB.execute(select_all_query, 'execmeta');
             
             % Convert the cell array to a char matrix (order of columns
             % changed on 072516)
@@ -1601,7 +1610,7 @@ classdef RunManager < hgsetget
             % Create a SQL statement to retrieve all records satisfying the
             % selection criteria (072616)
             where_clause = '';
-            select_query = sprintf('SELECT e.* from %s e', 'ExecMetadata2');
+            select_query = sprintf('SELECT e.* from %s e', 'execmeta');
             
             if isempty(startDate) ~= 1
                 for i=1:length(startDate)
@@ -1684,7 +1693,7 @@ classdef RunManager < hgsetget
                                    
             select_query = sprintf('%s %s ;', select_query, where_clause);
             
-            exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'ExecMetadata2');
+            exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'execmeta');
             
             % Display only when the returned data is a cell; no display for
             % 'No Data' returned
@@ -1943,7 +1952,7 @@ classdef RunManager < hgsetget
            end
                        
            where_clause = '';
-           select_query = sprintf('SELECT e.* from %s e', 'ExecMetadata2');
+           select_query = sprintf('SELECT e.* from %s e', 'execmeta');
            
            if isempty(packageId) ~= 1
                if isempty(where_clause)
@@ -1980,7 +1989,7 @@ classdef RunManager < hgsetget
            end
            
            select_query = sprintf('%s %s', select_query, where_clause);
-           exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'ExecMetadata2');
+           exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'execmeta');
            
            % Display only when the returned data is a cell
            if ~isempty(exec_metadata_cell)

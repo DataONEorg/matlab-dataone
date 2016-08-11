@@ -83,7 +83,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                 sqldb_obj.closeDBConnection();
             end
         end
-  
+ 
     end
     
 end
