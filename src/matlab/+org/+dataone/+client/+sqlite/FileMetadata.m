@@ -23,8 +23,6 @@ classdef FileMetadata < hgsetget
         access;
         % The file format
         format;
-        % The location of the archived file
-        archivedFilePath;
         % The table name
         tableName = 'filemeta';
     end
@@ -45,7 +43,6 @@ classdef FileMetadata < hgsetget
                 'createTime TEXT not null,' ...
                 'access TEXT not null,' ...
                 'format TEXT,' ...
-                'archivedFilePath TEXT,' ...
                 'foreign key(executionId) references execmeta(executionId),' ...
                 'unique(fileId));'];
             
@@ -113,13 +110,10 @@ classdef FileMetadata < hgsetget
                    
                     % Set the access mode {'read','write', 'execute'}
                     this.access = varargin{3};
-                    
-                    % Todo: Archived file path
-                    this.archivedFilePath = '';
-                    
+                                   
                     % Todo: get the create time of a file
                                     
-                case 11
+                case 10
                     this.fileId = varargin{1};
                     this.executionId = varargin{2};
                     this.filePath = varargin{3};
@@ -130,7 +124,6 @@ classdef FileMetadata < hgsetget
                     this.createTime = varargin{8};
                     this.access = varargin{9};
                     this.format = varargin{10};
-                    this.archivedFilePath = varargin{11};
                     
                 otherwise
                     throw(MException('FileMetadata:error', 'invalid options'));
@@ -144,7 +137,7 @@ classdef FileMetadata < hgsetget
             % filemetadata table
             
             filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
-                'size', 'user', 'modifyTime', 'createTime', 'access', 'format', 'archivedFilePath'};
+                'size', 'user', 'modifyTime', 'createTime', 'access', 'format'};
             
             data_row = cell(1, length(filemeta_colnames));
             for i = 1:length(filemeta_colnames)
@@ -152,8 +145,8 @@ classdef FileMetadata < hgsetget
             end
             
             % construct a SQL INSERT statement for fast insert
-            insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', fileMetadata.tableName, filemeta_colnames{:});
-            insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s","%s");', data_row{:});
+            insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', fileMetadata.tableName, filemeta_colnames{:});
+            insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s");', data_row{:});
             insertQuery = [insertQuery , insertQueryData];
         end
         

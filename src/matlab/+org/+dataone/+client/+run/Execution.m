@@ -83,7 +83,7 @@ classdef Execution < hgsetget
         % a map of {id, DataObject} pairs that are part of the execution
         execution_objects = containers.Map('keyType', 'char', 'valueType', 'any');
     end
-
+    
     methods
 
         function execution = Execution(varargin)
@@ -109,6 +109,7 @@ classdef Execution < hgsetget
             runtime_info = [v.Name ' ' v.Version ' ' v.Release ' ' v.Date];
             
         end
+        
         
         function operating_system_info = getOSInfo(execution)
             % GETOSINFO Returns a string describing the operating system environment

@@ -43,7 +43,7 @@ classdef ExecMetadata < hgsetget
         % A simple integer value associated with this execution (Todo: do I need to keep this property?)
         % seq;
         % The table name
-        tableName = 'ExecMetadata2';
+        tableName = 'execmeta';
     end
     
     methods (Static)
@@ -441,8 +441,7 @@ classdef ExecMetadata < hgsetget
                 end
             end
             
-            updateQuery = sprintf('%s %s %s', update_clause, set_clause, where_clause);
-            
+            updateQuery = sprintf('%s %s %s', update_clause, set_clause, where_clause);          
         end
     end
     

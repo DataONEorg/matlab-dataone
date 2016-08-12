@@ -111,9 +111,8 @@ function m = csvread(source, varargin)
             dataObject = DataObject(pid, formatId, fullSourcePath);
             
             % Add a new record to the filemeta table for the current run
-            file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');
-            file_meta_obj.archivedFilePath = archive_file_path; % update the archive path 
-            write_query = file_meta_obj.writeFileMeta;
+            file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');            
+            write_query = file_meta_obj.writeFileMeta();
             status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
             if status == -1
                 message = 'DBError: insert a new record to the filemeta table.';
@@ -142,6 +141,8 @@ function m = csvread(source, varargin)
         else
             % Update this record in the filemeta table with the new
             % content_hash256 value
+            % Notes: is it always true that the file content are changed if
+            % this file object was seens more than once ?
             update_filemeta_query = sprintf('update %s set sha256="%s" where fileId="%s"', 'filemeta', content_hash_value, existing_file_id);
             status = runManager.provenanceDB.execute(update_filemeta_query, 'filemeta');
             if status == -1

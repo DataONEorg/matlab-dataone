@@ -406,7 +406,7 @@ classdef RunManager < hgsetget
             end
            
             em_fields = {'executionId','metadataId','tag','datapackageId','user','subject','hostId','startTime','operatingSystem','runtime','softwareApplication','moduleDependencies','endTime','errorMessage','publishTime','publishNodeId','publishId','console'};
-            fm_fields = {'fileId','executionId','filePath','sha256','size','user','modifyTime','createTime','access','format','archivedFilePath'};
+            fm_fields = {'fileId','executionId','filePath','sha256','size','user','modifyTime','createTime','access','format'};
             
             % Get the run identifier from the directory name (execution_id)
             path_array = strsplit(dirPath, filesep);
@@ -429,7 +429,7 @@ classdef RunManager < hgsetget
             % Get the identifier for the script file object from the
             % filemeta table by searching for "access='execute'" 080116            
             program_id = '';
-            program_metadata_obj = FileMetadata('', cur_exec_id, '','',0,'','','','execute','','');
+            program_metadata_obj = FileMetadata('', cur_exec_id, '','',0,'','','','execute','');
             read_program_query = program_metadata_obj.readFileMeta('','');
             rows_program_meta = runManager.provenanceDB.execute(read_program_query, program_metadata_obj.tableName);
             rows_program_meta_struct = struct;
@@ -627,14 +627,14 @@ classdef RunManager < hgsetget
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
             
-            read_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'read','','');
+            read_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'read','');
             read_files_query = read_files_metadata.readFileMeta('', '');
             read_files_array = runManager.provenanceDB.execute(read_files_query, read_files_metadata.tableName);
             if ~isempty(read_files_array)
                 runManager.execution.execution_input_ids = read_files_array(:, 1);
             end
             
-            write_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'write','','');
+            write_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'write','');
             write_files_query = write_files_metadata.readFileMeta('', '');
             write_files_array = runManager.provenanceDB.execute(write_files_query, write_files_metadata.tableName);
             if ~isempty(write_files_array)
@@ -1389,7 +1389,7 @@ classdef RunManager < hgsetget
             end
             
             % Set the correct value for execution.software_application
-            if (runManager.console == 1) % (Interactive mode) Dec-7-2015    
+            if (runManager.console == 1) % (Interactive mode)    
                 scriptName = [runManager.configuration.script_base_name '.m'];
                 runManager.execution.software_application = fullfile( ...
                     runManager.execution.execution_directory, ...
@@ -1402,10 +1402,11 @@ classdef RunManager < hgsetget
             
             % Add a DataObject to the execution objects map for the script
             % itself
-            if (runManager.console ~= 1) % (Non-interactive mode) (Dec-7-2015)
+            if (runManager.console ~= 1) % (Non-interactive mode) 
                 import org.dataone.client.v2.DataObject;
                 import org.dataone.client.sqlite.FileMetadata;
-                 
+                import org.dataone.client.sqlite.ArchiveMetadata;
+ 
                 pid = ['program_' char(java.util.UUID.randomUUID())];
                 dataObject = DataObject(pid, 'text/plain', ...
                     runManager.execution.software_application);
@@ -1416,9 +1417,19 @@ classdef RunManager < hgsetget
                    message= 'DBError: insert a program metadata to the filemeta table.';
                    error(message);
                 end
-%                 runManager.execution.execution_objects(dataObject.identifier) = ...
-%                     dataObject;
                 
+%                 % Todo: Copy the main script to the archive directory and the
+%                 % archivemeta table            
+%                 am = ArchiveMetadata(content_hash_value, runManager.execution.execution_id, fullSourcePath, archive_file_path, access_time); 
+%                 insert_am_query = am.writeArchiveMeta();
+%                 status = runManager.provenanceDB.execute(insert_am_query, am.tableName);
+%                 if status == -1
+%                     message = 'DBError: insert a new record to the archivemeta table.';
+%                     error(message);
+%                 end
+%                  % Copy this file to the archive directory
+%                 copyfile(fullSourcePath, archive_file_path, 'f');
+
                 % Run the script and collect provenance information
                 runManager.prov_capture_enabled = true;
                 [pathstr, script_name, ext] = ...
@@ -2021,13 +2032,13 @@ classdef RunManager < hgsetget
            generated_file_stats = {};
            
            if showUsed == 1
-               used_file_metadata = FileMetadata('', executionId, '','','','','','', 'read','','');
+               used_file_metadata = FileMetadata('', executionId, '','','','','','', 'read','');
                used_file_query = used_file_metadata.readFileMeta('', '');
                used_file_stats = runManager.provenanceDB.execute(used_file_query, used_file_metadata.tableName);
            end
            
            if showGenerated == 1
-               generated_file_metadata = FileMetadata('', executionId, '','','','','','', 'write','','');
+               generated_file_metadata = FileMetadata('', executionId, '','','','','','', 'write','');
                generated_file_query = generated_file_metadata.readFileMeta('', '');
                generated_file_stats = runManager.provenanceDB.execute(generated_file_query, generated_file_metadata.tableName);
            end
