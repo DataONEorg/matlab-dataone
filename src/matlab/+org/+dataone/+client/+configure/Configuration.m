@@ -261,7 +261,7 @@ classdef Configuration < hgsetget & dynamicprops
                     % Create critical folders and files
                     createConfigurationDirectory(configuration);
                     createProvStorageDirectory(configuration);
-                    createExecutionsDatabase(configuration);
+%                     createExecutionsDatabase(configuration); % We use sqlite database to store the provenance data now.
                     setPersistentConfigFile(configuration);
                     setMatlabDataONEToolboxDirectory(configuration);
                     setMetadataTemplateFile(configuration);
@@ -299,9 +299,8 @@ classdef Configuration < hgsetget & dynamicprops
                 
             else
                 createConfigurationDirectory(configuration);
-                createProvStorageDirectory(configuration);
-                % We use sqlite database to store the provenance data now.
-                % createExecutionsDatabase(configuration);
+                createProvStorageDirectory(configuration);                
+%                 createExecutionsDatabase(configuration); % We use sqlite database to store the provenance data now.
                 setMatlabDataONEToolboxDirectory(configuration);
                 setCoordinatingNodeURL(configuration);
                 setPersistentConfigFile(configuration);
