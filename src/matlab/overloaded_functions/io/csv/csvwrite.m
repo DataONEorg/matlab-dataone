@@ -172,26 +172,5 @@ function csvwrite(source, varargin)
             end
             
         end
-        
-        
-%         existing_id = runManager.execution.getIdByFullFilePath( ...
-%             fullSourcePath);
-%         if ( isempty(existing_id) )
-%             % Add this object to the execution objects map
-%             pid = char(java.util.UUID.randomUUID()); % generate an id
-%             dataObject = DataObject(pid, formatId, fullSourcePath);
-%             runManager.execution.execution_objects(dataObject.identifier) = ...
-%                 dataObject;           
-%         else
-            % Update the existing map entry with a new DataObject
-%             pid = existing_id;
-%             dataObject = DataObject(pid, formatId, fullSourcePath);
-%             runManager.execution.execution_objects(dataObject.identifier) = ...
-%                 dataObject;       
-%         end
-%         if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
-%             runManager.execution.execution_output_ids{end+1} = pid;           
-%         end
-
     end
 end
