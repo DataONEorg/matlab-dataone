@@ -101,7 +101,7 @@ function csvwrite(source, varargin)
         % Get the archive file path
         archive_dir = sprintf('%s/archive', runManager.configuration.provenance_storage_directory);
         [path, copy_file_name, ext] = fileparts(fullSourcePath);
-        archive_file_path = sprintf('%s/%s', archive_dir, [copy_file_name, ext]);
+        archive_file_path = sprintf('%s/%s', archive_dir, [copy_file_name, '-', char(java.util.UUID.randomUUID()), ext]);
         
         % Check if the file has already been seen in the current run from
         % the filemeta table
