@@ -103,7 +103,7 @@ function m = csvread(source, varargin)
         % Check if the file has already been seen in the current run from
         % the filemeta table
         select_filemeta_query = sprintf('select fm.fileId from %s fm where fm.filePath="%s" and fm.executionId="%s";', 'filemeta', fullSourcePath, runManager.execution.execution_id);
-        existing_file_id = runManager.provenanceDB.execute(select_filemeta_query, 'archivemeta');
+        existing_file_id = runManager.provenanceDB.execute(select_filemeta_query, 'filemeta');
                        
         if ( isempty(existing_file_id) )
             % Add this object to the filemeta table 
@@ -143,7 +143,7 @@ function m = csvread(source, varargin)
             % content_hash256 value
             % Notes: is it always true that the file content are changed if
             % this file object was seens more than once ?
-            update_filemeta_query = sprintf('update %s set sha256="%s" where fileId="%s"', 'filemeta', content_hash_value, existing_file_id);
+            update_filemeta_query = sprintf('update %s set sha256="%s" where fileId="%s"', 'filemeta', content_hash_value, existing_file_id{1,1});
             status = runManager.provenanceDB.execute(update_filemeta_query, 'filemeta');
             if status == -1
                 message = 'DBError: update a new record to the filemeta table.';
@@ -166,7 +166,7 @@ function m = csvread(source, varargin)
                 end
                 
                 % Copy this file to the archive directory
-                copyfile(fullSourcePath, archive_file_path);
+                copyfile(fullSourcePath, archive_file_path, 'f');
             end
         end
 
