@@ -1541,33 +1541,6 @@ classdef RunManager < hgsetget
              % Build a D1 datapackage
             pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );
             
-%             % Remove the path to the overloaded save()
-%             overloadedFunctPath = which('save');
-%             [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
-%             rmpath(overloaded_func_path);
-    
-%             % Serialize the execution object to local file system in the
-%             % execution_directory
-%             execution_serialized_object = [runManager.execution.execution_id '.mat'];
-%             exec_destination = [runManager.execution.execution_directory filesep execution_serialized_object];
-%             executionObj = runManager.execution;
-%             save(char(exec_destination), 'executionObj');
-                                  
-%             % Remove the path to the overloaded save() before calling the
-%             % original save()
-%             rmpath(overloaded_func_path);
-            
-%             % Re-serialize the execution object to local file system in the
-%             % execution_directory because we need to set the actual file
-%             % size for the generated files during a run Dec-4-2015
-%             executionObj = runManager.execution;
-%             save(char(exec_destination), 'executionObj');
-            
-%             % Add the path to the overloaded save() back to the Matlab path
-%             warning off MATLAB:dispatcher:nameConflict;
-%             addpath(overloaded_func_path, '-begin');
-%             warning on MATLAB:dispatcher:nameConflict;
-            
             % Clear runtime input/output sources
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
