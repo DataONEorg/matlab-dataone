@@ -23,6 +23,8 @@ classdef FileMetadata < hgsetget
         access;
         % The file format
         format;
+        % The path to the location of the archived file Oct-25-2016
+        archivedFilePath;
         % The table name
         tableName = 'filemeta';
     end
@@ -43,8 +45,8 @@ classdef FileMetadata < hgsetget
                 'createTime TEXT not null,' ...
                 'access TEXT not null,' ...
                 'format TEXT,' ...
+                'archivedFilePath TEXT,' ...
                 'foreign key(executionId) references execmeta(executionId),' ...
-                'foreign key(sha256) references archivemeta(content_sha256_hash),' ...
                 'unique(fileId));'];
             
         end   
@@ -112,9 +114,8 @@ classdef FileMetadata < hgsetget
                     % Set the access mode {'read','write', 'execute'}
                     this.access = varargin{3};
                                    
-                    % Todo: get the create time of a file
-                                    
-                case 10
+                    % Todo: get the create time of a file                                                        
+                case 11
                     this.fileId = varargin{1};
                     this.executionId = varargin{2};
                     this.filePath = varargin{3};
@@ -125,7 +126,7 @@ classdef FileMetadata < hgsetget
                     this.createTime = varargin{8};
                     this.access = varargin{9};
                     this.format = varargin{10};
-                    
+                    this.archivedFilePath = varargin{11};
                 otherwise
                     throw(MException('FileMetadata:error', 'invalid options'));
             end
@@ -138,7 +139,7 @@ classdef FileMetadata < hgsetget
             % filemetadata table
             
             filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
-                'size', 'user', 'modifyTime', 'createTime', 'access', 'format'};
+                'size', 'user', 'modifyTime', 'createTime', 'access', 'format', 'archivedFilePath'};
             
             data_row = cell(1, length(filemeta_colnames));
             for i = 1:length(filemeta_colnames)
@@ -146,8 +147,8 @@ classdef FileMetadata < hgsetget
             end
             
             % construct a SQL INSERT statement for fast insert
-            insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', fileMetadata.tableName, filemeta_colnames{:});
-            insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s");', data_row{:});
+            insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', fileMetadata.tableName, filemeta_colnames{:});
+            insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s","%s");', data_row{:});
             insertQuery = [insertQuery , insertQueryData];
         end
         
@@ -199,15 +200,6 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
-                row_sha256 = filemetaObj.get('sha256');
-                if isempty(row_sha256) ~= 1
-                    if isempty(where_clause)
-                        where_clause = sprintf('where sha256="%s"', row_sha256);
-                    else
-                        where_clause = sprintf('%s and sha256="%s"', where_clause, row_sha256);
-                    end
-                end
-                
                 row_filePath = filemetaObj.get('filePath');
                 if isempty(row_filePath) ~= 1
                     if isempty(where_clause)
@@ -217,12 +209,39 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
+                row_sha256 = filemetaObj.get('sha256');
+                if isempty(row_sha256) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where sha256="%s"', row_sha256);
+                    else
+                        where_clause = sprintf('%s and sha256="%s"', where_clause, row_sha256);
+                    end
+                end
+                                
                 row_user = filemetaObj.get('user');
                 if isempty(row_user) ~= 1
                     if isempty(where_clause)
                         where_clause = sprintf('where user="%s"', row_user);
                     else
                         where_clause = sprintf( '%s and user="%s"', where_clause, row_user);
+                    end
+                end
+                
+                row_modifyTime = filemetaObj.get('modifyTime');
+                if isempty(row_modifyTime) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where modifyTime="%s"', row_modifyTime);
+                    else
+                        where_clause = sprintf('%s and modifyTime="%s"', where_clause, row_modifyTime);
+                    end
+                end
+                
+                row_createTime = filemetaObj.get('createTime');
+                if isempty(row_createTime) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where createTime="%s"', row_createTime);
+                    else
+                        where_clause = sprintf('%s and createTime="%s"', where_clause, row_createTime);
                     end
                 end
                 
@@ -244,6 +263,14 @@ classdef FileMetadata < hgsetget
                     end
                 end
                 
+                row_archivedFilePath = filemetaObj.get('archivedFilePath');
+                if isempty(row_archivedFilePath) ~= 1
+                    if isempty(where_clause)
+                        where_clause = sprintf('where archivedFilePath="%s"', row_archivedFilePath);
+                    else
+                        where_clause = sprintf( '%s and archivedFilePath="%s"', where_clause, row_archivedFilePath);
+                    end
+                end
             end
             
             % Retrieve records that match search criteria

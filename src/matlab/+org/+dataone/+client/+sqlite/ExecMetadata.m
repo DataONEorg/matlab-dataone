@@ -2,12 +2,14 @@
 classdef ExecMetadata < hgsetget
     
     properties
+        % A simple integer value associated with this execution Oct-20-2016
+        seq;
         % The unique identifier for this execution
         executionId;
         % The unique identifier for the associated metadata object
-        metadataId;
+        metadataId;       
         % The text string associated with this execution
-        tag;
+        tag;         
         % The unique identifier for this execution that is meaningful for a user
         datapackageId;
         % The user name who ran this execution
@@ -18,7 +20,7 @@ classdef ExecMetadata < hgsetget
         hostId;
         % The starting time of this execution
         startTime;
-        % The operating system name
+        % The operating system name 
         operatingSystem;
         % ???
         runtime;
@@ -37,24 +39,23 @@ classdef ExecMetadata < hgsetget
         publishNodeId;
         % The identifier for the uploaded data package
         publishId;
-        % a logical variable that indicates whether this was a console
+        % A logical variable that indicates whether this was a console
         % session
         console;
-        % A simple integer value associated with this execution (Todo: do I need to keep this property?)
-        % seq;
         % The table name
         tableName = 'execmeta';
     end
     
     methods (Static)
+        
         function create_table_statement = createExecMetaTable(tableName)
             % CREATEEXECMETATABLE Creates an execution metadata table
             
             create_table_statement = ['create table if not exists ' tableName '('];
             create_table_statement = [create_table_statement ...
-                'executionId TEXT PRIMARY KEY not null,' ...
+                'seq INTEGER PRIMARY KEY,' ...
+                'executionId TEXT not null,' ...
                 'metadataId TEXT,' ...
-                'tag TEXT,' ...
                 'datapackageId TEXT,' ...
                 'user TEXT,' ...
                 'subject TEXT,' ...
@@ -71,6 +72,14 @@ classdef ExecMetadata < hgsetget
                 'publishId TEXT,' ...
                 'console INTEGER,' ...
                 'unique(executionId));'];
+           
+           % Create a separate tag table 103116 
+           create_tag_table_statement = ['create table tags (' ...
+               'seq INTEGER PRIMARY KEY,' ...
+               'executionId TEXT not NULL,' ...
+               'tag TEXT not NULL,' ...
+               'unique(executionId, tag) ON CONFLICT IGNORE' ...
+               'foreign key (executionId) references execmeta(executionId) on delete cascade);']; 
         end
         
         
@@ -105,6 +114,17 @@ classdef ExecMetadata < hgsetget
             if isempty(execmetaObj) ~= 1
                 
                 row_executionId = execmetaObj.get('executionId');
+                
+                row_seq = execmetaObj.get('seq');
+                if isempty(row_seq) ~= 1
+                    match_clause = 'e.seq= ';
+                    if isempty(where_clause)
+                        where_clause = sprintf('where %s "%s" ', match_clause, row_seq);
+                    else
+                        where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_seq);
+                    end
+                end
+                
                 if isempty(row_executionId) ~= 1
                     match_clause = 'e.executionId=';
                     if isempty(where_clause)
@@ -123,17 +143,7 @@ classdef ExecMetadata < hgsetget
                         where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_metadataId);
                     end
                 end
-                
-                row_tag = execmetaObj.get('tag');
-                if isempty(row_tag) ~= 1
-                    match_clause = 'e.tag LIKE ';
-                    if isempty(where_clause)
-                        where_clause = sprintf('where %s "%s" ', match_clause, row_tag);
-                    else
-                        where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_tag);
-                    end
-                end
-                
+                                
                 row_datapackageId = execmetaObj.get('datapackageId');
                 if isempty(row_datapackageId) ~= 1
                     match_clause = 'e.datapackageId LIKE ';
@@ -299,6 +309,7 @@ classdef ExecMetadata < hgsetget
                         
             switch nargin
                 case 1
+                    this.seq = varargin{1}.execution_id
                     this.executionId = varargin{1}.execution_id;
                     this.metadataId = varargin{1}.metadata_id;
                     this.tag = varargin{1}.tag;
@@ -345,21 +356,34 @@ classdef ExecMetadata < hgsetget
         function insertQuery = writeExecMeta(execMetadata)
             % WRITEEXECMETA Saves a single execution metadata
             
-            execemeta_colnames = {'executionId', 'metadataId', 'tag', ...
+            execemeta_colnames = {'executionId', 'metadataId', ...
                 'datapackageId', 'user', 'subject', 'hostId', 'startTime', ...
                 'operatingSystem', 'runtime', 'softwareApplication', 'moduleDependencies', ...
                 'endTime', 'errorMessage', 'publishTime', 'publishNodeId', 'publishId', 'console'};
             
+            % **Updated to remove tag column 103116
+            % Construct a SQL INSERT statement for fast insert to the
+            % execmeta table
             data_row = cell(1, length(execemeta_colnames));
             for i = 1:length(execemeta_colnames)
                 data_row{i} = execMetadata.get(execemeta_colnames{i});
             end
             
-            % construct a SQL INSERT statement for fast insert
-            insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', execMetadata.tableName, execemeta_colnames{:});
-            insertQueryData = sprintf('("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s",%d);', data_row{:});
-            insertQuery = [insertQuery , insertQueryData];
+            insertExecMetaQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', execMetadata.tableName, execemeta_colnames{:});
+            insertExecMetaQueryData = sprintf('("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s",%d);', data_row{:});
+            insertQuery = [insertExecMetaQuery, insertExecMetaQueryData];   
             
+            % Construct a SQL INSERT statement for fast insert to the
+            % tags table 103116
+            tag_colnames = {'executionId', 'tag'};
+            tag_data_row = cell(1, length(tag_colnames));
+            for j = 1:length(execemeta_colnames)
+                tag_data_row{j} = execMetadata.get(tag_colnames{j});
+            end    
+            
+            insertTagQuery = sprintf('insert into tags (%s,%s,%s) values ', tag_colnames{:});
+            insertTagQueryData = sprintf('("%s","%s","%s");', tag_data_row{:});
+            insertQuery = [insertTagQuery, insertTagQueryData];
         end
          
         function updateQuery = updateExecMeta(this, varargin)
