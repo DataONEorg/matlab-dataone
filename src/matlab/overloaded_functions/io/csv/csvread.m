@@ -57,10 +57,6 @@ function m = csvread(source, varargin)
     % Call csvread 
     m = csvread( source, varargin{:} );
     
-    % Generate the access timestamp
-    t = datetime('now');
-    access_time = datestr(t);
-    
     % Add the wrapper csvread back to the Matlab path
     warning off MATLAB:dispatcher:nameConflict;
     addpath(overloaded_func_path, '-begin');
@@ -77,98 +73,117 @@ function m = csvread(source, varargin)
         
         import org.dataone.client.v2.DataObject;
         import org.dataone.client.sqlite.FileMetadata;
-        import org.dataone.client.sqlite.ArchiveMetadata;
 
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
             [status, struc] = fileattrib(source);
             fullSourcePath = struc.Name;
         end
- 
-        % Compute the SHA-256 checksum
-        import java.io.File;
-        import java.io.FileInputStream;
-        import org.apache.commons.io.IOUtils;
-        
-        objectFile = File(fullSourcePath);
-        fileInputStream = FileInputStream(objectFile);
-        data = IOUtils.toString(fileInputStream, 'UTF-8');
-        content_hash_value = FileMetadata.getSHA256Hash(data);
-        
-        % Get the archive file path
-        archive_dir = sprintf('%s/archive', runManager.configuration.provenance_storage_directory);
-        [path, copy_file_name, ext] = fileparts(fullSourcePath);
-        archive_file_path = sprintf('%s/%s', archive_dir, [copy_file_name, '-', char(java.util.UUID.randomUUID()), ext]);
-        
-        % Check if the file has already been seen in the current run from
-        % the filemeta table
-        select_filemeta_query = sprintf('select fm.fileId from %s fm where fm.filePath="%s" and fm.executionId="%s";', 'filemeta', fullSourcePath, runManager.execution.execution_id);
-        existing_file_id = runManager.provenanceDB.execute(select_filemeta_query, 'filemeta');
-                       
-        if ( isempty(existing_file_id) )
-            % Add this object to the filemeta table 
-            pid = char(java.util.UUID.randomUUID()); % generate an id
-            dataObject = DataObject(pid, formatId, fullSourcePath);
-            
-            % Add a new record to the filemeta table for the current run
-            file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');            
-            write_query = file_meta_obj.writeFileMeta();
-            status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
-            if status == -1
-                message = 'DBError: insert a new record to the filemeta table.';
-                error(message);
-            end
-            
-            % Add to the archivemeta table only when there is no record for
-            % the combination of (content_hash_value, full_file_path)
-            select_archivemeta_query = sprintf('select * from %s am where am.content_sha256_hash="%s" and am.full_file_path="%s"', 'archivemeta', content_hash_value, fullSourcePath);
-            existing_archive_copy = runManager.provenanceDB.execute(select_archivemeta_query, 'archivemeta');
-            
-            if isempty(existing_archive_copy)
-                % Add a new record to the archivemeta table              
-                am = ArchiveMetadata(content_hash_value, runManager.execution.execution_id, fullSourcePath, archive_file_path, access_time); 
-                insert_am_query = am.writeArchiveMeta();
-                status = runManager.provenanceDB.execute(insert_am_query, am.tableName);
-                if status == -1
-                    message = 'DBError: insert a new record to the archivemeta table.';
-                    error(message);
-                end
-                
-                % Copy this file to the archive directory
-                copyfile(fullSourcePath, archive_file_path, 'f');
-            end
-            
-        else
-            % Update this record in the filemeta table with the new
-            % content_hash256 value
-            % Notes: is it always true that the file content are changed if
-            % this file object was seens more than once ?
-            update_filemeta_query = sprintf('update %s set sha256="%s" where fileId="%s"', 'filemeta', content_hash_value, existing_file_id{1,1});
-            status = runManager.provenanceDB.execute(update_filemeta_query, 'filemeta');
-            if status == -1
-                message = 'DBError: update a new record to the filemeta table.';
-                error(message);
-            end
-            
-            % Add to the archivemeta table only when there is no record for
-            % the combination of (content_hash_value, full_file_path)
-            select_archivemeta_query = sprintf('select * from %s am where am.content_sha256_hash="%s" and am.full_file_path="%s"', 'archivemeta', content_hash_value, fullSourcePath);
-            existing_archive_copy = runManager.provenanceDB.execute(select_archivemeta_query, 'archivemeta');
-                       
-            if isempty(existing_archive_copy)
-                % Add a new record to the archivemeta table
-                am = ArchiveMetadata(content_hash_value, runManager.execution.execution_id, fullSourcePath, archive_file_path, access_time);
-                insert_am_query = am.writeArchiveMeta();
-                status = runManager.provenanceDB.execute(insert_am_query, am.tableName);
-                if status == -1
-                    message = 'DBError: insert a new record to the archivemeta table.';
-                    error(message);
-                end
-                
-                % Copy this file to the archive directory
-                copyfile(fullSourcePath, archive_file_path, 'f');
-            end
+               
+        [archivedRelFilePath, status] = FileMetadata.archiveFile(fullFilePath);
+        if status == 1
+            % The file has not been archived
+            full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+            % Copy this file to the archive directory 
+            copyfile(fullSourcePath, full_archive_file_path, 'f');
         end
+        
+        % Save the file metadata to the database 
+        pid = char(java.util.UUID.randomUUID());
+        dataObject = DataObject(pid, formatId, fullSourcePath);
+        file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');
+        file_meta_obj.archivedFilePath = archivedRelFilePath;
+        write_query = file_meta_obj.writeFileMeta();
+        sql_status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+        if sql_status == -1
+            message = 'DBError: insert a new record to the filemeta table.';
+            error(message);
+        end
+        
+%         % Compute the SHA-256 checksum
+%         import java.io.File;
+%         import java.io.FileInputStream;
+%         import org.apache.commons.io.IOUtils;
+%         
+%         objectFile = File(fullSourcePath);
+%         fileInputStream = FileInputStream(objectFile);
+%         data = IOUtils.toString(fileInputStream, 'UTF-8');
+%         content_hash_value = FileMetadata.getSHA256Hash(data);
+        
+%         % Get the archive file path
+%         archive_dir = sprintf('%s/archive', runManager.configuration.provenance_storage_directory);
+%         [path, copy_file_name, ext] = fileparts(fullSourcePath);
+%         archive_file_path = sprintf('%s/%s', archive_dir, [copy_file_name, '-', char(java.util.UUID.randomUUID()), ext]);
+%         
+%         % Check if the file has already been seen in the current run from
+%         % the filemeta table
+%         select_filemeta_query = sprintf('select fm.fileId from %s fm where fm.filePath="%s" and fm.executionId="%s";', 'filemeta', fullSourcePath, runManager.execution.execution_id);
+%         existing_file_id = runManager.provenanceDB.execute(select_filemeta_query, 'filemeta');
+%                        
+%         if ( isempty(existing_file_id) )
+%             % Add this object to the filemeta table 
+%             pid = char(java.util.UUID.randomUUID()); % generate an id
+%             dataObject = DataObject(pid, formatId, fullSourcePath);
+%             
+%             % Add a new record to the filemeta table for the current run
+%             file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');            
+%             write_query = file_meta_obj.writeFileMeta();
+%             status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+%             if status == -1
+%                 message = 'DBError: insert a new record to the filemeta table.';
+%                 error(message);
+%             end
+%             
+%             % Add to the archivemeta table only when there is no record for
+%             % the combination of (content_hash_value, full_file_path)
+%             select_archivemeta_query = sprintf('select * from %s am where am.content_sha256_hash="%s" and am.full_file_path="%s"', 'archivemeta', content_hash_value, fullSourcePath);
+%             existing_archive_copy = runManager.provenanceDB.execute(select_archivemeta_query, 'archivemeta');
+%             
+%             if isempty(existing_archive_copy)
+%                 % Add a new record to the archivemeta table              
+%                 am = ArchiveMetadata(content_hash_value, runManager.execution.execution_id, fullSourcePath, archive_file_path, access_time); 
+%                 insert_am_query = am.writeArchiveMeta();
+%                 status = runManager.provenanceDB.execute(insert_am_query, am.tableName);
+%                 if status == -1
+%                     message = 'DBError: insert a new record to the archivemeta table.';
+%                     error(message);
+%                 end
+%                 
+%                 % Copy this file to the archive directory
+%                 copyfile(fullSourcePath, archive_file_path, 'f');
+%             end
+%             
+%         else
+%             % Update this record in the filemeta table with the new
+%             % content_hash256 value
+%             % Notes: is it always true that the file content are changed if
+%             % this file object was seens more than once ?
+%             update_filemeta_query = sprintf('update %s set sha256="%s" where fileId="%s"', 'filemeta', content_hash_value, existing_file_id{1,1});
+%             status = runManager.provenanceDB.execute(update_filemeta_query, 'filemeta');
+%             if status == -1
+%                 message = 'DBError: update a new record to the filemeta table.';
+%                 error(message);
+%             end
+%             
+%             % Add to the archivemeta table only when there is no record for
+%             % the combination of (content_hash_value, full_file_path)
+%             select_archivemeta_query = sprintf('select * from %s am where am.content_sha256_hash="%s" and am.full_file_path="%s"', 'archivemeta', content_hash_value, fullSourcePath);
+%             existing_archive_copy = runManager.provenanceDB.execute(select_archivemeta_query, 'archivemeta');
+%                        
+%             if isempty(existing_archive_copy)
+%                 % Add a new record to the archivemeta table
+%                 am = ArchiveMetadata(content_hash_value, runManager.execution.execution_id, fullSourcePath, archive_file_path, access_time);
+%                 insert_am_query = am.writeArchiveMeta();
+%                 status = runManager.provenanceDB.execute(insert_am_query, am.tableName);
+%                 if status == -1
+%                     message = 'DBError: insert a new record to the archivemeta table.';
+%                     error(message);
+%                 end
+%                 
+%                 % Copy this file to the archive directory
+%                 copyfile(fullSourcePath, archive_file_path, 'f');
+%             end
+%         end
 
     end
 end

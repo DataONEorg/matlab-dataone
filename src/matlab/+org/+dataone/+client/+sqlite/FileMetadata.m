@@ -71,6 +71,59 @@ classdef FileMetadata < hgsetget
             % hexadecimal in upper case
             sha256hash =  char(DatatypeConverter.printHexBinary(hash));
         end
+        
+        
+        function [archivedRelFilePath, status] = archiveFile(fullFilePath)
+            % ARCHIVEDRELFILEPATH  Searches the relative file path for the
+            % archived file copy in the filemeta table to see if the file
+            % has already been archived.
+            % fullFilePath - a full path for a traced file object
+            
+            if ~exist(fullFilePath, 'file')
+                archivedRelFilePath = [];
+                message('Cannot copy file %s, it does not exist\n', fullFilePath);
+                status = -1;
+                return;
+            end
+ 
+            % Compute the SHA-256 checksum
+            import java.io.File;
+            import java.io.FileInputStream;
+            import org.apache.commons.io.IOUtils;
+            
+            objectFile = File(fullFilePath);
+            fileInputStream = FileInputStream(objectFile);
+            data = IOUtils.toString(fileInputStream, 'UTF-8');
+            content_hash_value = FileMetadata.getSHA256Hash(data);
+            
+            % First check if a file with the same sha256 has been accessed
+            % before. If it has, then don't archive this file again, and
+            % return the archived location of the previously archived file.
+            select_filemeta_query = sprintf('select * from %s fm where fm.sha256="%s"', self.tableName, content_hash_value);
+            existed_fm = runManager.provenanceDB.execute(select_filemeta_query, self.tableName);
+            if ~isempty(existed_fm)
+                archivedRelFilePath = existed_fm{1,11}; % get the relative path for the archived file copy
+                status = 0;
+                return;
+            end
+            
+            % The archived directory is specified relative to the recordr
+            % root directory, so that if the provenance root directory has
+            % to be moved, the database entries for archived directories
+            % does not have to be updated. The archive directory is named
+            % simple for today's date. The data directory is put at the top
+            % of the archive directory, just so that directory file limits
+            % aren't exceeded. Directories on ext3 filesystems a directory
+            % can contain 32,000 entries. So this simple scheme should not
+            % run into any OS limits. Also, these directories will not be
+            % searched because the filepaths are contains in a database, so
+            % directory lookup performance is not an issue.
+            archiveRelDir = sprintf('archive/%s', char(datetime('today'))); % date format like "01-Nov-2016"
+            archivedRelFilePath = sprintf('%s/%s', archiveRelDir, char(java.util.UUID.randomUUID()));
+            status = 1;
+            return;
+        end
+        
     end
     
     methods
@@ -151,6 +204,7 @@ classdef FileMetadata < hgsetget
             insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s","%s");', data_row{:});
             insertQuery = [insertQuery , insertQueryData];
         end
+        
         
         function readQuery = readFileMeta(filemetaObj, orderBy, sortOrder)
             % READFILEMETA Retrieves saved file metadata for one or more
@@ -277,6 +331,6 @@ classdef FileMetadata < hgsetget
             select_statement = sprintf('%s %s %s;', select_statement, where_clause, order_by_clause);
             readQuery = select_statement;            
         end
-                
+          
     end
 end
