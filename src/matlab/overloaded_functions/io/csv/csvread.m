@@ -41,7 +41,7 @@ function m = csvread(source, varargin)
     
     runManager = RunManager.getInstance();   
  
-    if ( runManager.configuration.debug)
+    if ( runManager.configuration.debug )
         disp('Called the csvread wrapper function.');
     end
     

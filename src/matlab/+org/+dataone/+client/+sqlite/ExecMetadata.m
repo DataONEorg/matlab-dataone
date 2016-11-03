@@ -42,8 +42,10 @@ classdef ExecMetadata < hgsetget
         % A logical variable that indicates whether this was a console
         % session
         console;
-        % The table name
-        tableName = 'execmeta';
+        % The execmetadata table name
+        execTableName = 'execmeta';
+        % The tags table name
+        tagsTableName = 'tags';
     end
     
     methods (Static)
@@ -71,17 +73,18 @@ classdef ExecMetadata < hgsetget
                 'publishNodeId TEXT,' ...
                 'publishId TEXT,' ...
                 'console INTEGER,' ...
-                'unique(executionId));'];
-           
-           % Create a separate tag table 103116 
-           create_tag_table_statement = ['create table tags (' ...
-               'seq INTEGER PRIMARY KEY,' ...
-               'executionId TEXT not NULL,' ...
-               'tag TEXT not NULL,' ...
-               'unique(executionId, tag) ON CONFLICT IGNORE' ...
-               'foreign key (executionId) references execmeta(executionId) on delete cascade);']; 
+                'unique(executionId));']; 
         end
         
+        function create_tag_table_statement = createTagTable(tableName)
+            % Create a separate tag table 123116
+            create_tag_table_statement = ['create table tags (' ...
+                'seq INTEGER PRIMARY KEY,' ...
+                'executionId TEXT not NULL,' ...
+                'tag TEXT not NULL,' ...
+                'unique(executionId, tag) ON CONFLICT IGNORE,' ...
+                'foreign key (executionId) references execmeta(executionId) on delete cascade);'];
+        end
         
         function readQuery = readExecMeta(execmetaObj, orderBy, sortOrder)
             % READEXECMETA Retrieves saved execution metadata
@@ -353,7 +356,7 @@ classdef ExecMetadata < hgsetget
             end
         end
         
-        function insertQuery = writeExecMeta(execMetadata)
+        function [insertExecQuery, insertTagQuery] = writeExecMeta(execMetadata)
             % WRITEEXECMETA Saves a single execution metadata
             
             execemeta_colnames = {'executionId', 'metadataId', ...
@@ -369,21 +372,21 @@ classdef ExecMetadata < hgsetget
                 data_row{i} = execMetadata.get(execemeta_colnames{i});
             end
             
-            insertExecMetaQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', execMetadata.tableName, execemeta_colnames{:});
+            insertExecMetaQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', execMetadata.execTableName, execemeta_colnames{:});
             insertExecMetaQueryData = sprintf('("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s",%d);', data_row{:});
-            insertQuery = [insertExecMetaQuery, insertExecMetaQueryData];   
+            insertExecQuery = [insertExecMetaQuery, insertExecMetaQueryData];   
             
             % Construct a SQL INSERT statement for fast insert to the
             % tags table 103116
             tag_colnames = {'executionId', 'tag'};
             tag_data_row = cell(1, length(tag_colnames));
-            for j = 1:length(execemeta_colnames)
+            for j = 1:length(tag_colnames)
                 tag_data_row{j} = execMetadata.get(tag_colnames{j});
             end    
             
-            insertTagQuery = sprintf('insert into tags (%s,%s,%s) values ', tag_colnames{:});
-            insertTagQueryData = sprintf('("%s","%s","%s");', tag_data_row{:});
-            insertQuery = [insertTagQuery, insertTagQueryData];
+            insertTagQuery = sprintf('insert into %s (%s,%s) values ',  execMetadata.tagsTableName, tag_colnames{:});
+            insertTagQueryData = sprintf('("%s","%s");', tag_data_row{:});
+            insertTagQuery = [insertTagQuery, insertTagQueryData];
         end
          
         function updateQuery = updateExecMeta(this, varargin)

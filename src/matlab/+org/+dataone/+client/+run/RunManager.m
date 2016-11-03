@@ -102,7 +102,6 @@ classdef RunManager < hgsetget
             import org.dataone.client.sqlite.SqliteDatabase;
             import org.dataone.client.sqlite.ExecMetadata;
             import org.dataone.client.sqlite.FileMetadata;
-            import org.dataone.client.sqlite.ArchiveMetadata;
             
             warning('off','backtrace');
             
@@ -110,17 +109,17 @@ classdef RunManager < hgsetget
             
             % runManager.configuration.execution_db_name
             db_path = manager.configuration.provenance_storage_directory;
-            db_file = 'prov.sqlite'; 
+            db_file = 'recordm.sqlite'; 
             db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
             manager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
        
             create_exec_meta_table_statement = ExecMetadata.createExecMetaTable('execmeta');
+            create_tag_table_statement = ExecMetadata.createTagTable('tags');
             create_file_meta_table_statement = FileMetadata.createFileMetadataTable('filemeta');
-            create_archive_meta_table_statement = ArchiveMetadata.createArchiveMetadataTable('archivemeta');
-            
+
             manager.provenanceDB.execute(create_exec_meta_table_statement, 'execmeta');
+            manager.provenanceDB.execute(create_tag_table_statement, 'tags');
             manager.provenanceDB.execute(create_file_meta_table_statement, 'filemeta');
-            manager.provenanceDB.execute(create_archive_meta_table_statement, 'archivemeta');
             
             archive_dir = sprintf('%s/archive', manager.configuration.provenance_storage_directory);
             if ~exist(archive_dir, 'dir' )
@@ -405,8 +404,9 @@ classdef RunManager < hgsetget
                 disp('====== buildPackage ======');
             end
            
-            em_fields = {'executionId','metadataId','tag','datapackageId','user','subject','hostId','startTime','operatingSystem','runtime','softwareApplication','moduleDependencies','endTime','errorMessage','publishTime','publishNodeId','publishId','console'};
-            fm_fields = {'fileId','executionId','filePath','sha256','size','user','modifyTime','createTime','access','format'};
+            em_fields = {'seq','executionId','metadataId','datapackageId','user','subject','hostId','startTime','operatingSystem','runtime','softwareApplication','moduleDependencies','endTime','errorMessage','publishTime','publishNodeId','publishId','console'};
+            fm_fields = {'fileId','executionId','filePath','sha256','size','user','modifyTime','createTime','access','format','archivedFilePath'};
+            tag_fields = {'seq','executionId','tag'};
             
             % Get the run identifier from the directory name (execution_id)
             path_array = strsplit(dirPath, filesep);
@@ -429,7 +429,7 @@ classdef RunManager < hgsetget
             % Get the identifier for the script file object from the
             % filemeta table by searching for "access='execute'" 080116            
             program_id = '';
-            program_metadata_obj = FileMetadata('', cur_exec_id, '','',0,'','','','execute','');
+            program_metadata_obj = FileMetadata('', cur_exec_id, '','',0,'','','','execute','',''); %103116
             read_program_query = program_metadata_obj.readFileMeta('','');
             rows_program_meta = runManager.provenanceDB.execute(read_program_query, program_metadata_obj.tableName);
             rows_program_meta_struct = struct;
@@ -627,14 +627,14 @@ classdef RunManager < hgsetget
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
             
-            read_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'read','');
+            read_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'read','',''); %103116
             read_files_query = read_files_metadata.readFileMeta('', '');
             read_files_array = runManager.provenanceDB.execute(read_files_query, read_files_metadata.tableName);
             if ~isempty(read_files_array)
                 runManager.execution.execution_input_ids = read_files_array(:, 1);
             end
             
-            write_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'write','');
+            write_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'write','',''); %103116
             write_files_query = write_files_metadata.readFileMeta('', '');
             write_files_array = runManager.provenanceDB.execute(write_files_query, write_files_metadata.tableName);
             if ~isempty(write_files_array)
@@ -884,7 +884,7 @@ classdef RunManager < hgsetget
             endTime = char(runManager.execution.end_time);
             publishedTime = char(runManager.execution.publish_time);
             packageId = char(runManager.execution.execution_id);
-            tag = runManager.execution.tag; % Todo: a set of tag values                   
+            tag = runManager.execution.tag;                  
             user = char(runManager.execution.account_name);            
             subject = '';
             auth_token = runManager.configuration.get('authentication_token');
@@ -900,21 +900,23 @@ classdef RunManager < hgsetget
             hostId = char(runManager.execution.host_id);
             operatingSystem = char(runManager.execution.operating_system);
             runtime = char(runManager.execution.runtime);
-            moduleDependencies = char(runManager.execution.module_dependencies); % Todo:
+            moduleDependencies = char(runManager.execution.module_dependencies); 
             publishNodeId = char(runManager.configuration.target_member_node_id);
             console = 0; 
             errorMessage = char(runManager.execution.error_message);
-            % added on Oct-13-2015
-            runManager.last_sequence_number = runManager.last_sequence_number+1;
-            seqNo = num2str(runManager.last_sequence_number);
+%             Comment out on 103116
+%             added on Oct-13-2015
+%             runManager.last_sequence_number = runManager.last_sequence_number+1;
+%             seqNo = num2str(runManager.last_sequence_number);
             
             % Write execution runtime informaiton to execmeta table in the
             % provenance database (072516)
             exec_obj = ExecMetadata(runID,'metadataId',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,moduleDependencies,endTime,errorMessage,publishedTime,publishNodeId, 'publishId', console);
-            insert_query = exec_obj.writeExecMeta();
-            status = runManager.provenanceDB.execute(insert_query, exec_obj.tableName);
-            if status == 0
-                message = 'Insert a record to the ExecMetadata table.';
+            [insert_exec_query, insert_tag_query] = exec_obj.writeExecMeta();
+            status1 = runManager.provenanceDB.execute(insert_exec_query, exec_obj.execTableName);
+            status2 = runManager.provenanceDB.execute(insert_tag_query, exec_obj.tagsTableName);
+            if (status1 ==0) && (status2 == 0)
+                message = 'Insert a record to the ExecMetadata table and Tag table.';
                 disp(message);
             else
                 errorMessage = [errorMessage, 'SQLiteDatabaseError: Insert record failed.'];
@@ -1405,7 +1407,7 @@ classdef RunManager < hgsetget
             if (runManager.console ~= 1) % (Non-interactive mode) 
                 import org.dataone.client.v2.DataObject;
                 import org.dataone.client.sqlite.FileMetadata;
-                import org.dataone.client.sqlite.ArchiveMetadata;
+                % import org.dataone.client.sqlite.ArchiveMetadata;
  
                 pid = ['program_' char(java.util.UUID.randomUUID())];
                 dataObject = DataObject(pid, 'text/plain', ...
@@ -1624,7 +1626,7 @@ classdef RunManager < hgsetget
             
             if isempty(endDate) ~= 1
                 for i=1:length(endDate)
-                    res = any(regexp(endtDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?'));
+                    res = any(regexp(endDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?'));
                     if res ~= 1
                         error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
                     end
@@ -1647,7 +1649,8 @@ classdef RunManager < hgsetget
                     where_clause = sprintf('%s and e.endTime BETWEEN "%s" AND "%s" ', where_clause, end_begin_date, end_end_date);
                 end
             end
-                        
+                  
+            % **Todo: join execmeta and tags tables 103116
             if isempty(tags) ~= 1
                if isempty(where_clause)
                    where_clause = sprintf('where e.tag="%s"', tags);
@@ -1674,9 +1677,10 @@ classdef RunManager < hgsetget
                     where_clause = sprintf('%s and e.executionId="%s"', where_clause, executionId);
                 end
             end
-                                   
-            select_query = sprintf('%s %s ;', select_query, where_clause);
-            
+               
+            % **Todo: a new sql query which join execmeta and tags tables
+            % 103116
+            select_query = sprintf('%s %s ;', select_query, where_clause);            
             exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'execmeta');
             
             % Display only when the returned data is a cell; no display for
@@ -2005,13 +2009,13 @@ classdef RunManager < hgsetget
            generated_file_stats = {};
            
            if showUsed == 1
-               used_file_metadata = FileMetadata('', executionId, '','','','','','', 'read','');
+               used_file_metadata = FileMetadata('', executionId, '','','','','','', 'read','',''); %103116
                used_file_query = used_file_metadata.readFileMeta('', '');
                used_file_stats = runManager.provenanceDB.execute(used_file_query, used_file_metadata.tableName);
            end
            
            if showGenerated == 1
-               generated_file_metadata = FileMetadata('', executionId, '','','','','','', 'write','');
+               generated_file_metadata = FileMetadata('', executionId, '','','','','','', 'write','',''); %103116
                generated_file_query = generated_file_metadata.readFileMeta('', '');
                generated_file_stats = runManager.provenanceDB.execute(generated_file_query, generated_file_metadata.tableName);
            end
