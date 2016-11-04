@@ -80,10 +80,14 @@ function m = csvread(source, varargin)
             fullSourcePath = struc.Name;
         end
                
-        [archivedRelFilePath, status] = FileMetadata.archiveFile(fullSourcePath);
-        if status == 1
+        [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(fullSourcePath);
+        if db_status == 1
             % The file has not been archived
             full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+            full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
+            if ~exist(full_archive_dir_path, 'dir') 
+                mkdir(full_archive_dir_path);
+            end
             % Copy this file to the archive directory 
             copyfile(fullSourcePath, full_archive_file_path, 'f');
         end

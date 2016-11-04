@@ -51,7 +51,7 @@ classdef FileMetadata < hgsetget
             
         end   
         
-        function [archivedRelFilePath, status] = archiveFile(fullFilePath)
+        function [archiveRelDir, archivedRelFilePath, status] = archiveFile(fullFilePath)
             % ARCHIVEDRELFILEPATH  Searches the relative file path for the
             % archived file copy in the filemeta table to see if the file
             % has already been archived.
