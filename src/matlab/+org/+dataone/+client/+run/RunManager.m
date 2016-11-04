@@ -911,11 +911,11 @@ classdef RunManager < hgsetget
             
             % Write execution runtime informaiton to execmeta table in the
             % provenance database (072516)
-            exec_obj = ExecMetadata(runID,'metadataId',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,moduleDependencies,endTime,errorMessage,publishedTime,publishNodeId, 'publishId', console);
+            exec_obj = ExecMetadata(runID,'',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,moduleDependencies,endTime,errorMessage,publishedTime,publishNodeId, 'publishId', console);
             [insert_exec_query, insert_tag_query] = exec_obj.writeExecMeta();
             status1 = runManager.provenanceDB.execute(insert_exec_query, exec_obj.execTableName);
             status2 = runManager.provenanceDB.execute(insert_tag_query, exec_obj.tagsTableName);
-            if (status1 ==0) && (status2 == 0)
+            if (status1 == 0) && (status2 == 0)
                 message = 'Insert a record to the ExecMetadata table and Tag table.';
                 disp(message);
             else
