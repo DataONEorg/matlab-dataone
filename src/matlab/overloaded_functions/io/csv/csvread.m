@@ -80,7 +80,7 @@ function m = csvread(source, varargin)
             fullSourcePath = struc.Name;
         end
                
-        [archivedRelFilePath, status] = FileMetadata.archiveFile(fullFilePath);
+        [archivedRelFilePath, status] = FileMetadata.archiveFile(fullSourcePath);
         if status == 1
             % The file has not been archived
             full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
