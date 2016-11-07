@@ -1571,11 +1571,11 @@ classdef RunManager < hgsetget
 
             % Create a SQL statement to retrieve all records satisfying the
             % selection criteria (072616)
-            where_clause = '';
-            from_clause = sprintf('from %s em', 'execmeta');
             select_clause = ['SELECT em.seq, em.datapackageId, em.softwareApplication, em.startTime,' ...
-                            'em.endTime, em.publishTime '];
-            
+                'em.endTime, em.publishTime, t.tag'];
+            from_clause = sprintf('from %s em, %s t', 'execmeta', 'tags');
+            where_clause = ['where em.executionId=t.executionId '];
+           
             if isempty(startDate) ~= 1
                 for i=1:length(startDate)
                     res = any(regexp(startDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?')); % Sqlite only understand a small set of date formats. Todo: include other supported date formats. 072616
@@ -1645,12 +1645,10 @@ classdef RunManager < hgsetget
             end
               
             if isempty(tags) ~= 1
-                select_clause = sprintf('%s, t.tag ', select_clause);
-                from_clause = sprintf('%s, tags t ', from_clause);
                 if isempty(where_clause)
-                    where_clause = sprintf('where t.tag="%s" and em.executionId=t.executionId', tags);
+                    where_clause = sprintf('where t.tag="%s"', tags);
                 else
-                    where_clause = sprintf('%s and t.tag="%s" and em.executionId=t.executionId', where_clause, tags);
+                    where_clause = sprintf('%s and t.tag="%s"', where_clause, tags);
                 end
             end
             
@@ -1903,7 +1901,7 @@ classdef RunManager < hgsetget
                addParameter(viewRunsParser, 'executionId', '', @(x) ~isempty(x)); % revised on 072816
                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
                addParameter(viewRunsParser,'runNumber', '', checkSequenceNumber);
-               addParameter(viewRunsParser,'tag', '', @iscell);
+               addParameter(viewRunsParser,'tag', '', @(x) iscell(x) || ischar(x));
                addParameter(viewRunsParser,'sections', '', @iscell);
            end
            parse(viewRunsParser,varargin{:});
@@ -1917,57 +1915,80 @@ classdef RunManager < hgsetget
            if runManager.configuration.debug
                viewRunsParser.Results
            end
-                       
-           where_clause = '';
-           select_query = sprintf('SELECT e.* from %s e', 'execmeta');
+                                  
+           select_clause = ['SELECT em.seq, em.executionId, em.datapackageId, em.user, em.subject, ' ...
+               'em.hostId, em.startTime, em.operatingSystem, em.runtime, em.softwareApplication, ' ...
+               'em.moduleDependencies, em.endTime, em.errorMessage, em.publishNodeId, em.publishTime, t.tag '];
+           from_clause = sprintf('from %s em, %s t', 'execmeta', 'tags');
+           where_clause = ['where em.executionId=t.executionId '];
            
            if isempty(packageId) ~= 1
                if isempty(where_clause)
-                   where_clause = sprintf('WHERE e.datapackageId="%s"', packageId);
+                   where_clause = sprintf('WHERE em.datapackageId="%s"', packageId);
                else
-                   where_clause = sprintf('%s and e.datapackageId="%s"', where_clause, packageId);
+                   where_clause = sprintf('%s and em.datapackageId="%s"', where_clause, packageId);
                end
                
            end
            
            if isempty(executionId) ~= 1
                if isempty(where_clause)
-                   where_clause = sprintf('WHERE e.executionId="%s"', executionId);
+                   where_clause = sprintf('WHERE em.executionId="%s"', executionId);
                else
-                   where_clause = sprintf('%s and e.executionId="%s"', where_clause, executionId);
+                   where_clause = sprintf('%s and em.executionId="%s"', where_clause, executionId);
                end
                
-           end
-           
-           if isempty(tags) ~= 1
-               if isempty(where_clause)
-                   where_clause = sprintf('WHERE e.tag="%s"', tags);
-               else
-                   where_clause = sprintf('%s and e.tag="%s"', where_clause, tags);
-               end
            end
            
            if isempty(runNumber) ~= 1
                if isempty(where_clause)
-                   where_clause = sprintf('WHERE e.seq="%s"', runNumber);
+                   where_clause = sprintf('WHERE em.seq="%s"', runNumber);
                else
-                   where_clause = sprintf('%s and e.seq="%s"', where_clause, runNumber);
+                   where_clause = sprintf('%s and em.seq="%s"', where_clause, runNumber);
                end
            end
            
-           select_query = sprintf('%s %s', select_query, where_clause);
-           exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'execmeta');
+           if isempty(tags) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE t.tag="%s"', tags);
+               else
+                   where_clause = sprintf('%s and t.tag="%s"', where_clause, tags);
+               end
+           end
+           
+           select_query = sprintf('%s %s %s', select_clause, from_clause, where_clause);
+           exec_metadata_cell = runManager.provenanceDB.execute(select_query);
            
            % Display only when the returned data is a cell
            if ~isempty(exec_metadata_cell)
                % Get the short script name and starting timestamp
-               script_full_path = exec_metadata_cell{1, 11};
+               script_full_path = exec_metadata_cell{1,10};
                script_name_array = strsplit(script_full_path, filesep);
                scriptName = char(script_name_array(end));
-               startTime = exec_metadata_cell{1, 8};
+              
+               start_time = exec_metadata_cell{1,7};
+               if ~isempty(start_time)
+               start_formatted_time = datestr(datenum(start_time, 'yyyymmddTHHMMSS'));
+               exec_metadata_cell{1,7} = start_formatted_time;
+               else
+                   exec_metadata_cell{1,7}='N/A';
+               end
                
-               % Extract multiple rows from a matrix satisfying the allCondition
-               details_execmeta = exec_metadata_cell(:, [3,1,15,16,5,6,1,4,7,9,10,12,8,13,14]);
+               end_time = exec_metadata_cell{1,12};
+               if ~isempty(end_time)
+               end_formatted_time = datestr(datenum(end_time, 'yyyymmddTHHMMSS'));
+               exec_metadata_cell{1,12} = end_formatted_time;
+               else
+                   exec_metadata_cell{1,12}='N/A';
+               end
+               
+               publish_time = exec_metadata_cell{1,15};
+               if ~isempty(publish_time)
+               publish_formatted_time = datestr(datenum(publish_time, 'yyyymmddTHHMMSS'));
+               exec_metadata_cell{1,15} = publish_formatted_time;
+               else
+                   exec_metadata_cell{1,15}='N/A';
+               end
            end
            
            % Decide the sections to be displayed based on values of sections
@@ -1999,7 +2020,7 @@ classdef RunManager < hgsetget
                generated_file_stats = runManager.provenanceDB.execute(generated_file_query, generated_file_metadata.tableName);
            end
            
-           results = {details_execmeta, used_file_stats, generated_file_stats};
+           results = {exec_metadata_cell, used_file_stats, generated_file_stats};
            
            more on; % Enable more for page control
            
@@ -2007,17 +2028,17 @@ classdef RunManager < hgsetget
            if showDetails == 1
                fprintf('\n[DETAILS]: Run details\n');
                fprintf('-------------------------\n');               
-               fprintf('"%s" was executed on %s\n', scriptName, char(startTime));
+               fprintf('"%s" was executed on %s\n', scriptName, start_formatted_time);
               
                % Compute the detailStruct for the details_section
-               fieldnames = {'Tag', 'RunSequenceNumber', 'PublishedDate', 'PublishedTo', ...
-                   'RunByUser', 'AccountSubject', 'ExecutionId', 'DataPackageId', ...
-                   'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
-                   'RunStartTime','RunEndingTime', 'ErrorMessageFromThisRun'};
+               fieldnames = {'RunSequenceNumber', 'ExecutionId','DataPackageId', 'RunByUser', 'AccountSubject', ...
+                   'HostId', 'RunStartTime', 'OperatingSystem', 'Runtime', 'SoftwareApplication', 'ModuleDependencies', ...
+                   'RunEndingTime', 'ErrorMessageFromThisRun', 'PublishedNodeId', 'PublishedDate', 'Tag'};
                
                % Convert a cell array to a table with headers              
-               tableForDetailsSection = cell2table(details_execmeta,'VariableNames', fieldnames);
+               tableForDetailsSection = cell2table(exec_metadata_cell,'VariableNames', fieldnames);
                disp(tableForDetailsSection);
+               summary(tableForDetailsSection);
            end
            
            if showUsed == 1
