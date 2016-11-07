@@ -52,38 +52,42 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
             close(sqldb_obj.dbConn);
         end
         
-        function result = execute(sqldb_obj, sql_statement, tableName)
+        function result = execute(sqldb_obj, sql_statement, varargin)
             
             setdbprefs('DataReturnFormat','cellarray');
             
-            % Get the database connection and check if the table
-            % exists
-            count = sqldb_obj.getTable(tableName);
+            if ~isempty(varargin)
+                % Get the database connection and check if the table
+                % exists
+                count = sqldb_obj.getTable(tableName);
+                if count == 0
+                    return;
+                end
+            end
             
-            if count >= 1
-                sqldb_obj.openDBConnection();
-                
-                curs = exec(sqldb_obj.dbConn, sql_statement);
-                
-                if curs.ResultSet ~= 0 
-                    % for select query (changed on 080816)
-                    curs = fetch(curs);                   
-                    if rows(curs) == 0
-                        result = [];
-                    else
-                        result = curs.Data;
-                    end
+            sqldb_obj.openDBConnection();
+            
+            curs = exec(sqldb_obj.dbConn, sql_statement);
+            
+            if curs.ResultSet ~= 0
+                % for select query (changed on 080816)
+                curs = fetch(curs);
+                if rows(curs) == 0
+                    result = [];
                 else
-                    % for the insert query (changed on 080816)
                     result = curs.Data;
                 end
-                
-                % Disconnect the database connection
-                close(curs);
-                sqldb_obj.closeDBConnection();
+            else
+                % for the insert query (changed on 080816)
+                result = curs.Data;
             end
+            
+            % Disconnect the database connection
+            close(curs);
+            sqldb_obj.closeDBConnection();
+           
         end
- 
+        
     end
     
 end

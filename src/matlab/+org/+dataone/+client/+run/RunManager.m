@@ -1572,7 +1572,9 @@ classdef RunManager < hgsetget
             % Create a SQL statement to retrieve all records satisfying the
             % selection criteria (072616)
             where_clause = '';
-            select_query = sprintf('SELECT e.* from %s e', 'execmeta');
+            from_clause = sprintf('from %s em', 'execmeta');
+            select_clause = ['SELECT em.seq, em.datapackageId, em.softwareApplication, em.startTime,' ...
+                            'em.endTime, em.publishTime '];
             
             if isempty(startDate) ~= 1
                 for i=1:length(startDate)
@@ -1594,9 +1596,9 @@ classdef RunManager < hgsetget
                 end
                 
                 if isempty(where_clause)
-                    where_clause = sprintf('where e.startTime BETWEEN "%s" AND "%s" ', start_begin_date, start_end_date);
+                    where_clause = sprintf('where em.startTime BETWEEN "%s" AND "%s" ', start_begin_date, start_end_date);
                 else
-                    where_clause = sprintf('%s and e.startTime BETWEEN "%s" AND "%s" ', where_clause, start_begin_date, start_end_date);
+                    where_clause = sprintf('%s and em.startTime BETWEEN "%s" AND "%s" ', where_clause, start_begin_date, start_end_date);
                 end
             end
             
@@ -1620,62 +1622,66 @@ classdef RunManager < hgsetget
                 end
                 
                 if isempty(where_clause)
-                    where_clause = sprintf('where e.endTime BETWEEN "%s" AND "%s" ', end_begin_date, end_end_date);
+                    where_clause = sprintf('where em.endTime BETWEEN "%s" AND "%s" ', end_begin_date, end_end_date);
                 else
-                    where_clause = sprintf('%s and e.endTime BETWEEN "%s" AND "%s" ', where_clause, end_begin_date, end_end_date);
+                    where_clause = sprintf('%s and em.endTime BETWEEN "%s" AND "%s" ', where_clause, end_begin_date, end_end_date);
                 end
             end
                               
             if isempty(runNumber) ~= 1
                 if isempty(where_clause)
-                    where_clause = sprintf('where e.seqId="%s"', runNumber);
+                    where_clause = sprintf('where em.seq="%s"', runNumber);
                 else
-                    where_clause = sprintf('%s and e.seqId="%s"', where_clause, runNumber);
+                    where_clause = sprintf('%s and em.seq="%s"', where_clause, runNumber);
                 end              
             end
             
             if isempty(executionId) ~= 1 % suppport search based on primary key
                 if isempty(where_clause)
-                    where_clause = sprintf('where e.executionId="%s"', executionId);
+                    where_clause = sprintf('where em.executionId="%s"', executionId);
                 else
-                    where_clause = sprintf('%s and e.executionId="%s"', where_clause, executionId);
+                    where_clause = sprintf('%s and em.executionId="%s"', where_clause, executionId);
                 end
             end
               
-            % **Todo: join execmeta and tags tables 103116
             if isempty(tags) ~= 1
+                select_clause = sprintf('%s, t.tag ', select_clause);
+                from_clause = sprintf('%s, tags t ', from_clause);
                 if isempty(where_clause)
-                    where_clause = sprintf('where e.tag="%s"', tags);
+                    where_clause = sprintf('where t.tag="%s" and em.executionId=t.executionId', tags);
                 else
-                    where_clause = sprintf('%s and e.tag="%s"', where_clause, tags);
+                    where_clause = sprintf('%s and t.tag="%s" and em.executionId=t.executionId', where_clause, tags);
                 end
             end
             
-            % **Todo: a new sql query which join execmeta and tags tables
-            % 103116
-            select_query = sprintf('%s %s ;', select_query, where_clause);            
-            exec_metadata_cell = runManager.provenanceDB.execute(select_query, 'execmeta');
+            % Create a SQL query joining the execmeta and tags tables
+            select_query = sprintf('%s %s %s ;', select_clause, from_clause, where_clause);   
+            exec_metadata_cell = runManager.provenanceDB.execute(select_query);
             
             % Display only when the returned data is a cell; no display for
             % 'No Data' returned
             if ~isempty(exec_metadata_cell)
-               
-                % Extract multiple rows from a matrix satisfying the allCondition
-                runsToDisplay = exec_metadata_cell(:, [1,4,11,3,8,13,15]);
-                
-                % Convert the full path of a script to a base file name in
-                % listRus(). The full path is displayed in viewRun()
-                numOfRows = size(runsToDisplay, 1);
+                numOfRows = size(exec_metadata_cell, 1);
                 for i=1:numOfRows
-                    fullName = runsToDisplay{i,3};
+                    % Convert the full path of a script to a base file name in
+                    % listRus(). The full path is displayed in viewRun()
+                    fullName = exec_metadata_cell{i,3};
                     name_array = strsplit(fullName, filesep);
-                    runsToDisplay{i,3} = name_array(end);
+                    exec_metadata_cell{i,3} = name_array(end);
+                    
+                    % Covert startTime & endTime to readable format
+                    start_time = exec_metadata_cell{i,4};
+                    end_time = exec_metadata_cell{i,5};
+                    start_formatted_time = datestr(datenum(start_time, 'yyyymmddTHHMMSS'));
+                    end_formatted_time = datestr(datenum(end_time, 'yyyymmddTHHMMSS'));
+                    exec_metadata_cell{i,4} = start_formatted_time;
+                    exec_metadata_cell{i,5} = end_formatted_time;
                 end
                 
                 % Display
                 if isempty(quiet) ~= 1 && quiet ~= 1
-                    % Convert a cell array to a table with headers                    
-                    tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tag', 'startDate', 'endDate', 'publishDate'});
+                    % Convert a cell array to a table with headers
+                    tableForSelectedRuns = cell2table(exec_metadata_cell,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'startDate', 'endDate', 'publishDate', 'tag'});
                     disp(tableForSelectedRuns);
                 end
             else
