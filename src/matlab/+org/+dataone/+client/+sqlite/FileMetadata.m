@@ -93,7 +93,9 @@ classdef FileMetadata < hgsetget
             existed_fm = runManager.provenanceDB.execute(select_filemeta_query, 'filemeta');
             if ~isempty(existed_fm)
                 archivedRelFilePath = existed_fm{1,11}; % get the relative path for the archived file copy
-                status = 0;
+                status = 0;              
+                archive_name_array = strsplit(archivedRelFilePath, filesep);
+                archiveRelDir = fullfile(archive_name_array(1), archive_name_array(2));
                 return;
             end
             

@@ -59,7 +59,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
             if ~isempty(varargin)
                 % Get the database connection and check if the table
                 % exists
-                count = sqldb_obj.getTable(tableName);
+                count = sqldb_obj.getTable(varargin{1});
                 if count == 0
                     return;
                 end
