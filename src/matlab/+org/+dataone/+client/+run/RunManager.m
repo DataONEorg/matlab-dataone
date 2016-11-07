@@ -665,7 +665,7 @@ classdef RunManager < hgsetget
                 j_sysmeta.setSize(BigInteger.valueOf(out_file_metadata.bytes));
                 
                 %Todo: need to update row_out_file_metadata in the
-                %filemeta table 080216
+                %      filemeta table 080216
 %                 set(outputDataObject, 'system_metadata', j_sysmeta);
                 
                 % Update the EML science metadata with the output entity
@@ -729,7 +729,7 @@ classdef RunManager < hgsetget
                     j_sysmeta.setFileName(in_file_short_name);
                     
                     %Todo: need to update row_in_file_metadata in the
-                    %filemeta table 080216
+                    %      filemeta table 080216
 %                     set(inputDataObject, 'system_metadata', j_sysmeta);
                     
                     % Update the EML science metadata with the input entity
@@ -798,7 +798,7 @@ classdef RunManager < hgsetget
                 scienceMetadataIdStr); % use base name in system metadata Feb-1-2016
             
             %Todo: need to update row_in_file_metadata in the
-            %filemeta table 080216
+            %      filemeta table 080216
 %             set(scienceMetadataDataObject, 'system_metadata', j_sysmeta);
             
             % Add the science metadata to the filemeta table
@@ -859,7 +859,7 @@ classdef RunManager < hgsetget
                 resMapFmt, ...
                 resourceMapFullPath);
             %Todo: need to update row_in_file_metadata in the
-            %filemeta table 080216
+            %      filemeta table 080216
 %             set(resourceMapDataObject, 'system_metadata', j_sysmeta);
             
             data_package = runManager.dataPackage;
@@ -904,14 +904,10 @@ classdef RunManager < hgsetget
             publishNodeId = char(runManager.configuration.target_member_node_id);
             console = 0; 
             errorMessage = char(runManager.execution.error_message);
-%             Comment out on 103116
-%             added on Oct-13-2015
-%             runManager.last_sequence_number = runManager.last_sequence_number+1;
-%             seqNo = num2str(runManager.last_sequence_number);
             
             % Write execution runtime informaiton to execmeta table in the
             % provenance database (072516)
-            exec_obj = ExecMetadata(runID,'',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,moduleDependencies,endTime,errorMessage,publishedTime,publishNodeId, 'publishId', console);
+            exec_obj = ExecMetadata(runID,'',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,moduleDependencies,endTime,errorMessage,publishedTime,publishNodeId, '', console);
             [insert_exec_query, insert_tag_query] = exec_obj.writeExecMeta();
             status1 = runManager.provenanceDB.execute(insert_exec_query, exec_obj.execTableName);
             status2 = runManager.provenanceDB.execute(insert_tag_query, exec_obj.tagsTableName);
@@ -1203,23 +1199,6 @@ classdef RunManager < hgsetget
                 runManager.execution = Execution();
                 runManager.execution.execution_input_ids = {};
                 runManager.execution.execution_output_ids = {};
-            
-                % There is no seq column in the ExecMetadata table. Changed on 072916
-%                 % Set the manager.last_sequence_number based on execution_db_name last
-%                 % sequence number
-%                 if ( exist(runManager.configuration.execution_db_name, 'file') ~= 2 )
-%                     runManager.last_sequence_number = 0; 
-%                 else
-% %                   [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-%                     execMetaMatrix = runManager.getExecMetadataMatrix();
-%                     if ~isempty(execMetaMatrix)
-%                         lastRow = execMetaMatrix(end,:);
-%                         lastSeqNum = lastRow{1,end};
-%                         runManager.last_sequence_number = str2num(lastSeqNum);
-%                     else
-%                         runManager.last_sequence_number = 0; 
-%                     end
-%                 end
             end
         end
                 
@@ -1466,8 +1445,7 @@ classdef RunManager < hgsetget
             % ENDRECORD Ends the recording of an execution (run).
             
             import org.dataone.service.types.v1.Identifier;
-            import org.dataone.client.v2.itk.DataPackage;
-            %import org.dataone.client.run.NamedConstant;
+            import org.dataone.client.v2.itk.DataPackage;           
             import java.io.File;
             import javax.activation.FileDataSource;
             import org.dataone.client.v1.types.D1TypeBuilder;
@@ -1557,9 +1535,7 @@ classdef RunManager < hgsetget
             munlock('RunManager');            
             % clear RunManager;
         end
-         
- 
-        
+                
         function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
@@ -1649,19 +1625,7 @@ classdef RunManager < hgsetget
                     where_clause = sprintf('%s and e.endTime BETWEEN "%s" AND "%s" ', where_clause, end_begin_date, end_end_date);
                 end
             end
-                  
-            % **Todo: join execmeta and tags tables 103116
-            if isempty(tags) ~= 1
-               if isempty(where_clause)
-                   where_clause = sprintf('where e.tag="%s"', tags);
-               else
-                   where_clause = sprintf('%s and e.tag="%s"', where_clause, tags);
-               end
-            end
-            
-            % Todo: Discuss if the column "seq" should be kept. And which
-            % should be used as the primary key between "seq" and
-            % "executionId"? (072716)
+                              
             if isempty(runNumber) ~= 1
                 if isempty(where_clause)
                     where_clause = sprintf('where e.seqId="%s"', runNumber);
@@ -1677,7 +1641,16 @@ classdef RunManager < hgsetget
                     where_clause = sprintf('%s and e.executionId="%s"', where_clause, executionId);
                 end
             end
-               
+              
+            % **Todo: join execmeta and tags tables 103116
+            if isempty(tags) ~= 1
+                if isempty(where_clause)
+                    where_clause = sprintf('where e.tag="%s"', tags);
+                else
+                    where_clause = sprintf('%s and e.tag="%s"', where_clause, tags);
+                end
+            end
+            
             % **Todo: a new sql query which join execmeta and tags tables
             % 103116
             select_query = sprintf('%s %s ;', select_query, where_clause);            
