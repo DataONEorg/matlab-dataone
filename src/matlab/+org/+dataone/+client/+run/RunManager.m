@@ -1665,7 +1665,7 @@ classdef RunManager < hgsetget
                     % listRus(). The full path is displayed in viewRun()
                     fullName = exec_metadata_cell{i,3};
                     name_array = strsplit(fullName, filesep);
-                    exec_metadata_cell{i,3} = name_array(end);
+                    exec_metadata_cell{i,3} = char(name_array(end));
                     
                     % Covert startTime & endTime to readable format
                     start_time = exec_metadata_cell{i,4};
@@ -1679,8 +1679,25 @@ classdef RunManager < hgsetget
                 % Display
                 if isempty(quiet) ~= 1 && quiet ~= 1
                     % Convert a cell array to a table with headers
-                    tableForSelectedRuns = cell2table(exec_metadata_cell,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'startDate', 'endDate', 'publishDate', 'tag'});
-                    disp(tableForSelectedRuns);
+                    run_fieldnames = {'runNumber', 'packageId', 'scriptName', 'startDate', 'endDate', 'publishDate', 'tag'};
+                    %  tableForSelectedRuns = cell2table(exec_metadata_cell,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'startDate', 'endDate', 'publishDate', 'tag'});
+                    %  disp(tableForSelectedRuns);
+                    [nrows, ncols] = size(exec_metadata_cell);
+                    for i=1:nrows
+                        fprintf('Run #%3d: \n', i);
+                        for j=1:ncols
+                            if isnumeric(exec_metadata_cell{i,j})
+                                fprintf('%16s: %d \n', run_fieldnames{j}, exec_metadata_cell{i,j});
+                            else  
+                                if ~isempty(exec_metadata_cell{i,j})
+                                    fprintf('%16s: %s \n', run_fieldnames{j}, exec_metadata_cell{i,j});
+                                else
+                                    fprintf('%16s: %s \n', run_fieldnames{j}, 'N/A');
+                                end
+                            end
+                        end
+                        fprintf('\n');
+                    end
                 end
             else
                 message = 'There is no data matched.';
@@ -2028,7 +2045,7 @@ classdef RunManager < hgsetget
            if showDetails == 1
                fprintf('\n[DETAILS]: Run details\n');
                fprintf('-------------------------\n');               
-               fprintf('"%s" was executed on %s\n', scriptName, start_formatted_time);
+               fprintf('\"%s\" was executed on %s\n\n', scriptName, start_formatted_time);
               
                % Compute the detailStruct for the details_section
                fieldnames = {'RunSequenceNumber', 'ExecutionId','DataPackageId', 'RunByUser', 'AccountSubject', ...
@@ -2036,18 +2053,45 @@ classdef RunManager < hgsetget
                    'RunEndingTime', 'ErrorMessageFromThisRun', 'PublishedNodeId', 'PublishedDate', 'Tag'};
                
                % Convert a cell array to a table with headers              
-               tableForDetailsSection = cell2table(exec_metadata_cell,'VariableNames', fieldnames);
-               disp(tableForDetailsSection);
-               summary(tableForDetailsSection);
+               % tableForDetailsSection = cell2table(exec_metadata_cell,'VariableNames', fieldnames);
+               % disp(tableForDetailsSection);
+
+               for i=1:length(fieldnames)
+                   if length(exec_metadata_cell{1,i}) >=500
+                       shorten_str = exec_metadata_cell{1,i}(1:1000);
+                       fprintf('%20s:  %s \n', fieldnames{i}, shorten_str);
+                   else
+                       if ~isempty(exec_metadata_cell{1,i})
+                           fprintf('%20s:  %s \n', fieldnames{i}, exec_metadata_cell{1,i});
+                       else
+                           fprintf('%20s: %s \n', fieldnames{i}, 'N/A');
+                       end
+                   end
+               end
            end
            
+           file_fieldnames = {'FilePath','Size','ModifiedTime'};
            if showUsed == 1
                fprintf('\n\n[USED]: %d Items used by this run\n', size(used_file_stats,1));
                fprintf('------------------------------------\n');
                if ~isempty(used_file_stats)
                    used_file_to_display = used_file_stats(:, [3,5,7]);
-                   TableForFileUsed = cell2table(used_file_to_display, 'VariableNames', {'FilePath','Size','ModifiedTime'}); % Convert a struct to a table
-                   disp(TableForFileUsed);
+                   
+                   %  TableForFileUsed = cell2table(used_file_to_display, 'VariableNames', {'FilePath','Size','ModifiedTime'}); % Convert a struct to a table
+                   %  disp(TableForFileUsed);
+                   
+                   [nrows, ncols] = size(used_file_to_display);
+                   for i=1:nrows
+                       fprintf('File #%3d:\n', i);
+                       for j=1:ncols
+                           if isnumeric(used_file_to_display{i,j})
+                               fprintf('%20s: %d (bytes)\n', file_fieldnames{j}, used_file_to_display{i,j});
+                           else
+                               fprintf('%20s: %s\n', file_fieldnames{j}, used_file_to_display{i,j});
+                           end                           
+                       end
+                       fprintf('\n');
+                   end
                else
                    warning('There is no matched data.');
                end
@@ -2058,8 +2102,20 @@ classdef RunManager < hgsetget
                fprintf('------------------------------------------\n');
                if ~isempty(generated_file_stats)
                    generated_file_to_display = generated_file_stats(:, [3,5,7]);
-                   TableForFileWasGeneratedBy = cell2table(generated_file_to_display, 'VariableNames', {'FilePath','Size','ModifiedTime'}); % Convert a struct to a table
-                   disp(TableForFileWasGeneratedBy);
+                   %  TableForFileWasGeneratedBy = cell2table(generated_file_to_display, 'VariableNames', {'FilePath','Size','ModifiedTime'}); % Convert a struct to a table
+                   %  disp(TableForFileWasGeneratedBy);
+                   [nrows, ncols] = size(generated_file_to_display);
+                   for i=1:nrows
+                       fprintf('File #%3d:\n', i);
+                       for j=1:ncols
+                           if isnumeric(generated_file_to_display{i,j})
+                               fprintf('%20s: %d (bytes)\n', file_fieldnames{j}, generated_file_to_display{i,j});
+                           else
+                               fprintf('%20s: %s\n', file_fieldnames{j}, generated_file_to_display{i,j});
+                           end                          
+                       end
+                       fprintf('\n');
+                   end
                else
                    warning('There is no matched data.');
                end
