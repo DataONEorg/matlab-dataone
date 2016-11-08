@@ -1708,7 +1708,7 @@ classdef RunManager < hgsetget
         function deleted_runs = deleteRuns(runManager, varargin)
             % DELETERUNS Deletes prior executions (runs) from the stored
             % list.    
-            %   runIdList -- the list of runIds for executions to be deleted
+            %   executionIdList -- the list of runIds for executions to be deleted
             %   startDate -- the starting timestamp for an execution to be
             %                deleted  (yyyyMMddThh:mm:ss)
             %   endDate -- the ending timestamp for an execution to be
@@ -1722,7 +1722,7 @@ classdef RunManager < hgsetget
             if isempty(deletedRunsParser)
                 deletedRunsParser = inputParser;
                 
-                addParameter(deletedRunsParser,'runIdList', '', @iscell);
+                addParameter(deletedRunsParser,'executionIdList', '', @iscell);
                 addParameter(deletedRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'tag', '', @iscell);
@@ -1733,7 +1733,7 @@ classdef RunManager < hgsetget
             end
             parse(deletedRunsParser,varargin{:})
             
-            runIdList = deletedRunsParser.Results.runIdList;
+            executionIdList = deletedRunsParser.Results.executionIdList;
             startDate = deletedRunsParser.Results.startDate;
             endDate = deletedRunsParser.Results.endDate;
             tags = deletedRunsParser.Results.tag;
@@ -1745,64 +1745,104 @@ classdef RunManager < hgsetget
                 deletedRunsParser.Results
             end
             
-            % Read the exeuction metadata summary from the exeuction metadata database
-            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-                       
-            % Initialize the logical cell arrays to have false value
-            dateCondition = false(size(execMetaMatrix, 1), 1);
-            runIdCondition = false(size(execMetaMatrix, 1), 1);
-            tagsCondition = false(size(execMetaMatrix, 1), 1);
-            runNumberCondition = false(size(execMetaMatrix, 1), 1);
-            allDeleteCondition = true(size(execMetaMatrix, 1), 1);
-            
-            startDateFlag = false;
-            endDateFlag = false;
-                
+            % Create a SQL statement to retrieve all records satisfying the
+            % selection criteria (110816)
+            select_clause = ['SELECT em.*, t.tag'];
+            from_clause = sprintf('from %s em, %s t', 'execmeta', 'tags');
+            where_clause = ['where em.executionId=t.executionId '];
+                        
             if isempty(startDate) ~= 1
-                startDateFlag = true;
-            end
+                for i=1:length(startDate)
+                    res = any(regexp(startDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?')); % Sqlite only understand a small set of date formats. Todo: include other supported date formats. 072616
+                    if res ~= 1
+                        error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
+                    end
+                end
                 
-            if isempty(endDate) ~= 1
-                endDateFlag = true;
+                if length(startDate) == 1
+                    start_begin_date = startDate{1};
+                    start_end_date = '9999-99-99';
+                elseif length(startDate) == 2
+                    start_begin_date = startDate{1};
+                    start_end_date = startDate{2};
+                else
+                    message = 'Error: the number of dates is more than 2.';
+                    error(message);
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.startTime BETWEEN "%s" AND "%s" ', start_begin_date, start_end_date);
+                else
+                    where_clause = sprintf('%s and em.startTime BETWEEN "%s" AND "%s" ', where_clause, start_begin_date, start_end_date);
+                end
             end
             
-            if startDateFlag && endDateFlag
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
-                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
-                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
-                dateCondition = startCondition & endColCondition;
-                allDeleteCondition = allDeleteCondition & dateCondition;
-            elseif startDateFlag == 1
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % logical vector for rows to delete  
-                allDeleteCondition = allDeleteCondition & dateCondition;
-            elseif endDateFlag == 1
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;   
-                allDeleteCondition = allDeleteCondition & dateCondition;
+            if isempty(endDate) ~= 1
+                for i=1:length(endDate)
+                    res = any(regexp(endDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?'));
+                    if res ~= 1
+                        error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
+                    end
+                end
+                
+                if length(endDate) == 1
+                    end_begin_date = endDate{1};
+                    end_end_date = '9999-99-99';
+                elseif length(startDate) == 2
+                    end_begin_date = endDate{1};
+                    end_end_date = endDate{2};
+                else
+                    message = 'Error: the number of dates is more than 2.';
+                    error(message);
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.endTime BETWEEN "%s" AND "%s" ', end_begin_date, end_end_date);
+                else
+                    where_clause = sprintf('%s and em.endTime BETWEEN "%s" AND "%s" ', where_clause, end_begin_date, end_end_date);
+                end
+            end
+            
+            if ~isempty(executionIdList)
+                execution_ids_str = sprintf('"%s"', executionIdList{1,1});
+                for i=2:size(executionIdList,2)
+                    temp = sprintf('"%s"', executionIdList{1,i});
+                    execution_ids_str = strcat(execution_ids_str, ',', temp);                   
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.executionId in (%s)', execution_ids_str);
+                else
+                    where_clause = sprintf('%s and em.executionId in (%s)', where_clause, execution_ids_str);
+                end
             end
                         
-            if ~isempty(runIdList)
-                runIdArray = char(runIdList);
-                runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existance between two arrays
-                allDeleteCondition = allDeleteCondition & runIdCondition;
+            if ~isempty(runNumber)             
+                num_runNumber = num2str(runNumber);
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.seq="%s"', num_runNumber);
+                else
+                    where_clause = sprintf('%s and em.seq="%s"', where_clause, num_runNumber);
+                end
             end
-                
+            
             if ~isempty(tags)
-                tagsArray = char(tags);
-                tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-                allDeleteCondition = allDeleteCondition & tagsCondition;
+                tags_str = sprintf('"%s"', tags{1,1});
+                for i=2:size(tags,2)
+                    temp = sprintf('"%s"', tags{1,i});
+                    tags_str = strcat(tags_str, ',', temp);
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where t.tag in (%s)', tags_str);
+                else
+                    where_clause = sprintf('%s and t.tag in (%s)', where_clause, tags_str);
+                end
             end
-           
-            if ~isempty(runNumber)
-                snValue = num2str(runNumber);
-                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
-                allDeleteCondition = allDeleteCondition & runNumberCondition;
-            end
-           
-            % Extract multiple rows from a matrix satisfying the allCondition
-            deleted_runs = execMetaMatrix(allDeleteCondition, :);
+                       
+             % Create a SQL query joining the execmeta and tags tables
+            select_query = sprintf('%s %s %s ;', select_clause, from_clause, where_clause);   
+            deleted_runs = runManager.provenanceDB.execute(select_query);
             
             % Delete the selected runs from the execution matrix and update the exeucution database
             if  noop == 1
@@ -1815,8 +1855,19 @@ classdef RunManager < hgsetget
                 end
             else
                 % Show the selected run list and do the deletion operation                
-                selectedIdSet = deleted_runs(:,1);
+                selectedIdSet = deleted_runs(:,2);
             
+                % Loop through selected runs
+                
+                % Todo: Delete all file access entries for this execution, for
+                % any type of access, i.e., "read", "write", "execute". The
+                % file information for the deleted entries is returned.
+                % 110816
+                
+                % Todo: Loop through the deleted file entries and unarchive
+                % any file associated with this run, i.e., file read,
+                % written, executed, etc. 110816
+                
                 % Delete the selected runs
                 for k = 1:length(selectedIdSet)                   
                     selectedRunDir = fullfile( ...
@@ -1825,67 +1876,17 @@ classdef RunManager < hgsetget
                     if exist(selectedRunDir, 'dir') == 7 
                         [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
                         if success == 1
-                            fprintf('Succeed in deleting the directory %s\n', selectedRunDir);                         
+                            fprintf('Succeed in deleting the run directory %s\n', selectedRunDir);                         
                         else
-                            fprintf('Error in deleting a directory %s and the error message is %s \n', ...
+                            fprintf('Error in deleting a run directory %s and the error message is %s \n', ...
                             selectedRunDir, errMessage);
                         end 
                     else
-                        fprintf('The %s directory to be deleted not exist.\n', selectedRunDir);
+                        fprintf('The run %s directory to be deleted not exist.\n', selectedRunDir);
                     end
                 end
 
-                % Update the execuction metadata matrix by removing the deleted rows and write the update metadata back to the execution database                               
-                execMetaMatrix(allDeleteCondition, :) = []; % deleted the selected rows
-                    
-                % Write the updated execution metadata with headers to the execution database            
-                formatSpec = runManager.configuration.execution_db_write_format;                
-                if exist(runManager.configuration.execution_db_name, 'file') == 2
-                    [fileId, message] = ...
-                        fopen(runManager.configuration.execution_db_name,'w');
-                    if fileId == -1
-                        disp(message);
-                    end
-                    fprintf(fileId, formatSpec, ...
-                        'runId', ...
-                        'filePath', ...
-                        'startTime', ...
-                        'endTime', ...
-                        'publishedTime', ...
-                        'packageId', ...
-                        'tag', ...
-                        'user', ...
-                        'subject', ...
-                        'hostId', ...
-                        'operatingSystem', ...
-                        'runtime', ...
-                        'moduleDependencies', ...
-                        'console', ...
-                        'errorMessage', ...
-                        'runNumber');
-                    [rows, cols] = size(execMetaMatrix);
-                    for (row = 1:rows)
-                        fprintf(fileId, formatSpec, ...
-                            char(execMetaMatrix(row, 1)), ...
-                            char(execMetaMatrix(row, 2)), ...
-                            char(execMetaMatrix(row, 3)), ...
-                            char(execMetaMatrix(row, 4)), ...
-                            char(execMetaMatrix(row, 5)), ...
-                            char(execMetaMatrix(row, 6)), ...
-                            char(execMetaMatrix(row, 7)), ...
-                            char(execMetaMatrix(row, 8)), ...
-                            char(execMetaMatrix(row, 9)), ...
-                            char(execMetaMatrix(row, 10)), ...
-                            char(execMetaMatrix(row, 11)), ...
-                            char(execMetaMatrix(row, 12)), ...
-                            char(execMetaMatrix(row, 13)), ...
-                            char(execMetaMatrix(row, 14)), ...
-                            char(execMetaMatrix(row, 15)), ...
-                            char(execMetaMatrix(row, 16)));
-                    end
-                    fclose(fileId);
-                end
-                             
+                
             end          
         end
         
@@ -1973,7 +1974,7 @@ classdef RunManager < hgsetget
                end
            end
            
-           select_query = sprintf('%s %s %s', select_clause, from_clause, where_clause);
+           select_query = sprintf('%s %s %s ;', select_clause, from_clause, where_clause);
            exec_metadata_cell = runManager.provenanceDB.execute(select_query);
            
            % Display only when the returned data is a cell
@@ -2058,7 +2059,7 @@ classdef RunManager < hgsetget
 
                for i=1:length(fieldnames)
                    if length(exec_metadata_cell{1,i}) >=500
-                       shorten_str = exec_metadata_cell{1,i}(1:1000);
+                       shorten_str = exec_metadata_cell{1,i}(1:500);
                        fprintf('%20s:  %s \n', fieldnames{i}, shorten_str);
                    else
                        if ~isempty(exec_metadata_cell{1,i})
