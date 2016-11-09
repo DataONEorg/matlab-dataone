@@ -117,7 +117,7 @@ classdef FileMetadata < hgsetget
         end
         
         function sha256hash = getSHA256Hash(data)
-            % getSHA256Hash Converts a string to a 64 char hex hash string (256 bit hash)
+            % GETSHA256Hash Converts a string to a 64 char hex hash string (256 bit hash)
             % data - a string
             % sha256hash - a 64 character string, encoding the 256 bit SHA hash of string
             %        in hexadecimal.
@@ -135,7 +135,37 @@ classdef FileMetadata < hgsetget
             % byte array to a hexadecimal string. Note that this generated
             % hexadecimal in upper case
             sha256hash =  char(DatatypeConverter.printHexBinary(hash));
-        end       
+        end
+        
+        function [archivedRelFilePath, delete_archive_status] = unArchiveFile(thisFileId)
+            % UNARCHIVEFILE Delete a file from the file archive if no other
+            % execution is still referencing it. Note that when executions
+            % archive files that they use, if the file already is in the
+            % archive, it will just be referenced by the new execution, and
+            % not re-archived.
+            
+            import org.dataone.client.run.RunManager;
+                        
+            fm_query = sprintf('select * from %s fm where fm.fileId="%s"', 'filemeta', thisFileId);
+            runManager = RunManager.getInstance();   
+            fm_stats = runManager.provenanceDB.execute(fm_query);
+            if size(fm_stats,1) == 0
+                warning('File not found in database, unable  to delete file from archive with fileId: %s', thisFileId);
+            else
+                % Are more than the current execution referencing the file?
+                % If yes, then don't delete it
+                checksum = fm_stats{1, 4};
+                fm_refs_query = sprintf('select * from %s fm where fm.sha256="%s"', 'filemeta', checksum);
+                fm_refs = runManager.provenanceDB.execute(fm_refs_query);
+                if size(fm_refs,1) == 1                    
+                    delete_archive_status = true;
+                else
+                    delete_archive_status = false;
+                end      
+                archivedRelFilePath = fm_refs{1,11};
+            end         
+        end
+        
     end
     
     methods

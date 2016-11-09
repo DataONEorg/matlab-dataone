@@ -1713,7 +1713,7 @@ classdef RunManager < hgsetget
             %                deleted  (yyyyMMddThh:mm:ss)
             %   endDate -- the ending timestamp for an execution to be
             %              deleted  (yyyyMMddThh:mm:ss)
-            %   tag -- a tag given to an execution to be deleted
+            %   tag -- a list of tags given to an execution to be deleted
             %   runNumber -- a sequence number given to an execution to be deleted
             %   noop -- control delete the exuecution from disk or not
             %   quiet -- control the output or not
@@ -1867,7 +1867,7 @@ classdef RunManager < hgsetget
                     for i=1:nrows
                         fprintf('Run #%3d: \n', i);
                         for j=1:ncols                            
-                            if length(deleted_runs{i,j}) >=500
+                            if length(deleted_runs{i,j}) >= 500
                                 shorten_str = deleted_runs{i,j}(1:500);
                                 fprintf('%30s:  %s \n', fieldnames{j}, shorten_str);
                             else
@@ -1894,30 +1894,46 @@ classdef RunManager < hgsetget
                     fm_query = fm_all.readFileMeta('', '');
                     file_stats_all = runManager.provenanceDB.execute(fm_query, fm_all.tableName);
                     
-                    % Todo: Loop through the deleted file entries and unarchive
+                    % Loop through the deleted file entries and unarchive
                     % any file associated with this run, i.e., file read,
                     % written, executed, etc. 110816
+                    [nrows, ncols] = size(file_stats_all);
+                    for i=1:nrows
+                        this_file_id = file_stats_all{i,1};
+                        % First delete the file in the archive, if no other
+                        % executions are referring to it
+                        [archivedRelFilePath, delete_archive_status] = FileMetadata.unArchiveFile(this_file_id);
+                        if delete_archive_status 
+                           full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+                           delete(full_archive_file_path);
+                        end
+                        
+                        % Then delete the filemeta table entry for it
+                        delete_fm_query = sprintf('DELETE from filemeta WHERE fileId="%s" ', this_file_id);
+                        result = runManager.provenanceDB.execute(delete_fm_query);
+                    end
                     
-                    
+                    % Delete the execmeta table entry
+                    delete_em_query = sprintf('DELETE from execmeta WHERE executionId="%s" ', selectedIdSet{k});
+                    result = runManager.provenanceDB.execute(delete_em_query);                       
                     % Delete each run directory under provenance/runs/
                     % folder 
-%                     selectedRunDir = fullfile( ...
-%                         runManager.configuration.provenance_storage_directory, ...
-%                         'runs', selectedIdSet{k});
-%                     if exist(selectedRunDir, 'dir') == 7
-%                         [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
-%                         if success == 1
-%                             fprintf('Succeed in deleting the run directory %s\n', selectedRunDir);
-%                         else
-%                             fprintf('Error in deleting a run directory %s and the error message is %s \n', ...
-%                                 selectedRunDir, errMessage);
-%                         end
-%                     else
-%                         fprintf('The run %s directory to be deleted not exist.\n', selectedRunDir);
-%                     end
-                end
-
-                
+                    selectedRunDir = fullfile( ...
+                        runManager.configuration.provenance_storage_directory, ...
+                        'runs', selectedIdSet{k});
+                    if exist(selectedRunDir, 'dir') == 7
+                        [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
+                        if success == 1
+                            fprintf('Succeed in deleting the run directory %s\n', selectedRunDir);
+                        else
+                            fprintf('Error in deleting a run directory %s and the error message is %s \n', ...
+                                selectedRunDir, errMessage);
+                        end
+                    else
+                        fprintf('The run %s directory to be deleted not exist.\n', selectedRunDir);
+                    end
+                    
+                end               
             end          
         end
         
@@ -2087,7 +2103,7 @@ classdef RunManager < hgsetget
                % disp(tableForDetailsSection);
 
                for i=1:length(fieldnames)
-                   if length(exec_metadata_cell{1,i}) >=500
+                   if length(exec_metadata_cell{1,i}) >= 500
                        shorten_str = exec_metadata_cell{1,i}(1:500);
                        fprintf('%20s:  %s \n', fieldnames{i}, shorten_str);
                    else
