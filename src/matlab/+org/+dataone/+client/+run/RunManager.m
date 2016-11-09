@@ -1718,6 +1718,8 @@ classdef RunManager < hgsetget
             %   noop -- control delete the exuecution from disk or not
             %   quiet -- control the output or not
             
+            import org.dataone.client.sqlite.FileMetadata;
+             
             persistent deletedRunsParser
             if isempty(deletedRunsParser)
                 deletedRunsParser = inputParser;
@@ -1848,42 +1850,71 @@ classdef RunManager < hgsetget
             if  noop == 1
                 % Show the selected run list only when quiet is turned on
                 if isempty(quiet) ~= 1 && quiet ~= 1
-                    % Convert a cell array to a table with headers    
+                    % Convert a cell array to a table with headers
                     disp('The following runs are matched and to be deleted:');
-                    tableForSelectedRuns = cell2table(deleted_runs,'VariableNames', [header{:}]);  
-                    disp(tableForSelectedRuns);                      
+                    %                     tableForSelectedRuns = cell2table(deleted_runs,'VariableNames', [header{:}]);
+                    %                     disp(tableForSelectedRuns);
+                    
+                    % Print all to runs to be deleted  110816
+                    fieldnames = {'RunSequenceNumber', 'ExecutionId','MetadataId', 'DataPackageId', 'RunByUser', 'AccountSubject', ...
+                        'HostId', 'RunStartTime', 'OperatingSystem', 'Runtime', 'SoftwareApplication', 'ModuleDependencies', ...
+                        'RunEndingTime', 'ErrorMessageFromThisRun', 'PublishTime', 'PublishedNodeId', 'PublishedId', 'Console', 'Tag'};
+                    
+                    % Convert a cell array to a table with headers
+                    % tableForDetailsSection = cell2table(exec_metadata_cell,'VariableNames', fieldnames);
+                    % disp(tableForDetailsSection);
+                    [nrows, ncols] = size(deleted_runs);
+                    for i=1:nrows
+                        fprintf('Run #%3d: \n', i);
+                        for j=1:ncols                            
+                            if length(deleted_runs{i,j}) >=500
+                                shorten_str = deleted_runs{i,j}(1:500);
+                                fprintf('%30s:  %s \n', fieldnames{j}, shorten_str);
+                            else
+                                if ~isempty(deleted_runs{i,j})
+                                    fprintf('%30s:  %s \n', fieldnames{j}, deleted_runs{i,j});
+                                else
+                                    fprintf('%30s: %s \n', fieldnames{j}, 'N/A');
+                                end
+                            end
+                        end
+                        fprintf('\n');
+                    end
                 end
             else
-                % Show the selected run list and do the deletion operation                
+                % Show the selected run list and do the deletion operation
                 selectedIdSet = deleted_runs(:,2);
-            
                 % Loop through selected runs
-                
-                % Todo: Delete all file access entries for this execution, for
-                % any type of access, i.e., "read", "write", "execute". The
-                % file information for the deleted entries is returned.
-                % 110816
-                
-                % Todo: Loop through the deleted file entries and unarchive
-                % any file associated with this run, i.e., file read,
-                % written, executed, etc. 110816
-                
-                % Delete the selected runs
-                for k = 1:length(selectedIdSet)                   
-                    selectedRunDir = fullfile( ...
-                        runManager.configuration.provenance_storage_directory, ...
-                        'runs', selectedIdSet{k});
-                    if exist(selectedRunDir, 'dir') == 7 
-                        [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
-                        if success == 1
-                            fprintf('Succeed in deleting the run directory %s\n', selectedRunDir);                         
-                        else
-                            fprintf('Error in deleting a run directory %s and the error message is %s \n', ...
-                            selectedRunDir, errMessage);
-                        end 
-                    else
-                        fprintf('The run %s directory to be deleted not exist.\n', selectedRunDir);
-                    end
+                for k = 1:length(selectedIdSet)
+                    % Delete all file access entries for this execution, for
+                    % any type of access, i.e., "read", "write", "execute". The
+                    % file information for the deleted entries is returned.
+                    % 110816                   
+                    fm_all = FileMetadata('', selectedIdSet{k}, '','','','','','', '','','');
+                    fm_query = fm_all.readFileMeta('', '');
+                    file_stats_all = runManager.provenanceDB.execute(fm_query, fm_all.tableName);
+                    
+                    % Todo: Loop through the deleted file entries and unarchive
+                    % any file associated with this run, i.e., file read,
+                    % written, executed, etc. 110816
+                    
+                    
+                    % Delete each run directory under provenance/runs/
+                    % folder 
+%                     selectedRunDir = fullfile( ...
+%                         runManager.configuration.provenance_storage_directory, ...
+%                         'runs', selectedIdSet{k});
+%                     if exist(selectedRunDir, 'dir') == 7
+%                         [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
+%                         if success == 1
+%                             fprintf('Succeed in deleting the run directory %s\n', selectedRunDir);
+%                         else
+%                             fprintf('Error in deleting a run directory %s and the error message is %s \n', ...
+%                                 selectedRunDir, errMessage);
+%                         end
+%                     else
+%                         fprintf('The run %s directory to be deleted not exist.\n', selectedRunDir);
+%                     end
                 end
 
                 
@@ -1945,8 +1976,7 @@ classdef RunManager < hgsetget
                    where_clause = sprintf('WHERE em.datapackageId="%s"', packageId);
                else
                    where_clause = sprintf('%s and em.datapackageId="%s"', where_clause, packageId);
-               end
-               
+               end              
            end
            
            if isempty(executionId) ~= 1
@@ -1954,8 +1984,7 @@ classdef RunManager < hgsetget
                    where_clause = sprintf('WHERE em.executionId="%s"', executionId);
                else
                    where_clause = sprintf('%s and em.executionId="%s"', where_clause, executionId);
-               end
-               
+               end               
            end
            
            if isempty(runNumber) ~= 1
