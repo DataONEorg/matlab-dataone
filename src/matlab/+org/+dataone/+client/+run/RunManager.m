@@ -1913,9 +1913,11 @@ classdef RunManager < hgsetget
                         result = runManager.provenanceDB.execute(delete_fm_query);
                     end
                     
-                    % Delete the execmeta table entry
+                    % Delete the execmeta table and tags table entry
                     delete_em_query = sprintf('DELETE from execmeta WHERE executionId="%s" ', selectedIdSet{k});
-                    result = runManager.provenanceDB.execute(delete_em_query);                       
+                    delete_tag_query = sprintf('DELETE from tags WHERE executionId="%s" ', selectedIdSet{k});
+                    result = runManager.provenanceDB.execute(delete_em_query);    
+                    result = runManager.provenanceDB.execute(delete_tag_query); 
                     % Delete each run directory under provenance/runs/
                     % folder 
                     selectedRunDir = fullfile( ...
