@@ -18,13 +18,13 @@ Installation Notes
 
 Matlab R2015b or later for Mac, Windows, or Linux is required to use the toolbox. To install the toolbox, 
 
-1) Download the zip file: `Matlab DataONE Toolbox 1.0.0`_
+1) Download the zip file: `Matlab DataONE Toolbox 1.0.1`_
 2) Unpack the zip file into an installation  directory of your choosing
 3) Open Matlab and change directories to your unpacked *matlab-dataone* directory
 4) Run the *install_matlab_dataone* script in that directory
 5) Restart Matlab
 
-.. _`Matlab DataONE Toolbox 1.0.0`: https://github.com/DataONEorg/matlab-dataone/archive/master.zip
+.. _`Matlab DataONE Toolbox 1.0.1`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
 License
 =======
@@ -40,11 +40,65 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
 
 .. code:: matlab
 
-  import org.dataone.client.run.RunManager;
-  mgr = RunManager.getInstance();
-  mgr.record('/Users/cjones/projects/intertidal_temps/process_temperatures.m', 'First toolbox run');
-  mgr.listRuns();
-  mgr.view('runNumber', 1);  
+>> import org.dataone.client.run.RunManager;
+mgr = RunManager.getInstance();
+mgr.configuration.capture_yesworkflow_comments=0;
+mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
+
+Insert a record to the ExecMetadata table and Tag table.
+>> mgr.listRuns();
+Run #  1: 
+       runNumber: 1 
+       packageId: 73e591eb-542c-4805-a456-1ceced5287ac 
+      scriptName: myScript4.m 
+       startDate: 09-Nov-2016 18:17:02 
+         endDate: 09-Nov-2016 18:17:15 
+     publishDate: N/A 
+             tag: csvread_test_01 
+
+>> 
+>> mgr.deleteRuns('tag', {'csvread_test_01'}, 'noop', false);
+Warning: Removed '/Users/syc/.d1/provenance/runs/73e591eb-542c-4805-a456-1ceced5287ac' from the MATLAB path for this MATLAB session.
+	See 'doc path' for more information. 
+Succeed in deleting the run directory /Users/syc/.d1/provenance/runs/73e591eb-542c-4805-a456-1ceced5287ac
+>> mgr.listRuns();
+Warning: There is no data matched. 
+>> mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
+Insert a record to the ExecMetadata table and Tag table.
+>> 
+>> mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_02');
+Insert a record to the ExecMetadata table and Tag table.
+>> 
+>> mgr.listRuns();
+Run #  1: 
+       runNumber: 1 
+       packageId: 73c99166-9232-47d8-838e-a35187f6dd63 
+      scriptName: myScript4.m 
+       startDate: 09-Nov-2016 18:18:54 
+         endDate: 09-Nov-2016 18:18:58 
+     publishDate: N/A 
+             tag: csvread_test_01 
+
+Run #  2: 
+       runNumber: 2 
+       packageId: 9c7196fa-4f3b-4af8-83f1-9af2ee59e554 
+      scriptName: myScript4.m 
+       startDate: 09-Nov-2016 18:19:11 
+         endDate: 09-Nov-2016 18:19:15 
+     publishDate: N/A 
+             tag: csvread_test_02 
+
+>> 
+>> mgr.deleteRuns('tag', {'csvread_test_01'}, 'noop', false);
+Warning: Removed '/Users/syc/.d1/provenance/runs/73c99166-9232-47d8-838e-a35187f6dd63' from the MATLAB path for this MATLAB session.
+	See 'doc path' for more information. 
+Succeed in deleting the run directory /Users/syc/.d1/provenance/runs/73c99166-9232-47d8-838e-a35187f6dd63
+>> 
+>> mgr.deleteRuns('tag', {'csvread_test_02'}, 'noop', false);
+Warning: Removed '/Users/syc/.d1/provenance/runs/9c7196fa-4f3b-4af8-83f1-9af2ee59e554' from the MATLAB path for this MATLAB session.
+	See 'doc path' for more information. 
+Succeed in deleting the run directory /Users/syc/.d1/provenance/runs/9c7196fa-4f3b-4af8-83f1-9af2ee59e554
+>>  
 
 Documentation
 ============
