@@ -40,23 +40,17 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
 
 .. code:: matlab
 
-import org.dataone.client.run.RunManager;
-mgr = RunManager.getInstance();
-mgr.configuration.capture_yesworkflow_comments=0;
-mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
-
-mgr.listRuns();
-mgr.deleteRuns('tag', {'csvread_test_01'}, 'noop', false);
-
-mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
-
-mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_02');
-
-mgr.listRuns();
-
-mgr.deleteRuns('tag', {'csvread_test_01'}, 'noop', false);
-
-mgr.deleteRuns('tag', {'csvread_test_02'}, 'noop', false);
+  import org.dataone.client.run.RunManager;
+  mgr = RunManager.getInstance();
+  mgr.configuration.capture_yesworkflow_comments=0;
+  mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
+  mgr.listRuns();
+  mgr.deleteRuns('tag', {'csvread_test_01'}, 'noop', false);
+  mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
+  mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_02');
+  mgr.listRuns();
+  mgr.deleteRuns('tag', {'csvread_test_01'}, 'noop', false);
+  mgr.deleteRuns('tag', {'csvread_test_02'}, 'noop', false);
 
 
 Documentation
