@@ -2020,9 +2020,9 @@ classdef RunManager < hgsetget
            
            if isempty(runNumber) ~= 1
                if isempty(where_clause)
-                   where_clause = sprintf('WHERE em.seq="%s"', runNumber);
+                   where_clause = sprintf('WHERE em.seq=%d', runNumber);
                else
-                   where_clause = sprintf('%s and em.seq="%s"', where_clause, runNumber);
+                   where_clause = sprintf('%s and em.seq=%d', where_clause, runNumber);
                end
            end
            
@@ -2067,6 +2067,8 @@ classdef RunManager < hgsetget
                else
                    exec_metadata_cell{1,15}='N/A';
                end
+               
+               executionId = exec_metadata_cell{1,2};
            end
            
            % Decide the sections to be displayed based on values of sections
