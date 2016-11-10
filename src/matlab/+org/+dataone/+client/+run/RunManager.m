@@ -1505,7 +1505,7 @@ classdef RunManager < hgsetget
                     dataObject;
             end
             
-            % Archive the scrpt that was executed. The script can be
+            % Archive the script that was executed. The script can be
             % retrived by searching for access="execute"
             [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(runManager.execution.software_application);
             if db_status == 1
@@ -1740,7 +1740,7 @@ classdef RunManager < hgsetget
                 addParameter(deletedRunsParser,'executionIdList', '', @iscell);
                 addParameter(deletedRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
-                addParameter(deletedRunsParser,'tag', '', @iscell);
+                addParameter(deletedRunsParser,'tagList', '', @iscell);
                 checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
                 addParameter(deletedRunsParser,'runNumber', '', checkSequenceNumber);
                 addParameter(deletedRunsParser,'noop', false, @islogical);
@@ -1751,7 +1751,7 @@ classdef RunManager < hgsetget
             executionIdList = deletedRunsParser.Results.executionIdList;
             startDate = deletedRunsParser.Results.startDate;
             endDate = deletedRunsParser.Results.endDate;
-            tags = deletedRunsParser.Results.tag;
+            tags = deletedRunsParser.Results.tagList;
             runNumber = deletedRunsParser.Results.runNumber;
             noop = deletedRunsParser.Results.noop;
             quiet = deletedRunsParser.Results.quiet;
