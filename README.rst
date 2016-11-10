@@ -47,7 +47,7 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   mgr.listRuns();
   mgr.view('tag', 'csvread_test_01', 'sections', {'details', 'used', 'generated'});
   mgr.view('runNumber', '1', 'sections', {'details', 'used', 'generated'});  
-  mgr.deleteRuns('tag', {'csvread_test_01'}, 'noop', false);
+  mgr.deleteRuns('tagList', {'csvread_test_01'}, 'noop', false);
   mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
   mgr.record('/Users/syc/Documents/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_02');
   mgr.listRuns();
