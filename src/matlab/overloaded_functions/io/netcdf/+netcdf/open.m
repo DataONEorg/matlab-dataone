@@ -50,7 +50,8 @@ function varargout = open(source, varargin)
 
     import org.dataone.client.run.RunManager;
     import org.dataone.client.v2.DataObject;
-
+    import org.dataone.client.sqlite.FileMetadata;
+    
     runManager = RunManager.getInstance(); 
     
     if ( runManager.configuration.debug )
@@ -85,7 +86,7 @@ function varargout = open(source, varargin)
         disp('add the parent path of the overloaded netcdf.open function back.');
     end
     
-    % Identifiy the file being created/used and add a prov:used/prov:wasGeneratedBy statements 
+    % Identify the file being created/used and add a prov:used/prov:wasGeneratedBy statements 
     % in the RunManager DataPackage instance
     formatId = 'netCDF-3';
     
@@ -104,29 +105,59 @@ function varargout = open(source, varargin)
                     [status, struc] = fileattrib(source);
                     fullSourcePath = struc.Name;
                 end
-
+                
                 if ( runManager.configuration.capture_file_reads )
-                    existing_id = runManager.execution.getIdByFullFilePath( ...
-                        fullSourcePath);
-                    if ( isempty(existing_id) )
-                        % Add this object to the execution objects map
-                        pid = char(java.util.UUID.randomUUID()); % generate an id
-                        dataObject = DataObject(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(dataObject.identifier) = ...
-                            dataObject;
-                    else
-                        %dataObject = ...
-                        %    runManager.execution.execution_objects(existing_id);
-                        pid = existing_id;
-                        dataObject = DataObject(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(dataObject.identifier) = ...
-                            dataObject;
+                   
+                    fullSourcePath = which(source);
+                    if isempty(fullSourcePath)
+                        [status, struc] = fileattrib(source);
+                        fullSourcePath = struc.Name;
                     end
                     
-                    if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
-                        runManager.execution.execution_input_ids{ ...
-                            end + 1} = pid;
+                    [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(fullSourcePath);
+                    if db_status == 1
+                        % The file has not been archived
+                        full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+                        full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
+                        if ~exist(full_archive_dir_path, 'dir')
+                            mkdir(full_archive_dir_path);
+                        end
+                        % Copy this file to the archive directory
+                        copyfile(fullSourcePath, full_archive_file_path, 'f');
                     end
+                    
+                    % Save the file metadata to the database
+                    pid = char(java.util.UUID.randomUUID());
+                    dataObject = DataObject(pid, formatId, fullSourcePath);
+                    file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');
+                    file_meta_obj.archivedFilePath = archivedRelFilePath;
+                    write_query = file_meta_obj.writeFileMeta();
+                    sql_status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+                    if sql_status == -1
+                        message = 'DBError: insert a new record to the filemeta table.';
+                        error(message);
+                    end
+%                     existing_id = runManager.execution.getIdByFullFilePath( ...
+%                         fullSourcePath);
+%                     if ( isempty(existing_id) )
+%                         % Add this object to the execution objects map
+%                         pid = char(java.util.UUID.randomUUID()); % generate an id
+%                         dataObject = DataObject(pid, formatId, fullSourcePath);
+%                         runManager.execution.execution_objects(dataObject.identifier) = ...
+%                             dataObject;
+%                     else
+%                         % dataObject = ...
+%                         %    runManager.execution.execution_objects(existing_id);
+%                         pid = existing_id;
+%                         dataObject = DataObject(pid, formatId, fullSourcePath);
+%                         runManager.execution.execution_objects(dataObject.identifier) = ...
+%                             dataObject;
+%                     end
+%                     
+%                     if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+%                         runManager.execution.execution_input_ids{ ...
+%                             end + 1} = pid;
+%                     end
 
                 end
             else
@@ -145,6 +176,7 @@ function varargout = open(source, varargin)
                     %     dataObject;
                     %    dataObject.identifier) = dataObject;
 
+                    % Todo: How to deal with this example netcdf.open(url)? 111016
                     if ( ~ ismember(source, runManager.execution.execution_input_ids) )
                         runManager.execution.execution_input_ids{ ...
                             end + 1} = source;
@@ -164,49 +196,106 @@ function varargout = open(source, varargin)
                     [status, struc] = fileattrib(source);
                     fullSourcePath = struc.Name;
                 end
-                
-                existing_id = runManager.execution.getIdByFullFilePath( ...
-                    fullSourcePath);
-                
+           
                 if ( runManager.configuration.capture_file_reads )
-                    if ( isempty(existing_id) )
-                        % Add this object to the execution objects map
-                        pid = char(java.util.UUID.randomUUID()); % generate an id
-                        dataObject = DataObject(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(dataObject.identifier) = ...
-                            dataObject;
-                    else
-                        pid = existing_id;
-                        dataObject = DataObject(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(dataObject.identifier) = ...
-                            dataObject;
+                   
+                    fullSourcePath = which(source);
+                    if isempty(fullSourcePath)
+                        [status, struc] = fileattrib(source);
+                        fullSourcePath = struc.Name;
                     end
-
-                    if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
-                        runManager.execution.execution_input_ids{ ...
-                            end + 1} = pid;
+                    
+                    [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(fullSourcePath);
+                    if db_status == 1
+                        % The file has not been archived
+                        full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+                        full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
+                        if ~exist(full_archive_dir_path, 'dir')
+                            mkdir(full_archive_dir_path);
+                        end
+                        % Copy this file to the archive directory
+                        copyfile(fullSourcePath, full_archive_file_path, 'f');
                     end
+                    
+                    % Save the file metadata to the database
+                    pid = char(java.util.UUID.randomUUID());
+                    dataObject = DataObject(pid, formatId, fullSourcePath);
+                    file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');
+                    file_meta_obj.archivedFilePath = archivedRelFilePath;
+                    write_query = file_meta_obj.writeFileMeta();
+                    sql_status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+                    if sql_status == -1
+                        message = 'DBError: insert a new record to the filemeta table.';
+                        error(message);
+                    end
+%                     if ( isempty(existing_id) )
+%                         % Add this object to the execution objects map
+%                         pid = char(java.util.UUID.randomUUID()); % generate an id
+%                         dataObject = DataObject(pid, formatId, fullSourcePath);
+%                         runManager.execution.execution_objects(dataObject.identifier) = ...
+%                             dataObject;
+%                     else
+%                         pid = existing_id;
+%                         dataObject = DataObject(pid, formatId, fullSourcePath);
+%                         runManager.execution.execution_objects(dataObject.identifier) = ...
+%                             dataObject;
+%                     end
+% 
+%                     if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+%                         runManager.execution.execution_input_ids{ ...
+%                             end + 1} = pid;
+%                     end
                 end
                 
                 if ( runManager.configuration.capture_file_writes )
-                    if ( isempty(existing_id) )
-                        % Add this object to the execution objects map
-                        pid = char(java.util.UUID.randomUUID()); % generate an id
-                        dataObject = DataObject(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(dataObject.identifier) = ...
-                            dataObject;
-                    else
-                        % Update the existing map entry with a new DataObject
-                        pid = existing_id;
-                        dataObject = DataObject(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(dataObject.identifier) = ...
-                            dataObject;
+                    
+                    fullSourcePath = which(source);
+                    if isempty(fullSourcePath)
+                        [status, struc] = fileattrib(source);
+                        fullSourcePath = struc.Name;
                     end
                     
-                    if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
-                        runManager.execution.execution_output_ids{ ...
-                            end + 1} = dataObject.identifier;
+                    [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(fullSourcePath);
+                    if db_status == 1
+                        % The file has not been archived
+                        full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+                        full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
+                        if ~exist(full_archive_dir_path, 'dir')
+                            mkdir(full_archive_dir_path);
+                        end
+                        % Copy this file to the archive directory
+                        copyfile(fullSourcePath, full_archive_file_path, 'f');
                     end
+                    
+                    % Save the file metadata to the database
+                    pid = char(java.util.UUID.randomUUID());
+                    dataObject = DataObject(pid, formatId, fullSourcePath);
+                    file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'write');
+                    file_meta_obj.archivedFilePath = archivedRelFilePath;
+                    write_query = file_meta_obj.writeFileMeta();
+                    sql_status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+                    if sql_status == -1
+                        message = 'DBError: insert a new record to the filemeta table.';
+                        error(message);
+                    end
+                    %                     if ( isempty(existing_id) )
+                    %                         % Add this object to the execution objects map
+                    %                         pid = char(java.util.UUID.randomUUID()); % generate an id
+                    %                         dataObject = DataObject(pid, formatId, fullSourcePath);
+                    %                         runManager.execution.execution_objects(dataObject.identifier) = ...
+                    %                             dataObject;
+                    %                     else
+                    %                         % Update the existing map entry with a new DataObject
+                    %                         pid = existing_id;
+                    %                         dataObject = DataObject(pid, formatId, fullSourcePath);
+                    %                         runManager.execution.execution_objects(dataObject.identifier) = ...
+                    %                             dataObject;
+                    %                     end
+                    %
+                    %                     if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
+                    %                         runManager.execution.execution_output_ids{ ...
+                    %                             end + 1} = dataObject.identifier;
+                    %                     end
                 end
                 
             elseif any(strcmp(varargin{1}, {'NOWRITE', 'NC_NOWRITE'})) ~= 0
@@ -222,25 +311,55 @@ function varargout = open(source, varargin)
                 end
                 
                 if ( runManager.configuration.capture_file_reads )
-                    existing_id = runManager.execution.getIdByFullFilePath( ...
-                        fullSourcePath);
-                    if ( isempty(existing_id) )
-                        % Add this object to the execution objects map
-                        pid = char(java.util.UUID.randomUUID()); % generate an id
-                        dataObject = DataObject(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(dataObject.identifier) = ...
-                            dataObject;
-                    else                     
-                        pid = existing_id;                      
-                        dataObject = DataObject(pid, formatId, fullSourcePath);
-                        runManager.execution.execution_objects(dataObject.identifier) = ...
-                            dataObject;
+                                       
+                    fullSourcePath = which(source);
+                    if isempty(fullSourcePath)
+                        [status, struc] = fileattrib(source);
+                        fullSourcePath = struc.Name;
                     end
                     
-                    if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
-                        runManager.execution.execution_input_ids{ ...
-                            end + 1} = dataObject.identifier;
+                    [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(fullSourcePath);
+                    if db_status == 1
+                        % The file has not been archived
+                        full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+                        full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
+                        if ~exist(full_archive_dir_path, 'dir')
+                            mkdir(full_archive_dir_path);
+                        end
+                        % Copy this file to the archive directory
+                        copyfile(fullSourcePath, full_archive_file_path, 'f');
                     end
+                    
+                    % Save the file metadata to the database
+                    pid = char(java.util.UUID.randomUUID());
+                    dataObject = DataObject(pid, formatId, fullSourcePath);
+                    file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'read');
+                    file_meta_obj.archivedFilePath = archivedRelFilePath;
+                    write_query = file_meta_obj.writeFileMeta();
+                    sql_status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+                    if sql_status == -1
+                        message = 'DBError: insert a new record to the filemeta table.';
+                        error(message);
+                    end
+                    %                     existing_id = runManager.execution.getIdByFullFilePath( ...
+                    %                         fullSourcePath);
+                    %                     if ( isempty(existing_id) )
+                    %                         % Add this object to the execution objects map
+                    %                         pid = char(java.util.UUID.randomUUID()); % generate an id
+                    %                         dataObject = DataObject(pid, formatId, fullSourcePath);
+                    %                         runManager.execution.execution_objects(dataObject.identifier) = ...
+                    %                             dataObject;
+                    %                     else
+                    %                         pid = existing_id;
+                    %                         dataObject = DataObject(pid, formatId, fullSourcePath);
+                    %                         runManager.execution.execution_objects(dataObject.identifier) = ...
+                    %                             dataObject;
+                    %                     end
+                    %
+                    %                     if ( ~ ismember(pid, runManager.execution.execution_input_ids) )
+                    %                         runManager.execution.execution_input_ids{ ...
+                    %                             end + 1} = dataObject.identifier;
+                    %                     end
                 end
             else
                 % 'SHARE' Synchronous file updates
