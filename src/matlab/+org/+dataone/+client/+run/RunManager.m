@@ -1565,7 +1565,7 @@ classdef RunManager < hgsetget
                 addParameter(listRunsParser,'startDate', '', @iscell);
                 addParameter(listRunsParser,'endDate', '', @iscell);
                 addParameter(listRunsParser,'tag', '', @(x) iscell(x) || ischar(x)); % accept both a single char array and a cell array
-                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+                checkSequenceNumber = @(x) (isnumeric(x) && isscalar(x) && (x > 0));
                 addParameter(listRunsParser,'runNumber', '', checkSequenceNumber);
                 addParameter(listRunsParser,'executionId', '', @ischar);
             end
@@ -1643,9 +1643,9 @@ classdef RunManager < hgsetget
                               
             if isempty(runNumber) ~= 1
                 if isempty(where_clause)
-                    where_clause = sprintf('where em.seq="%s"', runNumber);
+                    where_clause = sprintf('where em.seq=%d', runNumber);
                 else
-                    where_clause = sprintf('%s and em.seq="%s"', where_clause, runNumber);
+                    where_clause = sprintf('%s and em.seq=%d', where_clause, runNumber);
                 end              
             end
             
@@ -1979,7 +1979,7 @@ classdef RunManager < hgsetget
                
                addParameter(viewRunsParser,'packageId', '', @ischar);   
                addParameter(viewRunsParser, 'executionId', '', @(x) ~isempty(x)); % revised on 072816
-               checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+               checkSequenceNumber = @(x) (isnumeric(x) && isscalar(x) && (x > 0));
                addParameter(viewRunsParser,'runNumber', '', checkSequenceNumber);
                addParameter(viewRunsParser,'tag', '', @(x) iscell(x) || ischar(x));
                addParameter(viewRunsParser,'sections', '', @iscell);
