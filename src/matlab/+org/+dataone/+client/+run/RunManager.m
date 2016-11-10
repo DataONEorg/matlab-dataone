@@ -1433,7 +1433,8 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.ProvONE;
             import java.net.URI;
             import org.dataone.util.ArrayListWrapper;
-                           
+            import org.dataone.client.sqlite.FileMetadata;
+            
             % Stop recording
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
@@ -1445,34 +1446,10 @@ classdef RunManager < hgsetget
             % Non-interactive mode
             if (runManager.console ~= 1)
                 import org.dataone.client.v2.DataObject;
-                import org.dataone.client.sqlite.FileMetadata;
-                
+                               
                 pid = ['program_' char(java.util.UUID.randomUUID())];
                 dataObject = DataObject(pid, 'text/plain', ...
                     runManager.execution.software_application);
-                
-                % Archive the scrpt that was executed. The script can be
-                % retrived by searching for access="execute"
-                [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(runManager.execution.software_application);
-                if db_status == 1
-                    % The file has not been archived
-                    full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
-                    full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
-                    if ~exist(full_archive_dir_path, 'dir')
-                        mkdir(full_archive_dir_path);
-                    end
-                    % Copy this file to the archive directory
-                    copyfile(runManager.execution.software_application, full_archive_file_path, 'f');
-                end
-                
-                program_metadata = FileMetadata(dataObject, runManager.execution.execution_id, 'execute');
-                program_metadata.archivedFilePath = archivedRelFilePath;
-                insert_program_query = program_metadata.writeFileMeta();
-                status = runManager.provenanceDB.execute(insert_program_query, program_metadata.tableName);
-                if status== -1
-                    message= 'DBError: insert a program metadata to the filemeta table.';
-                    error(message);
-                end
                 
                 % Call YesWorkflow to generate prospective provenance
                 % graphs
@@ -1526,31 +1503,31 @@ classdef RunManager < hgsetget
                     runManager.execution.software_application );
                 runManager.execution.execution_objects(dataObject.identifier) = ...
                     dataObject;
-                
-                % Archive the scrpt that was executed. The script can be
-                % retrived by searching for access="execute" 110916 (to_test)
-                [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(runManager.execution.software_application);
-                if db_status == 1
-                    % The file has not been archived
-                    full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
-                    full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
-                    if ~exist(full_archive_dir_path, 'dir')
-                        mkdir(full_archive_dir_path);
-                    end
-                    % Copy this file to the archive directory
-                    copyfile(runManager.execution.software_application, full_archive_file_path, 'f');
-                end
-                
-                program_metadata = FileMetadata(dataObject, runManager.execution.execution_id, 'execute');
-                program_metadata.archivedFilePath = archivedRelFilePath;
-                insert_program_query = program_metadata.writeFileMeta();
-                status = runManager.provenanceDB.execute(insert_program_query, program_metadata.tableName);
-                if status== -1
-                    message= 'DBError: insert a program metadata to the filemeta table.';
-                    error(message);
-                end
             end
             
+            % Archive the scrpt that was executed. The script can be
+            % retrived by searching for access="execute"
+            [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(runManager.execution.software_application);
+            if db_status == 1
+                % The file has not been archived
+                full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+                full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
+                if ~exist(full_archive_dir_path, 'dir')
+                    mkdir(full_archive_dir_path);
+                end
+                % Copy this file to the archive directory
+                copyfile(runManager.execution.software_application, full_archive_file_path, 'f');
+            end
+            
+            program_metadata = FileMetadata(dataObject, runManager.execution.execution_id, 'execute');
+            program_metadata.archivedFilePath = archivedRelFilePath;
+            insert_program_query = program_metadata.writeFileMeta();
+            status = runManager.provenanceDB.execute(insert_program_query, program_metadata.tableName);
+            if status== -1
+                message= 'DBError: insert a program metadata to the filemeta table.';
+                error(message);
+            end
+                
             % Save the metadata for the current execution
             runManager.saveExecution(runManager.configuration.execution_db_name);   
             
