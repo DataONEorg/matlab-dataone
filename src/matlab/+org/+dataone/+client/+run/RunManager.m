@@ -1952,18 +1952,18 @@ classdef RunManager < hgsetget
             end          
         end
         
-        function results = view(runManager, varargin)
-           % VIEW Displays detailed information about a data package that
+        function results = viewRun(runManager, varargin)
+           % VIEWRUN Displays detailed information about a data package that
            % is the result of an execution (run).
            %    import org.dataone.client.run.RunManager;
            %    mgr = RunManager.getInstance();
-           %    mgr.view('packageId', 'the-package-id') shows the run with the
+           %    mgr.viewRun('packageId', 'the-package-id') shows the run with the
            %        given package identifier
-           %    mgr.view('runNumber', 1) shows the run with the
+           %    mgr.viewRun('runNumber', 1) shows the run with the
            %        given run number
-           %    mgr.view('tag', 'the desired tag') shows the run with the
+           %    mgr.viewRun('tag', 'the desired tag') shows the run with the
            %        given tag string
-           %    mgr.view('runNumber', 1, ...
+           %    mgr.viewRun('runNumber', 1, ...
            %         'sections', {'details', 'used', 'generated'}) shows 
            %        the run with the given run number and include the
            %        details, used, and generated sections
