@@ -1968,6 +1968,8 @@ classdef RunManager < hgsetget
            %        the run with the given run number and include the
            %        details, used, and generated sections
 
+           % Note: Assume only one run report is to be viewed 11-11-16
+           
            % Display a warning message to the user
            if runManager.configuration.debug
                disp('Warning: There is no scientific metadata in this data package.');
