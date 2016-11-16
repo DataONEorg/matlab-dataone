@@ -2657,7 +2657,7 @@ classdef RunManager < hgsetget
             end
         end
         
-        function buildFacts(runManager, varargin)
+        function buildFacts(runManager, outputFilePath, varargin)
             
             import org.dataone.client.sqlite.FileMetadata;
             import org.dataone.client.sqlite.ExecMetadata;
@@ -2674,6 +2674,9 @@ classdef RunManager < hgsetget
             % Create a SQL query to export all data in the execmeta table
             em_query = 'select * from execmeta';
             em_data_cell = runManager.provenanceDB.execute(em_query);
+            for i=1:size(em_data_cell,1)
+                em_data_cell{i,12} = char([]); % Temporarily remove moduleDependencies string because too huge
+            end
             
             % Create a SQL query to export all data in the filemeta table
             fm_query = 'select * from filemeta';
@@ -2708,10 +2711,10 @@ classdef RunManager < hgsetget
                 tagFacts.addRow(tag_data_cell{k,:});
             end
            
-            
-            tagFacts.writeFacts('/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump', 'tagfacts.P');
-            filemetaFacts.writeFacts('/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump', 'filemetafacts.P');
-            execmetaFacts.writeFacts('/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump', 'execmetafacts.P');
+            % outputFilePath = '/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump'; 
+            tagFacts.writeFacts(outputFilePath, 'tagfacts.P');
+            filemetaFacts.writeFacts(outputFilePath, 'filemetafacts.P');
+            execmetaFacts.writeFacts(outputFilePath, 'execmetafacts.P');
         end
     end
 

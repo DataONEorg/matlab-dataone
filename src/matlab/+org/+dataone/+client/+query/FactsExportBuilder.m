@@ -85,12 +85,22 @@ classdef FactsExportBuilder < hgsetget
         end
             
         
-        function value_char = quote(factsBuilder, value) 
-            if isnumeric(value)  
+        function value_char = quote(factsBuilder, value)
+            
+            if isnumeric(value)
                 value_char = num2str(value);
-            else 
-                value_char = [factsBuilder.queryEngineModel.quote, char(value), factsBuilder.queryEngineModel.quote];
-            end                
+                return;
+            end
+            
+            if ischar(value)
+                k = strfind(value,'/'); % For character '/' which cannot be displayed correctly with Graphviz
+                if ~isempty(k)
+                    value_char = [factsBuilder.queryEngineModel.quote, '"', char(value), '"', factsBuilder.queryEngineModel.quote];
+                else
+                    value_char = [factsBuilder.queryEngineModel.quote, char(value), factsBuilder.queryEngineModel.quote];  
+                end
+            end
+                    
         end
         
         
