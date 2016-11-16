@@ -4,7 +4,7 @@ classdef QueryEngineModel
     
     properties
         commentStart = '% ';
-        quote = char(39);
+        quote = char(39); % Single quote
         showComments = true;
     end
     
