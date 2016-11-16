@@ -88,7 +88,9 @@ classdef RunManager < hgsetget
         last_sequence_number;
         
         % A flag for interactive mode or not
-        console = true; % Dec-7-2015
+        console = true; 
+        
+        DEFAULT_QUERY_ENGINE = 'XSB'; % 11-14-16
     end
    
     methods (Access = private)
@@ -2109,7 +2111,7 @@ classdef RunManager < hgsetget
            % Display different sections
            if showDetails == 1
                fprintf('\n[DETAILS]: Run details\n');
-               fprintf('-------------------------\n');               
+               fprintf('-------------------------\n');  
                fprintf('\"%s\" was executed on %s\n\n', scriptName, start_formatted_time);
               
                % Compute the detailStruct for the details_section
@@ -2655,6 +2657,62 @@ classdef RunManager < hgsetget
             end
         end
         
+        function buildFacts(runManager, varargin)
+            
+            import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ExecMetadata;
+%             import org.yesworkflow.query.QueryEngine;
+%             import org.dataone.client.query.QueryEngineModel;
+            import org.dataone.client.query.FactsExportBuilder;
+            
+            if isempty(varargin)
+                query_engine = runManager.DEFAULT_QUERY_ENGINE;
+            else
+                query_engine = varargin{1};
+            end
+            
+            % Create a SQL query to export all data in the execmeta table
+            em_query = 'select * from execmeta';
+            em_data_cell = runManager.provenanceDB.execute(em_query);
+            
+            % Create a SQL query to export all data in the filemeta table
+            fm_query = 'select * from filemeta';
+            fm_data_cell = runManager.provenanceDB.execute(fm_query);
+            
+            % Create a SQL query to export all data in the tags table
+            tag_query = 'select * from tags';
+            tag_data_cell = runManager.provenanceDB.execute(tag_query);
+                       
+            execmetaFacts = FactsExportBuilder(query_engine, 'execmeta', 'Seq', 'ExecutionId', 'MetadataId', ...
+                'DatapackageId', 'User', 'Subject', 'HostId', 'StartTime', ...
+                'OperatingSystem', 'Runtime', 'SoftwareApplication', 'ModuleDependencies', ...
+                'EndTime', 'ErrorMessage', 'PublishTime', 'PublishNodeId', 'PublishId', 'Console');
+            
+            filemetaFacts= FactsExportBuilder(query_engine, 'filemeta', 'FileId', 'ExecutionId', 'FilePath', ...
+                'Sha256', 'Size', 'User', 'ModifyTime', 'CreateTime', 'Access', 'Format', 'ArchivedFilePath');
+            
+            tagFacts = FactsExportBuilder(query_engine, 'tag', 'Seq', 'ExecutionId', 'Tag');
+            
+            [em_nrows, ~] = size(em_data_cell);
+            for i=1:em_nrows
+                execmetaFacts.addRow(em_data_cell{i,:});
+            end
+            
+            [fm_nrows, ~] = size(fm_data_cell);
+            for j=1:fm_nrows
+                filemetaFacts.addRow(fm_data_cell{j,:});
+            end
+            
+            [tag_nrows, ~] = size(tag_data_cell);
+            for k=1:tag_nrows
+                tagFacts.addRow(tag_data_cell{k,:});
+            end
+           
+            
+            tagFacts.writeFacts('/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump', 'tagfacts.P');
+            filemetaFacts.writeFacts('/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump', 'filemetafacts.P');
+            execmetaFacts.writeFacts('/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump', 'execmetafacts.P');
+        end
     end
 
 end
