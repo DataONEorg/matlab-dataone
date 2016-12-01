@@ -312,7 +312,6 @@ classdef ExecMetadata < hgsetget
                         
             switch nargin
                 case 1
-                    this.seq = varargin{1}.execution_id
                     this.executionId = varargin{1}.execution_id;
                     this.metadataId = varargin{1}.metadata_id;
                     this.tag = varargin{1}.tag;
