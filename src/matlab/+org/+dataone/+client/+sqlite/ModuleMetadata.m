@@ -48,7 +48,7 @@ classdef ModuleMetadata < hgsetget
             this.dependencyInfo = module_dependency_info;
         end
         
-        function insertModuleQuery = writeModuleMeta(dependencyMetadata)
+        function insertModuleQuery = writeModuleMeta(moduleMetadata)
             % WRITEMODULEMETA Saves a single module dependency metadata
             
             modulemeta_colnames = {'dependencyInfo'};
@@ -57,10 +57,10 @@ classdef ModuleMetadata < hgsetget
             % modulemeta table
             data_row = cell(1, length(modulemeta_colnames));
             for i = 1:length(modulemeta_colnames)
-                data_row{i} = dependencyMetadata.get(modulemeta_colnames);
+                data_row{i} = moduleMetadata.get(modulemeta_colnames);
             end
             
-            insertModuleMetaQuery = sprintf('insert into %s (%s) values ', dependencyMetadata.execTableName, modulemeta_colnames{:});
+            insertModuleMetaQuery = sprintf('insert into %s (%s) values ', moduleMetadata.execTableName, modulemeta_colnames{:});
             insertModuleMetaQueryData = sprintf('("%s");', data_row{:});
             insertModuleQuery = [insertModuleMetaQuery, insertModuleMetaQueryData];
         end        
