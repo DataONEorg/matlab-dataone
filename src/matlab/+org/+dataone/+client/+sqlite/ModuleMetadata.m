@@ -11,7 +11,7 @@ classdef ModuleMetadata < hgsetget
     end
     
     methods (Static)        
-        function create_dependency_table_statement = createDependencyMetaTable(tableName)
+        function create_dependency_table_statement = createModuleMetaTable(tableName)
             % CREATEDEPENDENCYMETATATABLE Creates a dependency metadata table
 
             create_table_statement = ['create table if not exists ' tableName '('];
@@ -50,18 +50,14 @@ classdef ModuleMetadata < hgsetget
         
         function insertModuleQuery = writeModuleMeta(moduleMetadata)
             % WRITEMODULEMETA Saves a single module dependency metadata
-            
-            modulemeta_colnames = {'dependencyInfo'};
-            
+                      
             % Construct a SQL INSERT statement for fast insert to the
             % modulemeta table
-            data_row = cell(1, length(modulemeta_colnames));
-            for i = 1:length(modulemeta_colnames)
-                data_row{i} = moduleMetadata.get(modulemeta_colnames);
-            end
+            modulemeta_colnames = {'dependencyInfo'};
+            data_row = moduleMetadata.get(modulemeta_colnames{1});
             
-            insertModuleMetaQuery = sprintf('insert into %s (%s) values ', moduleMetadata.execTableName, modulemeta_colnames{:});
-            insertModuleMetaQueryData = sprintf('("%s");', data_row{:});
+            insertModuleMetaQuery = sprintf('insert into %s (%s) values ', moduleMetadata.moduleTableName, modulemeta_colnames{:});
+            insertModuleMetaQueryData = sprintf('("%s");', data_row);
             insertModuleQuery = [insertModuleMetaQuery, insertModuleMetaQueryData];
         end        
     end

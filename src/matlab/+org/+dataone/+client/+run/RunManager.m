@@ -104,6 +104,8 @@ classdef RunManager < hgsetget
             import org.dataone.client.sqlite.SqliteDatabase;
             import org.dataone.client.sqlite.ExecMetadata;
             import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ModuleMetadata;
+            import org.dataone.client.sqlite.ExecModuleBridge;
             
             warning('off','backtrace');
             
@@ -118,10 +120,14 @@ classdef RunManager < hgsetget
             create_exec_meta_table_statement = ExecMetadata.createExecMetaTable('execmeta');
             create_tag_table_statement = ExecMetadata.createTagTable('tags');
             create_file_meta_table_statement = FileMetadata.createFileMetadataTable('filemeta');
+            create_module_meta_table_statement = ModuleMetadata.createModuleMetaTable('modulemeta');
+            create_bridge_table_statement = ExecModuleBridge.createExecModuleBridgeTable('execmodulebridge');
 
             manager.provenanceDB.execute(create_exec_meta_table_statement, 'execmeta');
             manager.provenanceDB.execute(create_tag_table_statement, 'tags');
             manager.provenanceDB.execute(create_file_meta_table_statement, 'filemeta');
+            manager.provenanceDB.execute(create_module_meta_table_statement, 'modulemeta');
+            manager.provenanceDB.execute(create_bridge_table_statement, 'execmodulebridge');
             
             archive_dir = sprintf('%s/archive', manager.configuration.provenance_storage_directory);
             if ~exist(archive_dir, 'dir' )
@@ -917,15 +923,14 @@ classdef RunManager < hgsetget
             end
             hostId = char(runManager.execution.host_id);
             operatingSystem = char(runManager.execution.operating_system);
-            runtime = char(runManager.execution.runtime);
-            moduleDependencies = char(runManager.execution.module_dependencies); 
+            runtime = char(runManager.execution.runtime);            
             publishNodeId = char(runManager.configuration.target_member_node_id);
             console = 0; 
             errorMessage = char(runManager.execution.error_message);
             
             % Write execution runtime informaiton to execmeta table in the
             % provenance database (072516)
-            exec_obj = ExecMetadata(runID,'',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,moduleDependencies,endTime,errorMessage,publishedTime,publishNodeId, '', console);
+            exec_obj = ExecMetadata(runID,'',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,endTime,errorMessage,publishedTime,publishNodeId, '', console);
             [insert_exec_query, insert_tag_query] = exec_obj.writeExecMeta();
             status1 = runManager.provenanceDB.execute(insert_exec_query, exec_obj.execTableName);
             status2 = runManager.provenanceDB.execute(insert_tag_query, exec_obj.tagsTableName);
@@ -936,126 +941,181 @@ classdef RunManager < hgsetget
                 errorMessage = [errorMessage, 'SQLiteDatabaseError: Insert record failed.'];
                 error(errorMessage);
             end
+            
+            % Write to modulemeta table and execmodulebridge table for this
+            % run 120216
+            moduleDependencies = char(runManager.execution.module_dependencies);             
+            runManager.processModuleDependencies(moduleDependencies, runID);
         end
                
-        function execMetaMatrix = getExecMetadataMatrix(runManager)
-            
-            % GETEXECMETADATAMATRIX returns a matrix storing the
-            % metadata summary for all executions from the exeucton
-            % database.
-            %   runManager -
-            
-            select_all_query = sprintf('SELECT * from %s;', 'execmeta');
-            exec_metadata_cell = runManager.provenanceDB.execute(select_all_query, 'execmeta');
-            
-            % Convert the cell array to a char matrix (order of columns
-            % changed on 072516)
-            numOfRows = size(exec_metadata_cell, 1);
-            for i=1:numOfRows
-                exec_metadata_cell{i,18} = num2str(exec_metadata_cell{i,18});
+        function processModuleDependencies(runManager, module_list, runID)
+            % PROCESSMODULEDEPENDENCIES adds the module dependencies
+            % strings to the moduleMetadata table and returns a set of
+            % module ids. 120116
+            if isempty(module_list)
+                return;
+            end
+                
+            import org.dataone.client.sqlite.ModuleMetadata;
+        
+            if ispc
+                module_split_info = strsplit(module_list,';');
+            elseif isunix
+                module_split_info = strsplit(module_list,':');
             end
             
-            execMetaMatrix = exec_metadata_cell;
-            
-            % Todo: Return database table column names
-            
+            for i=1:length(module_split_info)
+                % First, add a record for module_dependency to the modulemeta table if
+                % not existed
+                module_info = module_split_info{1,i};
+                select_module_query = sprintf('select count(*) from modulemeta md where md.dependencyInfo=%s', module_info);
+                count = runManager.provenanceDB.execute(select_module_query, 'modulemeta');
+                if count == 0
+                    module_meta = ModuleMetadata(module_info);
+                    insert_module_query = module_meta.writeModuleMeta();
+                    status = runManager.provenanceDB.execute(insert_module_query, 'modulemeta');
+                    if (status ~= 0)
+                        errorMessage = 'SQLiteDatabaseError: Insert record failed.';
+                        error(errorMessage);
+                    end
+                end
+                % Then, add a (exec_id, module_id) to the execmodulebridge
+                % table               
+                select_module_query = sprintf('select md.module_id from modulemeta md where md.dependencyInfo="%s";', module_info);
+                module_dependency_array = runManager.provenanceDB.execute(select_module_query, 'modulemeta');
+                select_exec_query = sprintf('select e.seq from execmeta e where e.executionId="%s";', runID);
+                exec_array = runManager.provenanceDB.execute(select_exec_query, 'execmeta');
+                if ~isempty(module_dependency_array) && ~isempty(exec_array)
+                    module_id = module_dependency_array{1,1};
+                    exec_seq = exec_array{1,1};
+                    insert_bridge_query = sprintf('insert into execmodulebridge values ( %d, %d);', exec_seq, module_id);
+                    status = runManager.provenanceDB.execute(insert_bridge_query, 'execmodulebridge');
+                    if (status ~= 0)
+                        errorMessage = 'SQLiteDatabaseError: Insert record failed.';
+                        error(errorMessage);
+                    end
+                end
+            end
         end
         
-        function stmtStruct = getRDFTriple(runManager, filePath, p)
-           % GETRDFTRIPLE get all related subjects related to a given property from all
-           % triples contained in a resourcemap.
-           %  filePath - the path to the resourcemap
-           %  p - the given property of a RDF triple
-           
-           import org.dataone.util.NullRDFNode;
-           import org.dataone.vocabulary.PROV;
-           import org.dspace.foresite.Predicate;
-           import com.hp.hpl.jena.graph.Node;
-           import com.hp.hpl.jena.graph.Triple;
-           import com.hp.hpl.jena.rdf.model.Model;
-           import com.hp.hpl.jena.rdf.model.ModelFactory;
-           import com.hp.hpl.jena.rdf.model.Property;
-           import com.hp.hpl.jena.rdf.model.RDFNode;
-           import com.hp.hpl.jena.rdf.model.Statement;
-           import com.hp.hpl.jena.rdf.model.StmtIterator;
-           import com.hp.hpl.jena.util.FileManager;
-           import java.io.InputStream;
-           import java.util.HashSet;
-           import java.util.ArrayList;
-           
-           % Read the RDF/XML file
-           fm = FileManager.get();
-           in = fm.open(filePath);          
-           if isempty(in) == 1 
-               error('File: %s not found.', filePath);
-           end         
-           model = ModelFactory.createDefaultModel(); % Create an empty model
-           model.read(in, '');
-           queryPredicate= model.createProperty(p.getNamespace(), p.getName());
-           stmts = model.listStatements([], queryPredicate, NullRDFNode.nullRDFNode); % null, (RDFNode)null
-           
-           i = 1;
-           while (stmts.hasNext()) 
-	            s = stmts.nextStatement();
-	       	    t = s.asTriple();        
-                
-                % Create a table for files to be published in a datapackage 
-                if t.getSubject().isURI()
-                    stmtStruct(i,1).Subject = char(t.getSubject().getLocalName());
-                elseif t.getSubject().isBlank()
-                    stmtStruct(i,1).Subject = char(t.getSubject().getBlankNodeId());
-                else
-                    stmtStruct(i,1).Subject = char(t.getSubject().getName());
-                end
-                
-                stmtStruct(i,1).Predicate = char(t.getPredicate().toString());
-                
-                if t.getObject().isURI()
-                    stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Question: whether it is good to use localName here? In which cases are good?
-                elseif t.getObject().isBlank()
-                    stmtStruct(i,1).Object = char(t.getObject().getBlankNodeId());
-                else
-                    stmtStruct(i,1).Object = char(t.getObject().getName());
-                end
-                
-                i = i + 1;
-           end         
-        end
+%         function execMetaMatrix = getExecMetadataMatrix(runManager)
+%             
+%             % GETEXECMETADATAMATRIX returns a matrix storing the
+%             % metadata summary for all executions from the exeucton
+%             % database.
+%             %   runManager -
+%             
+%             select_all_query = sprintf('SELECT * from %s;', 'execmeta');
+%             exec_metadata_cell = runManager.provenanceDB.execute(select_all_query, 'execmeta');
+%             
+%             % Convert the cell array to a char matrix (order of columns
+%             % changed on 072516)
+%             numOfRows = size(exec_metadata_cell, 1);
+%             for i=1:numOfRows
+%                 exec_metadata_cell{i,18} = num2str(exec_metadata_cell{i,18});
+%             end
+%             
+%             execMetaMatrix = exec_metadata_cell;
+%             
+%             % Todo: Return database table column names
+%            
+%         end
+        
+%         function stmtStruct = getRDFTriple(runManager, filePath, p)
+%            % GETRDFTRIPLE get all related subjects related to a given property from all
+%            % triples contained in a resourcemap.
+%            %  filePath - the path to the resourcemap
+%            %  p - the given property of a RDF triple
+%            
+%            import org.dataone.util.NullRDFNode;
+%            import org.dataone.vocabulary.PROV;
+%            import org.dspace.foresite.Predicate;
+%            import com.hp.hpl.jena.graph.Node;
+%            import com.hp.hpl.jena.graph.Triple;
+%            import com.hp.hpl.jena.rdf.model.Model;
+%            import com.hp.hpl.jena.rdf.model.ModelFactory;
+%            import com.hp.hpl.jena.rdf.model.Property;
+%            import com.hp.hpl.jena.rdf.model.RDFNode;
+%            import com.hp.hpl.jena.rdf.model.Statement;
+%            import com.hp.hpl.jena.rdf.model.StmtIterator;
+%            import com.hp.hpl.jena.util.FileManager;
+%            import java.io.InputStream;
+%            import java.util.HashSet;
+%            import java.util.ArrayList;
+%            
+%            % Read the RDF/XML file
+%            fm = FileManager.get();
+%            in = fm.open(filePath);          
+%            if isempty(in) == 1 
+%                error('File: %s not found.', filePath);
+%            end         
+%            model = ModelFactory.createDefaultModel(); % Create an empty model
+%            model.read(in, '');
+%            queryPredicate= model.createProperty(p.getNamespace(), p.getName());
+%            stmts = model.listStatements([], queryPredicate, NullRDFNode.nullRDFNode); % null, (RDFNode)null
+%            
+%            i = 1;
+%            while (stmts.hasNext()) 
+% 	            s = stmts.nextStatement();
+% 	       	    t = s.asTriple();        
+%                 
+%                 % Create a table for files to be published in a datapackage 
+%                 if t.getSubject().isURI()
+%                     stmtStruct(i,1).Subject = char(t.getSubject().getLocalName());
+%                 elseif t.getSubject().isBlank()
+%                     stmtStruct(i,1).Subject = char(t.getSubject().getBlankNodeId());
+%                 else
+%                     stmtStruct(i,1).Subject = char(t.getSubject().getName());
+%                 end
+%                 
+%                 stmtStruct(i,1).Predicate = char(t.getPredicate().toString());
+%                 
+%                 if t.getObject().isURI()
+%                     stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Question: whether it is good to use localName here? In which cases are good?
+%                 elseif t.getObject().isBlank()
+%                     stmtStruct(i,1).Object = char(t.getObject().getBlankNodeId());
+%                 else
+%                     stmtStruct(i,1).Object = char(t.getObject().getName());
+%                 end
+%                 
+%                 i = i + 1;
+%            end         
+%         end
              
-        function [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = getRelationships(runManager)
-           % GETRELATIONSHIPS get the relationships from the resourceMap
-           % including prov:used, prov:hadPlan, prov:qualifiedAssociation,
-           % prov:wasAssociatedWith, and rdf:type
-            
-           import org.dataone.util.NullRDFNode;
-           import org.dataone.vocabulary.PROV;
-           import org.dspace.foresite.Predicate;
-           import com.hp.hpl.jena.rdf.model.Property;
-           import com.hp.hpl.jena.rdf.model.RDFNode;
-           import com.hp.hpl.jena.vocabulary.RDF;
-           
-           % Query resource map                           
-           resMapFileName = strtrim(ls('*.rdf')); % list the reosurceMap.rdf and remove the whitespace and return characters  
-           wasGeneratedByPredicate = PROV.predicate('wasGeneratedBy');           
-           wasGeneratedByStruct = runManager.getRDFTriple(resMapFileName, wasGeneratedByPredicate);                  
-           
-           usedPredicate = PROV.predicate('used');
-           usedStruct = runManager.getRDFTriple(resMapFileName, usedPredicate); 
-          
-           hadPlanPredicate = PROV.predicate('hadPlan');
-           hadPlanStruct = runManager.getRDFTriple(resMapFileName, hadPlanPredicate); 
-           
-           qualifiedAssociationPredicate = PROV.predicate('qualifiedAssociation');
-           qualifiedAssociationStruct = runManager.getRDFTriple(resMapFileName, qualifiedAssociationPredicate);
-           
-           wasAssociatedWithPredicate = PROV.predicate('wasAssociatedWith');
-           wasAssociatedWithPredicateStruct = runManager.getRDFTriple(resMapFileName, wasAssociatedWithPredicate);
-           userList = wasAssociatedWithPredicateStruct.Object;
-           
-           rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-           rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);    
-           
-        end       
+%         function [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = getRelationships(runManager)
+%            % GETRELATIONSHIPS get the relationships from the resourceMap
+%            % including prov:used, prov:hadPlan, prov:qualifiedAssociation,
+%            % prov:wasAssociatedWith, and rdf:type
+%             
+%            import org.dataone.util.NullRDFNode;
+%            import org.dataone.vocabulary.PROV;
+%            import org.dspace.foresite.Predicate;
+%            import com.hp.hpl.jena.rdf.model.Property;
+%            import com.hp.hpl.jena.rdf.model.RDFNode;
+%            import com.hp.hpl.jena.vocabulary.RDF;
+%            
+%            % Query resource map                           
+%            resMapFileName = strtrim(ls('*.rdf')); % list the reosurceMap.rdf and remove the whitespace and return characters  
+%            wasGeneratedByPredicate = PROV.predicate('wasGeneratedBy');           
+%            wasGeneratedByStruct = runManager.getRDFTriple(resMapFileName, wasGeneratedByPredicate);                  
+%            
+%            usedPredicate = PROV.predicate('used');
+%            usedStruct = runManager.getRDFTriple(resMapFileName, usedPredicate); 
+%           
+%            hadPlanPredicate = PROV.predicate('hadPlan');
+%            hadPlanStruct = runManager.getRDFTriple(resMapFileName, hadPlanPredicate); 
+%            
+%            qualifiedAssociationPredicate = PROV.predicate('qualifiedAssociation');
+%            qualifiedAssociationStruct = runManager.getRDFTriple(resMapFileName, qualifiedAssociationPredicate);
+%            
+%            wasAssociatedWithPredicate = PROV.predicate('wasAssociatedWith');
+%            wasAssociatedWithPredicateStruct = runManager.getRDFTriple(resMapFileName, wasAssociatedWithPredicate);
+%            userList = wasAssociatedWithPredicateStruct.Object;
+%            
+%            rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
+%            rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);    
+%            
+%         end       
     end
     
     methods (Static)

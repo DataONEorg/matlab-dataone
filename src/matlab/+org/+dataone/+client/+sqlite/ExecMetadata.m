@@ -1,15 +1,16 @@
 
 classdef ExecMetadata < hgsetget
-    
+    %EXECMETADATA Summary of this class goes here
+    %   Detailed explanation goes here
     properties
         % A simple integer value associated with this execution Oct-20-2016
         seq;
         % The unique identifier for this execution
         executionId;
         % The unique identifier for the associated metadata object
-        metadataId;       
+        metadataId;
         % The text string associated with this execution
-        tag;         
+        tag;
         % The unique identifier for this execution that is meaningful for a user
         datapackageId;
         % The user name who ran this execution
@@ -20,14 +21,12 @@ classdef ExecMetadata < hgsetget
         hostId;
         % The starting time of this execution
         startTime;
-        % The operating system name 
+        % The operating system name
         operatingSystem;
         % ???
         runtime;
         % ???
         softwareApplication;
-        % The modules information used by the software application
-        moduleDependencies;
         % The ending time of this execution
         endTime;
         % The error message captured during this execution
@@ -46,6 +45,8 @@ classdef ExecMetadata < hgsetget
         execTableName = 'execmeta';
         % The tags table name
         tagsTableName = 'tags';
+%         % The modules information used by the software application
+%         moduleDependencies;
     end
     
     methods (Static)
@@ -66,7 +67,6 @@ classdef ExecMetadata < hgsetget
                 'operatingSystem TEXT,' ...
                 'runtime TEXT,' ...
                 'softwareApplication TEXT,' ...
-                'moduleDependencies TEXT,' ...
                 'endTime TEXT,' ...
                 'errorMessage TEXT,' ...
                 'publishTime TEXT,' ...
@@ -227,15 +227,15 @@ classdef ExecMetadata < hgsetget
                     end
                 end
                 
-                row_moduleDependencies = execmetaObj.get('moduleDependencies');
-                if isempty(row_moduleDependencies) ~= 1
-                    match_clause = 'e.moduleDependencies=';
-                    if isempty(where_clause)
-                        where_clause = sprintf('where %s "%s" ', match_clause, row_moduleDependencies);
-                    else
-                        where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_moduleDependencies);
-                    end
-                end
+%                 row_moduleDependencies = execmetaObj.get('moduleDependencies');
+%                 if isempty(row_moduleDependencies) ~= 1
+%                     match_clause = 'e.moduleDependencies=';
+%                     if isempty(where_clause)
+%                         where_clause = sprintf('where %s "%s" ', match_clause, row_moduleDependencies);
+%                     else
+%                         where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_moduleDependencies);
+%                     end
+%                 end
                 
                 row_endTime = execmetaObj.get('endTime');
                 if isempty(row_endTime) ~= 1
@@ -323,7 +323,7 @@ classdef ExecMetadata < hgsetget
                     this.operatingSystem = varargin{1}.operating_system;
                     this.runtime = varargin{1}.run_time;
                     this.softwareApplication = varargin{1}.software_application;
-                    this.moduleDependencies = varargin{1}.module_dependencies;
+%                     this.moduleDependencies = varargin{1}.module_dependencies;
                     this.endTime = varargin{1}.end_time;
                     this.errorMessage = varargin{1}.error_message;
                     this.publishTime = varargin{1}.publish_time;
@@ -331,7 +331,7 @@ classdef ExecMetadata < hgsetget
                     this.publishId = varargin{1}.publish_id;
                     this.console = varargin{1}.console;
                     
-                case 18
+                case 17
                     this.executionId = varargin{1};
                     this.metadataId = varargin{2};
                     this.tag = varargin{3};
@@ -343,13 +343,13 @@ classdef ExecMetadata < hgsetget
                     this.operatingSystem = varargin{9};
                     this.runtime = varargin{10};
                     this.softwareApplication = varargin{11};
-                    this.moduleDependencies = varargin{12};
-                    this.endTime = varargin{13};
-                    this.errorMessage = varargin{14};
-                    this.publishTime = varargin{15};
-                    this.publishNodeId = varargin{16};
-                    this.publishId = varargin{17};
-                    this.console = varargin{18};
+%                     this.moduleDependencies = varargin{12};
+                    this.endTime = varargin{12};
+                    this.errorMessage = varargin{13};
+                    this.publishTime = varargin{14};
+                    this.publishNodeId = varargin{15};
+                    this.publishId = varargin{16};
+                    this.console = varargin{17};
                 otherwise
                     throw(MException('ExecMetadata:error', 'invalid options'));
             end
@@ -360,7 +360,7 @@ classdef ExecMetadata < hgsetget
             
             execemeta_colnames = {'executionId', 'metadataId', ...
                 'datapackageId', 'user', 'subject', 'hostId', 'startTime', ...
-                'operatingSystem', 'runtime', 'softwareApplication', 'moduleDependencies', ...
+                'operatingSystem', 'runtime', 'softwareApplication', ...
                 'endTime', 'errorMessage', 'publishTime', 'publishNodeId', 'publishId', 'console'};
             
             % **Updated to remove tag column 103116
@@ -371,8 +371,8 @@ classdef ExecMetadata < hgsetget
                 data_row{i} = execMetadata.get(execemeta_colnames{i});
             end
             
-            insertExecMetaQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', execMetadata.execTableName, execemeta_colnames{:});
-            insertExecMetaQueryData = sprintf('("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s",%d);', data_row{:});
+            insertExecMetaQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', execMetadata.execTableName, execemeta_colnames{:});
+            insertExecMetaQueryData = sprintf('("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s",%d);', data_row{:});
             insertExecQuery = [insertExecMetaQuery, insertExecMetaQueryData];   
             
             % Construct a SQL INSERT statement for fast insert to the
