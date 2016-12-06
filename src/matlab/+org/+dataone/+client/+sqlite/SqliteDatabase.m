@@ -16,6 +16,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
         function this = SqliteDatabase(varargin)
             this = this@org.dataone.client.sqlite.Database(varargin{:});
             this.openDBConnection();
+            setdbprefs('DataReturnFormat','cellarray');
         end
         
         function db_conn = openDBConnection(sqldb_obj, configOptions)
@@ -53,17 +54,15 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
         end
         
         function result = execute(sqldb_obj, sql_statement, varargin)
-            
-            setdbprefs('DataReturnFormat','cellarray');
-            
-            if ~isempty(varargin)
-                % Get the database connection and check if the table
-                % exists
-                count = sqldb_obj.getTable(varargin{1});
-                if count == 0
-                    return;
-                end
-            end
+          
+%             if ~isempty(varargin)
+%                 % Get the database connection and check if the table
+%                 % exists
+%                 count = sqldb_obj.getTable(varargin{1});
+%                 if count == 0
+%                     return;
+%                 end
+%             end
             
             sqldb_obj.openDBConnection();
             
@@ -84,7 +83,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
             
             % Disconnect the database connection
             close(curs);
-            sqldb_obj.closeDBConnection();
+%             sqldb_obj.closeDBConnection();
            
         end
         

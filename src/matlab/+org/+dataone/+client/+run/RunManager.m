@@ -944,11 +944,14 @@ classdef RunManager < hgsetget
             
             % Write to modulemeta table and execmodulebridge table for this
             % run 120216
-            moduleDependencies = char(runManager.execution.module_dependencies);             
-            runManager.processModuleDependencies(moduleDependencies, runID);
+            select_exec_query = sprintf('select e.seq from execmeta e where e.executionId="%s";', runID);
+            exec_array = runManager.provenanceDB.execute(select_exec_query, 'execmeta');
+            exec_seq = exec_array{1,1};
+            moduleDependencies = char(runManager.execution.module_dependencies);            
+            runManager.processModuleDependencies(moduleDependencies, runID, exec_seq);
         end
                
-        function processModuleDependencies(runManager, module_list, runID)
+        function processModuleDependencies(runManager, module_list, runID, execSeq)
             % PROCESSMODULEDEPENDENCIES adds the module dependencies
             % strings to the moduleMetadata table and returns a set of
             % module ids. 120116
@@ -963,39 +966,44 @@ classdef RunManager < hgsetget
             elseif isunix
                 module_split_info = strsplit(module_list,':');
             end
-            
+           
+            runManager.provenanceDB.openDBConnection();
             for i=1:length(module_split_info)
                 % First, add a record for module_dependency to the modulemeta table if
                 % not existed
                 module_info = module_split_info{1,i};
                 select_module_query = sprintf('select count(*) from modulemeta md where md.dependencyInfo=%s', module_info);
+%                 curs = exec(runManager.provenanceDB.dbConn, select_module_query); %120616, using exec() directly to avoid the wrapper execute() in the SqliteDatabase for performance reason opendb/closedb for each call.
+%                 curs = fetch(curs);
+%                 if curs.ResultSet == 0
                 count = runManager.provenanceDB.execute(select_module_query, 'modulemeta');
                 if count == 0
                     module_meta = ModuleMetadata(module_info);
                     insert_module_query = module_meta.writeModuleMeta();
+%                     curs = exec(runManager.provenanceDB.dbConn, insert_module_query); %120616, using exec() directly to avoid the wrapper execute() in the SqliteDatabase for performance reason opendb/closedb for each call.
                     status = runManager.provenanceDB.execute(insert_module_query, 'modulemeta');
                     if (status ~= 0)
                         errorMessage = 'SQLiteDatabaseError: Insert record failed.';
                         error(errorMessage);
                     end
                 end
-                % Then, add a (exec_id, module_id) to the execmodulebridge
+                % Then, add a (exec_seq, module_id) to the execmodulebridge
                 % table               
-                select_module_query = sprintf('select md.module_id from modulemeta md where md.dependencyInfo="%s";', module_info);
+                select_module_query = sprintf('select md.module_id from modulemeta md where md.dependencyInfo="%s";', module_info);               
                 module_dependency_array = runManager.provenanceDB.execute(select_module_query, 'modulemeta');
-                select_exec_query = sprintf('select e.seq from execmeta e where e.executionId="%s";', runID);
-                exec_array = runManager.provenanceDB.execute(select_exec_query, 'execmeta');
-                if ~isempty(module_dependency_array) && ~isempty(exec_array)
+                if ~isempty(module_dependency_array) 
                     module_id = module_dependency_array{1,1};
-                    exec_seq = exec_array{1,1};
-                    insert_bridge_query = sprintf('insert into execmodulebridge values ( %d, %d);', exec_seq, module_id);
-                    status = runManager.provenanceDB.execute(insert_bridge_query, 'execmodulebridge');
+                    
+                    insert_bridge_query = sprintf('insert into execmodulebridge values ( %d, %d);', execSeq, module_id);
+%                     curs = exec(runManager.provenanceDB.dbConn, insert_bridge_query); %120616, using exec() directly to avoid the wrapper execute() in the SqliteDatabase for performance reason opendb/closedb for each call.
+                    status = runManager.provenanceDB.execute(insert_bridge_query, 'execmodulebridge');                    
                     if (status ~= 0)
                         errorMessage = 'SQLiteDatabaseError: Insert record failed.';
                         error(errorMessage);
                     end
                 end
             end
+            runManager.provenanceDB.closeDBConnection();
         end
         
 %         function execMetaMatrix = getExecMetadataMatrix(runManager)
@@ -2721,8 +2729,6 @@ classdef RunManager < hgsetget
             
             import org.dataone.client.sqlite.FileMetadata;
             import org.dataone.client.sqlite.ExecMetadata;
-%             import org.yesworkflow.query.QueryEngine;
-%             import org.dataone.client.query.QueryEngineModel;
             import org.dataone.client.query.FactsExportBuilder;
             
             if isempty(varargin)
