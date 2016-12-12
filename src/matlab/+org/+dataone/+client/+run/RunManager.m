@@ -1524,11 +1524,14 @@ classdef RunManager < hgsetget
                 end
             end
             
-            % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
+            % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
             
+            % Save the metadata for the current execution
+            runManager.saveExecution(runManager.configuration.execution_db_name);
+            
             % Interactive mode
-            if ( runManager.console == 1 ) 
+            if ( runManager.console == 1 )
                 % Get the commands entered by the user
                 
                 import org.dataone.client.v2.DataObject;   
@@ -1593,10 +1596,7 @@ classdef RunManager < hgsetget
                 message= 'DBError: insert a program metadata to the filemeta table.';
                 error(message);
             end
-                
-            % Save the metadata for the current execution
-            runManager.saveExecution(runManager.configuration.execution_db_name);   
-            
+                            
              % Build a D1 datapackage
             pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );
             

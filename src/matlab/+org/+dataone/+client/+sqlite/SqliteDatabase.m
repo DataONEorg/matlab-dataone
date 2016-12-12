@@ -18,7 +18,10 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
         function db_conn = openDBConnection(sqldb_obj, configOptions)         
             try
                 sqldb_obj.dbConn = database(sqldb_obj.dbName, sqldb_obj.userName, sqldb_obj.password, sqldb_obj.JDBC_SQLITE_DRIVER, sqldb_obj.DB_URL);
-                db_conn = sqldb_obj.dbConn;                
+                db_conn = sqldb_obj.dbConn;   
+                % Set the PRAGMA values (enable foreign key) to the
+                % proveannce database 12-12-16
+                exec(db_conn, 'PRAGMA foreign_keys = ON;');
             catch runtimeError
                 error_message = ...
                     [error_message ' ' ...
@@ -28,31 +31,29 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                     error_message]);
             end            
         end
-                
-        function count = getTable(sqldb_obj, table_name)            
-            sql_statement = sprintf('SELECT count(*) FROM sqlite_master WHERE type= "table" AND name="%s"', table_name);                       
-            curs = exec(sqldb_obj.dbConn, sql_statement);          
+        
+        function closeDBConnection(sqldb_obj)
+            close(sqldb_obj.dbConn);
+        end
+        
+        function count = getTable(sqldb_obj, table_name)
+            sql_statement = sprintf('SELECT count(*) FROM sqlite_master WHERE type= "table" AND name="%s"', table_name);
+            curs = exec(sqldb_obj.dbConn, sql_statement);
             curs = fetch(curs);
             count = rows(curs);
             close(curs);
         end
                 
-        function closeDBConnection(sqldb_obj)
-            close(sqldb_obj.dbConn);
-        end
-        
-        function result = execute(sqldb_obj, sql_statement, varargin)          
-%             if ~isempty(varargin)
-%                 % Get the database connection and check if the table
-%                 % exists
+        function result = execute(sqldb_obj, sql_statement, varargin)
+            %             if ~isempty(varargin)
+            %                 % Get the database connection and check if the table
+            %                 % exists
 %                 count = sqldb_obj.getTable(varargin{1});
 %                 if count == 0
 %                     return;
 %                 end
 %             end
-            
-%             sqldb_obj.openDBConnection();
-            
+
             curs = exec(sqldb_obj.dbConn, sql_statement);
             
             if curs.ResultSet ~= 0
