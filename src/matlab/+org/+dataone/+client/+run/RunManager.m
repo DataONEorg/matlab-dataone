@@ -412,7 +412,7 @@ classdef RunManager < hgsetget
                 disp('====== buildPackage ======');
             end
            
-            em_fields = {'seq','executionId','metadataId','datapackageId','user','subject','hostId','startTime','operatingSystem','runtime','softwareApplication','moduleDependencies','endTime','errorMessage','publishTime','publishNodeId','publishId','console'};
+            em_fields = {'seq','executionId','metadataId','datapackageId','user','subject','hostId','startTime','operatingSystem','runtime','softwareApplication','endTime','errorMessage','publishTime','publishNodeId','publishId','console'};
             fm_fields = {'fileId','executionId','filePath','sha256','size','user','modifyTime','createTime','access','format','archivedFilePath'};
             tag_fields = {'seq','executionId','tag'};
             
@@ -1650,7 +1650,10 @@ classdef RunManager < hgsetget
             if runManager.configuration.debug
                 listRunsParser.Results
             end
-
+            
+            % Open the provenance database connection 12-12-16
+            runManager.provenanceDB.openDBConnection();
+            
             % Create a SQL statement to retrieve all records satisfying the
             % selection criteria (072616)
             select_clause = ['SELECT em.seq, em.datapackageId, em.softwareApplication, em.startTime,' ...
@@ -1785,6 +1788,9 @@ classdef RunManager < hgsetget
                 message = 'There is no data matched.';
                 warning(message);
             end
+            
+            % Close the db on 12-12-16
+            runManager.provenanceDB.closeDBConnection();
         end
         
         function deleted_runs = deleteRuns(runManager, varargin)
@@ -1828,6 +1834,9 @@ classdef RunManager < hgsetget
             if runManager.configuration.debug
                 deletedRunsParser.Results
             end
+            
+            % Open the provenance database connection 12-12-16
+            runManager.provenanceDB.openDBConnection();
             
             % Create a SQL statement to retrieve all records satisfying the
             % selection criteria (110816)
@@ -2018,7 +2027,10 @@ classdef RunManager < hgsetget
                     end
                     
                 end               
-            end          
+            end 
+            
+            % Close the db on 12-12-16
+            runManager.provenanceDB.closeDBConnection();
         end
         
         function results = viewRun(runManager, varargin)
@@ -2066,7 +2078,10 @@ classdef RunManager < hgsetget
            if runManager.configuration.debug
                viewRunsParser.Results
            end
-                                  
+            
+           % Open the provenance database connection 12-12-16
+           runManager.provenanceDB.openDBConnection();
+            
            select_clause = ['SELECT em.seq, em.executionId, em.datapackageId, em.user, em.subject, ' ...
                'em.hostId, em.startTime, em.operatingSystem, em.runtime, em.softwareApplication, ' ...
                'em.moduleDependencies, em.endTime, em.errorMessage, em.publishNodeId, em.publishTime, t.tag '];
@@ -2256,7 +2271,9 @@ classdef RunManager < hgsetget
            end
            
            more off; % terminate more
-                      
+              
+           % Close the db on 12-12-16
+           runManager.provenanceDB.closeDBConnection();
         end
         
         function package_id = publish(runManager, packageId)
