@@ -2084,7 +2084,7 @@ classdef RunManager < hgsetget
             
            select_clause = ['SELECT em.seq, em.executionId, em.datapackageId, em.user, em.subject, ' ...
                'em.hostId, em.startTime, em.operatingSystem, em.runtime, em.softwareApplication, ' ...
-               'em.moduleDependencies, em.endTime, em.errorMessage, em.publishNodeId, em.publishTime, t.tag '];
+               'em.endTime, em.errorMessage, em.publishNodeId, em.publishTime, t.tag '];
            from_clause = sprintf('from %s em, %s t', 'execmeta', 'tags');
            where_clause = ['where em.executionId=t.executionId '];
            
@@ -2138,7 +2138,7 @@ classdef RunManager < hgsetget
                    exec_metadata_cell{1,7}='N/A';
                end
                
-               end_time = exec_metadata_cell{1,12};
+               end_time = exec_metadata_cell{1,11};
                if ~isempty(end_time)
                end_formatted_time = datestr(datenum(end_time, 'yyyymmddTHHMMSS'));
                exec_metadata_cell{1,12} = end_formatted_time;
@@ -2146,7 +2146,7 @@ classdef RunManager < hgsetget
                    exec_metadata_cell{1,12}='N/A';
                end
                
-               publish_time = exec_metadata_cell{1,15};
+               publish_time = exec_metadata_cell{1,14};
                if ~isempty(publish_time)
                publish_formatted_time = datestr(datenum(publish_time, 'yyyymmddTHHMMSS'));
                exec_metadata_cell{1,15} = publish_formatted_time;
@@ -2198,7 +2198,7 @@ classdef RunManager < hgsetget
               
                % Compute the detailStruct for the details_section
                fieldnames = {'RunSequenceNumber', 'ExecutionId','DataPackageId', 'RunByUser', 'AccountSubject', ...
-                   'HostId', 'RunStartTime', 'OperatingSystem', 'Runtime', 'SoftwareApplication', 'ModuleDependencies', ...
+                   'HostId', 'RunStartTime', 'OperatingSystem', 'Runtime', 'SoftwareApplication', ...
                    'RunEndingTime', 'ErrorMessageFromThisRun', 'PublishedNodeId', 'PublishedDate', 'Tag'};
                
                % Convert a cell array to a table with headers              
