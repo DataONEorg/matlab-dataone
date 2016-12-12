@@ -1,7 +1,4 @@
-
-
-classdef SqliteDatabase < org.dataone.client.sqlite.Database
-    
+classdef SqliteDatabase < org.dataone.client.sqlite.Database  
     properties (SetAccess = protected)
         JDBC_SQLITE_DRIVER
         DB_URL
@@ -11,16 +8,14 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
         dbConn
     end
     
-    methods
-        
+    methods        
         function this = SqliteDatabase(varargin)
             this = this@org.dataone.client.sqlite.Database(varargin{:});
             this.openDBConnection();
             setdbprefs('DataReturnFormat','cellarray');
         end
         
-        function db_conn = openDBConnection(sqldb_obj, configOptions)
-          
+        function db_conn = openDBConnection(sqldb_obj, configOptions)         
             try
                 sqldb_obj.dbConn = database(sqldb_obj.dbName, sqldb_obj.userName, sqldb_obj.password, sqldb_obj.JDBC_SQLITE_DRIVER, sqldb_obj.DB_URL);
                 db_conn = sqldb_obj.dbConn;                
@@ -34,27 +29,19 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
             end            
         end
                 
-        function count = getTable(sqldb_obj, table_name)
-            
-            sqldb_obj.openDBConnection();
-            sql_statement = sprintf('SELECT count(*) FROM sqlite_master WHERE type= "table" AND name="%s"', table_name);
-                       
+        function count = getTable(sqldb_obj, table_name)            
+            sql_statement = sprintf('SELECT count(*) FROM sqlite_master WHERE type= "table" AND name="%s"', table_name);                       
             curs = exec(sqldb_obj.dbConn, sql_statement);          
             curs = fetch(curs);
             count = rows(curs);
-            
-            % Disconnect the database connection
             close(curs);
-            sqldb_obj.closeDBConnection();
         end
-        
-        
+                
         function closeDBConnection(sqldb_obj)
             close(sqldb_obj.dbConn);
         end
         
-        function result = execute(sqldb_obj, sql_statement, varargin)
-          
+        function result = execute(sqldb_obj, sql_statement, varargin)          
 %             if ~isempty(varargin)
 %                 % Get the database connection and check if the table
 %                 % exists
@@ -64,7 +51,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
 %                 end
 %             end
             
-            sqldb_obj.openDBConnection();
+%             sqldb_obj.openDBConnection();
             
             curs = exec(sqldb_obj.dbConn, sql_statement);
             
@@ -81,12 +68,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                 result = curs.Data;
             end
             
-            % Disconnect the database connection
-            close(curs);
-%             sqldb_obj.closeDBConnection();
-           
-        end
-        
-    end
-    
+            close(curs);         
+        end       
+    end   
 end
