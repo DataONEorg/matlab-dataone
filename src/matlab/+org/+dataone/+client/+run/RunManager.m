@@ -2792,9 +2792,6 @@ classdef RunManager < hgsetget
             % Create a SQL query to export all data in the execmeta table
             em_query = 'select * from execmeta';
             em_data_cell = runManager.provenanceDB.execute(em_query);
-%             for i=1:size(em_data_cell,1)
-%                 em_data_cell{i,12} = char([]); % Temporarily remove moduleDependencies string because too huge
-%             end
             
             % Create a SQL query to export all data in the filemeta table
             fm_query = 'select * from filemeta';
