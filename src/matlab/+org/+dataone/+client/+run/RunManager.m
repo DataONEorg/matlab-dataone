@@ -622,6 +622,11 @@ classdef RunManager < hgsetget
             % Associate the science metadata with the program in the
             % aggregation
             import org.dataone.util.ArrayListWrapper;
+            
+            import java.io.File;
+            import java.io.FileInputStream;
+            import org.apache.commons.io.IOUtils;
+            
             programList = ArrayListWrapper();
             programList.add(runManager.wfIdentifier);
                 
@@ -670,12 +675,22 @@ classdef RunManager < hgsetget
                 j_sysmeta.setFileName(out_file_short_name);
                 j_sysmeta.setSize(BigInteger.valueOf(out_file_metadata.bytes));
                 
-                % Update the filemeta file size for new file 12-13-16
-                update_clause = 'UPDATE filemeta ';
-                set_clause = sprintf('SET size=%d ', out_file_metadata.bytes);
-                where_clause = sprintf('WHERE fileId="%s"', row_out_fm_struct.fileId);
-                update_fm_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
-                status = runManager.provenanceDB.execute(update_fm_query);
+                % Update the filemeta file size for new file if the
+                % filemeta.size is not equal to the actual file size
+                % (12-13-16).
+                if row_out_fm_struct.size ~= out_file_metadata.bytes
+                    % Recompute the sha256
+                    objectFile = File(row_out_fm_struct.filePath);
+                    fileInputStream = FileInputStream(objectFile);
+                    data = IOUtils.toString(fileInputStream, 'UTF-8');
+                    updated_sha256= FileMetadata.getSHA256Hash(data);
+                    
+                    update_clause = 'UPDATE filemeta ';
+                    set_clause = sprintf('SET size=%d, sha256="%s" ', out_file_metadata.bytes, updated_sha256);
+                    where_clause = sprintf('WHERE fileId="%s"', row_out_fm_struct.fileId);
+                    update_fm_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
+                    status = runManager.provenanceDB.execute(update_fm_query);                    
+                end
                 
                 %Todo: need to update row_out_file_metadata in the
                 %      filemeta table 080216
