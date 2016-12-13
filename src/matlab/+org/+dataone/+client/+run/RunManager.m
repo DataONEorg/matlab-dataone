@@ -592,8 +592,7 @@ classdef RunManager < hgsetget
             
             if ( ~ metadataExists )
                 import org.ecoinformatics.eml.EMLDataset;
-                emlDataset = EMLDataset();
-                
+                emlDataset = EMLDataset();                
             end
             
             scienceMetadataIdStr = ['metadata_' ...
@@ -617,8 +616,7 @@ classdef RunManager < hgsetget
                     rows_program_meta_struct.fileId, ...
                     [runManager.D1_CN_Resolve_Endpoint ...
                     rows_program_meta_struct.fileId], ...
-                    rows_program_meta_struct.format);
-                
+                    rows_program_meta_struct.format);                
             end
            
             % Associate the science metadata with the program in the
@@ -671,6 +669,13 @@ classdef RunManager < hgsetget
                 out_file_short_name = char(out_file_path_array(end));
                 j_sysmeta.setFileName(out_file_short_name);
                 j_sysmeta.setSize(BigInteger.valueOf(out_file_metadata.bytes));
+                
+                % Update the filemeta file size for new file 12-13-16
+                update_clause = 'UPDATE filemeta ';
+                set_clause = sprintf('SET size=%d ', out_file_metadata.bytes);
+                where_clause = sprintf('WHERE fileId="%s"', row_out_fm_struct.fileId);
+                update_fm_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
+                status = runManager.provenanceDB.execute(update_fm_query);
                 
                 %Todo: need to update row_out_file_metadata in the
                 %      filemeta table 080216
@@ -747,8 +752,7 @@ classdef RunManager < hgsetget
                             row_in_fm_struct.format, ...
                             [runManager.D1_CN_Resolve_Endpoint ...
                             row_in_fm_struct.fileId], ...
-                            row_in_fm_struct.format);
-                        
+                            row_in_fm_struct.format);                        
                     end
                     
                     inSourceURI = ...
@@ -846,8 +850,7 @@ classdef RunManager < hgsetget
             for idx = 1: length(inputOutputIds)
                 inputOutputId = Identifier();
                 inputOutputId.setValue(inputOutputIds{idx});
-                inputOutputList.add(inputOutputId);
-                
+                inputOutputList.add(inputOutputId);               
             end
             
             runManager.dataPackage.insertRelationship(scienceMetadataId, ...
@@ -886,26 +889,23 @@ classdef RunManager < hgsetget
             %      filemeta table 080216
 %             set(resourceMapDataObject, 'system_metadata', j_sysmeta);
             
-            data_package = runManager.dataPackage;
-            
+            data_package = runManager.dataPackage;            
         end
                
         
-        function saveExecution(runManager, fileName)
-            % SAVEEXECUTION saves the summary of each execution to an
-            % execution database, a CSV file named execution.csv in the
-            % provenance_storage_directory with the columns: runId,
+        function saveExecution(runManager, isConsole)
+            % SAVEEXECUTION saves the summary of each execution to the
+            % execmeta table in the startRecord(): runId,
             % filePath, startTime, endTime, publishedTime, packageId, tag,
             % user, subject, hostId, operatingSystem, runtime, moduleDependencies, 
             % console, errorMessage.
-            %   fileName - the name of the execution database
            
             import org.dataone.client.sqlite.ExecMetadata;
             
             runID = char(runManager.execution.execution_id);
             filePath = char(runManager.execution.software_application);
             startTime = char(runManager.execution.start_time);
-            endTime = char(runManager.execution.end_time);
+            endTime = '';
             publishedTime = char(runManager.execution.publish_time);
             packageId = char(runManager.execution.execution_id);
             tag = runManager.execution.tag;                  
@@ -925,11 +925,11 @@ classdef RunManager < hgsetget
             operatingSystem = char(runManager.execution.operating_system);
             runtime = char(runManager.execution.runtime);            
             publishNodeId = char(runManager.configuration.target_member_node_id);
-            console = 0; 
-            errorMessage = char(runManager.execution.error_message);
+            errorMessage = '';
+            console = isConsole;
             
             % Write execution runtime informaiton to execmeta table in the
-            % provenance database (072516)
+            % provenance database 
             exec_obj = ExecMetadata(runID,'',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,endTime,errorMessage,publishedTime,publishNodeId, '', console);
             [insert_exec_query, insert_tag_query] = exec_obj.writeExecMeta();
             status1 = runManager.provenanceDB.execute(insert_exec_query, exec_obj.execTableName);
@@ -941,16 +941,46 @@ classdef RunManager < hgsetget
                 errorMessage = [errorMessage, 'SQLiteDatabaseError: Insert record failed.'];
                 error(errorMessage);
             end
+        end
+               
+        function updateExecution(runManager, runID)
+            % UPDATEEXECUTION updates the summary of each execution to an
+            % execution database with the columns: runId,
+            % endTime, publishTime, moduleDependencies,
+            % errorMessage in the endRecord().
+            %   fileName - the name of the execution database
+            
+            import org.dataone.client.sqlite.ExecMetadata;
+            
+            endTime = char(runManager.execution.end_time);
+            publishedTime = char(runManager.execution.publish_time);
+            errorMessage = char(runManager.execution.error_message);
+            
+            % Write execution runtime informaiton to execmeta table in the
+            % provenance database 
+            update_clause = 'UPDATE execmeta ';
+            set_clause = sprintf('SET endTime="%s", errorMessage="%s", publishTime="%s" ', endTime, errorMessage, publishedTime);
+            where_clause = sprintf('WHERE executionId="%s"', runID);
+            update_exec_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
+            status = runManager.provenanceDB.execute(update_exec_query);
+           
+            if status == 0
+                message = 'Update a record to the ExecMetadata table.';
+                disp(message);
+            else
+                errorMessage = [errorMessage, 'SQLiteDatabaseError: Insert record failed.'];
+                error(errorMessage);
+            end
             
             % Write to modulemeta table and execmodulebridge table for this
             % run 120216
             select_exec_query = sprintf('select e.seq from execmeta e where e.executionId="%s";', runID);
             exec_array = runManager.provenanceDB.execute(select_exec_query, 'execmeta');
             exec_seq = exec_array{1,1};
-            moduleDependencies = char(runManager.execution.module_dependencies);            
+            moduleDependencies = char(runManager.execution.module_dependencies);
             runManager.processModuleDependencies(moduleDependencies, runID, exec_seq);
         end
-               
+        
         function processModuleDependencies(runManager, module_list, runID, execSeq)
             % PROCESSMODULEDEPENDENCIES adds the module dependencies
             % strings to the moduleMetadata table and returns a set of
@@ -1461,6 +1491,9 @@ classdef RunManager < hgsetget
             addpath(runManager.execution.execution_directory);
             warning on MATLAB:dispatcher:nameConflict;
             
+            % Save current execmeta to the execmeta table and the tag table 12-13-16
+            runManager.saveExecution(runManager.console);
+                       
             % Add a DataObject to the execution objects map for the script
             % itself
             if (runManager.console ~= 1) % (Non-interactive mode)                 
@@ -1528,7 +1561,7 @@ classdef RunManager < hgsetget
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
             
             % Save the metadata for the current execution
-            runManager.saveExecution(runManager.configuration.execution_db_name);
+            runManager.updateExecution(runManager.execution.execution_id);
             
             % Interactive mode
             if ( runManager.console == 1 )
@@ -2752,13 +2785,16 @@ classdef RunManager < hgsetget
             else
                 query_engine = varargin{1};
             end
-            
+                         
+           % Open the provenance database connection 12-12-16
+           runManager.provenanceDB.openDBConnection();
+           
             % Create a SQL query to export all data in the execmeta table
             em_query = 'select * from execmeta';
             em_data_cell = runManager.provenanceDB.execute(em_query);
-            for i=1:size(em_data_cell,1)
-                em_data_cell{i,12} = char([]); % Temporarily remove moduleDependencies string because too huge
-            end
+%             for i=1:size(em_data_cell,1)
+%                 em_data_cell{i,12} = char([]); % Temporarily remove moduleDependencies string because too huge
+%             end
             
             % Create a SQL query to export all data in the filemeta table
             fm_query = 'select * from filemeta';
@@ -2770,7 +2806,7 @@ classdef RunManager < hgsetget
                        
             execmetaFacts = FactsExportBuilder(query_engine, 'execmeta', 'Seq', 'ExecutionId', 'MetadataId', ...
                 'DatapackageId', 'User', 'Subject', 'HostId', 'StartTime', ...
-                'OperatingSystem', 'Runtime', 'SoftwareApplication', 'ModuleDependencies', ...
+                'OperatingSystem', 'Runtime', 'SoftwareApplication', ...
                 'EndTime', 'ErrorMessage', 'PublishTime', 'PublishNodeId', 'PublishId', 'Console');
             
             filemetaFacts= FactsExportBuilder(query_engine, 'filemeta', 'FileId', 'ExecutionId', 'FilePath', ...
@@ -2792,11 +2828,14 @@ classdef RunManager < hgsetget
             for k=1:tag_nrows
                 tagFacts.addRow(tag_data_cell{k,:});
             end
-           
-            % outputFilePath = '/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump'; 
+            
+            % outputFilePath = '/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump';
             tagFacts.writeFacts(outputFilePath, 'tagfacts.P');
             filemetaFacts.writeFacts(outputFilePath, 'filemetafacts.P');
             execmetaFacts.writeFacts(outputFilePath, 'execmetafacts.P');
+            
+            % Close the db on 12-12-16
+            runManager.provenanceDB.closeDBConnection();
         end
     end
 

@@ -1,5 +1,5 @@
 function varargout = create(source, mode, varargin)
-%netcdf.create Create new netCDF file.
+% netcdf.create Create new netCDF file.
 %   ncid = netcdf.create(filename, mode) creates a new netCDF file 
 %   according to the file creation mode.  The return value is a file
 %   ID.  
@@ -44,7 +44,7 @@ function varargout = create(source, mode, varargin)
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2015 DataONE
+%   Copyright 2016 DataONE
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -95,9 +95,7 @@ function varargout = create(source, mode, varargin)
     end
     
     % Identify the file being created/used and add a prov:wasGeneratedBy statements 
-    % in the RunManager DataPackage instance
-
-    
+    % in the RunManager DataPackage instance    
     if ( runManager.configuration.capture_file_writes )
         formatId = 'netCDF-3';
         
