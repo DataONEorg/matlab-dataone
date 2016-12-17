@@ -684,7 +684,7 @@ classdef RunManager < hgsetget
                     fileInputStream = FileInputStream(objectFile);
                     data = IOUtils.toString(fileInputStream, 'UTF-8');
                     updated_sha256= FileMetadata.getSHA256Hash(data);
-                    
+                    % Update the file size, file sha256 in the filemeta table
                     update_clause = 'UPDATE filemeta ';
                     set_clause = sprintf('SET size=%d, sha256="%s" ', out_file_metadata.bytes, updated_sha256);
                     where_clause = sprintf('WHERE fileId="%s"', row_out_fm_struct.fileId);
@@ -1575,7 +1575,7 @@ classdef RunManager < hgsetget
             % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
             
-            % Save the metadata for the current execution
+            % Update the metadata for the current execution
             runManager.updateExecution(runManager.execution.execution_id);
             
             % Interactive mode
