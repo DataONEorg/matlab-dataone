@@ -94,11 +94,12 @@ classdef FactsExportBuilder < hgsetget
             
             if ischar(value)
                 k = strfind(value,'/'); % For character '/' which cannot be displayed correctly with Graphviz
-                if ~isempty(k)
-                    value_char = [factsBuilder.queryEngineModel.quote, '"', char(value), '"', factsBuilder.queryEngineModel.quote];
-                else
-                    value_char = [factsBuilder.queryEngineModel.quote, char(value), factsBuilder.queryEngineModel.quote];  
-                end
+                value_char = [factsBuilder.queryEngineModel.quote, char(value), factsBuilder.queryEngineModel.quote];% remove the extro double quotes for filePath, archivePaath, and type. The quotes add when we create the dot file. 01-06-017
+%                 if ~isempty(k)
+%                     value_char = [factsBuilder.queryEngineModel.quote, '"', char(value), '"', factsBuilder.queryEngineModel.quote];
+%                 else
+%                     value_char = [factsBuilder.queryEngineModel.quote, char(value), factsBuilder.queryEngineModel.quote];  
+%                 end
             end
                     
         end

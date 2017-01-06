@@ -2789,7 +2789,7 @@ classdef RunManager < hgsetget
             end
         end
         
-        function buildFacts(runManager, outputFilePath, varargin)
+        function exportPrologFacts(runManager, outputFilePath, varargin)
             
             import org.dataone.client.sqlite.FileMetadata;
             import org.dataone.client.sqlite.ExecMetadata;
@@ -2809,7 +2809,7 @@ classdef RunManager < hgsetget
             em_data_cell = runManager.provenanceDB.execute(em_query);
             
             % Create a SQL query to export all data in the filemeta table
-            fm_query = 'select * from filemeta';
+            fm_query = 'select * from filemeta where filePath not like "%/.d1%" ; ';
             fm_data_cell = runManager.provenanceDB.execute(fm_query);
             
             % Create a SQL query to export all data in the tags table
@@ -2847,6 +2847,26 @@ classdef RunManager < hgsetget
             execmetaFacts.writeFacts(outputFilePath, 'execmetafacts.P');
             
             % Close the db on 12-12-16
+            runManager.provenanceDB.closeDBConnection();
+        end
+        
+        function exportFileRecords(runManager, executionId, exportedFilePath)
+            import org.dataone.client.sqlite.FileMetadata;
+            
+            % Open the provenance database connection 
+            runManager.provenanceDB.openDBConnection();
+            
+            % Create a SQL query to export all read files in the filemeta table
+            used_fm_query = sprintf('select filePath from filemeta where executionId="%s" and access="read";', executionId);
+            used_fm_cell = runManager.provenanceDB.execute(used_fm_query);
+            
+            % Create a SQL query to export all wasGenerated files in the filemeta table
+            wasGenerated_fm_query = sprintf('select filePath from filemeta where executionId="%s" and access="write";', executionId);
+            wasGenerated_fm_cell = runManager.provenanceDB.execute(wasGenerated_fm_query);
+            
+            
+            
+            % Close the database connection
             runManager.provenanceDB.closeDBConnection();
         end
     end
