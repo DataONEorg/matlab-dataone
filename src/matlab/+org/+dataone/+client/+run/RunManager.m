@@ -2869,6 +2869,77 @@ classdef RunManager < hgsetget
             % Close the database connection
             runManager.provenanceDB.closeDBConnection();
         end
+        
+        function exportR2PrologFacts(runManager, outputFilePath, varargin)
+            
+            import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ExecMetadata;
+            import org.dataone.client.query.FactsExportBuilder;
+            import org.dataone.client.sqlite.Database;
+            import org.dataone.client.sqlite.SqliteDatabase;
+            
+            if isempty(varargin)
+                query_engine = runManager.DEFAULT_QUERY_ENGINE;
+            else
+                query_engine = varargin{1};
+            end
+                         
+            % Configure the R provenance database 01-14-17
+            db_path = runManager.configuration.provenance_storage_directory;
+            db_file = 'recordr.sqlite'; 
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
+            runManager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+       
+           % Open the provenance database connection 12-12-16
+           runManager.provenanceDB.openDBConnection();
+           
+            % Create a SQL query to export all data in the execmeta table
+            em_query = ['select e.Seq, e.ExecutionId, e.MetadataId, e.DatapackageId, e.User, e.Subject, e.HostId, e.StartTime,' ...
+                       'e.OperatingSystem, e.Runtime, e.SoftwareApplication, e.EndTime, e.ErrorMessage, e.PublishTime,' ...
+                       'e.PublishNodeId, e.PublishId, e.Console from execmeta e ;'];
+            em_data_cell = runManager.provenanceDB.execute(em_query);
+            
+            % Create a SQL query to export all data in the filemeta table
+            fm_query = 'select * from filemeta where filePath not like "%/.d1%" ; ';
+            fm_data_cell = runManager.provenanceDB.execute(fm_query);
+            
+            % Create a SQL query to export all data in the tags table
+            tag_query = 'select * from tags';
+            tag_data_cell = runManager.provenanceDB.execute(tag_query);
+                       
+            execmetaFacts = FactsExportBuilder(query_engine, 'execmeta', 'Seq', 'ExecutionId', 'MetadataId', ...
+                'DatapackageId', 'User', 'Subject', 'HostId', 'StartTime', ...
+                'OperatingSystem', 'Runtime', 'SoftwareApplication', ...
+                'EndTime', 'ErrorMessage', 'PublishTime', 'PublishNodeId', 'PublishId', 'Console');
+            
+            filemetaFacts= FactsExportBuilder(query_engine, 'filemeta', 'FileId', 'ExecutionId', 'FilePath', ...
+                'Sha256', 'Size', 'User', 'ModifyTime', 'CreateTime', 'Access', 'Format', 'ArchivedFilePath');
+            
+            tagFacts = FactsExportBuilder(query_engine, 'tag', 'Seq', 'ExecutionId', 'Tag');
+            
+            [em_nrows, ~] = size(em_data_cell);
+            for i=1:em_nrows
+                execmetaFacts.addRow(em_data_cell{i,:});
+            end
+            
+            [fm_nrows, ~] = size(fm_data_cell);
+            for j=1:fm_nrows
+                filemetaFacts.addRow(fm_data_cell{j,:});
+            end
+            
+            [tag_nrows, ~] = size(tag_data_cell);
+            for k=1:tag_nrows
+                tagFacts.addRow(tag_data_cell{k,:});
+            end
+            
+            % outputFilePath = '/Users/syc/Documents/idaks/runManager-multipleRuns/factsdump';
+            tagFacts.writeFacts(outputFilePath, 'tagfacts.P');
+            filemetaFacts.writeFacts(outputFilePath, 'filemetafacts.P');
+            execmetaFacts.writeFacts(outputFilePath, 'execmetafacts.P');
+            
+            % Close the db on 12-12-16
+            runManager.provenanceDB.closeDBConnection();
+        end
     end
 
 end
