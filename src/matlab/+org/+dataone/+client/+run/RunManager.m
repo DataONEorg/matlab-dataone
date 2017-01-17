@@ -2808,7 +2808,7 @@ classdef RunManager < hgsetget
            runManager.provenanceDB.openDBConnection();
            
             % Create a SQL query to export all data in the execmeta table
-            em_query = 'select * from execmeta';
+            em_query = 'select * from execmeta ;';
             em_data_cell = runManager.provenanceDB.execute(em_query);
             
             % Create a SQL query to export all data in the filemeta table
@@ -2816,7 +2816,7 @@ classdef RunManager < hgsetget
             fm_data_cell = runManager.provenanceDB.execute(fm_query);
             
             % Create a SQL query to export all data in the tags table
-            tag_query = 'select * from tags';
+            tag_query = 'select * from tags ;';
             tag_data_cell = runManager.provenanceDB.execute(tag_query);
                        
             execmetaFacts = FactsExportBuilder(query_engine, 'execmeta', 'Seq', 'ExecutionId', 'MetadataId', ...
@@ -2853,33 +2853,72 @@ classdef RunManager < hgsetget
             runManager.provenanceDB.closeDBConnection();
         end
         
-        function exportFileRecords2Yaml(runManager, executionId, exportedFilePath)
+        function exportFileRecords2Yaml(runManager, executionId, run_base_path, export_file)
             % EXPORTFILERECORD2YAML exports the input/output file records
             % to YAML format which can be used by YesWorkflow query module
             % to produce an enriched YesWorkflow model graph with runtime
-            % file records.
+            % file records. Example : 
+            % mgr.exportFileRecords2Yaml('497490a7-dfaf-40e8-8647-e32d191ec9bc', '/Users/syc/Documents/C3_C4_mapping/', 'run.yaml');
             %   executionId -- the executionId for a given run
+            %   run_base_path -- a base directory for a run (Todo: need to record and read from execmeta table)
             %   exportedFilePath -- the output YAML file path
-            
+             
             import org.dataone.client.sqlite.FileMetadata;
             
-            % Open the provenance database connection 
+            % Open the provenance database connection
             runManager.provenanceDB.openDBConnection();
             
             % Create a SQL query to export all read files in the filemeta table
-            used_fm_query = sprintf('select filePath from filemeta where executionId="%s" and access="read";', executionId);
+            used_fm_query = sprintf('select filePath from filemeta where  executionId="%s" and access="read" ', executionId);
+            used_fm_query = [used_fm_query, 'and filePath not like "%/.d1%" ;'];
             used_fm_cell = runManager.provenanceDB.execute(used_fm_query);
             
             % Create a SQL query to export all wasGenerated files in the filemeta table
-            wasGenerated_fm_query = sprintf('select filePath from filemeta where executionId="%s" and access="write";', executionId);
+            wasGenerated_fm_query = sprintf('select filePath from filemeta where executionId="%s" and access="write" ', executionId);
+            wasGenerated_fm_query = [wasGenerated_fm_query, 'and filePath not like "%/.d1%" ;'];
             wasGenerated_fm_cell = runManager.provenanceDB.execute(wasGenerated_fm_query);
-            
-            
             
             % Close the database connection
             runManager.provenanceDB.closeDBConnection();
+            
+            % Write base-relative file paths of input and output files for
+            % run 01-17-17
+            fileID = fopen(export_file,'w');
+            runManager.write_file_paths(fileID, 'inputs', run_base_path, used_fm_cell);
+            runManager.write_file_paths(fileID, 'outputs', run_base_path, wasGenerated_fm_cell);
+            fclose(fileID);
         end
         
+        function write_file_paths(runManager, fileID, section_name, base_dir, file_paths)
+            % WRITE_FILE_PATHS writes write base-relative file paths of
+            % input and output files for run as a YAML file
+            %   section_name -- a section name in a YAML file
+            %   base_dir -- the base directory for a run
+            %   file_object_ids -- 
+            
+            % Helper function used by yw-matlab 01-17-17
+            fprintf(fileID, ['\n' section_name ':' '\n']);
+            for i = 1:length(file_paths)
+                full_file_path = file_paths{i};
+                base_relative_path = runManager.get_base_relative_path(base_dir, full_file_path);
+                fprintf(fileID, ['  - ' base_relative_path '\n']);
+            end
+        end
+
+        function [base_relative_path] = get_base_relative_path(runManager, base_dir, full_path)
+            % GET_BASE_RELATIVE_PATH parses the absolute file path to get
+            % the relative file path given a base_dir 01-17-17
+            %   base_dir -- a base directory for a run
+            %   full_path -- an absolute file path
+          
+            [one,base_dir_length] = size(base_dir);
+            if strncmpi(full_path, base_dir, base_dir_length)
+                base_relative_path = full_path(base_dir_length+2:end);
+            else
+                base_relative_path = full_path;
+            end
+        end
+
         function exportR2PrologFacts(runManager, outputFilePath, varargin)
             % EXPORTR2PROLOGFACTS exports the d1 R provenance database to
             % prolog facts which can be used for provenance analysis. The "execmeta"
@@ -2920,7 +2959,7 @@ classdef RunManager < hgsetget
             fm_data_cell = runManager.provenanceDB.execute(fm_query);
             
             % Create a SQL query to export all data in the tags table
-            tag_query = 'select * from tags';
+            tag_query = 'select * from tags ;';
             tag_data_cell = runManager.provenanceDB.execute(tag_query);
                        
             execmetaFacts = FactsExportBuilder(query_engine, 'execmeta', 'Seq', 'ExecutionId', 'MetadataId', ...
