@@ -2858,7 +2858,7 @@ classdef RunManager < hgsetget
             % to YAML format which can be used by YesWorkflow query module
             % to produce an enriched YesWorkflow model graph with runtime
             % file records. Example : 
-            % mgr.exportFileRecords2Yaml('497490a7-dfaf-40e8-8647-e32d191ec9bc', '/Users/syc/Documents/C3_C4_mapping/', 'run.yaml');
+            % mgr.exportFileRecords2Yaml('497490a7-dfaf-40e8-8647-e32d191ec9bc', '/Users/syc/Documents/C3_C4_mapping', 'run.yaml');
             %   executionId -- the executionId for a given run
             %   run_base_path -- a base directory for a run (Todo: need to record and read from execmeta table)
             %   export_file -- the output YAML file path
