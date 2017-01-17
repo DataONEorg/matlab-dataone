@@ -2790,6 +2790,9 @@ classdef RunManager < hgsetget
         end
         
         function exportPrologFacts(runManager, outputFilePath, varargin)
+            % EXPORTPROLOGFACTS exports the d1 matlab provenance databases 
+            % to prolog facts which can be used for provenance analysis. 
+            %   outputFilePath -- the output prolog facts locations
             
             import org.dataone.client.sqlite.FileMetadata;
             import org.dataone.client.sqlite.ExecMetadata;
@@ -2809,7 +2812,7 @@ classdef RunManager < hgsetget
             em_data_cell = runManager.provenanceDB.execute(em_query);
             
             % Create a SQL query to export all data in the filemeta table
-            fm_query = 'select * from filemeta where filePath not like "%/.d1%" ; ';
+            fm_query = 'select * from filemeta where filePath not like "%/.d1%" ; '; % filter out hidden system metadata file
             fm_data_cell = runManager.provenanceDB.execute(fm_query);
             
             % Create a SQL query to export all data in the tags table
@@ -2850,7 +2853,14 @@ classdef RunManager < hgsetget
             runManager.provenanceDB.closeDBConnection();
         end
         
-        function exportFileRecords(runManager, executionId, exportedFilePath)
+        function exportFileRecords2Yaml(runManager, executionId, exportedFilePath)
+            % EXPORTFILERECORD2YAML exports the input/output file records
+            % to YAML format which can be used by YesWorkflow query module
+            % to produce an enriched YesWorkflow model graph with runtime
+            % file records.
+            %   executionId -- the executionId for a given run
+            %   exportedFilePath -- the output YAML file path
+            
             import org.dataone.client.sqlite.FileMetadata;
             
             % Open the provenance database connection 
@@ -2871,6 +2881,12 @@ classdef RunManager < hgsetget
         end
         
         function exportR2PrologFacts(runManager, outputFilePath, varargin)
+            % EXPORTR2PROLOGFACTS exports the d1 R provenance database to
+            % prolog facts which can be used for provenance analysis. The "execmeta"
+            % in R database schema has a column "moduleDependencies" which is filtered out 
+            % in the facts dump in order to be consistent with MATLAB
+            % provenance facts dump.
+            %   outputFilePath -- the output prolog facts files location
             
             import org.dataone.client.sqlite.FileMetadata;
             import org.dataone.client.sqlite.ExecMetadata;
@@ -2900,7 +2916,7 @@ classdef RunManager < hgsetget
             em_data_cell = runManager.provenanceDB.execute(em_query);
             
             % Create a SQL query to export all data in the filemeta table
-            fm_query = 'select * from filemeta where filePath not like "%/.d1%" ; ';
+            fm_query = 'select * from filemeta where filePath not like "%/.d1%" ; '; % filter out hidden system metadata file
             fm_data_cell = runManager.provenanceDB.execute(fm_query);
             
             % Create a SQL query to export all data in the tags table
