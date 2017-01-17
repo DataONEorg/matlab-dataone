@@ -2861,7 +2861,7 @@ classdef RunManager < hgsetget
             % mgr.exportFileRecords2Yaml('497490a7-dfaf-40e8-8647-e32d191ec9bc', '/Users/syc/Documents/C3_C4_mapping/', 'run.yaml');
             %   executionId -- the executionId for a given run
             %   run_base_path -- a base directory for a run (Todo: need to record and read from execmeta table)
-            %   exportedFilePath -- the output YAML file path
+            %   export_file -- the output YAML file path
              
             import org.dataone.client.sqlite.FileMetadata;
             
