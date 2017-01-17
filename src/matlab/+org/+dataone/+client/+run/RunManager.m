@@ -2894,7 +2894,7 @@ classdef RunManager < hgsetget
             % input and output files for run as a YAML file
             %   section_name -- a section name in a YAML file
             %   base_dir -- the base directory for a run
-            %   file_object_ids -- 
+            %   file_paths -- a cell array containing file inputs/outputs 
             
             % Helper function used by yw-matlab 01-17-17
             fprintf(fileID, ['\n' section_name ':' '\n']);
