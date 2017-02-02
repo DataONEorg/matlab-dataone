@@ -2197,9 +2197,9 @@ classdef RunManager < hgsetget
                publish_time = exec_metadata_cell{1,14};
                if ~isempty(publish_time)
                publish_formatted_time = datestr(datenum(publish_time, 'yyyymmddTHHMMSS'));
-               exec_metadata_cell{1,15} = publish_formatted_time;
+               exec_metadata_cell{1,14} = publish_formatted_time;
                else
-                   exec_metadata_cell{1,15}='N/A';
+                   exec_metadata_cell{1,14}='N/A';
                end
                
                executionId = exec_metadata_cell{1,2};
