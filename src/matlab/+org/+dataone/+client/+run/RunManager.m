@@ -2338,6 +2338,7 @@ classdef RunManager < hgsetget
             import java.lang.String;
             import java.lang.Boolean;
             import java.lang.Integer;
+            import java.util.Iterator;
             import org.dataone.client.v2.MNode;
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
@@ -2451,11 +2452,12 @@ classdef RunManager < hgsetget
      
                 % Return the set of identifiers that are part of current package 02-02-17
                 identifiers = cur_pkg.identifiers(); 
+                iterator = identifiers.iterator();
                 
-                % Upload each data object in the execution_objects map       
-                for k = 1: length(identifiers)
+                % Upload each data object in the execution_objects map                
+                while iterator.hasNext()
                     
-                    d1_object_id = identifiers{k};
+                    d1_object_id = iterator.next();
                     dataObj = cur_pkg.get(d1_object_id);
                     dataSource = dataObj.getDataSource();
                     
@@ -2467,8 +2469,8 @@ classdef RunManager < hgsetget
                             ['Uploading to : %s\n' ...
                             'File format  : %s\n' ...
                             'File path    : %s\n'], ...
-                            [mn_base_url '/object/' d1_object_id], ...
-                            char(v2SysMeta.getFormatId()), ...
+                            [mn_base_url '/object/' char(d1_object_id.getValue())], ...
+                            char(v2SysMeta.getFormatId().getValue()), ...
                             char(v2SysMeta.getFileName()));
                     end
                     
@@ -2529,7 +2531,7 @@ classdef RunManager < hgsetget
                             error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));                            
                         end
                     catch
-                        msg = ['Error on duplicate identifier' char(v2SysMeta.getIdentifier().getValue())];
+                        msg = ['Error on duplicate identifier ' char(v2SysMeta.getIdentifier().getValue())];
                         warning(msg);
                         
                         continue; % Ignore the duplicate error and upload the next file object
