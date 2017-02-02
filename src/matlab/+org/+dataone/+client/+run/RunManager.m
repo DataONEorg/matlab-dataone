@@ -2324,11 +2324,12 @@ classdef RunManager < hgsetget
            runManager.provenanceDB.closeDBConnection();
         end
         
-        function package_id = publish(runManager, packageId)
-            % PUBLISH Uploads a data package from a folder on disk
+        function package_id = publishRun(runManager, packageId)
+            % PUBLISHRUN Uploads a data package from a folder on disk
             % to the configured DataONE Member Node server.  This requires
             % that the Configuration.authentication_token and
-            % Configuration.target_member_node_id properties are set.
+            % Configuration.target_member_node_id properties are set. Notes
+            % that packageId is the same as executionId.
             %
             %    import org.dataone.client.run.RunManager;
             %    mgr = RunManager.getInstance();
@@ -2351,301 +2352,220 @@ classdef RunManager < hgsetget
             import org.dataone.service.types.v1.Subject;
             import org.dataone.configuration.Settings;
             
-%             prov_dir = runManager.configuration.get('provenance_storage_directory');
-%             curRunDir = fullfile(prov_dir, 'runs', packageId);
-%          
-%             if ( exist(curRunDir, 'dir') ~= 7 )
-%                 error([' There was an error in publishing the run. ' ...
-%                     char(10) ...
-%                     'A directory was not found for the run identifier: ' ...
-%                     packageId]);               
-%             end                 
-%             
-%             % Get a MNode instance to the Member Node
-%             try                
-%                 % Deserialize the execution object from the disk
-%                 
-%                 % Remove the path to the overloaded load() from the Matlab path
-%                 overloadedFunctPath = which('load');
-%                 [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
-%                 rmpath(overloaded_func_path);
-%            
-%                 % Load the stored execution given the directory name
-%                 exec_file_base_name = [packageId '.mat'];
-%                 stored_execution = load(fullfile( ...
-%                     runManager.configuration.provenance_storage_directory, ...
-%                     'runs', ...
-%                     packageId, ...
-%                     exec_file_base_name));
-%                 
-%                 % Add the path to the overloaded load() back to the Matlab path
-%                 warning off MATLAB:dispatcher:nameConflict;
-%                 addpath(overloaded_func_path, '-begin');
-%                 warning on MATLAB:dispatcher:nameConflict;
-%                     
-%                 % Assign deserialized execution to runManager.execution
-%                 runManager.execution = stored_execution.executionObj(1);
-% 
-%                 % Build a D1 datapackage
-%                 if ( ~isempty(runManager.configuration.submitter) )
-%                     submitter = char(runManager.configuration.submitter);
-%                     
-%                 else
-%                     submitter = char(runManager.execution.account_name); %Hack                  
-%                 end
-%                 
-%                 if ( ~isempty(runManager.configuration.target_member_node_id) || ...
-%                         (strcmp(runManager.configuration.target_member_node_id, ...
-%                         'urn:node:XXXX')) )
-%                     mnNodeId = runManager.configuration.target_member_node_id;
-%                     
-%                 else
-%                     error('RunManager:missingTargetMemberNode', ...
-%                         ['There is no valid Configuration.target_member_node_id set.\n', ...
-%                         'Please set it with the correct Member Node id.']);                 
-%                 end
-%                 
-%                 % Build the package back into memory
-%                 % pkg = runManager.buildPackage( ...
-%                 %     submitter, mnNodeId, ...
-%                 %     runManager.execution.execution_directory );    
-%                                 
-%                 % Get a Session
-%                 session = Session();
-%                 
-%                 % Do we have a session object?
-%                 if ( ~ isa(session, 'org.dataone.client.v2.Session') )
-%                     msg = ['To publish a run to a Member Node, you need ' ...
-%                         'to be logged in. Please provide your credentials \n' ...
-%                         'either as a Configuration.authentication_token ' ...
-%                         'property, or a Configuration.certificate_path \n' ...
-%                         'property that points to an X509 certificate ' ...
-%                         'saved to disk.'];
-%                     error('RunManager:publish:missingCredentials', msg);
-%                     
-%                 end
-%                 
-%                 % Without a valid session, throw an error
-%                 if (  ~ session.isValid() )
-%                     
-%                     msg = ['Your session expired on ' ...
-%                         char(session.expiration_date) '.' ...
-%                         char(10) ...
-%                         ' Please renew your ' ...
-%                         session.type ...
-%                         char(10) ...
-%                         ' before calling the ''publish()'' function.'];
-%                     error('RunManager:publish:expiredCredentials',msg);
-%                     
-%                 end
-%                                 
-%                 % Set the CN URL in the Java Client Library
-%                 if ( ~isempty(runManager.configuration.coordinating_node_base_url) )
-%                     Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
-%                         runManager.configuration.coordinating_node_base_url);
-%                 end
-%                 
-%                 Settings.getConfiguration().setProperty('D1Client.default.timeout', 300000);
-%                 
-%                 % Set the CNode ID
-%                 cnRef = NodeReference();
-%                 cnRef.setValue(runManager.configuration.coordinating_node_base_url);
-%                 cnNode = D1Client.getCN(cnRef.getValue());
-%                 if isempty(cnNode)
-%                     error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint ...
-%                         'encounted an error on the getCN() request.']);
-%                 end
-%                 
-%                                 
-%                 % Set the MNode ID
-%                 mnRef = NodeReference();
-%                 mnRef.setValue(runManager.configuration.target_member_node_id);
-%                 % Get a MNode instance to the Member Node using the Node ID
-%                 mnNode = D1Client.getMN(mnRef);
-%                 if isempty(mnNode)
-%                     error(['Member node' ...
-%                         runManager.configuration.target_member_node_id ...
-%                         'encounted an error on the getMN() request.']);
-%                 end
-%                 
-%                 mn_base_url = char(mnNode.getNodeBaseServiceUrl());
-%                 targetMNodeStr = runManager.configuration.get('target_member_node_id');
-%                 
-%                 submitter = Subject();
-%                 submitter.setValue(session.account_subject);
-%                 
-%                 % Upload each data object in the execution_objects map
-%                 identifiers = keys(runManager.execution.execution_objects);
-%                 d1objects = values(runManager.execution.execution_objects);
-%                 
-%                 for k = 1: length(identifiers)
-%                     
-%                     d1_object_id = identifiers{k};
-%                     d1_object = d1objects{k};
-%                     d1_object_format = char(d1_object.format_id);
-%                     
-%                     if true % runManager.configuration.debug
-%                         fprintf( ...
-%                             ['Uploading to : %s\n' ...
-%                              'File format  : %s\n' ...
-%                              'File path    : %s\n'], ...
-%                             [mn_base_url '/object/' d1_object_id], ...
-%                             d1_object_format, ...
-%                             d1_object.full_file_path);
-%                     end
-%                                           
-%                     % build d1 object
-%                     dataObj = runManager.buildD1Object(d1_object.full_file_path, ...
-%                         d1_object_format, d1_object_id, submitter.getValue(), targetMNodeStr);
-%                     dataSource = dataObj.getDataSource();
-%                     
-%                     % get system metadata for dataObj 
-%                     v2SysMeta = dataObj.getSystemMetadata(); % version 2 system metadata
-%                     
-%                     if runManager.configuration.debug
-%                         fprintf('***********************************************************\n');
-%                         fprintf('d1Obj.size=%d (bytes)\n', v2SysMeta.getSize().longValue());                   
-%                         fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v2SysMeta.getChecksum().getAlgorithm()), char(v2SysMeta.getChecksum().getValue()));
-%                         fprintf('d1Obj.rightsHolder=%s\n', char(v2SysMeta.getRightsHolder().getValue()));
-%                         fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v2SysMeta.getDateSysMetadataModified().toString()));
-%                         fprintf('d1Obj.dateUploaded=%s\n', char(v2SysMeta.getDateUploaded().toString()));
-%                         fprintf('d1Obj.originalMNode=%s\n', char(v2SysMeta.getOriginMemberNode().getValue()));
-%                         fprintf('***********************************************************\n');
-%                     end
-%                     
-%                     % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
-%                     v2SysMeta.setFileName(d1_object.system_metadata.getFileName());
-%                     v2SysMeta.setSubmitter(submitter);
-%                     v2SysMeta.setRightsHolder(submitter);
-%                     
-%                     if runManager.configuration.public_read_allowed == 1
-%                         strArray = javaArray('java.lang.String', 1);
-%                         permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
-%                         strArray(1,1) = String('public');
-%                         permsArray(1,1) = Permission.READ;
-%                         ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
-%                         v2SysMeta.setAccessPolicy(ap);
-%                         if runManager.configuration.debug
-%                             fprintf('d1Obj.accessPolicySize=%d\n', v2SysMeta.getAccessPolicy().sizeAllowList());
-%                         end
-%                     end                   
-%                                     
-%                     if runManager.configuration.replication_allowed == 1
-%                         rp = ReplicationPolicy();
-%                         numReplicasStr = String.valueOf(int32(runManager.configuration.number_of_replicas));
-%                         rp.setNumberReplicas(Integer(numReplicasStr));                       
-%                         rp.setReplicationAllowed(java.lang.Boolean.TRUE);                      
-%                         v2SysMeta.setReplicationPolicy(rp);               
-%                         if runManager.configuration.debug
-%                             fprintf('d1Obj.numReplicas=%d\n', v2SysMeta.getReplicationPolicy().getNumberReplicas().intValue());  
-%                         end
-%                     end
-%                     
-%                     % Upload the data to the MN using create(), 
-%                     % checking for success and a returned identifier       
-%                     pid = v2SysMeta.getIdentifier();
-%                     j_session = session.getJavaSession();
-%                     
-%                     try
-%                         % Check if the identifier has been used. If so,
-%                         % skip uploading the current file object
-%                         returnPid = cnNode.reserveIdentifier(j_session, pid);
-%                         
-%                         returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);
-%                         if isempty(returnPid) ~= 1
-%                             fprintf('Success      : Uploaded %s\n\n', char(v2SysMeta.getFileName()));
-%                             
-%                         else
-%                             % TODO: Process the error correctly.
-%                             error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));                            
-%                         end
-%                     catch
-%                         msg = ['Error on duplicate identifier' char(v2SysMeta.getIdentifier().getValue())];
-%                         warning(msg);
-%                         
-%                         continue; % Ignore the duplicate error and upload the next file object
-%                     end
-%                 end
-%                 
-%                 package_id = packageId; 
-%          
-%             catch runtimeError 
-%                 runManager.execution.error_message = ...
-%                     [runManager.execution.error_message ' ' ...
-%                     runtimeError.message];
-%                 error(['There was an error trying to publish the run: ' ...
-%                     char(10) ...
-%                     runtimeError.message]);
-%                 
-%             end
-%             
-%             % Record the date and time that the package from this run is uploaded to DataONE
-%             publishedTime = datestr( now,'yyyymmddTHHMMSS' );
-% 
-%             [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-%             numOfRows = size(execMetaMatrix, 1);
-%             for i=1:numOfRows
-%                 if strcmp(execMetaMatrix{i,6}, packageId)
-%                     execMetaMatrix{i,5} = publishedTime;
-%                 end
-%             end
-%             
-%             % Write the updated execution metadata with headers to the execution
-%             % T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
-%             % writetable(T, runManager.configuration.execution_db_name);
-%             % Write the updated execution metadata with headers to the execution database
-%             formatSpec = runManager.configuration.execution_db_write_format;
-%             if exist(runManager.configuration.execution_db_name, 'file') == 2
-%                 [fileId, message] = ...
-%                     fopen(runManager.configuration.execution_db_name,'w');
-%                 if fileId == -1
-%                     disp(message);
-%                 end
-%                 fprintf(fileId, formatSpec, ...
-%                     'runId', ...
-%                     'filePath', ...
-%                     'startTime', ...
-%                     'endTime', ...
-%                     'publishedTime', ...
-%                     'packageId', ...
-%                     'tag', ...
-%                     'user', ...
-%                     'subject', ...
-%                     'hostId', ...
-%                     'operatingSystem', ...
-%                     'runtime', ...
-%                     'moduleDependencies', ...
-%                     'console', ...
-%                     'errorMessage', ...
-%                     'runNumber');
-%                 [rows, cols] = size(execMetaMatrix);
-%                 for (row = 1:rows)
-%                     fprintf(fileId, formatSpec, ...
-%                         char(execMetaMatrix(row, 1)), ...
-%                         char(execMetaMatrix(row, 2)), ...
-%                         char(execMetaMatrix(row, 3)), ...
-%                         char(execMetaMatrix(row, 4)), ...
-%                         char(execMetaMatrix(row, 5)), ...
-%                         char(execMetaMatrix(row, 6)), ...
-%                         char(execMetaMatrix(row, 7)), ...
-%                         char(execMetaMatrix(row, 8)), ...
-%                         char(execMetaMatrix(row, 9)), ...
-%                         char(execMetaMatrix(row, 10)), ...
-%                         char(execMetaMatrix(row, 11)), ...
-%                         char(execMetaMatrix(row, 12)), ...
-%                         char(execMetaMatrix(row, 13)), ...
-%                         char(execMetaMatrix(row, 14)), ...
-%                         char(execMetaMatrix(row, 15)), ...
-%                         char(execMetaMatrix(row, 16)));
-%                 end
-%                 fclose(fileId);
-%             end
+            prov_dir = runManager.configuration.get('provenance_storage_directory');
+            curRunDir = fullfile(prov_dir, 'runs', packageId);
+         
+            if ( exist(curRunDir, 'dir') ~= 7 )
+                error([' There was an error in publishing the run. ' ...
+                    char(10) ...
+                    'A directory was not found for the run identifier: ' ...
+                    packageId]);               
+            end                 
+            
+            % Get a MNode instance to the Member Node
+            try                
+                % Build a D1 datapackage
+                if ( ~isempty(runManager.configuration.submitter) )
+                    submitter = char(runManager.configuration.submitter);
+                    
+                else
+                    submitter = char(runManager.execution.account_name); %Hack                  
+                end
+                
+                if ( ~isempty(runManager.configuration.target_member_node_id) || ...
+                        (strcmp(runManager.configuration.target_member_node_id, ...
+                        'urn:node:XXXX')) )
+                    mnNodeId = runManager.configuration.target_member_node_id;
+                    
+                else
+                    error('RunManager:missingTargetMemberNode', ...
+                        ['There is no valid Configuration.target_member_node_id set.\n', ...
+                        'Please set it with the correct Member Node id.']);                 
+                end
+                
+                % Build the package back into memory 02-02-17
+                cur_pkg = runManager.buildPackage( submitter, mnNodeId, curRunDir );    
+                                
+                % Get a Session
+                session = Session();
+                
+                % Do we have a session object?
+                if ( ~ isa(session, 'org.dataone.client.v2.Session') )
+                    msg = ['To publish a run to a Member Node, you need ' ...
+                        'to be logged in. Please provide your credentials \n' ...
+                        'either as a Configuration.authentication_token ' ...
+                        'property, or a Configuration.certificate_path \n' ...
+                        'property that points to an X509 certificate ' ...
+                        'saved to disk.'];
+                    error('RunManager:publish:missingCredentials', msg);
+                    
+                end
+                
+                % Without a valid session, throw an error
+                if (  ~ session.isValid() )
+                    
+                    msg = ['Your session expired on ' ...
+                        char(session.expiration_date) '.' ...
+                        char(10) ...
+                        ' Please renew your ' ...
+                        session.type ...
+                        char(10) ...
+                        ' before calling the ''publish()'' function.'];
+                    error('RunManager:publish:expiredCredentials',msg);
+                    
+                end
+                                
+                % Set the CN URL in the Java Client Library
+                if ( ~isempty(runManager.configuration.coordinating_node_base_url) )
+                    Settings.getConfiguration().setProperty('D1Client.CN_URL', ...
+                        runManager.configuration.coordinating_node_base_url);
+                end
+                
+                Settings.getConfiguration().setProperty('D1Client.default.timeout', 300000);
+                
+                % Set the CNode ID
+                cnRef = NodeReference();
+                cnRef.setValue(runManager.configuration.coordinating_node_base_url);
+                cnNode = D1Client.getCN(cnRef.getValue());
+                if isempty(cnNode)
+                    error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint ...
+                        'encounted an error on the getCN() request.']);
+                end
+                                                
+                % Set the MNode ID
+                mnRef = NodeReference();
+                mnRef.setValue(runManager.configuration.target_member_node_id);
+                % Get a MNode instance to the Member Node using the Node ID
+                mnNode = D1Client.getMN(mnRef);
+                if isempty(mnNode)
+                    error(['Member node' ...
+                        runManager.configuration.target_member_node_id ...
+                        'encounted an error on the getMN() request.']);
+                end
+                
+                mn_base_url = char(mnNode.getNodeBaseServiceUrl());
+                targetMNodeStr = runManager.configuration.get('target_member_node_id');
+                
+                submitter = Subject();
+                submitter.setValue(session.account_subject);
+     
+                % Return the set of identifiers that are part of current package 02-02-17
+                identifiers = cur_pkg.identifiers(); 
+                
+                % Upload each data object in the execution_objects map       
+                for k = 1: length(identifiers)
+                    
+                    d1_object_id = identifiers{k};
+                    dataObj = cur_pkg.get(d1_object_id);
+                    dataSource = dataObj.getDataSource();
+                    
+                    % get system metadata for dataObj 
+                    v2SysMeta = dataObj.getSystemMetadata(); % version 2 system metadata
+                    
+                    if true % runManager.configuration.debug
+                        fprintf( ...
+                            ['Uploading to : %s\n' ...
+                            'File format  : %s\n' ...
+                            'File path    : %s\n'], ...
+                            [mn_base_url '/object/' d1_object_id], ...
+                            char(v2SysMeta.getFormatId()), ...
+                            char(v2SysMeta.getFileName()));
+                    end
+                    
+                    if runManager.configuration.debug
+                        fprintf('***********************************************************\n');
+                        fprintf('d1Obj.size=%d (bytes)\n', v2SysMeta.getSize().longValue());                   
+                        fprintf('d1Obj.checkSum algorithm is %s and the value is %s\n', char(v2SysMeta.getChecksum().getAlgorithm()), char(v2SysMeta.getChecksum().getValue()));
+                        fprintf('d1Obj.rightsHolder=%s\n', char(v2SysMeta.getRightsHolder().getValue()));
+                        fprintf('d1Obj.sysMetaModifiedDate=%s\n', char(v2SysMeta.getDateSysMetadataModified().toString()));
+                        fprintf('d1Obj.dateUploaded=%s\n', char(v2SysMeta.getDateUploaded().toString()));
+                        fprintf('d1Obj.originalMNode=%s\n', char(v2SysMeta.getOriginMemberNode().getValue()));
+                        fprintf('***********************************************************\n');
+                    end
+                    
+                    % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)
+                    v2SysMeta.setSubmitter(submitter);
+                    v2SysMeta.setRightsHolder(submitter);
 
+                    if runManager.configuration.public_read_allowed == 1
+                        strArray = javaArray('java.lang.String', 1);
+                        permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
+                        strArray(1,1) = String('public');
+                        permsArray(1,1) = Permission.READ;
+                        ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
+                        v2SysMeta.setAccessPolicy(ap);
+                        if runManager.configuration.debug
+                            fprintf('d1Obj.accessPolicySize=%d\n', v2SysMeta.getAccessPolicy().sizeAllowList());
+                        end
+                    end
+                                    
+                    if runManager.configuration.replication_allowed == 1
+                        rp = ReplicationPolicy();
+                        numReplicasStr = String.valueOf(int32(runManager.configuration.number_of_replicas));
+                        rp.setNumberReplicas(Integer(numReplicasStr));                       
+                        rp.setReplicationAllowed(java.lang.Boolean.TRUE);                      
+                        v2SysMeta.setReplicationPolicy(rp);               
+                        if runManager.configuration.debug
+                            fprintf('d1Obj.numReplicas=%d\n', v2SysMeta.getReplicationPolicy().getNumberReplicas().intValue());  
+                        end
+                    end
+                    
+                    % Upload the data to the MN using create(), 
+                    % checking for success and a returned identifier       
+                    pid = v2SysMeta.getIdentifier();
+                    j_session = session.getJavaSession();
+                    
+                    try
+                        % Check if the identifier has been used. If so,
+                        % skip uploading the current file object
+                        returnPid = cnNode.reserveIdentifier(j_session, pid);
+                        
+                        returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);
+                        if isempty(returnPid) ~= 1
+                            fprintf('Success      : Uploaded %s\n\n', char(v2SysMeta.getFileName()));
+                            
+                        else
+                            % TODO: Process the error correctly.
+                            error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));                            
+                        end
+                    catch
+                        msg = ['Error on duplicate identifier' char(v2SysMeta.getIdentifier().getValue())];
+                        warning(msg);
+                        
+                        continue; % Ignore the duplicate error and upload the next file object
+                    end
+                end
+                
+                package_id = packageId; 
+         
+            catch runtimeError
+                runManager.execution.error_message = ...
+                    [runManager.execution.error_message ' ' ...
+                    runtimeError.message];
+                error(['There was an error trying to publish the run: ' ...
+                    char(10) ...
+                    runtimeError.message]);
+                
+            end
+            
+            % Record the date and time that the package from this run is uploaded to DataONE
+            publishedTime = datestr( now,'yyyymmddTHHMMSS' );
+            
+            % Record the time that this execution was published, the
+            % published id, subject that submitted the data. 02-02-17
+            % Update the file size, file sha256 in the filemeta table
+            update_clause = 'UPDATE execmeta ';
+            set_clause = sprintf('SET subject="%s", publishTime="%s", publishNodeId="%s", publishId="%s" ', char(submitter.getValue()), publishedTime, mnNodeId, '');
+            where_clause = sprintf('WHERE executionId="%s"', packageId);
+            update_em_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
+            status = runManager.provenanceDB.execute(update_em_query);
         end
+
         
         function combFileName = getYWCombViewFileName(runManager)
             combFileName = runManager.combinedViewPdfFileName;
         end
+        
         
         function science_metadata = getMetadata(runManager, varargin)
             % GETMETADATA retrieves the metadata describing data objects of
