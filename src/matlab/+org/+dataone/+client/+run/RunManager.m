@@ -2362,7 +2362,7 @@ classdef RunManager < hgsetget
                     'A directory was not found for the run identifier: ' ...
                     packageId]);               
             end                 
-            
+                       
             % Get a MNode instance to the Member Node
             try                
                 % Build a D1 datapackage
@@ -2381,12 +2381,15 @@ classdef RunManager < hgsetget
                 else
                     error('RunManager:missingTargetMemberNode', ...
                         ['There is no valid Configuration.target_member_node_id set.\n', ...
-                        'Please set it with the correct Member Node id.']);                 
+                        'Please set it with the correct Member Node id.']);
                 end
                 
+                % Open the provenance database connection 02-02-17
+                runManager.provenanceDB.openDBConnection();
+                
                 % Build the package back into memory 02-02-17
-                cur_pkg = runManager.buildPackage( submitter, mnNodeId, curRunDir );    
-                                
+                cur_pkg = runManager.buildPackage( submitter, mnNodeId, curRunDir );
+                           
                 % Get a Session
                 session = Session();
                 
@@ -2520,9 +2523,9 @@ classdef RunManager < hgsetget
                     try
                         % Check if the identifier has been used. If so,
                         % skip uploading the current file object
-                        returnPid = cnNode.reserveIdentifier(j_session, pid);
-                        
+                        returnPid = cnNode.reserveIdentifier(j_session, pid);                       
                         returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);
+                        
                         if isempty(returnPid) ~= 1
                             fprintf('Success      : Uploaded %s\n\n', char(v2SysMeta.getFileName()));
                             
@@ -2555,12 +2558,14 @@ classdef RunManager < hgsetget
             
             % Record the time that this execution was published, the
             % published id, subject that submitted the data. 02-02-17
-            % Update the file size, file sha256 in the filemeta table
             update_clause = 'UPDATE execmeta ';
             set_clause = sprintf('SET subject="%s", publishTime="%s", publishNodeId="%s", publishId="%s" ', char(submitter.getValue()), publishedTime, mnNodeId, '');
             where_clause = sprintf('WHERE executionId="%s"', packageId);
             update_em_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
             status = runManager.provenanceDB.execute(update_em_query);
+            
+            % Close the db on 02-02-17
+            runManager.provenanceDB.closeDBConnection();
         end
 
         
