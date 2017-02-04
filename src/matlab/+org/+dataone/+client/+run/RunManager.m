@@ -2523,10 +2523,11 @@ classdef RunManager < hgsetget
                     try
                         % Check if the identifier has been used. If so,
                         % skip uploading the current file object
-                        returnPid = cnNode.reserveIdentifier(j_session, pid);                       
+                        returnPid = cnNode.reserveIdentifier(j_session, pid);    
                         returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);
                         
-                        if isempty(returnPid) ~= 1
+                        % if isempty(returnPid) ~= 1
+                        if isempty(returnPid.getValue()) ~= 1  % 02-03-17
                             fprintf('Success      : Uploaded %s\n\n', char(v2SysMeta.getFileName()));
                             
                         else
