@@ -53,7 +53,9 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   mgr.listRuns();
   mgr.deleteRuns('tagList', {'csvread_test_01','csvread_test_02'}, 'noop', false);
 
-
+  mgr.exportFileRecords2Yaml('execution_id', 'prefix__string_in_uri_template', 'exported_file_name.yaml');
+  mgr.exportR2PrologFacts('/path/to/factsdump');
+  
 Documentation
 ============
 The classes provided in the toolbox have built-in documentation.  Use the help() function or the doc() function to view the help for a given class.  For instance, to view the help on the RunManager class, use:
