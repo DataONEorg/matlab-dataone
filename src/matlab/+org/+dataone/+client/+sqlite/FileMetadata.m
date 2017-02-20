@@ -76,14 +76,18 @@ classdef FileMetadata < hgsetget
             fileInputStream = FileInputStream(objectFile);
             data = IOUtils.toString(fileInputStream, 'UTF-8');
             
-            persistent digest;
-                        
+            persistent digest;            
+                
             if isempty(digest)
                 digest = MessageDigest.getInstance('SHA-256');
             end
-            hash = digest.digest(java.lang.String(data).getBytes('UTF-8'));
-            content_hash_value =  char(DatatypeConverter.printHexBinary(hash));
-%             content_hash_value = FileMetadata.getSHA256Hash(data);
+            
+            if ~isempty(char(data))
+                hash = digest.digest(java.lang.String(data).getBytes('UTF-8'));
+                content_hash_value =  char(DatatypeConverter.printHexBinary(hash));
+            else
+                content_hash_value =  'N/A';
+            end
             
             % First check if a file with the same sha256 has been accessed
             % before. If it has, then don't archive this file again, and
@@ -110,8 +114,8 @@ classdef FileMetadata < hgsetget
             % run into any OS limits. Also, these directories will not be
             % searched because the filepaths are contains in a database, so
             % directory lookup performance is not an issue.
-            archiveRelDir = sprintf('archive/%s', char(datetime('today'))); % date format like "01-Nov-2016"
-            archivedRelFilePath = sprintf('%s/%s', archiveRelDir, char(java.util.UUID.randomUUID()));
+            archiveRelDir = sprintf('archive%s%s', filesep, char(datetime('today'))); % date format like "01-Nov-2016"
+            archivedRelFilePath = sprintf('%s%s%s', archiveRelDir, filesep, char(java.util.UUID.randomUUID()));
             status = 1;
             return;
         end
@@ -204,8 +208,11 @@ classdef FileMetadata < hgsetget
                     objectFile = File(this.filePath);
                     fileInputStream = FileInputStream(objectFile);
                     data = IOUtils.toString(fileInputStream, 'UTF-8');
-                    this.sha256= this.getSHA256Hash(data);
-                   
+                    if ~isempty(char(data))
+                        this.sha256 = this.getSHA256Hash(data);
+                    else
+                        this.sha256 = 'N/A';
+                    end
                     % Set the access mode {'read','write', 'execute'}
                     this.access = varargin{3};
                                    

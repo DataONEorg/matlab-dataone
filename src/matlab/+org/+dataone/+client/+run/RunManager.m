@@ -835,8 +835,8 @@ classdef RunManager < hgsetget
             [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(scienceMetadata_full_path);
             if db_status == 1
                 % The file has not been archived
-                full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
-                full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
+                full_archive_file_path = sprintf('%s%s%s', runManager.configuration.provenance_storage_directory, filesep, archivedRelFilePath);
+                full_archive_dir_path = sprintf('%s%s%s', runManager.configuration.provenance_storage_directory, filesep, archiveRelDir);
                 if ~exist(full_archive_dir_path, 'dir')
                     mkdir(full_archive_dir_path);
                 end
