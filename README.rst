@@ -7,7 +7,7 @@ Matlab DataONE Toolbox (version 2)
 
 .. _`see here`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
-The *Matlab DataONE Toolbox (version 2)* is a provenance management software. It can *capture*, *store*, *query*, *visualize*, and *publish* of a singel Matlab script or multiple Matlab script runs. There are three types of provenance supported by matlab-dataone: prospective provenance, retrospective provenance, and hybrid provenance. For a workflow project, we have multiple provenance graphs consisting of a graph of prospective provenance, a graph of hybrid provenance, a graph of retrospective multi-run provenance.
+The *Matlab DataONE Toolbox (version 2)* is a provenance management software. It can *capture*, *store*, *query*, *visualize*, and *publish* of a singel Matlab script or multiple Matlab script runs. There are three types of provenance supported by matlab-dataone: **prospective provenance**, **retrospective provenance**, and **hybrid provenance**. For a workflow project, we have multiple provenance graphs consisting of a graph of prospective provenance, a graph of hybrid provenance, a graph of **retrospective multi-run provenance**.
 
 
 Matlab DataONE Toolbox (version 1)
