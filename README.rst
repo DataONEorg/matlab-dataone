@@ -27,6 +27,9 @@ Matlab R2015a or later for Mac, Windows, or Linux is required to use the toolbox
 2) Open Matlab and change directories to local **matlab-dataone** directory
 3) Run the **install_matlab_dataone** script (**install_matlab_dataone.m**) either from the command line or from Matlab
 4) Restart Matlab
+5) Notes that at least Java 7 or above is requried in order to use our matlab-dataone toolbox
+
+
 
 .. _`Matlab DataONE Toolbox ml-sqlite branch`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
@@ -60,6 +63,20 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   mgr.exportFileRecords2Yaml('execution_id', 'prefix__string_in_uri_template', 'exported_file_name.yaml');
   mgr.exportR2PrologFacts('/path/to/factsdump');
   
+Layouts of Repository
+=====================
+
+| Directory | Description                                                          |
+|-----------| :--------------------------------------------------------------------|
+|docs/ |   Contains several versions user guide documentation. |
+|lib/ | Stores Java libraries required by our matlab-dataone toolbox.|
+|src/ | Stores the source code.|
+|install_matlab_dataone.m | Installation script to install our matlab-dataone toolbox.|
+|run_tests.m | A matlab script to run our test cases.|
+
+
+
+
 Documentation
 ============
 The classes provided in the toolbox have built-in documentation.  Use the help() function or the doc() function to view the help for a given class.  For instance, to view the help on the RunManager class, use:
