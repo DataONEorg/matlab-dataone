@@ -61,15 +61,17 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   import org.dataone.client.run.RunManager;
   mgr = RunManager.getInstance();
   mgr.configuration.capture_yesworkflow_comments=0;
-  mgr.record('/full/path/to/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
+  mgr.record('/full/path/to/script', 'example_run_tag_01');
   mgr.listRuns();
-  mgr.viewRun('tag', 'csvread_test_01', 'sections', {'details', 'used', 'generated'});
+  mgr.viewRun('tag', 'example_run_tag_01', 'sections', {'details', 'used', 'generated'});
   mgr.viewRun('runNumber', 1, 'sections', {'details', 'used', 'generated'});  
-  mgr.deleteRuns('tagList', {'csvread_test_01'}, 'noop', false);
-  mgr.record('/full/path/to/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_01');
-  mgr.record('/full/path/to/matlab-dataone/src/test/resources/myScript4.m', 'csvread_test_02');
+  mgr.deleteRuns('tagList', {'example_run_tag_01'}, 'noop', false);
+  
+  mgr.record('/full/path/to/script', 'example_run_tag_02');
+  mgr.record('/full/path/to/script', 'example_run_tag_03');
+  
   mgr.listRuns();
-  mgr.deleteRuns('tagList', {'csvread_test_01','csvread_test_02'}, 'noop', false);
+  mgr.deleteRuns('tagList', {'example_run_tag_02','example_run_tag_03'}, 'noop', false);
 
   mgr.exportFileRecords2Yaml('execution_id', 'prefix__string_in_uri_template', 'exported_file_name.yaml');
   mgr.exportR2PrologFacts('/path/to/factsdump');
