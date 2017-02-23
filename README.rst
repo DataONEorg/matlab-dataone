@@ -1,7 +1,9 @@
 Matlab DataONE Toolbox (version 2)
 =======================
 
-can be found [here](https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite)
+can be found `see here`_
+
+.. _`see here`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
 Matlab DataONE Toolbox (version 1)
 ======================
