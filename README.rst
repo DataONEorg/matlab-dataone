@@ -18,13 +18,13 @@ Installation Notes
 
 Matlab R2015b or later for Mac, Windows, or Linux is required to use the toolbox. To install the toolbox, 
 
-1) Download the zip file: `Matlab DataONE Toolbox 1.0.1`_
-2) Unpack the zip file into an installation  directory of your choosing
-3) Open Matlab and change directories to your unpacked *matlab-dataone* directory
-4) Run the *install_matlab_dataone* script in that directory
-5) Restart Matlab
+1) Clone the ml-sqlite branch to your local computer by typing the follwing command at the command window
+   `git clone -b ml-sqlite https://github.com/DataONEorg/matlab-dataone.git`
+2) Open Matlab and change directories to local `matlab-dataone` directory
+3) Run the `install_matlab_dataone` script in that directory (`install_matlab_dataone.m`)
+4) Restart Matlab
 
-.. _`Matlab DataONE Toolbox 1.0.1`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
+.. _`Matlab DataONE Toolbox ml-sqlite branch`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
 License
 =======
