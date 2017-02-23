@@ -20,7 +20,12 @@ Then, we show how to produce hybrid provenance by joining prospective and retros
 
 We use query-based approach for provenance analysis. A query is implemented in Prolog and SQL now. For a workflow project, we have multiple provenance graphs consisting of a graph of prospective provenance, a graph of hybrid provenance, a graph of retrospective multi-run provenance.
 
-
+## Sample Provenance Query
+Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob/master/queries/README.md) in the demo repo.
+ * C3C4 Matlab Script Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/examples/C3C4/results)
+ * OHIBC R Script Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/OHIBC_Howe_Sound_project) 
+ 
+ 
 # Installing Instructions
 
 
@@ -79,13 +84,6 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
 |src/ | Stores the source code.|
 |install_matlab_dataone.m | Installation script to install our matlab-dataone toolbox.|
 |run_tests.m | A matlab script to run our test cases.|
-
-# Provenance Query Example
-
-## Sample Provenance Query
-Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob/master/queries/README.md) in the demo repo.
- * C3C4 Matlab Script Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/examples/C3C4/results)
- * OHIBC R Script Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/OHIBC_Howe_Sound_project) 
 
 
 # Documentation
