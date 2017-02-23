@@ -3,7 +3,7 @@ Matlab DataONE Toolbox (version 2)
 
 - **Author**:  Yang Cao, Peter Slaughter, Christopher Jones, Matthew B. Jones (DataONE_)
 - **License**: `Apache 2`_
-- can be `seen here`_
+- Package source code and results `seen here`_
 
 .. _`seen here`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
