@@ -58,9 +58,11 @@ Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob
 Thae Matlab DataONE package can be used to track code execution in Matlab, data inputs and outputs to those executions, and the software environment during the execution (e.g. Matlab and operating system versions).  As a quick start, here is an example that starts the toolbox `RunManager`, executes a precanned script, and then views the details of that script run.
 
   ```matlab
+  
   import org.dataone.client.run.RunManager;
   mgr = RunManager.getInstance();
   mgr.configuration.capture_yesworkflow_comments=0;
+  
   mgr.record('/full/path/to/script', 'example_run_tag_01');
   mgr.listRuns();
   mgr.viewRun('tag', 'example_run_tag_01', 'sections', {'details', 'used', 'generated'});
