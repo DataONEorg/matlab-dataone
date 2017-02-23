@@ -1,7 +1,7 @@
 Matlab DataONE Toolbox (version 2)
 =======================
 
-- **Author**:  Yang Cao, Peter Slaughter, Christopher Jones, Matthew B. Jones (DataONE_), Bertram Ludäscher
+- **Author**:  Yang Cao, Peter Slaughter, , Bertram Ludäscher, Christopher Jones, Matthew B. Jones (DataONE_)
 - **License**: `Apache 2`_
 - Package source code and results `seen here`_
 
