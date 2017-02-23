@@ -30,7 +30,7 @@ Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob
 
 `Matlab R2015a` or later for Mac, Windows, or Linux is required to use the toolbox. `SQlite` database is required to install. To install the toolbox, 
 
-1. Clone the ml-sqlite branch to your local computer by typing the follwing command at the command window
+1. Clone the `ml-sqlite` branch to your local computer by typing the follwing command at the command window
   
     `git clone -b ml-sqlite https://github.com/DataONEorg/matlab-dataone.git`
     
