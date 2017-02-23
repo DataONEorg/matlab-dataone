@@ -90,10 +90,10 @@ The classes provided in the toolbox have built-in documentation.  Use the help()
   doc org.dataone.client.run.RunManager
   ```
   
-A [Previous Version User Guide](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) is in the works, and will walk through the various toolbox functions.
+A [Previous Version User Guide](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) might be a good resource that walk through the various toolbox functions.
 
 
-# Kown Issues
+## Kown Issues
 
  * The toolbox captures provenance for only a subset of the load() function syntaxes. See [Issue #196](https://github.com/DataONEorg/sem-prov-design/issues/196)
  * The toolbox captures provenance for the save() function, but requires the filename to be the first argument. See [Issue #198](https://github.com/DataONEorg/sem-prov-design/issues/198)
