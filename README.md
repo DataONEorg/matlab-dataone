@@ -10,15 +10,14 @@ We appreciate you for installing and trying matlab-dataone provenance toolbox !
 
 # Introduction
 
-Provenance from scripts and runs of scripts plays an important role in soware debugging, testing, reliability and sharing. Such provenance traces consist of events that the user is interested in. A considerable amount of research has been done on investigating methods of harvesting provenance information from scripts and runs of scripts, ranging from conventional approaches, e.g. research compendium (folder layouts) and logging to recent provenance tools, e.g., YesWorkow (YW), noWorkow (NW), RDataTracker, Reprozip.
+Provenance from scripts and runs of scripts plays an important role in soware debugging, testing, reliability and sharing. Such provenance traces consist of events that the user is interested in. A considerable amount of research has been done on investigating methods of harvesting provenance information from scripts and runs of scripts, ranging from conventional approaches, e.g. research compendium (folder layouts) and logging to recent provenance tools, e.g., YesWorkflow (YW), noWorkflow (NW), RDataTracker, Reprozip.
 
-The `Matlab DataONE Toolbox` is a provenance management software. It can capture, store, query, and visualization of a Matlab script run. There are three types of provenance supported by `matlab-dataone`: prospective provenance, retrospective provenance, and hybrid provenance. The prospective provenance is prospective provenance can be expressed using YW tags. DataONE RunManagers for R and MATLAB to capture runtime le-level provenance information that
-are interested by the earth science community. The retrospective provenance captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution.  A DataONE package includes scripts, a list of input files, and a list of generated files, science metadata that are associated with the run that can be indexed within the DataONE network. 
+The `Matlab DataONE Toolbox` is a provenance management software. It can capture, store, query, and visualization of a Matlab script run. There are three types of provenance supported by `matlab-dataone`: **prospective provenance**, **retrospective provenance**, and **hybrid provenance**. The prospective provenance is prospective provenance can be expressed using YW tags. DataONE RunManagers for R and MATLAB to capture runtime file-level provenance information that are interested by the earth science community. The retrospective provenance captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution. A DataONE package includes scripts, a list of input files, and a list of generated files, science metadata that are associated with the run that can be indexed within the DataONE network. 
 
 Then, we show how to produce hybrid provenance by joining prospective and retrospective provenance with the YW URI mechanism. Last but not least, we propose multi-run provenance. From the multi-run provenance, it enables a longitudinal view of a typical real-life scientic workow that consists of multiple phases.
-Since computational and data science experiments can oen last days, weeks, or even months and oen require the execution of multiple scripts or workows with varying input datasets and parameters, some of these script runs appear as chained together implicitly via intermediate data.
+Since computational and data science experiments can oen last days, weeks, or even months and often require the execution of multiple scripts or workows with varying input datasets and parameters, some of these script runs appear as chained together implicitly via intermediate data.
 
-For a workow project, we have multiple provenance graphs consisting of a graph of prospective provenance, a graph of hybrid provenance, a graph of retrospective multi-run provenance.
+We use query-based approach for provenance analysis. A query is implemented in Prolog and SQL now. For a workflow project, we have multiple provenance graphs consisting of a graph of prospective provenance, a graph of hybrid provenance, a graph of retrospective multi-run provenance.
 
 
 # Installation Notes
@@ -44,8 +43,8 @@ For a workow project, we have multiple provenance graphs consisting of a graph
  * viewRun()
  * deleteRuns()
  * publishRun() -- coming soon
- * exportFileRecords2Yaml
- * exportR2PrologFacts
+ * exportFileRecords2Yaml()
+ * exportR2PrologFacts()
 
 
 # Example Usage
