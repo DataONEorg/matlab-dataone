@@ -88,7 +88,7 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
 
 # Documentation
 
-The classes provided in the toolbox have built-in documentation.  Use the help() function or the doc() function to view the help for a given class.  For instance, to view the help on the RunManager class, use:
+The classes provided in the toolbox have built-in documentation.  You might use the help() function or the doc() function to view the help for a given class.  For instance, if you would like to view the help on the RunManager class, please use:
 
   ```matlab
   
