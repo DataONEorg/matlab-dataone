@@ -99,7 +99,7 @@ The classes provided in the toolbox have built-in documentation.  You might use 
   doc org.dataone.client.run.RunManager
   ```
   
-A [User Guide for matlab-dataone (Version 1)](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) might be a good resource that walk through the various toolbox functions.
+A [user guide for matlab-dataone (version 1)](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) might be a good resource that walk through the various toolbox functions.
 
 # Software Installing Instructions
 
