@@ -8,8 +8,18 @@ We appreciate you for installing and trying matlab-dataone provenance toolbox !
 * [Package source code on Github](https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite)
 * [Submit Bugs and feature requests](https://github.com/DataONEorg/sem-prov-design/issues)
 
+# Introduction
 
-The `Matlab DataONE Toolbox` provides an automated way to capture data provenance for Matlab scripts and console commands without the need to modify existing Matlab code.  The provenance captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution.  A package of the script iteself, its input files, and generated files that are associated with the run can be easily published to a repository within the DataONE network.
+Provenance from scripts and runs of scripts plays an important role in soware debugging, testing, reliability and sharing. Such provenance traces consist of events that the user is interested in. A considerable amount of research has been done on investigating methods of harvesting provenance information from scripts and runs of scripts, ranging from conventional approaches, e.g. research compendium (folder layouts) and logging to recent provenance tools, e.g., YesWorkow (YW), noWorkow (NW), RDataTracker, Reprozip.
+
+The `Matlab DataONE Toolbox` is a provenance management software. It can capture, store, query, and visualization of a Matlab script run. There are three types of provenance supported by `matlab-dataone`: prospective provenance, retrospective provenance, and hybrid provenance. The prospective provenance is prospective provenance can be expressed using YW tags. DataONE RunManagers for R and MATLAB to capture runtime le-level provenance information that
+are interested by the earth science community. The retrospective provenance captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution.  A DataONE package includes scripts, a list of input files, and a list of generated files, science metadata that are associated with the run that can be indexed within the DataONE network. 
+
+Then, we show how to produce hybrid provenance by joining prospective and retrospective provenance with the YW URI mechanism. Last but not least, we propose multi-run provenance. From the multi-run provenance, it enables a longitudinal view of a typical real-life scientic workow that consists of multiple phases.
+Since computational and data science experiments can oen last days, weeks, or even months and oen require the execution of multiple scripts or workows with varying input datasets and parameters, some of these script runs appear as chained together implicitly via intermediate data.
+
+For a workow project, we have multiple provenance graphs consisting of a graph of prospective provenance, a graph of hybrid provenance, a graph of retrospective multi-run provenance.
+
 
 # Installation Notes
 
@@ -26,10 +36,16 @@ The `Matlab DataONE Toolbox` provides an automated way to capture data provenanc
 5. Notes that at least Java 7 or above is requried in order to use our matlab-dataone toolbox
 6. `Matlab DataONE Toolbox ml-sqlite` branch: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
-
-# License
-
-The `Matlab DataONE Toolbox` is licensed as open source software under the [`Apache 2.0`_ license] ( http://opensource.org/licenses/Apache-2.0 )
+# RunManager Functions
+ * startRecord()
+ * endRecord()
+ * record()
+ * listRuns()
+ * viewRun()
+ * deleteRuns()
+ * publishRun() -- coming soon
+ * exportFileRecords2Yaml
+ * exportR2PrologFacts
 
 
 # Example Usage
@@ -37,7 +53,6 @@ The `Matlab DataONE Toolbox` is licensed as open source software under the [`Apa
 Thae Matlab DataONE package can be used to track code execution in Matlab, data inputs and outputs to those executions, and the software environment during the execution (e.g. Matlab and operating system versions).  As a quick start, here is an example that starts the toolbox `RunManager`, executes a precanned script, and then views the details of that script run.
 
   ```matlab
-
   import org.dataone.client.run.RunManager;
   mgr = RunManager.getInstance();
   mgr.configuration.capture_yesworkflow_comments=0;
@@ -85,4 +100,10 @@ A [User Guide](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/use
  * Debugging log output for some function calls is not suppressed completely. See [Issue #200](https://github.com/DataONEorg/sem-prov-design/issues/200)
 
 
-<img src="https://www.dataone.org/sites/default/files/d1-logo-v3_aligned_left_0_0.jpeg" align="left" height="240" width="240" hspace="50">
+<img src="https://www.dataone.org/sites/default/files/d1-logo-v3_aligned_left_0_0.jpeg" align="left" height="96" width="96" hspace="50">
+
+
+# License
+
+The `Matlab DataONE Toolbox` is licensed as open source software under the [`Apache 2.0`_ license] ( http://opensource.org/licenses/Apache-2.0 )
+
