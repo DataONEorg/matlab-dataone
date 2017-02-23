@@ -3,7 +3,7 @@ Matlab DataONE Toolbox (version 2)
 
 can be `seen here`_
 
-.. _`see here`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
+.. _`seen here`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
 Matlab DataONE Toolbox (version 1)
 ======================
