@@ -19,9 +19,9 @@ Installation Notes
 Matlab R2015a or later for Mac, Windows, or Linux is required to use the toolbox. To install the toolbox, 
 
 1) Clone the ml-sqlite branch to your local computer by typing the follwing command at the command window
-     ```
+     `
     git clone -b ml-sqlite https://github.com/DataONEorg/matlab-dataone.git
-     ```
+     `
 2) Open Matlab and change directories to local **matlab-dataone** directory
 3) Run the **install_matlab_dataone** script (**install_matlab_dataone.m**) either from the command line or from Matlab
 4) Restart Matlab
