@@ -1,4 +1,4 @@
-Matlab DataONE Toolbox
+Matlab DataONE Toolbox (version 1)
 ======================
 
 - **Author**:  Christopher Jones, Yang Cao, Peter Slaughter, Matthew B. Jones (DataONE_)
