@@ -1,9 +1,9 @@
-We appreciate you for installing, trying and testing matlab-dataone provenance toolbox !
+Getting Started with the MATLAB DataONE Toolbox !
 
 # Matlab DataONE Toolbox (version 2)
 
 
-* **Author**:  Yang Cao, Peter Slaughter ([DataONE](http://dataone.org))
+* **Contact Authors**:  Yang Cao, Peter Slaughter ([DataONE](http://dataone.org))
 * **License**: [Apache 2](http://opensource.org/licenses/Apache-2.0)
 * [Package source code on Github](https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite)
 * [Submit Bugs and feature requests](https://github.com/DataONEorg/sem-prov-design/issues)
@@ -26,7 +26,7 @@ Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob
  * OHIBC R Scripts Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/OHIBC_Howe_Sound_project) 
  
  
-## Installing Matlab-dataone Toolbox Instructions
+## Installing the MATLAB-DataONE Toolbox 
 
 `Matlab R2015a` or later for Mac, Windows, or Linux is required to use the toolbox. `SQlite` database is required to install. To install the toolbox, 
 
@@ -99,19 +99,19 @@ The classes provided in the toolbox have built-in documentation.  You might use 
   
 A [user guide for matlab-dataone (version 1)](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) might be a good resource that walk through the various toolbox functions.
 
-## Software Installing Instructions
+## Installing Dependent Software
 
 The following free software are required in order to run  this demo.
 
   * **Java**: please install Java SE Development Kit 8 by navigating to http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html  to view JDK dowloads. Accept all default installation configuration. Please confirm if Java is available by typing the command below. If not, please locate the directory containing the JDK executables (`C:\Program Files\Java\jdk1.8.0_121\bin`) and add the direcoty containing the JDK executables to my Windows `path` variable. 
   
 	   ```sh
-	   C:\Users\tmcphill> java -version 
+	   C:\Users\my_home> java -version 
 	   java version "1.8.0_121" 
 	   Java(TM) SE Runtime Environment (build 1.8.0_121-b13) 
 	   Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode) 
  
-	   C:\Users\tmcphill>
+	   C:\Users\my_home>
        ``` 	 
   * **XSB**: a Logic Programming and Deductive Database system for Unix and Windows ([XSB homepage]
   (http://xsb.sourceforge.net)). The download and installation page for XSB is at [here] (http://xsb.sourceforge.net/downloads/downloads.html) or please navigate to the page https://sourceforge.net/projects/xsb/files/xsb/. The version 3.7 is the newest version. 
@@ -127,7 +127,7 @@ The following free software are required in order to run  this demo.
        Then, add the path to the XSB executable to my windows path variable `Control Panel -> System and Security -> System -> Advanced System Settings -> Environment Variables -> Path`. Typing `xsb` in a command console in order to confirm that XSB can run from the command prompt.   
  
         ```sh
-	      C:\Users\tmcphill> xsb 
+	      C:\Users\my_home> xsb 
 	      [xsb_configuration loaded] 
 	      [sysinitrc loaded] 
 	      [xsbbrat loaded] 
@@ -158,7 +158,7 @@ The following free software are required in order to run  this demo.
 * **Graphviz**: a Graph Visuzlization Software for Unix and Windows.  It is available at [Graphviz homepage](http://www.graphviz.org). The download and installation page for Graphviz is at  [here](http://www.graphviz.org/Download.php). For Windows platform, please download `graphviz-2.38.msi` installer package and start the installer file. You might accept all default configurations. Please confirm if the `dot` command is available by typing the command below. If not, then first determined directory containing dot.exe binary (`C:\Program Files (x86)\Graphviz2.38\bin`) and added the directory containing the dot executable to my Windows PATH variable.
  
     ```sh
-     C:\Users\tmcphill> dot
+     C:\Users\my_home> dot
        'dot' is not recognized as an internal or external command,
         operable program or batch file. 
     ```
@@ -166,7 +166,7 @@ The following free software are required in order to run  this demo.
 * **Install Git for Windows**: please download `Git` for Windows from https://git-for-windows.github.io/. Run the downloaded `Git-2.11.1-64-bit.exe` and accept default configuration. Then, finish installation. Please check the `git` command in the command shell by typing `git --version`. Next, you might add the `path to bash executable` included with "Git for Windows" (`C:\Program Files\Git\bin`) to my Windows `path` variable so that the bash script can run on the command prompt directly.
   
     ```sh
-      C:\Users\tmcphill> git --version 
+      C:\Users\my_home> git --version 
       git version 2.11.1.windows.1
     ```	   
 	
