@@ -23,7 +23,7 @@ We use query-based approach for provenance analysis. A query is implemented in P
 ## Sample Provenance Query
 Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob/master/queries/README.md) in the demo repo.
  * C3C4 Matlab Script Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/examples/C3C4/results)
- * OHIBC R Script Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/OHIBC_Howe_Sound_project) 
+ * OHIBC R Scripts Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/OHIBC_Howe_Sound_project) 
  
  
 # Installing Instructions
