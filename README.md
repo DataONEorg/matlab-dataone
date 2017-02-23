@@ -3,7 +3,7 @@ We appreciate you for installing and trying matlab-dataone provenance toolbox !
 # Matlab DataONE Toolbox (version 2)
 
 
-* **Author**:  Yang Cao, Christopher Jones, Peter Slaughter, Matthew B. Jones ([DataONE](http://dataone.org))
+* **Author**:  Yang Cao, Peter Slaughter, Christopher Jones, Matthew B. Jones ([DataONE](http://dataone.org))
 * **License**: [Apache 2](http://opensource.org/licenses/Apache-2.0)
 * [Package source code on Github](https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite)
 * [Submit Bugs and feature requests](https://github.com/DataONEorg/sem-prov-design/issues)
@@ -37,15 +37,15 @@ We use query-based approach for provenance analysis. A query is implemented in P
 6. `Matlab DataONE Toolbox ml-sqlite` branch: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
 # RunManager Functions
- * startRecord()
- * endRecord()
- * record()
- * listRuns()
- * viewRun()
- * deleteRuns()
- * publishRun() -- coming soon
- * exportFileRecords2Yaml()
- * exportR2PrologFacts()
+ * startRecord( )
+ * endRecord( )
+ * record( )
+ * listRuns( )
+ * viewRun( )
+ * deleteRuns( )
+ * publishRun( ) -- coming soon
+ * exportFileRecords2Yaml( )
+ * exportR2PrologFacts( )
 
 
 # Example Usage
