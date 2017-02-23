@@ -100,7 +100,7 @@ The classes provided in the toolbox have built-in documentation.  You might use 
   
 A [Previous Version User Guide](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) might be a good resource that walk through the various toolbox functions.
 
-## Installing Instructions
+# Software Installing Instructions
 
 The following free software are required in order to run  this demo.
 
