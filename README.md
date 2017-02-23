@@ -107,16 +107,39 @@ The following free software are required in order to run  this demo.
   * **Java**: please install Java SE Development Kit 8 by navigating to http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html  to view JDK dowloads. Accept all default installation configuration. Please confirm if Java is available by typing the command below. If not, please locate the directory containing the JDK executables (`C:\Program Files\Java\jdk1.8.0_121\bin`) and add the direcoty containing the JDK executables to my Windows `path` variable. 
   
 	   ```sh
-	   C:\Users\my_home> java -version 
-	   java version "1.8.0_121" 
-	   Java(TM) SE Runtime Environment (build 1.8.0_121-b13) 
-	   Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode) 
- 
-	   C:\Users\my_home>
+	   my_home$ java -version
+	   java version "1.8.0_91"
+	   Java(TM) SE Runtime Environment (build 1.8.0_91-b14)
+	   Java HotSpot(TM) 64-Bit Server VM (build 25.91-b14, mixed mode)	  
+	   
+	   my_home$
        ``` 	 
   * **XSB**: a Logic Programming and Deductive Database system for Unix and Windows ([XSB homepage]
   (http://xsb.sourceforge.net)). The download and installation page for XSB is at [here] (http://xsb.sourceforge.net/downloads/downloads.html) or please navigate to the page https://sourceforge.net/projects/xsb/files/xsb/. The version 3.7 is the newest version. 
   
+   * **Install XSB on Mac/Linux** Download the XSB tar package (XSB 3.6 (Linux/Mac/*nixes)) from [here](https://sourceforge.net/projects/xsb/files/latest/download?source=files). Then, Unpack the tarball in some directory. This should create a subdirectory, called `XSB`, which contains the XSB sources. In the terminal, type
+  
+      ```sh
+ 	     my_home$ tar xvf XSB.tar
+		 my_home$ cd XSB/build
+ 	     my_home$ ./configure
+ 	     my_home$ ./makexsb
+		 my_home$  /Users/my_home/XSB/bin/xsb
+      ```
+ 
+    Next, you might add the path to the XSB executable (`/Users/my_home/XSB/bin/xsb`) to the `PATH` variable. For example, in a ~/.bashrc file, add this line:
+ 
+      ```sh
+        export PATH="/Users/my_home/XSB/bin:$PATH"
+      ```
+	
+    Then, in a terminal, typing this command
+	    ```sh
+		  my_home$ source ~/.bashrc
+		  my_home$ which xsb
+		  /Users/my_home/XSB/bin/xsb
+		````
+   
    * **Install XSB on Windows** Download the XSB executable `xsb-3.7.0.exe` for Windows platform. Run the downloaded installer file and accept all default configuration.
        This is the extra steps for Windows users. Please determine which directory contains the XSB executable that works for your computer: 
    
@@ -142,27 +165,23 @@ The following free software are required in order to run  this demo.
 	      End XSB (cputime 0.05 secs, elapsetime 4.22 secs)
         ```
 
-   * **Install XSB on Mac/Linux** Download the XSB tar package (version 3.7.0) from [here](https://sourceforge.net/projects/xsb/files/xsb/3.7%20%28Clan%20MacGregor%29/XSB.tar.gz/download). Then, Unpack the tarball in some directory. This should create a subdirectory, called `XSB`, which contains the XSB sources. In the terminal, type
-   
-       ```sh
-  	     cd XSB/build
-  	     ./configure
-  	     ./makexsb
-	   ```
-  
-     Next, you might add the path to the XSB executable to the `PATH` variable. For example, in a ~/.bashrc file, add this line:
-	 
-	    ```sh
-	    export PATH="/path/to/xsb-3.7/bin:$PATH"
-	    ```
+* **Graphviz**: a Graph Visuzlization Software for Unix and Windows.  It is available at [Graphviz homepage](http://www.graphviz.org). The download and installation page for Graphviz is at  [here](http://www.graphviz.org/Download.php). 
 
-* **Graphviz**: a Graph Visuzlization Software for Unix and Windows.  It is available at [Graphviz homepage](http://www.graphviz.org). The download and installation page for Graphviz is at  [here](http://www.graphviz.org/Download.php). For Windows platform, please download `graphviz-2.38.msi` installer package and start the installer file. You might accept all default configurations. Please confirm if the `dot` command is available by typing the command below. If not, then first determined directory containing dot.exe binary (`C:\Program Files (x86)\Graphviz2.38\bin`) and added the directory containing the dot executable to my Windows PATH variable.
+    * For **Mac/Linux**, please click "Agree" to accept the agreement. Then, you are directed to a download webpage. Please choose the proper install package. For example, on Mac, we use the version graphviz-2.38.0.pkg. When the package is downloaded to your local computer, move the mouse to the "graphviz-2.38.0.pkg", right click, a window will be popped and ask you whether you want to open it, choose "Open". Then, please follow the installation procedure and accept all default configurations. When the installation is completed, you might check the `dot` command in a terminal by typing
+	
+	   ```sh
+	     my_home$ which dot
+		 /usr/local/bin/dot
+	   ```` 
+  
+  
+    * For **Windows**, please download `graphviz-2.38.msi` installer package and start the installer file. You might accept all default configurations. Please confirm if the `dot` command is available by typing the command below. If not, then first determined directory containing dot.exe binary (`C:\Program Files (x86)\Graphviz2.38\bin`) and added the directory containing the dot executable to my Windows PATH variable.
  
-    ```sh
-     C:\Users\my_home> dot
-       'dot' is not recognized as an internal or external command,
-        operable program or batch file. 
-    ```
+      ```sh
+       C:\Users\my_home> dot
+         'dot' is not recognized as an internal or external command,
+         operable program or batch file. 
+      ```
  
 * **Install Git for Windows**: please download `Git` for Windows from https://git-for-windows.github.io/. Run the downloaded `Git-2.11.1-64-bit.exe` and accept default configuration. Then, finish installation. Please check the `git` command in the command shell by typing `git --version`. Next, you might add the `path to bash executable` included with "Git for Windows" (`C:\Program Files\Git\bin`) to my Windows `path` variable so that the bash script can run on the command prompt directly.
   
