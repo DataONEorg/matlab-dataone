@@ -48,7 +48,7 @@ We use query-based approach for provenance analysis. A query is implemented in P
  * exportR2PrologFacts( )
 
 
-# Example Usage
+## Example Usage
 
 Thae Matlab DataONE package can be used to track code execution in Matlab, data inputs and outputs to those executions, and the software environment during the execution (e.g. Matlab and operating system versions).  As a quick start, here is an example that starts the toolbox `RunManager`, executes a precanned script, and then views the details of that script run.
 
