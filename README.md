@@ -26,8 +26,7 @@ Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob
  * OHIBC R Scripts Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/OHIBC_Howe_Sound_project) 
  
  
-# Installing Instructions
-
+# Installing Matlab-dataone Toolbox Instructions
 
 `Matlab R2015a` or later for Mac, Windows, or Linux is required to use the toolbox. To install the toolbox, 
 
@@ -101,7 +100,106 @@ The classes provided in the toolbox have built-in documentation.  You might use 
   
 A [Previous Version User Guide](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) might be a good resource that walk through the various toolbox functions.
 
+## Installing Instructions
 
+The following free software are required in order to run  this demo.
+
+  * **Java**: please install Java SE Development Kit 8 by navigating to http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html  to view JDK dowloads. Accept all default installation configuration. Please confirm if Java is available by typing the command below. If not, please locate the directory containing the JDK executables (`C:\Program Files\Java\jdk1.8.0_121\bin`) and add the direcoty containing the JDK executables to my Windows `path` variable. 
+  
+	   ```sh
+	   C:\Users\tmcphill> java -version 
+	   java version "1.8.0_121" 
+	   Java(TM) SE Runtime Environment (build 1.8.0_121-b13) 
+	   Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode) 
+ 
+	   C:\Users\tmcphill>
+       ``` 	 
+  * **XSB**: a Logic Programming and Deductive Database system for Unix and Windows ([XSB homepage]
+  (http://xsb.sourceforge.net)). The download and installation page for XSB is at [here] (http://xsb.sourceforge.net/downloads/downloads.html) or please navigate to the page https://sourceforge.net/projects/xsb/files/xsb/. The version 3.7 is the newest version. 
+  
+   * **Install XSB on Windows** Download the XSB executable `xsb-3.7.0.exe` for Windows platform. Run the downloaded installer file and accept all default configuration.
+       This is the extra steps for Windows users. Please determine which directory contains the XSB executable that works for your computer: 
+   
+       ```sh
+         C:\Program Files (x86)\XSB\config\x64-pc-windows\bin  
+         C:\Program Files (x86)\XSB\config\x86-pc-windows\bin 
+       ``` 
+
+       Then, add the path to the XSB executable to my windows path variable `Control Panel -> System and Security -> System -> Advanced System Settings -> Environment Variables -> Path`. Typing `xsb` in a command console in order to confirm that XSB can run from the command prompt.   
+ 
+        ```sh
+	      C:\Users\tmcphill> xsb 
+	      [xsb_configuration loaded] 
+	      [sysinitrc loaded] 
+	      [xsbbrat loaded] 
+ 
+	      XSB Version 3.6. (Gazpatcho) of April 22, 2015 
+	      [x64-pc-windows; mode: optimal; engine: slg-wam; scheduling: local] 
+	      [Build date: 2015-04-22] 
+ 
+	      | ?- halt. 
+ 
+	      End XSB (cputime 0.05 secs, elapsetime 4.22 secs)
+        ```
+
+   * **Install XSB on Mac/Linux** Download the XSB tar package (version 3.7.0) from [here](https://sourceforge.net/projects/xsb/files/xsb/3.7%20%28Clan%20MacGregor%29/XSB.tar.gz/download). Then, Unpack the tarball in some directory. This should create a subdirectory, called `XSB`, which contains the XSB sources. In the terminal, type
+   
+       ```sh
+  	     cd XSB/build
+  	     ./configure
+  	     ./makexsb
+	   ```
+  
+     Next, you might add the path to the XSB executable to the `PATH` variable. For example, in a ~/.bashrc file, add this line:
+	 
+	    ```sh
+	    export PATH="/path/to/xsb-3.7/bin:$PATH"
+	    ```
+
+* **Graphviz**: a Graph Visuzlization Software for Unix and Windows.  It is available at [Graphviz homepage](http://www.graphviz.org). The download and installation page for Graphviz is at  [here](http://www.graphviz.org/Download.php). For Windows platform, please download `graphviz-2.38.msi` installer package and start the installer file. You might accept all default configurations. Please confirm if the `dot` command is available by typing the command below. If not, then first determined directory containing dot.exe binary (`C:\Program Files (x86)\Graphviz2.38\bin`) and added the directory containing the dot executable to my Windows PATH variable.
+ 
+    ```sh
+     C:\Users\tmcphill> dot
+       'dot' is not recognized as an internal or external command,
+        operable program or batch file. 
+    ```
+ 
+* **Install Git for Windows**: please download `Git` for Windows from https://git-for-windows.github.io/. Run the downloaded `Git-2.11.1-64-bit.exe` and accept default configuration. Then, finish installation. Please check the `git` command in the command shell by typing `git --version`. Next, you might add the `path to bash executable` included with "Git for Windows" (`C:\Program Files\Git\bin`) to my Windows `path` variable so that the bash script can run on the command prompt directly.
+  
+    ```sh
+      C:\Users\tmcphill> git --version 
+      git version 2.11.1.windows.1
+    ```	   
+	
+   
+* **Installing Git for Mac** 
+   
+  * The easiest is to use the graphical Git installer, which you can download from the [SourceForge page](http://sourceforge.net/projects/git-osx-installer/)
+   
+  * If you have `MacPorts` installed, install Git via
+   ```sh
+   $ sudo port install git
+   ```
+  * If you have `Homebrew` installed, install Git via
+   ```sh
+   $ brew install git
+   ```
+   
+* **Installing Git for Linux** If you want to install Git on Linux via a binary installer, you can generally do so through the basic package-management tool that comes with your distribution. If you’re on Fedora, you can use `yum`:
+  
+  ```sh
+    $ yum install git
+  ```
+  
+  Or if you’re on a Debian-based distribution like Ubuntu, try apt-get:
+  ```
+   $ apt-get install git
+  ```
+  
+  
+* **SQLite**:  a high-reliability, embedded, zero-configuration, public-domain, SQL database engine.  It is availabe at [SQLite homepage](https://www.sqlite.org). 
+     
+     
 ## Kown Issues
 
  * The toolbox captures provenance for only a subset of the load() function syntaxes. See [Issue #196](https://github.com/DataONEorg/sem-prov-design/issues/196)
