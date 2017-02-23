@@ -71,8 +71,6 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   mgr.viewRun('tag', 'example_run_tag_01', 'sections', {'details', 'used', 'generated'});
   mgr.viewRun('runNumber', 1, 'sections', {'details', 'used', 'generated'});  
   mgr.deleteRuns('tagList', {'example_run_tag_01'}, 'noop', false);
-  
-  mgr.listRuns();
   mgr.deleteRuns('tagList', {'example_run_tag_02','example_run_tag_03'}, 'noop', false);
 
   mgr.exportFileRecords2Yaml('execution_id', 'prefix__string_in_uri_template', 'exported_file_name.yaml');
