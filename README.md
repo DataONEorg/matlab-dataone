@@ -138,7 +138,7 @@ The following free software are required in order to run  this demo.
 		  my_home$ source ~/.bashrc
 		  my_home$ which xsb
 		  /Users/my_home/XSB/bin/xsb
-		````
+		```
    
    * **Install XSB on Windows** Download the XSB executable `xsb-3.6.0.exe` for Windows platform. Run the downloaded installer file and accept all default configuration.
        This is the extra steps for Windows users. Please determine which directory contains the XSB executable that works for your computer: 
@@ -208,7 +208,7 @@ The following free software are required in order to run  this demo.
    $ apt-get install git
   ```
   
- * **Install Git for Windows**: please download `Git` for Windows from https://git-for-windows.github.io/. Run the downloaded `Git-2.11.1-64-bit.exe` and accept default configuration. Then, finish installation. Please check the `git` command in the command shell by typing `git --version`. Next, you might add the `path to bash executable` included with "Git for Windows" (`C:\Program Files\Git\bin`) to my Windows `path` variable so that the bash script can run on the command prompt directly.
+* **Install Git for Windows**: please download `Git` for Windows from https://git-for-windows.github.io/. Run the downloaded `Git-2.11.1-64-bit.exe` and accept default configuration. Then, finish installation. Please check the `git` command in the command shell by typing `git --version`. Next, you might add the `path to bash executable` included with "Git for Windows" (`C:\Program Files\Git\bin`) to my Windows `path` variable so that the bash script can run on the command prompt directly.
   
      ```sh
        C:\Users\my_home> git --version 
