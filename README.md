@@ -1,17 +1,13 @@
 We appreciate you for installing and trying matlab-dataone provenance toolbox !
 
-# Matlab DataONE Toolbox
+# Matlab DataONE Toolbox (version 2)
 
 
-* **Author**:  Yang Cao, Christopher Jones, Peter Slaughter, Matthew B. Jones (DataONE_)
-* **License**: `Apache 2`_
-* `Package source code on Github`_
-* `Submit Bugs and feature requests`_
+* **Author**:  Yang Cao, Christopher Jones, Peter Slaughter, Matthew B. Jones ([DataONE](http://dataone.org))
+* **License**: [Apache 2](http://opensource.org/licenses/Apache-2.0)
+* [Package source code on Github](https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite)
+* [Submit Bugs and feature requests](https://github.com/DataONEorg/sem-prov-design/issues)
 
-  * DataONE: http://dataone.org
-  * `Apache 2`: http://opensource.org/licenses/Apache-2.0
-  * `Package source code on Github`: https://github.com/DataONEorg/matlab-dataone
-  * `Submit Bugs and feature requests`: https://github.com/DataONEorg/sem-prov-design/issues
 
 The `Matlab DataONE Toolbox` provides an automated way to capture data provenance for Matlab scripts and console commands without the need to modify existing Matlab code.  The provenance captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution.  A package of the script iteself, its input files, and generated files that are associated with the run can be easily published to a repository within the DataONE network.
 
@@ -79,19 +75,14 @@ The classes provided in the toolbox have built-in documentation.  Use the help()
   doc org.dataone.client.run.RunManager
   ```
   
-A `User Guide`_ is in the works, and will walk through the various toolbox functions.
-
-.. _`User Guide`: https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst
+A [User Guide](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) is in the works, and will walk through the various toolbox functions.
 
 
 # Kown Issues
 
- * The toolbox captures provenance for only a subset of the load() function syntaxes. See `Issue #196`_
- * The toolbox captures provenance for the save() function, but requires the filename to be the first argument. See `Issue #198`_
- * Debugging log output for some function calls is not suppressed completely. See `Issue #200`_
+ * The toolbox captures provenance for only a subset of the load() function syntaxes. See [Issue #196](https://github.com/DataONEorg/sem-prov-design/issues/196)
+ * The toolbox captures provenance for the save() function, but requires the filename to be the first argument. See [Issue #198](https://github.com/DataONEorg/sem-prov-design/issues/198)
+ * Debugging log output for some function calls is not suppressed completely. See [Issue #200](https://github.com/DataONEorg/sem-prov-design/issues/200)
 
-.. _`Issue #196`: https://github.com/DataONEorg/sem-prov-design/issues/196
-.. _`Issue #198`: https://github.com/DataONEorg/sem-prov-design/issues/198
-.. _`Issue #200`: https://github.com/DataONEorg/sem-prov-design/issues/200
 
-.. image:: https://www.dataone.org/sites/default/files/d1-logo-v3_aligned_left_0_0.jpeg
+<img src="https://www.dataone.org/sites/default/files/d1-logo-v3_aligned_left_0_0.jpeg" align="left" height="240" width="240" hspace="50">
