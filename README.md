@@ -38,7 +38,7 @@ Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob
 3. Run the `install_matlab_dataone` script (`install_matlab_dataone.m`) either from the command line or from Matlab
 4. Restart Matlab
 5. Notes that at least Java 7 or above is requried in order to use our matlab-dataone toolbox
-6. `Matlab DataONE Toolbox ml-sqlite` branch: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
+
 
 ## RunManager Functions
  * startRecord( )
