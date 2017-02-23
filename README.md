@@ -1,4 +1,4 @@
-We appreciate you for installing and trying matlab-dataone provenance toolbox !
+We appreciate you for installing, trying and testing matlab-dataone provenance toolbox !
 
 # Matlab DataONE Toolbox (version 2)
 
