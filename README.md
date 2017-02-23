@@ -182,14 +182,7 @@ The following free software are required in order to run  this demo.
          'dot' is not recognized as an internal or external command,
          operable program or batch file. 
       ```
- 
-* **Install Git for Windows**: please download `Git` for Windows from https://git-for-windows.github.io/. Run the downloaded `Git-2.11.1-64-bit.exe` and accept default configuration. Then, finish installation. Please check the `git` command in the command shell by typing `git --version`. Next, you might add the `path to bash executable` included with "Git for Windows" (`C:\Program Files\Git\bin`) to my Windows `path` variable so that the bash script can run on the command prompt directly.
-  
-    ```sh
-      C:\Users\my_home> git --version 
-      git version 2.11.1.windows.1
-    ```	   
-	
+ 	
    
 * **Installing Git for Mac** 
    
@@ -215,7 +208,13 @@ The following free software are required in order to run  this demo.
    $ apt-get install git
   ```
   
+ * **Install Git for Windows**: please download `Git` for Windows from https://git-for-windows.github.io/. Run the downloaded `Git-2.11.1-64-bit.exe` and accept default configuration. Then, finish installation. Please check the `git` command in the command shell by typing `git --version`. Next, you might add the `path to bash executable` included with "Git for Windows" (`C:\Program Files\Git\bin`) to my Windows `path` variable so that the bash script can run on the command prompt directly.
   
+     ```sh
+       C:\Users\my_home> git --version 
+       git version 2.11.1.windows.1
+     ```
+	  
 * **SQLite**:  a high-reliability, embedded, zero-configuration, public-domain, SQL database engine.  It is availabe at [SQLite homepage](https://www.sqlite.org). 
      
      
