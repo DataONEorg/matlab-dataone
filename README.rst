@@ -20,7 +20,7 @@ Matlab DataONE Toolbox (version 1)
 .. _`Package source code on Github`: https://github.com/DataONEorg/matlab-dataone
 .. _`Submit Bugs and feature requests`: https://github.com/DataONEorg/sem-prov-design/issues
 
-The *Matlab DataONE Toolbox* provides an automated way to capture data provenance for Matlab scripts and console commands without the need to modify existing Matlab code.  The **rerospective provenance** captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution. Our toolbox uses **prospective provenance** tool YesWorkflow to express the prospective provenance embedded in the script code. A package of the script iteself, its input files, and generated files that are associated with the run can be easily published to a repository within the DataONE network.
+The *Matlab DataONE Toolbox* provides an automated way to capture, store, and publish data provenance for Matlab scripts and console commands without the need to modify existing Matlab code.  The **rerospective provenance** captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution. Our toolbox uses **prospective provenance** tool YesWorkflow to express the prospective provenance that is embedded in the script code as figures. A package of the script iteself, its input files, and generated files that are associated with the run can be easily published to a repository within the DataONE network.
 
 Installation Notes
 ==================
