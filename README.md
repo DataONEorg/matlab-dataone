@@ -8,7 +8,7 @@ We appreciate you for installing, trying and testing matlab-dataone provenance t
 * [Package source code on Github](https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite)
 * [Submit Bugs and feature requests](https://github.com/DataONEorg/sem-prov-design/issues)
 
-# Introduction
+## Introduction
 
 Provenance from scripts and runs of scripts plays an important role in software debugging, testing, reliability and sharing. Such provenance traces consist of events that the user is interested in. A considerable amount of research has been done on investigating methods of harvesting provenance information from scripts and runs of scripts, ranging from conventional approaches, e.g. research compendium (folder layouts) and logging to recent provenance tools, e.g., YesWorkflow (YW), noWorkflow (NW), RDataTracker, Reprozip.
 
@@ -20,13 +20,13 @@ Then, we show how to produce hybrid provenance by joining prospective and retros
 
 We use query-based approach for provenance analysis. A query is implemented in Prolog and SQL now. For a workflow project, we have multiple provenance graphs consisting of a graph of prospective provenance, a graph of hybrid provenance, a graph of retrospective multi-run provenance.
 
-## Sample Provenance Query
+### Sample Provenance Query
 Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob/master/queries/README.md) in the demo repo.
  * C3C4 Matlab Script Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/examples/C3C4/results)
  * OHIBC R Scripts Provenance Query [Results](https://github.com/yesworkflow-org/yw-idcc-17/tree/master/OHIBC_Howe_Sound_project) 
  
  
-# Installing Matlab-dataone Toolbox Instructions
+## Installing Matlab-dataone Toolbox Instructions
 
 `Matlab R2015a` or later for Mac, Windows, or Linux is required to use the toolbox. `SQlite` database is required to install. To install the toolbox, 
 
@@ -40,7 +40,7 @@ Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob
 5. Notes that at least Java 7 or above is requried in order to use our matlab-dataone toolbox
 6. `Matlab DataONE Toolbox ml-sqlite` branch: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
-# RunManager Functions
+## RunManager Functions
  * startRecord( )
  * endRecord( )
  * record( )
@@ -79,7 +79,7 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   mgr.exportR2PrologFacts('/path/to/factsdump');
   ```
   
-# Layouts of Repository
+## Layouts of Repository
 
 | Directory | Description                                                          |
 |-----------| :--------------------------------------------------------------------|
@@ -90,7 +90,7 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
 |run_tests.m | A matlab script to run our test cases.|
 
 
-# Documentation
+## Documentation
 
 The classes provided in the toolbox have built-in documentation.  You might use the help() function or the doc() function to view the help for a given class.  For instance, if you would like to view the help on the RunManager class, please use:
 
@@ -101,7 +101,7 @@ The classes provided in the toolbox have built-in documentation.  You might use 
   
 A [user guide for matlab-dataone (version 1)](https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst) might be a good resource that walk through the various toolbox functions.
 
-# Software Installing Instructions
+## Software Installing Instructions
 
 The following free software are required in order to run  this demo.
 
@@ -208,7 +208,7 @@ The following free software are required in order to run  this demo.
  * Debugging log output for some function calls is not suppressed completely. See [Issue #200](https://github.com/DataONEorg/sem-prov-design/issues/200)
 
 
-# License
+## License
 
 The `Matlab DataONE Toolbox` is licensed as open source software under the [Apache 2.0_ license] ( http://opensource.org/licenses/Apache-2.0 )
 
