@@ -3,7 +3,7 @@ Getting Started with the MATLAB DataONE Toolbox !
 # Matlab DataONE Toolbox (version 2)
 
 
-* **Contact Authors**:  Yang Cao, Peter Slaughter ([DataONE](http://dataone.org))
+* **Contact**:  Yang Cao, Peter Slaughter ([DataONE](http://dataone.org))
 * **License**: [Apache 2](http://opensource.org/licenses/Apache-2.0)
 * [Package source code on Github](https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite)
 * [Submit Bugs and feature requests](https://github.com/DataONEorg/sem-prov-design/issues)
@@ -14,11 +14,12 @@ Provenance from scripts and runs of scripts plays an important role in software 
 
 The `Matlab DataONE Toolbox` is a provenance management software. It can capture, store, query, visualize, and publish of a singel Matlab script or multiple Matlab script runs. There are three types of provenance supported by `matlab-dataone`: **prospective provenance**, **retrospective provenance**, and **hybrid provenance**. The prospective provenance is expressed using YW tags. The retrospective provenance captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution. 
 
-DataONE RunManagers for R and MATLAB to capture runtime file-level provenance information that are interested by the earth science community. A DataONE package includes scripts, a list of input files, and a list of generated files, science metadata that are associated with the run that can be indexed within the DataONE network. 
+DataONE RunManagers for R and MATLAB to capture runtime file-level provenance information that are interested by the earth science community. A DataONE package includes scripts, a list of input files, and a list of generated files, science metadata that are associated with the run that can be indexed within the DataONE network. In addition, a DataONE datapackage can be efficiently archived so that these past versions of files can be retrieved for a run in order to investigate previous versions of processing or analysis, support reproducibility, and provide an easy way to publish data products and all files that contributed to those products to a data repository such as the DataONE network.
 
 Then, we show how to produce hybrid provenance by joining prospective and retrospective provenance with the YW URI mechanism. Last but not least, we propose **multi-run provenance**. From the multi-run provenance, it enables a longitudinal view of a typical real-life scientific workflow that consists of multiple phases. Since computational and data science experiments can often last days, weeks, or even months and often require the execution of multiple scripts or workflows with varying input datasets and parameters, some of these script runs appear as chained together implicitly via intermediate data. Multiple_scripts_multi_runs provenance graphs can be joined on file path, file content, etc.
 
 We use query-based approach for provenance analysis. A query is implemented in Prolog and SQL now. For a workflow project, we have multiple provenance graphs consisting of a graph of prospective provenance, a graph of hybrid provenance, a graph of retrospective multi-run provenance.
+
 
 ### Sample Provenance Query
 Please read [Query README](https://github.com/idaks/dataone-ahm-2016-poster/blob/master/queries/README.md) in the demo repo.
