@@ -64,13 +64,13 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
   mgr.configuration.capture_yesworkflow_comments=0;
   
   mgr.record('/full/path/to/script', 'example_run_tag_01');
+  mgr.record('/full/path/to/script', 'example_run_tag_02');
+  mgr.record('/full/path/to/script', 'example_run_tag_03');
+  
   mgr.listRuns();
   mgr.viewRun('tag', 'example_run_tag_01', 'sections', {'details', 'used', 'generated'});
   mgr.viewRun('runNumber', 1, 'sections', {'details', 'used', 'generated'});  
   mgr.deleteRuns('tagList', {'example_run_tag_01'}, 'noop', false);
-  
-  mgr.record('/full/path/to/script', 'example_run_tag_02');
-  mgr.record('/full/path/to/script', 'example_run_tag_03');
   
   mgr.listRuns();
   mgr.deleteRuns('tagList', {'example_run_tag_02','example_run_tag_03'}, 'noop', false);
