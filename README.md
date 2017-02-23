@@ -107,7 +107,7 @@ A [Previous Version User Guide](https://github.com/DataONEorg/matlab-dataone/blo
 
 # License
 
-The `Matlab DataONE Toolbox` is licensed as open source software under the [`Apache 2.0`_ license] ( http://opensource.org/licenses/Apache-2.0 )
+The `Matlab DataONE Toolbox` is licensed as open source software under the [Apache 2.0_ license] ( http://opensource.org/licenses/Apache-2.0 )
 
 <img src="https://www.dataone.org/sites/default/files/d1-logo-v3_aligned_left_0_0.jpeg" align="left">
 
