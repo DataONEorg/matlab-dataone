@@ -1,51 +1,46 @@
-Appreciate for installing and trying matlab-dataone provenance toolbox !
+We appreciate you for installing and trying matlab-dataone provenance toolbox !
 
-Matlab DataONE Toolbox
-======================
+# Matlab DataONE Toolbox
 
-- **Author**:  Christopher Jones, Yang Cao, Peter Slaughter, Matthew B. Jones (DataONE_)
-- **License**: `Apache 2`_
-- `Package source code on Github`_
-- `Submit Bugs and feature requests`_
 
-.. _DataONE: http://dataone.org
-.. _`Apache 2`: http://opensource.org/licenses/Apache-2.0
-.. _`Package source code on Github`: https://github.com/DataONEorg/matlab-dataone
-.. _`Submit Bugs and feature requests`: https://github.com/DataONEorg/sem-prov-design/issues
+* **Author**:  Yang Cao, Christopher Jones, Peter Slaughter, Matthew B. Jones (DataONE_)
+* **License**: `Apache 2`_
+* `Package source code on Github`_
+* `Submit Bugs and feature requests`_
 
-The *Matlab DataONE Toolbox* provides an automated way to capture data provenance for Matlab scripts and console commands without the need to modify existing Matlab code.  The provenance captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution.  A package of the script iteself, its input files, and generated files that are associated with the run can be easily published to a repository within the DataONE network.
+  * DataONE: http://dataone.org
+  * `Apache 2`: http://opensource.org/licenses/Apache-2.0
+  * `Package source code on Github`: https://github.com/DataONEorg/matlab-dataone
+  * `Submit Bugs and feature requests`: https://github.com/DataONEorg/sem-prov-design/issues
 
-Installation Notes
-==================
+The `Matlab DataONE Toolbox` provides an automated way to capture data provenance for Matlab scripts and console commands without the need to modify existing Matlab code.  The provenance captured during a Matlab script execution includes information about the script that was run, files that were read or written, and details about the execution environment at the time of execution.  A package of the script iteself, its input files, and generated files that are associated with the run can be easily published to a repository within the DataONE network.
 
-Matlab R2015a or later for Mac, Windows, or Linux is required to use the toolbox. To install the toolbox, 
+# Installation Notes
 
-1) Clone the ml-sqlite branch to your local computer by typing the follwing command at the command window
+
+`Matlab R2015a` or later for Mac, Windows, or Linux is required to use the toolbox. To install the toolbox, 
+
+1. Clone the ml-sqlite branch to your local computer by typing the follwing command at the command window
   
-    git clone -b ml-sqlite https://github.com/DataONEorg/matlab-dataone.git
+    `git clone -b ml-sqlite https://github.com/DataONEorg/matlab-dataone.git`
     
-2) Open Matlab and change directories to local **matlab-dataone** directory
-3) Run the **install_matlab_dataone** script (**install_matlab_dataone.m**) either from the command line or from Matlab
-4) Restart Matlab
-5) Notes that at least Java 7 or above is requried in order to use our matlab-dataone toolbox
+2. Open Matlab and change directories to local `matlab-dataone` directory
+3. Run the `install_matlab_dataone` script (`install_matlab_dataone.m`) either from the command line or from Matlab
+4. Restart Matlab
+5. Notes that at least Java 7 or above is requried in order to use our matlab-dataone toolbox
+6. `Matlab DataONE Toolbox ml-sqlite` branch: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
 
 
+# License
 
-.. _`Matlab DataONE Toolbox ml-sqlite branch`: https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite
+The `Matlab DataONE Toolbox` is licensed as open source software under the [`Apache 2.0`_ license] ( http://opensource.org/licenses/Apache-2.0 )
 
-License
-=======
 
-The `Matlab DataONE Toolbox` is licensed as open source software under the `Apache 2.0`_ license.
-
-.. _`Apache 2.0`: http://opensource.org/licenses/Apache-2.0
-
-Example Usage
-=============
+# Example Usage
 
 Thae Matlab DataONE package can be used to track code execution in Matlab, data inputs and outputs to those executions, and the software environment during the execution (e.g. Matlab and operating system versions).  As a quick start, here is an example that starts the toolbox `RunManager`, executes a precanned script, and then views the details of that script run.
 
-.. code:: matlab
+  ```matlab
 
   import org.dataone.client.run.RunManager;
   mgr = RunManager.getInstance();
@@ -62,9 +57,9 @@ Thae Matlab DataONE package can be used to track code execution in Matlab, data 
 
   mgr.exportFileRecords2Yaml('execution_id', 'prefix__string_in_uri_template', 'exported_file_name.yaml');
   mgr.exportR2PrologFacts('/path/to/factsdump');
+  ```
   
-Layouts of Repository
-=====================
+# Layouts of Repository
 
 | Directory | Description                                                          |
 |-----------| :--------------------------------------------------------------------|
@@ -75,24 +70,25 @@ Layouts of Repository
 |run_tests.m | A matlab script to run our test cases.|
 
 
+# Documentation
 
-
-Documentation
-============
 The classes provided in the toolbox have built-in documentation.  Use the help() function or the doc() function to view the help for a given class.  For instance, to view the help on the RunManager class, use:
 
-.. code:: matlab
+  ```matlab
   
   doc org.dataone.client.run.RunManager
-
+  ```
+  
 A `User Guide`_ is in the works, and will walk through the various toolbox functions.
 
 .. _`User Guide`: https://github.com/DataONEorg/matlab-dataone/blob/master/docs/user-guide.rst
-Kown Issues
-===========
-- The toolbox captures provenance for only a subset of the load() function syntaxes. See `Issue #196`_
-- The toolbox captures provenance for the save() function, but requires the filename to be the first argument. See `Issue #198`_
-- Debugging log output for some function calls is not suppressed completely. See `Issue #200`_
+
+
+# Kown Issues
+
+ * The toolbox captures provenance for only a subset of the load() function syntaxes. See `Issue #196`_
+ * The toolbox captures provenance for the save() function, but requires the filename to be the first argument. See `Issue #198`_
+ * Debugging log output for some function calls is not suppressed completely. See `Issue #200`_
 
 .. _`Issue #196`: https://github.com/DataONEorg/sem-prov-design/issues/196
 .. _`Issue #198`: https://github.com/DataONEorg/sem-prov-design/issues/198
