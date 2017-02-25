@@ -102,7 +102,7 @@ A [user guide for matlab-dataone (version 1)](https://github.com/DataONEorg/matl
 
 ## Installing Dependent (recommended) Software
 
-Please visit our page on installing dependent (recommended) software [here](installing_recommended_software).
+Please visit our page on installing dependent (recommended) software [here](https://github.com/DataONEorg/matlab-dataone/blob/ml-sqlite/installing_recommended_software.md).
 
      
 ## Kown Issues
