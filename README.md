@@ -2,8 +2,6 @@ Getting Started with the MATLAB DataONE Toolbox !
 
 # Matlab DataONE Toolbox (version 2)
 
-
-* **Contact**:  Yang Cao, Peter Slaughter ([DataONE](http://dataone.org))
 * **License**: [Apache 2](http://opensource.org/licenses/Apache-2.0)
 * [Package source code on Github](https://github.com/DataONEorg/matlab-dataone/tree/ml-sqlite)
 * [Submit Bugs and feature requests](https://github.com/DataONEorg/sem-prov-design/issues)
