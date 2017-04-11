@@ -3030,6 +3030,7 @@ classdef RunManager < hgsetget
             
             upstream_cell = runManager.provenanceDB.execute(upstream_sql_statement);
             
+            % Render a graph using the SQL results.
             s={};
             t={};      
             visited_edges = java.util.HashSet();
@@ -3044,7 +3045,6 @@ classdef RunManager < hgsetget
                     end
                 end
             end
-            m = containers.Map(s,t);
             G= graph(s,t);
             plot(G);
             
