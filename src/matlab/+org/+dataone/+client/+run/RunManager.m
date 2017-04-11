@@ -1817,7 +1817,7 @@ classdef RunManager < hgsetget
                     %  disp(tableForSelectedRuns);
                     [nrows, ncols] = size(exec_metadata_cell);
                     for i=1:nrows
-                        fprintf('Run #%3d: \n', i);
+                        fprintf('Run#%3d: \n', i);
                         for j=1:ncols
                             if isnumeric(exec_metadata_cell{i,j})
                                 fprintf('%16s: %d \n', run_fieldnames{j}, exec_metadata_cell{i,j});
@@ -2004,7 +2004,7 @@ classdef RunManager < hgsetget
                     % disp(tableForDetailsSection);
                     [nrows, ncols] = size(deleted_runs);
                     for i=1:nrows
-                        fprintf('Run #%3d: \n', i);
+                        fprintf('Run#%3d: \n', i);
                         for j=1:ncols                            
                             if length(deleted_runs{i,j}) >= 500
                                 shorten_str = deleted_runs{i,j}(1:500);
@@ -2279,7 +2279,7 @@ classdef RunManager < hgsetget
                    
                    [nrows, ncols] = size(used_file_to_display);
                    for i=1:nrows
-                       fprintf('File #%3d:\n', i);
+                       fprintf('File#%3d:\n', i);
                        for j=1:ncols
                            if isnumeric(used_file_to_display{i,j})
                                fprintf('%20s: %d (bytes)\n', file_fieldnames{j}, used_file_to_display{i,j});
@@ -2303,7 +2303,7 @@ classdef RunManager < hgsetget
                    %  disp(TableForFileWasGeneratedBy);
                    [nrows, ncols] = size(generated_file_to_display);
                    for i=1:nrows
-                       fprintf('File #%3d:\n', i);
+                       fprintf('File#%3d:\n', i);
                        for j=1:ncols
                            if isnumeric(generated_file_to_display{i,j})
                                fprintf('%20s: %d (bytes)\n', file_fieldnames{j}, generated_file_to_display{i,j});
@@ -2967,6 +2967,93 @@ classdef RunManager < hgsetget
             runManager.write_file_paths(fileID, 'inputs', run_base_path, used_fm_cell);
             runManager.write_file_paths(fileID, 'outputs', run_base_path, wasGenerated_fm_cell);
             fclose(fileID);
+        end
+             
+        function upstream_cell = upstream(runManager)
+            import org.dataone.client.sqlite.SqliteDatabase;
+            import org.dataone.client.sqlite.Database;
+            
+            % Configure the R provenance database 01-24-17
+            db_path = runManager.configuration.provenance_storage_directory;
+            db_file = 'recordr.sqlite';
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
+            runManager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+            
+            % Open the provenance database connection 12-12-16
+            runManager.provenanceDB.openDBConnection();
+            
+%             upstream_sql_statement = [
+%                 'WITH RECURSIVE search_upstream_execution_3 (executionId, up_executionId, filePath, level) AS (' ...
+%                 'SELECT em.executionId,  em.executionId, 0, 1 ' ...
+%                 'FROM execmeta em ' ...
+%                 'UNION  ' ...
+%                 'SELECT  ss3.up_executionId, em2.executionId, fm1.filePath, ss3.level+1 ' ...
+%                 'FROM search_upstream_execution_3 ss3, ' ...
+%                 'execmeta em2, ' ...
+%                 'filemeta fm1, ' ...
+%                 'filemeta fm2 ' ...
+%                 'WHERE fm1.access="read" and fm1.executionId=ss3.up_executionId and fm2.access="write" and fm2.filePath=fm1.filePath and fm2.executionId=em2.executionId ' ...
+%                 ')' ...
+%                 'SELECT  DISTINCT executionId, up_executionId FROM search_upstream_execution_3;'
+%                 ];
+%            
+% 
+%             upstream_sql_statement = [
+%                 'WITH RECURSIVE search_upstream_execution_2 (executionId, up_executionId, filePath, level) AS (' ...
+%                 'SELECT em.executionId,  em.executionId, 0, 1 ' ...
+%                 'FROM execmeta em ' ...
+%                 'UNION  ' ...
+%                 'SELECT  ss2.up_executionId, em2.executionId, fm1.filePath, ss2.level+1 ' ...
+%                 'FROM search_upstream_execution_2 ss2, ' ...
+%                 'execmeta em2, ' ...
+%                 'filemeta fm1, ' ...
+%                 'filemeta fm2 ' ...
+%                 'WHERE fm1.access="read" and fm1.executionId=ss2.up_executionId and fm2.access="write" and fm2.filePath=fm1.filePath and fm2.executionId=em2.executionId ' ...
+%                 ')' ...
+%                 'SELECT  DISTINCT executionId, up_executionId FROM search_upstream_execution_2;'
+%                 ];
+                  
+            upstream_sql_statement = [
+                'WITH RECURSIVE search_upstream_execution_5 (path, up_executionId, level) AS (' ...
+                'SELECT "-1, "|| em.executionId, em.executionId, 1  ' ...
+                'FROM execmeta em ' ...
+                'UNION  ' ...
+                'SELECT  ss5.path || "," || fm1.filePath || "," || em2.executionId, em2.executionId, ss5.level+1 ' ...
+                ' FROM search_upstream_execution_5 ss5, ' ...
+                'execmeta em2, ' ...
+                'filemeta fm1, ' ...
+                'filemeta fm2 ' ...
+                'WHERE  fm1.access="read" and fm1.executionId=ss5.up_executionId and fm2.access="write" and fm2.filePath=fm1.filePath and fm2.executionId=em2.executionId ' ...
+                ')' ...
+                'SELECT  path FROM search_upstream_execution_5 where level=5;'
+                ];
+            
+            upstream_cell = runManager.provenanceDB.execute(upstream_sql_statement);
+            
+            s={};
+            t={};      
+            visited_edges = java.util.HashSet();
+            for i = 1:length(upstream_cell)
+                C = strsplit(upstream_cell{i},',');
+                for j = 1:length(C)-1  
+                    edge = strcat(C{j},'-', C{j+1});
+                    if visited_edges.contains(edge) == 0
+                        s{end+1} = C{j};
+                        t{end+1} = C{j+1};
+                        visited_edges.add(edge);
+                    end
+                end
+            end
+            m = containers.Map(s,t);
+            G= graph(s,t);
+            plot(G);
+            
+            % Close the database connection
+            runManager.provenanceDB.closeDBConnection();
+        end
+             
+        function downstream(runManager )
+            
         end
     end
 
