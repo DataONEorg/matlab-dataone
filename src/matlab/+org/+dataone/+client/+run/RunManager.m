@@ -2973,13 +2973,13 @@ classdef RunManager < hgsetget
             import org.dataone.client.sqlite.SqliteDatabase;
             import org.dataone.client.sqlite.Database;
             
-            % Configure the R provenance database 01-24-17
+            % Configure the R provenance database 
             db_path = runManager.configuration.provenance_storage_directory;
             db_file = 'recordr.sqlite';
             db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
             runManager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
             
-            % Open the provenance database connection 12-12-16
+            % Open the provenance database connection
             runManager.provenanceDB.openDBConnection();
             
 %             upstream_sql_statement = [
@@ -3015,7 +3015,7 @@ classdef RunManager < hgsetget
                   
             upstream_sql_statement = [
                 'WITH RECURSIVE search_upstream_execution_5 (path, up_executionId, level) AS (' ...
-                'SELECT "-1, "|| em.executionId, em.executionId, 1  ' ...
+                'SELECT "null, "|| em.executionId, em.executionId, 1  ' ...
                 'FROM execmeta em ' ...
                 'UNION  ' ...
                 'SELECT  ss5.path || "," || fm1.filePath || "," || em2.executionId, em2.executionId, ss5.level+1 ' ...
@@ -3052,9 +3052,57 @@ classdef RunManager < hgsetget
             runManager.provenanceDB.closeDBConnection();
         end
              
-        function downstream(runManager )
+        function downstream_cell = downstream(runManager)
+            import org.dataone.client.sqlite.SqliteDatabase;
+            import org.dataone.client.sqlite.Database;
+            
+            % Configure the R provenance database
+            db_path = runManager.configuration.provenance_storage_directory;
+            db_file = 'recordr.sqlite';
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
+            runManager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+            
+            % Open the provenance database connection
+            runManager.provenanceDB.openDBConnection();
+            
+            downstream_sql_statement = [
+                'WITH RECURSIVE search_downstream_execution_14 (path, down_executionId, level) AS (' ...
+                'SELECT "null, " || em.executionId, em.executionId, 1 ' ...
+                'FROM execmeta em ' ...
+                'WHERE em.executionId="urn:uuid:3d6c8ed0-83c0-4b12-9154-2804f4317598" ' ...
+                'UNION  ' ...
+                'SELECT  ss14.path || "," || fm1.filePath || "," || em2.executionId,  em2.executionId, ss14.level+1 ' ...
+                'FROM search_downstream_execution_14 ss14 INNER JOIN filemeta fm1 on fm1.executionId=ss14.down_executionId and fm1.access="write", ' ...
+                'execmeta em2 INNER JOIN filemeta fm2 on fm2.executionId=em2.executionId and fm2.access="read" ' ...
+                'WHERE  fm2.sha256=fm1.sha256 ' ...
+                ')' ...
+                'SELECT * FROM search_downstream_execution_14 where level=5;'
+            ];
+            
+            downstream_cell = runManager.provenanceDB.execute(downstream_sql_statement);
+            
+            % Render a graph using the SQL results.
+            s={};
+            t={};
+            visited_edges = java.util.HashSet();
+            for i = 1:length(downstream_cell)
+                C = strsplit(downstream_cell{i},',');
+                for j = 1:length(C)-1
+                    edge = strcat(C{j},'-', C{j+1});
+                    if visited_edges.contains(edge) == 0
+                        s{end+1} = C{j};
+                        t{end+1} = C{j+1};
+                        visited_edges.add(edge);
+                    end
+                end
+            end
+            G= graph(s,t);
+            plot(G);
+            
+            % Close the database connection
+            runManager.provenanceDB.closeDBConnection();
             
         end
     end
-
+    
 end
