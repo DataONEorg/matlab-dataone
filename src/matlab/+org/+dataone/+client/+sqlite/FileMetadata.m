@@ -155,7 +155,7 @@ classdef FileMetadata < hgsetget
             fm_query = sprintf('select * from %s fm where fm.fileId="%s"', 'filemeta', thisFileId);
             runManager = RunManager.getInstance();   
             fm_stats = runManager.provenanceDB.execute(fm_query);
-            if size(fm_stats,1) == 0
+            if size(fm_stats, 1) == 0
                 warning('File not found in database, unable  to delete file from archive with fileId: %s', thisFileId);
             else
                 % Are more than the current execution referencing the file?
@@ -163,7 +163,7 @@ classdef FileMetadata < hgsetget
                 checksum = fm_stats{1, 4};
                 fm_refs_query = sprintf('select * from %s fm where fm.sha256="%s"', 'filemeta', checksum);
                 fm_refs = runManager.provenanceDB.execute(fm_refs_query);
-                if size(fm_refs,1) == 1                    
+                if size(fm_refs, 1) == 1                    
                     delete_archive_status = true;
                 else
                     delete_archive_status = false;
@@ -246,7 +246,7 @@ classdef FileMetadata < hgsetget
                 'size', 'user', 'modifyTime', 'createTime', 'access', 'format', 'archivedFilePath'};
             
             data_row = cell(1, length(filemeta_colnames));
-            for i = 1:length(filemeta_colnames)
+            for i = 1 : length(filemeta_colnames)
                 data_row{i} = fileMetadata.get(filemeta_colnames{i});
             end
             
