@@ -1025,28 +1025,6 @@ classdef RunManager < hgsetget
             end
         end
         
-%         function execMetaMatrix = getExecMetadataMatrix(runManager)
-%             
-%             % GETEXECMETADATAMATRIX returns a matrix storing the
-%             % metadata summary for all executions from the exeucton
-%             % database.
-%             %   runManager -
-%             
-%             select_all_query = sprintf('SELECT * from %s;', 'execmeta');
-%             exec_metadata_cell = runManager.provenanceDB.execute(select_all_query, 'execmeta');
-%             
-%             % Convert the cell array to a char matrix (order of columns
-%             % changed on 072516)
-%             numOfRows = size(exec_metadata_cell, 1);
-%             for i=1:numOfRows
-%                 exec_metadata_cell{i,18} = num2str(exec_metadata_cell{i,18});
-%             end
-%             
-%             execMetaMatrix = exec_metadata_cell;
-%             
-%             % Todo: Return database table column names
-%            
-%         end
         
 %         function stmtStruct = getRDFTriple(runManager, filePath, p)
 %            % GETRDFTRIPLE get all related subjects related to a given property from all
