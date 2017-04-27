@@ -650,7 +650,7 @@ classdef RunManager < hgsetget
                 runManager.execution.execution_output_ids = write_files_array(:, 1);
             end
             
-            for i = 1 : size(write_files_array,1)
+            for i = 1 : size(write_files_array, 1)
                 row_out_file_metadata = write_files_array(i, :);
                 row_out_fm_struct = cell2struct(row_out_file_metadata, fm_fields, 2);
                 
