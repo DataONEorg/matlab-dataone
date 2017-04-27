@@ -1013,7 +1013,7 @@ classdef RunManager < hgsetget
                 select_module_query = sprintf('select md.module_id from modulemeta md where md.dependencyInfo="%s";', module_info);               
                 module_dependency_array = runManager.provenanceDB.execute(select_module_query, 'modulemeta');
                 if ~isempty(module_dependency_array) 
-                    module_id = module_dependency_array{1,1};
+                    module_id = module_dependency_array{1, 1};
                     
                     insert_bridge_query = sprintf('insert into execmodulebridge values ( %d, %d);', execSeq, module_id);
                     status = runManager.provenanceDB.execute(insert_bridge_query, 'execmodulebridge');                    
@@ -1570,7 +1570,7 @@ classdef RunManager < hgsetget
                 history = com.mathworks.mlservices.MLCommandHistoryServices.getSessionHistory; 
                 startRecordIndex = 0;
                 endRecordIndex = 0;
-                for i= length(history) : -1 : 1
+                for i = length(history) : -1 : 1
                     % Try to find the position of the latest startRecord()
                     % and endRecord() pair from the command history
                     k = strfind(history(i), 'endRecord');
@@ -1999,7 +1999,7 @@ classdef RunManager < hgsetget
                 % Show the selected run list and do the deletion operation
                 selectedIdSet = deleted_runs(:, 2);
                 % Loop through selected runs
-                for k = 1:length(selectedIdSet)
+                for k = 1 : length(selectedIdSet)
                     % Delete all file access entries for this execution, for
                     % any type of access, i.e., "read", "write", "execute". The
                     % file information for the deleted entries is returned.                  
