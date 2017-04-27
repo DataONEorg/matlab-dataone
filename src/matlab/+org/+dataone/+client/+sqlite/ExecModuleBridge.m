@@ -1,6 +1,6 @@
 classdef ExecModuleBridge < hgsetget
-    % EXECDEPENDENCYBRIDGE Summary of this class goes here
-    %   Detailed explanation goes here
+    % EXECDEPENDENCYBRIDGE This class defines a bridge table between an execmeta table and a module
+    % dependencies table (many-to-many relationship).
     properties
         % An execution seq that is a foreign key to the execmeta table
         exec_seq;
