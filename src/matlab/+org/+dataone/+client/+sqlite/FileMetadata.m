@@ -23,7 +23,7 @@ classdef FileMetadata < hgsetget
         access;
         % The file format
         format;
-        % The path to the location of the archived file Oct-25-2016
+        % The path to the location of the archived file
         archivedFilePath;
         % The table name
         tableName = 'filemeta';
@@ -33,7 +33,9 @@ classdef FileMetadata < hgsetget
                
         function create_table_statement = createFileMetadataTable(tableName)
             % CREATEFILEMETADATATABLE Creates a file metadata table
+            
             create_table_statement = ['create table if not exists ' tableName '('];
+            
             create_table_statement = [create_table_statement ...
                 'fileId TEXT PRIMARY KEY,' ...
                 'executionId TEXT not null,' ...
@@ -55,7 +57,7 @@ classdef FileMetadata < hgsetget
             % ARCHIVEDRELFILEPATH  Searches the relative file path for the
             % archived file copy in the filemeta table to see if the file
             % has already been archived.
-            % fullFilePath - a full path for a traced file object
+            %     fullFilePath - a full path for a traced file object
             
             if ~exist(fullFilePath, 'file')
                 archivedRelFilePath = [];
@@ -96,7 +98,7 @@ classdef FileMetadata < hgsetget
             runManager = RunManager.getInstance();   
             existed_fm = runManager.provenanceDB.execute(select_filemeta_query, 'filemeta');
             if ~isempty(existed_fm)
-                archivedRelFilePath = existed_fm{1,11}; % get the relative path for the archived file copy
+                archivedRelFilePath = existed_fm{1,11}; % Get the relative path for the archived file copy
                 status = 0;              
                 archive_name_array = strsplit(archivedRelFilePath, filesep);
                 archiveRelDir = fullfile(archive_name_array(1), archive_name_array(2));
@@ -122,8 +124,8 @@ classdef FileMetadata < hgsetget
         
         function sha256hash = getSHA256Hash(data)
             % GETSHA256Hash Converts a string to a 64 char hex hash string (256 bit hash)
-            % data - a string
-            % sha256hash - a 64 character string, encoding the 256 bit SHA hash of string
+            %     data - a string
+            %     sha256hash - a 64 character string, encoding the 256 bit SHA hash of string
             %        in hexadecimal.
             
             persistent digest;
@@ -175,8 +177,8 @@ classdef FileMetadata < hgsetget
     methods
         function this = FileMetadata( varargin )
             % FILEMETADATA Constructor: initializes a file metadata object
-            % varargin - the input arguments could be a dataObject or a
-            % list of arguments describing a file metadata
+            %     varargin - The input arguments could be a dataObject or a
+            %                list of arguments describing a file metadata
             
             import java.io.File;
             import java.io.FileInputStream;
@@ -237,8 +239,8 @@ classdef FileMetadata < hgsetget
                 
         function insertQuery = writeFileMeta(fileMetadata)
             % WRITEFILEMETA Saves metadata for a single file
-            % fileMetadata - a filemetadata object to be added to the
-            % filemetadata table
+            %     fileMetadata - a filemetadata object to be added to the
+            %                    filemetadata table
             
             filemeta_colnames = {'fileId', 'executionId', 'filePath', 'sha256',...
                 'size', 'user', 'modifyTime', 'createTime', 'access', 'format', 'archivedFilePath'};
@@ -248,7 +250,7 @@ classdef FileMetadata < hgsetget
                 data_row{i} = fileMetadata.get(filemeta_colnames{i});
             end
             
-            % construct a SQL INSERT statement for fast insert
+            % Construct a SQL INSERT statement for fast insert
             insertQuery = sprintf('insert into %s (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) values ', fileMetadata.tableName, filemeta_colnames{:});
             insertQueryData = sprintf('("%s","%s","%s","%s",%d,"%s","%s","%s","%s","%s","%s");', data_row{:});
             insertQuery = [insertQuery , insertQueryData];
@@ -258,7 +260,7 @@ classdef FileMetadata < hgsetget
         function readQuery = readFileMeta(filemetaObj, orderBy, sortOrder)
             % READFILEMETA Retrieves saved file metadata for one or more
             % files
-            % filemetaObj - a fileMetadata object or struct to be retrieved
+            %     filemetaObj - a fileMetadata object or struct to be retrieved
             
             if isempty(filemetaObj) == 1
                 % If the 'filemetaObj' doesn't exist yet, then there is

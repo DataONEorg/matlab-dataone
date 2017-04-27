@@ -13,17 +13,14 @@ classdef ExecModuleBridge < hgsetget
     methods (Static)
         function create_bridge_table_statement = createExecModuleBridgeTable(tableName)
             % CREATEEXECMODULEBRIDGETABLE Creates a exec_module_bridge metadata table           
+            
             create_table_statement = ['create table if not exists ' tableName '('];
+            
             create_bridge_table_statement = [create_table_statement ...
                 'exec_seq INTEGER not null references execmeta on delete cascade,' ...
                 'module_id INTEGER not null references modulemeta on delete cascade,' ...
                 'primary key (exec_seq, module_id)' ...
                 ');'];
         end      
-    end
-    
-    methods
-        
-        
     end
 end

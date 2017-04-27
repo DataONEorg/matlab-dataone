@@ -205,7 +205,7 @@ classdef RunManager < hgsetget
             runManager.modeler = DefaultModeler(ywdb);
             runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
             
-            % Configure yesWorkflow language model to be Matlab
+            % Configure yesWorkflow language model to be matlab
             import org.dataone.util.HashmapWrapper;
             import org.yesworkflow.Language;
             

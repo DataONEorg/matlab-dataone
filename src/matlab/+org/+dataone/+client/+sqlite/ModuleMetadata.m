@@ -1,6 +1,7 @@
 classdef ModuleMetadata < hgsetget
-    %MODULEMETADATA Summary of this class goes here
-    %   Detailed explanation goes here   
+    % MODULEMETADATA This class represents all mudules used by a matlab
+    % project. There is a foreign key back to ExecMetadata table.
+    %  
     properties
         % A simple integer value associated with a module dependency
         module_id;

@@ -3,7 +3,8 @@ classdef ExecMetadata < hgsetget
     %EXECMETADATA Summary of this class goes here
     %   Detailed explanation goes here
     properties
-        % A simple integer value associated with this execution Oct-20-2016
+        % An integer associated with this execution assigned by the
+        % database automatically
         seq;
         % The unique identifier for this execution
         executionId;
@@ -23,9 +24,9 @@ classdef ExecMetadata < hgsetget
         startTime;
         % The operating system name
         operatingSystem;
-        % ???
+        % The Runtime version information for the Matlab installation
         runtime;
-        % ???
+        % The script file path
         softwareApplication;
         % The ending time of this execution
         endTime;
@@ -45,8 +46,7 @@ classdef ExecMetadata < hgsetget
         execTableName = 'execmeta';
         % The tags table name
         tagsTableName = 'tags';
-%         % The modules information used by the software application
-%         moduleDependencies;
+
     end
     
     methods (Static)
@@ -77,7 +77,7 @@ classdef ExecMetadata < hgsetget
         end
         
         function create_tag_table_statement = createTagTable(tableName)
-            % Create a separate tag table 103116
+            % Create a separate tag table 
             create_tag_table_statement = ['create table tags (' ...
                 'seq INTEGER PRIMARY KEY,' ...
                 'executionId TEXT not NULL,' ...
@@ -88,7 +88,7 @@ classdef ExecMetadata < hgsetget
         
         function readQuery = readExecMeta(execmetaObj, orderBy, sortOrder)
             % READEXECMETA Retrieves saved execution metadata
-            % execmetaObj - a fileMetadata object or struct to be retrieved
+            %     execmetaObj - a fileMetadata object or struct to be retrieved
             
             if isempty(execmetaObj) == 1
                 % If the 'execmetaObj' doesn't exist yet, then there is
@@ -97,7 +97,7 @@ classdef ExecMetadata < hgsetget
                 return;
             end
             
-            % Construct a SELECT statement to retrieve the runs that match
+            % Construct a SQL query to retrieve the runs that match
             % the specified search criteria
             select_statement = sprintf('SELECT * FROM %s e ', execmetaObj.tableName);
             where_clause = '';
@@ -226,17 +226,7 @@ classdef ExecMetadata < hgsetget
                         where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_softwareApplication);
                     end
                 end
-                
-%                 row_moduleDependencies = execmetaObj.get('moduleDependencies');
-%                 if isempty(row_moduleDependencies) ~= 1
-%                     match_clause = 'e.moduleDependencies=';
-%                     if isempty(where_clause)
-%                         where_clause = sprintf('where %s "%s" ', match_clause, row_moduleDependencies);
-%                     else
-%                         where_clause = sprintf('%s and %s "%s" ', where_clause, match_clause, row_moduleDependencies);
-%                     end
-%                 end
-                
+              
                 row_endTime = execmetaObj.get('endTime');
                 if isempty(row_endTime) ~= 1
                     match_clause = 'e.endTime=';
@@ -323,7 +313,6 @@ classdef ExecMetadata < hgsetget
                     this.operatingSystem = varargin{1}.operating_system;
                     this.runtime = varargin{1}.run_time;
                     this.softwareApplication = varargin{1}.software_application;
-%                     this.moduleDependencies = varargin{1}.module_dependencies;
                     this.endTime = varargin{1}.end_time;
                     this.errorMessage = varargin{1}.error_message;
                     this.publishTime = varargin{1}.publish_time;
@@ -343,7 +332,6 @@ classdef ExecMetadata < hgsetget
                     this.operatingSystem = varargin{9};
                     this.runtime = varargin{10};
                     this.softwareApplication = varargin{11};
-%                     this.moduleDependencies = varargin{12};
                     this.endTime = varargin{12};
                     this.errorMessage = varargin{13};
                     this.publishTime = varargin{14};
@@ -362,12 +350,11 @@ classdef ExecMetadata < hgsetget
                 'datapackageId', 'user', 'subject', 'hostId', 'startTime', ...
                 'operatingSystem', 'runtime', 'softwareApplication', ...
                 'endTime', 'errorMessage', 'publishTime', 'publishNodeId', 'publishId', 'console'};
-            
-            % **Updated to remove tag column 103116
+
             % Construct a SQL INSERT statement for fast insert to the
             % execmeta table
             data_row = cell(1, length(execemeta_colnames));
-            for i = 1:length(execemeta_colnames)
+            for i = 1 : length(execemeta_colnames)
                 data_row{i} = execMetadata.get(execemeta_colnames{i});
             end
             
@@ -376,10 +363,10 @@ classdef ExecMetadata < hgsetget
             insertExecQuery = [insertExecMetaQuery, insertExecMetaQueryData];   
             
             % Construct a SQL INSERT statement for fast insert to the
-            % tags table 103116
+            % tags table 
             tag_colnames = {'executionId', 'tag'};
             tag_data_row = cell(1, length(tag_colnames));
-            for j = 1:length(tag_colnames)
+            for j = 1 : length(tag_colnames)
                 tag_data_row{j} = execMetadata.get(tag_colnames{j});
             end    
             
@@ -413,7 +400,7 @@ classdef ExecMetadata < hgsetget
             row_publishNodeId = updateExecMetaParser.Results.publishNodeId;
             row_publishId = updateExecMetaParser.Results.publishId;
                         
-            % Construct an Update statement to update the execution metadata
+            % Construct an Update SQL statement to update the execution metadata
             % entry for a specific run
             update_clause = sprintf('UPDATE %s', this.tableName); 
             set_clause = '';

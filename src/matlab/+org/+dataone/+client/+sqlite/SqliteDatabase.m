@@ -1,4 +1,7 @@
-classdef SqliteDatabase < org.dataone.client.sqlite.Database  
+classdef SqliteDatabase < org.dataone.client.sqlite.Database 
+    % SQLITEDATABASE This class defines the attributes and methods that a
+    % matlab can interactive with a sqlite database.
+    % 
     properties (SetAccess = protected)
         JDBC_SQLITE_DRIVER
         DB_URL
@@ -20,7 +23,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                 sqldb_obj.dbConn = database(sqldb_obj.dbName, sqldb_obj.userName, sqldb_obj.password, sqldb_obj.JDBC_SQLITE_DRIVER, sqldb_obj.DB_URL);
                 db_conn = sqldb_obj.dbConn;   
                 % Set the PRAGMA values (enable foreign key) to the
-                % proveannce database 12-12-16
+                % proveannce database 
                 exec(db_conn, 'PRAGMA foreign_keys = ON;');
             catch runtimeError
                 error_message = ...
@@ -45,19 +48,11 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
         end
                 
         function result = execute(sqldb_obj, sql_statement, varargin)
-            %             if ~isempty(varargin)
-            %                 % Get the database connection and check if the table
-            %                 % exists
-%                 count = sqldb_obj.getTable(varargin{1});
-%                 if count == 0
-%                     return;
-%                 end
-%             end
-
+  
             curs = exec(sqldb_obj.dbConn, sql_statement);
             
             if curs.ResultSet ~= 0
-                % for select query (changed on 080816)
+                % for select query 
                 curs = fetch(curs);
                 if rows(curs) == 0
                     result = [];
@@ -65,7 +60,7 @@ classdef SqliteDatabase < org.dataone.client.sqlite.Database
                     result = curs.Data;
                 end
             else
-                % for the insert query (changed on 080816)
+                % for the insert query 
                 result = curs.Data;
             end
             
