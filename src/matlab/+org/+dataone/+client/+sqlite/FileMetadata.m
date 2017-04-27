@@ -1,7 +1,7 @@
 
 
 classdef FileMetadata < hgsetget
-    
+     % FILEMETADATA This class defines a file metadata describing a file object. 
     properties
         % The unique identifier for the file entry
         fileId;
