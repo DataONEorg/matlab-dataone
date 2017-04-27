@@ -650,8 +650,8 @@ classdef RunManager < hgsetget
                 runManager.execution.execution_output_ids = write_files_array(:, 1);
             end
             
-            for i=1:size(write_files_array,1)
-                row_out_file_metadata = write_files_array(i,:);
+            for i = 1 : size(write_files_array,1)
+                row_out_file_metadata = write_files_array(i, :);
                 row_out_fm_struct = cell2struct(row_out_file_metadata, fm_fields, 2);
                 
                 if runManager.configuration.debug
@@ -996,7 +996,7 @@ classdef RunManager < hgsetget
             for i = 1 : length(module_split_info)
                 % First, add a record for module_dependency to the modulemeta table if
                 % not existed
-                module_info = module_split_info{1,i};
+                module_info = module_split_info{1, i};
                 select_module_query = sprintf('select count(*) from modulemeta md where md.dependencyInfo=%s', module_info);
                 count = runManager.provenanceDB.execute(select_module_query, 'modulemeta');
                 if count == 0
