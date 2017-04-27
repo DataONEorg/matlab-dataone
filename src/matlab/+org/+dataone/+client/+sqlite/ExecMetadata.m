@@ -1,7 +1,6 @@
 
 classdef ExecMetadata < hgsetget
-    %EXECMETADATA Summary of this class goes here
-    %   Detailed explanation goes here
+    % EXECMETADATA This class defines an execmeta table that represents attributes related to a run.
     properties
         % An integer associated with this execution assigned by the
         % database automatically
