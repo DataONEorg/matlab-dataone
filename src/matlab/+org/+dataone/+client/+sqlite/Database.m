@@ -1,4 +1,5 @@
 classdef Database < handle
+    % DATABASE This class defines an abstract class representing attributes needed to access a database.
     properties (Abstract = true, SetAccess = protected)
         JDBC_SQLITE_DRIVER
         DB_URL
