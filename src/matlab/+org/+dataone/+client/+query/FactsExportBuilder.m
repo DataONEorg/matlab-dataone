@@ -1,5 +1,6 @@
 classdef FactsExportBuilder < hgsetget
-    
+    % FACTSEXPORTBUILDER This class defines how to export relational data
+    % to prolog facts which can be used by prolog query.
     properties (Constant)
         EOL =java.lang.System.getProperty('line.separator');
         default_query_engine = 'XSB';
@@ -94,12 +95,8 @@ classdef FactsExportBuilder < hgsetget
             
             if ischar(value)
                 k = strfind(value,'/'); % For character '/' which cannot be displayed correctly with Graphviz
-                value_char = [factsBuilder.queryEngineModel.quote, char(value), factsBuilder.queryEngineModel.quote];% remove the extro double quotes for filePath, archivePaath, and type. The quotes add when we create the dot file. 01-06-017
-%                 if ~isempty(k)
-%                     value_char = [factsBuilder.queryEngineModel.quote, '"', char(value), '"', factsBuilder.queryEngineModel.quote];
-%                 else
-%                     value_char = [factsBuilder.queryEngineModel.quote, char(value), factsBuilder.queryEngineModel.quote];  
-%                 end
+                % Remove the extro double quotes for filePath, archivePaath, and type. The quotes add when we create the dot file
+                value_char = [factsBuilder.queryEngineModel.quote, char(value), factsBuilder.queryEngineModel.quote];
             end
                     
         end

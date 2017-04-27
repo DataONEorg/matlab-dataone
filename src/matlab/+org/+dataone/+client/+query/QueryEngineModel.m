@@ -1,6 +1,6 @@
 classdef QueryEngineModel
-    %QUERYENGINEMODEL Summary of this class goes here
-    %   Detailed explanation goes here
+    % QUERYENGINEMODEL This class defines which logic engine is used for
+    % logic query.
     
     properties
         commentStart = '% ';
