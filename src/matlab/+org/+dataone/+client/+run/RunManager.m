@@ -11,7 +11,7 @@
 
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
-% You may obtain a copy of the License at
+% You may obtain a copy of the Lic/ense at
 %
 %   http://www.apache.org/licenses/LICENSE-2.0
 %   
@@ -161,14 +161,18 @@ classdef RunManager < hgsetget
             % CONFIGYESWORKFLOW Set YesWorkflow extractor language model to be Matlab type
             % Default configuration is used now.
             
-            import org.yesworkflow.extract.DefaultExtractor;
+
+
+            import org.yesworkflow.extract.DefaultExtractor.*;
             import org.yesworkflow.model.DefaultModeler;
             import org.yesworkflow.graph.DotGrapher;
             import java.io.PrintStream;
-            import org.yesworkflow.db.YesWorkflowDB;
-            
-            ywdb = YesWorkflowDB.createInMemoryDB();
-                       
+            import org.yesworkflow.db.YesWorkflowDB.createInMemoryDB;
+            import org.yesworkflow.extract.DefaultExtractor;
+            import org.yesworkflow.model.*;
+
+            ywdb = createInMemoryDB();
+
             runManager.extractor = DefaultExtractor(ywdb);
             runManager.modeler = DefaultModeler(ywdb);
             runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
@@ -191,16 +195,16 @@ classdef RunManager < hgsetget
             % by scannning the inline yesWorkflow comments.
          
             import java.io.BufferedReader;
-            import org.yesworkflow.annotations.Annotation;
-            import org.yesworkflow.model.Program;
-            import org.yesworkflow.model.Workflow;
+            import org.yesworkflow.annotations.Annotation.*;
+            import org.yesworkflow.model.Program.*;
+            import org.yesworkflow.model.Workflow.*;
             import java.io.FileInputStream;
             import java.io.InputStreamReader;
             import java.util.List;
             import java.util.HashMap;
-            import org.yesworkflow.config.YWConfiguration;
-            import org.yesworkflow.model.DefaultModeler;
-            
+            import org.yesworkflow.config.YWConfiguration.*;
+            import org.yesworkflow.model.DefaultModeler.*;
+
             try
                            
                 % Read script content from disk
@@ -221,11 +225,11 @@ classdef RunManager < hgsetget
                
                 % Call YW-Graph module
                 if runManager.configuration.generate_workflow_graphic
-                    import org.yesworkflow.graph.GraphView;
-                    import org.yesworkflow.graph.CommentVisibility;
-                    import org.dataone.util.HashmapWrapper;
-                    import org.yesworkflow.graph.LayoutDirection;
-                    
+                    import org.yesworkflow.graph.GraphView.*;
+                    import org.yesworkflow.graph.CommentVisibility.*;
+                    import org.dataone.util.HashmapWrapper.*;
+                    import org.yesworkflow.graph.LayoutDirection.*;
+
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
 
                     % Generate YW.Process_View dot file  
@@ -359,7 +363,7 @@ classdef RunManager < hgsetget
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
             %import org.dataone.client.run.NamedConstant;
-            import org.dataone.util.ArrayListWrapper;
+            import org.dataone.util.ArrayListWrapper.*;
             import org.dataone.client.v2.itk.D1Object;
             import com.hp.hpl.jena.vocabulary.RDF;
             import org.dataone.vocabulary.PROV;
@@ -907,8 +911,8 @@ classdef RunManager < hgsetget
            % triples contained in a resourcemap.
            %  filePath - the path to the resourcemap
            %  p - the given property of a RDF triple
-           
-           import org.dataone.util.NullRDFNode;
+
+           import org.dataone.util.NullRDFNode.*;
            import org.dataone.vocabulary.PROV;
            import org.dspace.foresite.Predicate;
            import com.hp.hpl.jena.graph.Node;
@@ -967,9 +971,10 @@ classdef RunManager < hgsetget
            % GETRELATIONSHIPS get the relationships from the resourceMap
            % including prov:used, prov:hadPlan, prov:qualifiedAssociation,
            % prov:wasAssociatedWith, and rdf:type
-            
-           import org.dataone.util.NullRDFNode;
-           import org.dataone.vocabulary.PROV;
+
+
+           import org.dataone.util.NullRDFNode.*;
+           import org.dataone.vocabulary.PROV.*;
            import org.dspace.foresite.Predicate;
            import com.hp.hpl.jena.rdf.model.Property;
            import com.hp.hpl.jena.rdf.model.RDFNode;
@@ -1409,8 +1414,8 @@ classdef RunManager < hgsetget
             import org.dataone.vocabulary.PROV;
             import org.dataone.vocabulary.ProvONE;
             import java.net.URI;
-            import org.dataone.util.ArrayListWrapper;
-                           
+            import org.dataone.util.ArrayListWrapper.*;
+
             % Stop recording
             runManager.recording = false;
             runManager.prov_capture_enabled = false;
