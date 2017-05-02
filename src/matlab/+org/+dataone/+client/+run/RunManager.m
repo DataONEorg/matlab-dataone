@@ -351,19 +351,19 @@ classdef RunManager < hgsetget
             comb_image_dataObject = DataObject(comb_image_pid, imageFormatId, fullPathCombinedViewPdfFileName);
             runManager.execution.execution_objects(comb_image_dataObject.identifier) = ...
                 comb_image_dataObject;
-            runManager.execution.execution_output_ids{end+1} = comb_image_pid;
+            runManager.execution.execution_output_ids{end + 1} = comb_image_pid;
             
             process_image_pid = char(java.util.UUID.randomUUID());
             process_image_dataObject = DataObject(process_image_pid, imageFormatId, fullPathProcessViewPdfFileName);
             runManager.execution.execution_objects(process_image_dataObject.identifier) = ...
                 process_image_dataObject;
-            runManager.execution.execution_output_ids{end+1} = process_image_pid;
+            runManager.execution.execution_output_ids{end + 1} = process_image_pid;
             
             data_image_pid = char(java.util.UUID.randomUUID());
             data_image_dataObject = DataObject(data_image_pid, imageFormatId, fullPathDataViewPdfFileName);
             runManager.execution.execution_objects(data_image_dataObject.identifier) = ...
                 data_image_dataObject;
-            runManager.execution.execution_output_ids{end+1} = data_image_pid;
+            runManager.execution.execution_output_ids{end + 1} = data_image_pid;
 
         end
                 
