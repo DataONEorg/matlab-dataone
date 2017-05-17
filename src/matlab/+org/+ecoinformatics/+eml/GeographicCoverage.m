@@ -13,7 +13,7 @@ classdef GeographicCoverage
         function this = GeographicCoverage()            
         end
         
-        function this = setBooundingCoordinates(geo_desc, west, east, north, south) 
+        function this = setBooundingCoordinates(west, east, north, south) 
             this.boundingCoordinates = struct('west', west, 'east', east, 'north', north, 'south', south);
         end
         
