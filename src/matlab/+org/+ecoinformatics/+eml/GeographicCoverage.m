@@ -10,10 +10,19 @@ classdef GeographicCoverage
     end
     
     methods
-        function this = GeographicCoverage(geo_desc, west, east, north, south)
-            this.geographicDescription = geo_desc;
+        function this = GeographicCoverage()            
+        end
+        
+        function this = setBooundingCoordinates(geo_desc, west, east, north, south) 
             this.boundingCoordinates = struct('west', west, 'east', east, 'north', north, 'south', south);
- 
+        end
+        
+        function this = setGeographicDescription(g_desc)
+            this.geographicDescription = geo_desc;
+        end
+        
+        function this = setDataSetGPolygon()
+            
         end
     end
 end

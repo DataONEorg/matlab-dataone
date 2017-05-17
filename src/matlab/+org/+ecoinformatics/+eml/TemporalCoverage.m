@@ -6,7 +6,11 @@ classdef TemporalCoverage
         id;
     end
     methods
-        function this = TemporalCoverage(begin_date, end_date)
+        function this = TemporalCoverage()
+            
+        end
+        
+        function this = setRangeOfDates(begin_date, end_date) 
             this.rangeOfDates = struct('begin_date', begin_date, 'end_date', end_date);
         end
     end
