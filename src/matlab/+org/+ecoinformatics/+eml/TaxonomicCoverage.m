@@ -1,4 +1,4 @@
-classdef TaxonomicCoverage
+classdef TaxonomicCoverage < handle
     properties
         taxonomicSystem;
         generalTaxonomicCoverage;

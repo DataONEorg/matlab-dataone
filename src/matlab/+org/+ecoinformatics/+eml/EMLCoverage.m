@@ -1,5 +1,5 @@
 
-classdef EMLCoverage 
+classdef EMLCoverage < handle
     properties
         geographicCoverage;
         temporalCoverage;
@@ -8,12 +8,12 @@ classdef EMLCoverage
     
     methods
         
-        function emlCoverage = EMLCoverage(geo_coverage_ele, temp_coverage_ele, tax_coverage_ele) 
+        function emlCoverage = EMLCoverage(geo_coverage, temp_coverage, tax_coverage) 
             % EMLCoverage Creates a new, minimally valid instance of the EMLCoverage class
             
-            this.geographicCoverage = geo_coverage_ele;  
-            this.temporalCoverage = temp_coverage_ele;
-            this.taxonomicCoverage = tax_coverage_ele;
+            this.geographicCoverage = geo_coverage;  
+            this.temporalCoverage = temp_coverage;
+            this.taxonomicCoverage = tax_coverage;
         end
     end
 end
