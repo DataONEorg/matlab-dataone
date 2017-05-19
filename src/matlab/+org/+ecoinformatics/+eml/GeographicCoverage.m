@@ -32,7 +32,7 @@ classdef GeographicCoverage < handle
         end
         
         function geo_coverage_map = getNestedMap(this)
-            geo_coverage_map = containers.Map();
+           
             if isempty(this) 
                 return;
             end
@@ -54,6 +54,33 @@ classdef GeographicCoverage < handle
                end
             end
             geo_coverage_map = containers.Map(keySet, valueSet);
+        end
+        
+        function dom_node = convert2DomNode(this, anMap, dom_node, document)
+            if isempty(dom_node)
+                document = com.mathworks.xml.XMLUtils.createDocument('rootNode');                
+                documentNode = document.getDocumentElement();
+                dom_node = document.createElement('GeographicCoverage');
+                documentNode.appendChild(dom_node);
+            end
+
+            keySet = anMap.keys;
+            valueSet = anMap.values;
+            for i = 1: length(keySet)
+                ele_node = document.createElement(keySet{i});   
+                dom_node.appendChild(ele_node);
+                if isa(valueSet{i}, 'containers.Map') == 0
+                   if isnumeric(valueSet{i}) == 1
+                       ele_node_text_node = document.createTextNode(num2str(valueSet{i}));
+                   else    
+                       ele_node_text_node = document.createTextNode(char(valueSet{i}));
+                   end
+                   ele_node.appendChild(ele_node_text_node);                   
+                else
+                   copy_ele_node = ele_node;
+                   dom_node = convert2DomNode(this, valueSet{i}, copy_ele_node, document); 
+                end              
+            end         
         end
     end
 end
