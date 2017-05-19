@@ -77,8 +77,7 @@ classdef GeographicCoverage < handle
                    end
                    ele_node.appendChild(ele_node_text_node);                   
                 else
-                   copy_ele_node = ele_node;
-                   dom_node = convert2DomNode(this, valueSet{i}, copy_ele_node, document); 
+                   ele_node = convert2DomNode(this, valueSet{i}, ele_node, document); 
                 end              
             end         
         end
