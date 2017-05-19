@@ -30,6 +30,31 @@ classdef GeographicCoverage < handle
         function this = setBoundingAltitudes(this, altitudeMinimum, altitudeMaximum, altitudeUnits)
             this.boundingAltitudes = struct('altitudeMinimum', altitudeMinimum, 'altitudeMaximum', altitudeMaximum, 'altitudeUnits', altitudeUnits);
         end
+        
+        function geo_coverage_map = getNestedMap(this)
+            geo_coverage_map = containers.Map();
+            if isempty(this) 
+                return;
+            end
+            
+            fields = fieldnames(this);
+            valueSet = cell(1, length(fields));
+            keySet = cell(1, length(fields));
+            
+            for i = 1 : length(fields)
+               value = this.(fields{i});
+               if isa(value, 'struct') == 0 
+                   keySet{i} = fields{i};
+                   valueSet{i} = value;
+               else
+                   anStruct = struct(value);
+                   anMap = containers.Map(fieldnames(anStruct), struct2cell(anStruct));
+                   keySet{i} = fields{i};
+                   valueSet{i} = anMap;
+               end
+            end
+            geo_coverage_map = containers.Map(keySet, valueSet);
+        end
     end
 end
     
