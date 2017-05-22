@@ -82,7 +82,13 @@ classdef GeographicCoverage < hgsetget
                 end  
                 
                 dom_node.appendChild(ele_node);
-            end         
+            end
+        end
+        
+        function xml = toXML(this)
+            mapObj = this.getNestedMap();
+            dom_node = this.convert2DomNode(mapObj, [], []);
+            xml = xmlwrite(dom_node);
         end
     end
 end

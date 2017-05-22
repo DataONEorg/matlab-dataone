@@ -29,19 +29,19 @@ classdef TemporalCoverage < hgsetget
             this.singleDateTime = struct('singleDateTime', singleDate);
         end
         
-        function temporal_coverage_map = getNestedMap(this, object)
+        function temporal_coverage_map = getNestedMap(this)
             
-            if isempty(object)
+            if isempty(this)
                 temporal_coverage_map = [];
                 return;
             end
             
-            propertyNames = properties(object);
+            propertyNames = properties(this);
             valueSet = cell(1, length(propertyNames));
             keySet = cell(1, length(propertyNames));
             
             for i = 1 : length(propertyNames)
-                value = object.get(propertyNames{i});
+                value = this.get(propertyNames{i});
                 if isa(value, 'struct') == 0
                     keySet{i} = propertyNames{i};
                     valueSet{i} = value;
@@ -104,6 +104,12 @@ classdef TemporalCoverage < hgsetget
                 
                 dom_node.appendChild(ele_node);
             end
+        end
+        
+        function xml = toXML(this)
+            mapObj = this.getNestedMap();
+            dom_node = this.convert2DomNode(mapObj, [], []);
+            xml = xmlwrite(dom_node);
         end
     end
 end
