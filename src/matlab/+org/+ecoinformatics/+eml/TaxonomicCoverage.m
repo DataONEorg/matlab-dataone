@@ -11,5 +11,12 @@ classdef TaxonomicCoverage < handle
         function this = TaxonomicCoverage()
             
         end
+        
+        function taxonomy_coverage_map = getNestedMap(this, object)           
+            if isempty(object)
+                taxonomy_coverage_map = [];
+                return;
+            end
+        end
     end
 end

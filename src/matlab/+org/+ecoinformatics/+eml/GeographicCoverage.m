@@ -1,4 +1,4 @@
-classdef GeographicCoverage < handle
+classdef GeographicCoverage < hgsetget
     properties
         geographicDescription;
         boundingCoordinates;
@@ -15,7 +15,10 @@ classdef GeographicCoverage < handle
         end
         
         function this = setBoundingCoordinates(this, west, east, north, south) 
-            this.boundingCoordinates = struct('westBoundingCoordinate', west, 'eastBoundingCoordinate', east, 'northBoundingCoordinate', north, 'southBoundingCoordinate', south);
+            this.boundingCoordinates = struct('westBoundingCoordinate', west, ...
+                                              'eastBoundingCoordinate', east, ... 
+                                              'northBoundingCoordinate', north, ...
+                                              'southBoundingCoordinate', south);
 
         end
         
