@@ -67,7 +67,7 @@ classdef GeographicCoverage < hgsetget
 
             keySet = anMap.keys;
             valueSet = anMap.values;
-            for i = 1: length(keySet)
+            for i = 1 : length(keySet)
                 ele_node = document.createElement(keySet{i});   
                 
                 if isa(valueSet{i}, 'containers.Map') == 0

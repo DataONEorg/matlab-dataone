@@ -38,19 +38,9 @@ classdef EMLCoverage < hgsetget
             for i = 1 : length(map_keys)
                 value = this.map(map_keys{i});
                 
-                if isempty(value) == 0 && isa(value, 'org.ecoinformatics.eml.GeographicCoverage')
+                if isempty(value) == 0 
                     keySet{i} = map_keys{i};
                     valueSet{i} = value.getNestedMap();
-                end
-                
-                if isempty(value) == 0 && isa(value, 'org.ecoinformatics.eml.TemporalCoverage')
-                    keySet{i} = map_keys{i};
-                    valueSet{i} = value.getNestedMap(value);
-                end
-                
-                if isempty(value) == 0 && isa(value, 'org.ecoinformatics.eml.TaxonomicCoverage')
-                    keySet{i} = map_keys{i};
-                    valueSet{i} = value.getNestedMap(value);
                 end
             end
             coverage_map = containers.Map(keySet, valueSet);
@@ -67,7 +57,7 @@ classdef EMLCoverage < hgsetget
             
             keySet = anMap.keys;
             valueSet = anMap.values;
-            for i = 1: length(keySet)
+            for i = 1 : length(keySet)
                 ele_node = document.createElement(keySet{i});
                 
                 if isa(valueSet{i}, 'containers.Map') == 0

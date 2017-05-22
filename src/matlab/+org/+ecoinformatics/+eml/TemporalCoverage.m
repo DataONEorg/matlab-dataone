@@ -26,7 +26,7 @@ classdef TemporalCoverage < hgsetget
             if isempty(date_value) == 0
                 singleDate = struct('calendarDate', char(date_value));
             end
-            this.singleDateTime = struct('singleDateTime', singleDate);
+            this.singleDateTime = singleDate;
         end
         
         function temporal_coverage_map = getNestedMap(this)
@@ -88,7 +88,7 @@ classdef TemporalCoverage < hgsetget
             
             keySet = anMap.keys;
             valueSet = anMap.values;
-            for i = 1: length(keySet)
+            for i = 1 : length(keySet)
                 ele_node = document.createElement(keySet{i});
                 
                 if isa(valueSet{i}, 'containers.Map') == 0
