@@ -23,12 +23,8 @@ classdef GeographicCoverage < handle
             this.geographicDescription = geo_desc;
         end
         
-        function this = setDataSetGPolygon()
-            
-        end
-        
-        function this = setBoundingAltitudes(this, altitudeMinimum, altitudeMaximum, altitudeUnits)
-            this.boundingAltitudes = struct('altitudeMinimum', altitudeMinimum, 'altitudeMaximum', altitudeMaximum, 'altitudeUnits', altitudeUnits);
+        function this = setBoundingAltitudes(this, alt_min, alt_max, alt_units)
+            this.boundingAltitudes = struct('altitudeMinimum', alt_min, 'altitudeMaximum', alt_max, 'altitudeUnits', alt_units);
         end
         
         function geo_coverage_map = getNestedMap(this)
@@ -60,7 +56,7 @@ classdef GeographicCoverage < handle
             if isempty(dom_node)
                 document = com.mathworks.xml.XMLUtils.createDocument('rootNode');                
                 documentNode = document.getDocumentElement();
-                dom_node = document.createElement('GeographicCoverage');
+                dom_node = document.createElement('geographicCoverage');
                 documentNode.appendChild(dom_node);
             end
 
@@ -68,7 +64,7 @@ classdef GeographicCoverage < handle
             valueSet = anMap.values;
             for i = 1: length(keySet)
                 ele_node = document.createElement(keySet{i});   
-                dom_node.appendChild(ele_node);
+                
                 if isa(valueSet{i}, 'containers.Map') == 0
                    if isnumeric(valueSet{i}) == 1
                        ele_node_text_node = document.createTextNode(num2str(valueSet{i}));
@@ -78,7 +74,9 @@ classdef GeographicCoverage < handle
                    ele_node.appendChild(ele_node_text_node);                   
                 else
                    ele_node = convert2DomNode(this, valueSet{i}, ele_node, document); 
-                end              
+                end  
+                
+                dom_node.appendChild(ele_node);
             end         
         end
     end
