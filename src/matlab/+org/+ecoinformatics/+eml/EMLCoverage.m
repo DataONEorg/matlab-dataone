@@ -1,52 +1,57 @@
 
 classdef EMLCoverage < hgsetget
     properties
-        %geographicCoverage;
-        %temporalCoverage;
-        %taxonomicCoverage;
-        coverage_struct;
+        map;
     end
     
     methods
         
-        function this = EMLCoverage(geo_coverage, temp_coverage)
+        function this = EMLCoverage(geo_coverage, temp_coverage, taxonomy_coverage)
             % EMLCoverage Creates a new, minimally valid instance of the EMLCoverage class
             
-            this.coverage_struct = struct('geographicCoverage', geo_coverage, ...
-                                'temporalCoverage', temp_coverage);
+            if isempty(geo_coverage) == 0 && isa(geo_coverage, 'org.ecoinformatics.eml.GeographicCoverage')
+               this.map = containers.Map('geographicCoverage', geo_coverage); 
+            end
+            
+            if isempty(temp_coverage) == 0 && isa(temp_coverage, 'org.ecoinformatics.eml.TemporalCoverage')
+               new_map = containers.Map('temporalCoverage', temp_coverage); 
+               this.map = [this.map ; new_map];
+            end
+            
+            if isempty(taxonomy_coverage) == 0 && isa(taxonomy_coverage, 'org.ecoinformatics.eml.TaxonomicCoverage')
+               new_map = containers.Map('taxonomicCoverage', taxonomy_coverage); 
+               this.map = [this.map ; new_map];
+            end
         end
         
-        function coverage_map = getNestedMap(this, s)
+        function coverage_map = getNestedMap(this)
             
-            if isempty(s)
+            if isempty(this.map)
                 coverage_map = [];
                 return;
             end
             
-            fields = fieldnames(s);
-            valueSet = cell(1, length(fields));
-            keySet = cell(1, length(fields));
+            map_keys = this.map.keys;
+            valueSet = cell(1, length(map_keys));
+            keySet = cell(1, length(map_keys));
             
-            for i = 1 : length(fields)
-                value = s.(fields{i});
+            for i = 1 : length(map_keys)
+                value = this.map(map_keys{i});
                 
                 if isempty(value) == 0 && isa(value, 'org.ecoinformatics.eml.GeographicCoverage')
-                    keySet{i} = fields{i};
+                    keySet{i} = map_keys{i};
                     valueSet{i} = value.getNestedMap();
                 end
                 
                 if isempty(value) == 0 && isa(value, 'org.ecoinformatics.eml.TemporalCoverage')
-                    keySet{i} = fields{i};
+                    keySet{i} = map_keys{i};
                     valueSet{i} = value.getNestedMap(value);
                 end
                 
-%                 if isempty(value) == 0 && isa(value, 'org.ecoinformatics.eml.TaxonomicCoverage')
-%                     keySet{i} = fields{i};
-%                     valueSet{i} = value.getNestedMap(value);
-%                 else
-%                     keySet{i} = fields{i};
-%                     valueSet{i} = [];
-%                 end
+                if isempty(value) == 0 && isa(value, 'org.ecoinformatics.eml.TaxonomicCoverage')
+                    keySet{i} = map_keys{i};
+                    valueSet{i} = value.getNestedMap(value);
+                end
             end
             coverage_map = containers.Map(keySet, valueSet);
         end

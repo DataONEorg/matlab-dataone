@@ -27,7 +27,9 @@ classdef GeographicCoverage < hgsetget
         end
         
         function this = setBoundingAltitudes(this, alt_min, alt_max, alt_units)
-            this.boundingAltitudes = struct('altitudeMinimum', alt_min, 'altitudeMaximum', alt_max, 'altitudeUnits', alt_units);
+            this.boundingAltitudes = struct('altitudeMinimum', alt_min, ...
+                                            'altitudeMaximum', alt_max, ...
+                                            'altitudeUnits', alt_units);
         end
         
         function geo_coverage_map = getNestedMap(this)
