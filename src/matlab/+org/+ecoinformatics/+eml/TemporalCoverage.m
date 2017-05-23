@@ -7,7 +7,7 @@ classdef TemporalCoverage < hgsetget
     end
     methods
         function this = TemporalCoverage()
-            this.singleDateTime = struct();
+            
         end
         
         function this = setRangeOfDates(this, begin_date, end_date) 
@@ -26,6 +26,7 @@ classdef TemporalCoverage < hgsetget
             if isempty(date_value) == 0
                 singleDate = struct('calendarDate', char(date_value));
             end
+            
             if size(this.singleDateTime, 2) > 0 
                 this.singleDateTime = [ this.singleDateTime ; singleDate ]; % struct array
             else
@@ -79,7 +80,7 @@ classdef TemporalCoverage < hgsetget
                         valueSet{i} = child_map;
                     end
                 end
-                if k == 1
+                if  k == 1
                     resMap = containers.Map(keySet, valueSet);
                 else
                     newMap = containers.Map(keySet, valueSet);

@@ -20,7 +20,7 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-classdef EML
+classdef EML <  hgsetget
     %EML A class used to model an Ecological Metadata Language document.
     %   The EML class provides static functions to manage EML document
     %   instances.

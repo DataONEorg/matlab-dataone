@@ -239,6 +239,25 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
                         
             datasetElement.appendChild(contactElement);
             
+            % Create a cover element
+            import org.ecoinformatics.eml.GeographicCoverage
+            import org.ecoinformatics.eml.TemporalCoverage
+            import org.ecoinformatics.eml.EMLCoverage
+            
+            geoCoverageElement =  GeographicCoverage();
+            geoCoverageElement.setBoundingCoordinates(0, 0, 0, 0);
+            geoCoverageElement.setGeographicDescription('YOUR_DESCRIPTION');
+            
+            tmpCoverageElement = TemporalCoverage();
+            tmpCoverageElement.setRangeOfDates('1900-01-01', '1900-01-02');
+            tmpCoverageElement.setSingleDateTime('1900-01-01');
+            
+            coverageElement = EMLCoverage(geoCoverageElement, tmpCoverageElement, []);
+            mapObj = coverageElement.getNestedMap();
+            coverageElementDomNode = coverageElement.convert2DomNode(mapObj, [], self.document);
+            
+            datasetElement.appendChild(coverageElementDomNode);
+            
             emlDataset = self;
         end
     end
