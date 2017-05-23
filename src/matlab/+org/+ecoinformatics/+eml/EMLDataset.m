@@ -239,7 +239,7 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
                         
             datasetElement.appendChild(contactElement);
             
-            % Create a cover element
+            % Create a coverage element
             import org.ecoinformatics.eml.GeographicCoverage
             import org.ecoinformatics.eml.TemporalCoverage
             import org.ecoinformatics.eml.EMLCoverage
