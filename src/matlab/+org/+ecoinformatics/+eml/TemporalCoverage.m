@@ -7,7 +7,7 @@ classdef TemporalCoverage < hgsetget
     end
     methods
         function this = TemporalCoverage()
-            
+            this.singleDateTime = struct();
         end
         
         function this = setRangeOfDates(this, begin_date, end_date) 
@@ -26,11 +26,14 @@ classdef TemporalCoverage < hgsetget
             if isempty(date_value) == 0
                 singleDate = struct('calendarDate', char(date_value));
             end
-            this.singleDateTime = singleDate;
+            if size(this.singleDateTime, 2) > 0 
+                this.singleDateTime = [ this.singleDateTime ; singleDate ]; % struct array
+            else
+                this.singleDateTime = singleDate;
+            end
         end
         
-        function temporal_coverage_map = getNestedMap(this)
-            
+        function temporal_coverage_map = getNestedMap(this)          
             if isempty(this)
                 temporal_coverage_map = [];
                 return;
@@ -54,28 +57,35 @@ classdef TemporalCoverage < hgsetget
             temporal_coverage_map = containers.Map(keySet, valueSet);
         end
            
-        function aMap = getNestedMapHelper(this, s)
-            if isempty(s)
-                aMap = [];
+        function resMap = getNestedMapHelper(this, S)
+            if isempty(S)
+                resMap = [];
                 return;
             end
 
-            fields = fieldnames(s);
-            valueSet = cell(1, length(fields));
-            keySet = cell(1, length(fields));
-            
-            for i = 1 : length(fields)
-                value = s.(fields{i});
-                if isa(value, 'struct') == 0
-                    keySet{i} = fields{i};
-                    valueSet{i} = value;
-                else 
-                    child_map = getNestedMapHelper(this, value);
-                    keySet{i} = fields{i};
-                    valueSet{i} = child_map;
+            for k = 1 : size(S, 1)
+                fields = fieldnames(S(k));
+                valueSet = cell(1, length(fields));
+                keySet = cell(1, length(fields));
+                
+                for i = 1 : length(fields)
+                    value = S(k).(fields{i});
+                    if isa(value, 'struct') == 0
+                        keySet{i} = fields{i};
+                        valueSet{i} = value;
+                    else                        
+                        child_map = getNestedMapHelper(this, value);
+                        keySet{i} = fields{i};
+                        valueSet{i} = child_map;
+                    end
+                end
+                if k == 1
+                    resMap = containers.Map(keySet, valueSet);
+                else
+                    newMap = containers.Map(keySet, valueSet);
+                    resMap = [resMap ; newMap];
                 end
             end
-            aMap = containers.Map(keySet, valueSet);
         end
         
         function dom_node = convert2DomNode(this, anMap, dom_node, document)
