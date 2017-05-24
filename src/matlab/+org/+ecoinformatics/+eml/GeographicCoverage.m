@@ -39,20 +39,25 @@ classdef GeographicCoverage < hgsetget
             end
             
             fields = fieldnames(this);
-            valueSet = cell(1, length(fields));
-            keySet = cell(1, length(fields));
-            
+            valueSet = {};
+            keySet = {};
+
+            k = 1;
             for i = 1 : length(fields)
                value = this.(fields{i});
                if isa(value, 'struct') == 0 
-                   keySet{i} = fields{i};
-                   valueSet{i} = value;
+                   if isempty(value) == 0
+                       keySet{k} = fields{i};
+                       valueSet{k} = value;
+                       k = k + 1;
+                   end
                else
                    anStruct = struct(value);
                    anMap = containers.Map(fieldnames(anStruct), struct2cell(anStruct));
-                   keySet{i} = fields{i};
-                   valueSet{i} = anMap;
-               end
+                   keySet{k} = fields{i};
+                   valueSet{k} = anMap;
+                   k = k + 1;
+               end               
             end
             geo_coverage_map = containers.Map(keySet, valueSet);
         end

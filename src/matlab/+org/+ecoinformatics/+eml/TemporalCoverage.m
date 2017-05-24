@@ -41,18 +41,22 @@ classdef TemporalCoverage < hgsetget
             end
             
             propertyNames = properties(this);
-            valueSet = cell(1, length(propertyNames));
-            keySet = cell(1, length(propertyNames));
-            
+            valueSet = {};
+            keySet = {};
+            k = 1;
             for i = 1 : length(propertyNames)
                 value = this.get(propertyNames{i});
-                if isa(value, 'struct') == 0
-                    keySet{i} = propertyNames{i};
-                    valueSet{i} = value;
+                if isa(value, 'struct') == 0 
+                    if isempty(value) == 0
+                        keySet{k} = propertyNames{i};
+                        valueSet{k} = value;
+                        k = k + 1;
+                    end
                 else 
                     child_map = getNestedMapHelper(this, value);
-                    keySet{i} = propertyNames{i};
-                    valueSet{i} = child_map;
+                    keySet{k} = propertyNames{i};
+                    valueSet{k} = child_map;
+                    k = k + 1;
                 end
             end
             temporal_coverage_map = containers.Map(keySet, valueSet);
