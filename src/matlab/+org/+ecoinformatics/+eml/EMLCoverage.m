@@ -8,12 +8,12 @@ classdef EMLCoverage < hgsetget
         
         function this = EMLCoverage(geo_coverage, temp_coverage, taxonomy_coverage)
             % EMLCoverage Creates a new, minimally valid instance of the EMLCoverage class
-            
-            if isempty(geo_coverage) == 0 && isa(geo_coverage, 'org.ecoinformatics.eml.GeographicCoverage')
+  
+            if isempty(geo_coverage) == 0 && isa(geo_coverage, 'org.ecoinformatics.eml.GeographicCoverageNestedStruct')   
                this.map = containers.Map('geographicCoverage', geo_coverage); 
             end
             
-            if isempty(temp_coverage) == 0 && isa(temp_coverage, 'org.ecoinformatics.eml.TemporalCoverage')
+            if isempty(temp_coverage) == 0 && isa(temp_coverage, 'org.ecoinformatics.eml.TemporalCoverageNestedStruct')
                new_map = containers.Map('temporalCoverage', temp_coverage); 
                this.map = [this.map ; new_map];
             end
@@ -43,7 +43,9 @@ classdef EMLCoverage < hgsetget
                     valueSet{i} = value.getNestedMap();
                 end
             end
-            coverage_map = containers.Map(keySet, valueSet);
+
+            tmp = {keySet{:}; valueSet{:}};
+            coverage_map = struct(tmp{:});
         end
         
             
@@ -57,12 +59,13 @@ classdef EMLCoverage < hgsetget
                 documentNode.appendChild(dom_node);
             end
             
-            keySet = anMap.keys;
-            valueSet = anMap.values;
+            keySet = fields(anMap);
+            valueSet = cell(length(keySet));
             for i = 1 : length(keySet)
                 ele_node = document.createElement(keySet{i});
+                valueSet{i} = anMap.(keySet{i});
                 
-                if isa(valueSet{i}, 'containers.Map') == 0
+                if isa(valueSet{i}, 'struct') == 0
                     if isnumeric(valueSet{i}) == 1
                         ele_node_text_node = document.createTextNode(num2str(valueSet{i}));
                     else
@@ -70,7 +73,9 @@ classdef EMLCoverage < hgsetget
                     end
                     ele_node.appendChild(ele_node_text_node);
                 else
-                    ele_node = convert2DomNode(this, valueSet{i}, ele_node, document);
+                    for j = 1 : length(valueSet{i})
+                        ele_node = convert2DomNode(this, valueSet{i}(j), ele_node, document);
+                    end
                 end
                 
                 dom_node.appendChild(ele_node);
