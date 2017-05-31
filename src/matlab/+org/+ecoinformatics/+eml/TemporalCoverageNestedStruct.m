@@ -8,6 +8,7 @@ classdef TemporalCoverageNestedStruct < hgsetget
     methods
         function this = TemporalCoverageNestedStruct()
             this.singleDateTime = struct(struct('calendarDate', {}));
+            this.rangeOfDates = struct('beginDate', struct('calendarDate', {}), 'endDate', struct('calendarDate', {}));
         end
         
         function this = setRangeOfDates(this, begin_date, end_date) 

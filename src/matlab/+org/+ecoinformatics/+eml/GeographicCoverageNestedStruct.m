@@ -11,7 +11,15 @@ classdef GeographicCoverageNestedStruct < hgsetget
     end
     
     methods
-        function this = GeographicCoverageNestedStruct()            
+        function this = GeographicCoverageNestedStruct()
+            this.boundingCoordinates = struct('westBoundingCoordinate', {}, ...
+                'eastBoundingCoordinate', {}, ...
+                'northBoundingCoordinate', {}, ...
+                'southBoundingCoordinate', {});
+            
+            this.boundingAltitudes = struct('altitudeMinimum', {}, ...
+                'altitudeMaximum', {}, ...
+                'altitudeUnits', {});
         end
         
         function this = setBoundingCoordinates(this, west, east, north, south) 
