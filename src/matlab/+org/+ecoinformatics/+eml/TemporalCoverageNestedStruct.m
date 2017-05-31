@@ -7,7 +7,7 @@ classdef TemporalCoverageNestedStruct < hgsetget
     end
     methods
         function this = TemporalCoverageNestedStruct()
-            
+            this.singleDateTime = struct(struct('calendarDate', {}));
         end
         
         function this = setRangeOfDates(this, begin_date, end_date) 
@@ -26,12 +26,7 @@ classdef TemporalCoverageNestedStruct < hgsetget
             if isempty(date_value) == 0
                 singleDate = struct('calendarDate', char(date_value));
             end
-            
-            if size(this.singleDateTime, 2) > 0 
-                this.singleDateTime = [ this.singleDateTime ; singleDate ]; % struct array
-            else
-                this.singleDateTime = singleDate;
-            end
+            this.singleDateTime(end + 1, 1) = singleDate;
         end
         
         function temporal_coverage_map = getNestedMap(this)          
