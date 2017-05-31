@@ -126,7 +126,7 @@ classdef TemporalCoverageNestedStruct < hgsetget
                     end
                     ele_node.appendChild(ele_node_text_node);
                 else
-                    for j = 1 : length(valueSet{i}) % struct array
+                    for j = 1 : length(valueSet{i}) % loop over struct array
                         ele_node = convert2DomNode(this, valueSet{i}(j), ele_node, document);
                     end
                 end
