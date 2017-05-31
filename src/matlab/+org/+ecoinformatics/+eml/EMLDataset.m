@@ -231,17 +231,18 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             datasetElement.appendChild(abstractElement);
             
             % Create a coverage element
-            import org.ecoinformatics.eml.GeographicCoverage
-            import org.ecoinformatics.eml.TemporalCoverage
+            import org.ecoinformatics.eml.GeographicCoverageNestedStruct
+            import org.ecoinformatics.eml.TemporalCoverageNestedStruct
             import org.ecoinformatics.eml.EMLCoverage
             
-            geoCoverageElement =  GeographicCoverage();
+            geoCoverageElement =  GeographicCoverageNestedStruct();
             geoCoverageElement.setGeographicDescription('YOUR_DESCRIPTION');
             geoCoverageElement.setBoundingCoordinates(0, 0, 0, 0);
 
-            tmpCoverageElement = TemporalCoverage();
-            tmpCoverageElement.setRangeOfDates('2000-01-01', '2000-01-01');
-            tmpCoverageElement.setSingleDateTime('2000-01-01');
+            tmpCoverageElement = TemporalCoverageNestedStruct();
+            %tmpCoverageElement.setRangeOfDates('2000-01-01', '2000-01-01');
+            tmpCoverageElement.setSingleDateTime('2000-01-01'); % either "singleDateTime" or "rangeOfDates"
+            %tmpCoverageElement.setSingleDateTime('2000-01-09');
             
             coverageElement = EMLCoverage(geoCoverageElement, tmpCoverageElement, []);
             mapObj = coverageElement.getNestedMap();
@@ -257,9 +258,7 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             contactElement.appendChild(refsElement);
                         
             datasetElement.appendChild(contactElement);
-            
-
-            
+                      
             emlDataset = self;
         end
     end
