@@ -62,23 +62,27 @@ classdef EMLCoverage < hgsetget
             keySet = fields(anMap);
             valueSet = cell(length(keySet));
             for i = 1 : length(keySet)
-                ele_node = document.createElement(keySet{i});
+%                 ele_node = document.createElement(keySet{i});
                 valueSet{i} = anMap.(keySet{i});
                 
                 if isa(valueSet{i}, 'struct') == 0
+                    ele_node = document.createElement(keySet{i});
                     if isnumeric(valueSet{i}) == 1
                         ele_node_text_node = document.createTextNode(num2str(valueSet{i}));
                     else
                         ele_node_text_node = document.createTextNode(char(valueSet{i}));
                     end
                     ele_node.appendChild(ele_node_text_node);
+                    dom_node.appendChild(ele_node);
                 else
-                    for j = 1 : length(valueSet{i})
+                    for j = 1 : length(valueSet{i}) % loop over struct array
+                        ele_node = document.createElement(keySet{i});
                         ele_node = convert2DomNode(this, valueSet{i}(j), ele_node, document);
+                        dom_node.appendChild(ele_node);
                     end
                 end
                 
-                dom_node.appendChild(ele_node);
+%                 dom_node.appendChild(ele_node);
             end
         end
         
