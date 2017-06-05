@@ -1287,10 +1287,7 @@ classdef RunManager < hgsetget
             
             % runManager.execution = Execution(tagStr);
             runManager.execution.tag = tagStr;
-            
-            % Set up yesWorkflow and pass the path of a script to yesWorkflow
-            runManager.configYesWorkflow(filePath);
-            
+           
             % Begin recording
             runManager.startRecord(runManager.execution.tag);
 

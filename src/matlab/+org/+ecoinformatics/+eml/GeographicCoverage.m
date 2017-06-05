@@ -33,7 +33,6 @@ classdef GeographicCoverage < hgsetget
         end
         
         function geo_coverage_map = getNestedMap(this)
-           
             if isempty(this) 
                 return;
             end
@@ -70,12 +69,11 @@ classdef GeographicCoverage < hgsetget
                 documentNode.appendChild(dom_node);
             end
 
-            keySet = anMap.keys;
+            keySet = anMap.keys; 
             valueSet = anMap.values;
-            for i = 1 : length(keySet)
-                ele_node = document.createElement(keySet{i});   
-                
-                if isa(valueSet{i}, 'containers.Map') == 0
+            for i = 1 : length(keySet) 
+                ele_node = document.createElement(keySet{i});         
+                if isa(valueSet{i}, 'containers.Map') == 0 
                    if isnumeric(valueSet{i}) == 1
                        ele_node_text_node = document.createTextNode(num2str(valueSet{i}));
                    else    

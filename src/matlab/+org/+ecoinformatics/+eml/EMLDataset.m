@@ -239,12 +239,12 @@ classdef EMLDataset < org.ecoinformatics.eml.EML
             geoCoverageElement.setGeographicDescription('YOUR_DESCRIPTION');
             geoCoverageElement.setBoundingCoordinates(0, 0, 0, 0);
 
-            tmpCoverageElement = TemporalCoverageNestedStruct();
-            tmpCoverageElement.setRangeOfDates('YOUR_START_DATE', 'YOUR_END_DATE');
-            %tmpCoverageElement.setSingleDateTime('YOUR_DATE_TIME_1'); % either "singleDateTime" or "rangeOfDates"
-            %tmpCoverageElement.setSingleDateTime('YOUR_DATE_TIME_2');
+            tempCoverageElement = TemporalCoverageNestedStruct();
+            tempCoverageElement.setRangeOfDates('2000-01-01', '2000-01-01');
+            %tempCoverageElement.setSingleDateTime('2000-01-01'); % either "singleDateTime" or "rangeOfDates"
+            %tempCoverageElement.setSingleDateTime('2000-01-01');
             
-            coverageElement = EMLCoverage(geoCoverageElement, tmpCoverageElement, []);
+            coverageElement = EMLCoverage(geoCoverageElement, tempCoverageElement, []);
             mapObj = coverageElement.getNestedMap();
             coverageElementDomNode = coverageElement.convert2DomNode(mapObj, [], self.document);
             

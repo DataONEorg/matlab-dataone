@@ -107,7 +107,9 @@ classdef TemporalCoverageNestedStruct < hgsetget
         
         function dom_node = convert2DomNode(this, anMap, dom_node, document)
             if isempty(dom_node)
-                document = com.mathworks.xml.XMLUtils.createDocument('rootNode');
+                if isempty(document)
+                    document = com.mathworks.xml.XMLUtils.createDocument('rootNode');
+                end
                 documentNode = document.getDocumentElement();
                 dom_node = document.createElement('temporalCoverage');
                 documentNode.appendChild(dom_node);

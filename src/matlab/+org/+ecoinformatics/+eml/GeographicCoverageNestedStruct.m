@@ -87,7 +87,9 @@ classdef GeographicCoverageNestedStruct < hgsetget
         
         function dom_node = convert2DomNode(this, anMap, dom_node, document)
             if isempty(dom_node)
-                document = com.mathworks.xml.XMLUtils.createDocument('rootNode');                
+                if isempty(document)
+                    document = com.mathworks.xml.XMLUtils.createDocument('rootNode');      
+                end
                 documentNode = document.getDocumentElement();
                 dom_node = document.createElement('geographicCoverage');
                 documentNode.appendChild(dom_node);
@@ -99,6 +101,7 @@ classdef GeographicCoverageNestedStruct < hgsetget
                 ele_node = document.createElement(keySet{i});  
                 valueSet{i} = anMap.(keySet{i});
                 if isa(valueSet{i}, 'struct') == 0 
+                   ele_node = document.createElement(keySet{i}); 
                    if isnumeric(valueSet{i}) == 1
                        ele_node_text_node = document.createTextNode(num2str(valueSet{i}));
                    else    
