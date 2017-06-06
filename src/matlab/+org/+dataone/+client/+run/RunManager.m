@@ -7,7 +7,7 @@
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2009-2016 DataONE
+%   Copyright 2009-2017 DataONE
 
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ classdef RunManager < hgsetget
       
         % The generated workflow object built by YesWorkflow 
         workflow;
+        
+        % A database storing retrospective provenance information
+        provenanceDB;
                
     end
 
@@ -54,9 +57,7 @@ classdef RunManager < hgsetget
         combinedViewPdfFileName = '';
         
         wfMetaFileName = '';
-%         mfilename = '';
-%         efilename = '';
-        
+
         % DataONE CN URI resolve endpoint 
         D1_CN_Resolve_Endpoint;
         
@@ -72,7 +73,7 @@ classdef RunManager < hgsetget
         % Current user URI
         userURI;
         
-        % Predicate for provone: Data
+        % Predicate for provone:Data
         provONEdataURI;
         
         % The YesWorkflow Extractor object
@@ -87,7 +88,10 @@ classdef RunManager < hgsetget
         last_sequence_number;
         
         % A flag for interactive mode or not
-        console = true; % Dec-7-2015
+        console = true; 
+        
+        % Used by prolog query
+        DEFAULT_QUERY_ENGINE = 'XSB'; 
     end
    
     methods (Access = private)
@@ -97,11 +101,40 @@ classdef RunManager < hgsetget
             % The RunManager class manages outputs of a script based on the
             % settings in the given configuration passed in.
             import org.dataone.client.configure.Configuration;
+            import org.dataone.client.sqlite.Database;
+            import org.dataone.client.sqlite.SqliteDatabase;
+            import org.dataone.client.sqlite.ExecMetadata;
+            import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ModuleMetadata;
+            import org.dataone.client.sqlite.ExecModuleBridge;
             
             warning('off','backtrace');
             
             manager.configuration = configuration;
-            % configuration.saveConfig();            
+            
+            % Configure the provenance database
+            db_path = manager.configuration.provenance_storage_directory;
+            db_file = 'recordm.sqlite'; 
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
+            manager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+       
+            create_exec_meta_table_statement = ExecMetadata.createExecMetaTable('execmeta');
+            create_tag_table_statement = ExecMetadata.createTagTable('tags');
+            create_file_meta_table_statement = FileMetadata.createFileMetadataTable('filemeta');
+            create_module_meta_table_statement = ModuleMetadata.createModuleMetaTable('modulemeta');
+            create_bridge_table_statement = ExecModuleBridge.createExecModuleBridgeTable('execmodulebridge');
+
+            manager.provenanceDB.execute(create_exec_meta_table_statement, 'execmeta');
+            manager.provenanceDB.execute(create_tag_table_statement, 'tags');
+            manager.provenanceDB.execute(create_file_meta_table_statement, 'filemeta');
+            manager.provenanceDB.execute(create_module_meta_table_statement, 'modulemeta');
+            manager.provenanceDB.execute(create_bridge_table_statement, 'execmodulebridge');
+            
+            archive_dir = sprintf('%s/archive', manager.configuration.provenance_storage_directory);
+            if ~exist(archive_dir, 'dir' )
+                mkdir(archive_dir);
+            end
+            
             manager.init();  
             mlock; % Lock the RunManager instance to prevent clears          
         end
@@ -129,8 +162,7 @@ classdef RunManager < hgsetget
             prop = JenaPropertyUtil.getType(property);
             ns = JenaPropertyUtil.getNameSpace(property);
             predicate.setNamespace(ns);         
-            %predicate.setNamespace(property.getNamespace()); % There is an error here !
-            
+          
             if isempty(prefix) ~= 1
                 predicate.setPrefix(prefix);               
             end
@@ -151,7 +183,7 @@ classdef RunManager < hgsetget
             certificate = CertificateManager.getInstance().loadCertificate();          
             if ~isempty(certificate)
                 dn = CertificateManager.getInstance().getSubjectDN(certificate).toString();
-                standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); % convert java string to char nov-2-2015
+                standardizedName = char(CertificateManager.getInstance().standardizeDN(dn)); 
             else
                 standardizedName = '';
             end
@@ -161,8 +193,6 @@ classdef RunManager < hgsetget
             % CONFIGYESWORKFLOW Set YesWorkflow extractor language model to be Matlab type
             % Default configuration is used now.
             
-
-
             import org.yesworkflow.extract.DefaultExtractor.*;
             import org.yesworkflow.model.DefaultModeler;
             import org.yesworkflow.graph.DotGrapher;
@@ -177,7 +207,7 @@ classdef RunManager < hgsetget
             runManager.modeler = DefaultModeler(ywdb);
             runManager.grapher = DotGrapher(java.lang.System.out, java.lang.System.err);
             
-            % Configure yesWorkflow language model to be Matlab
+            % Configure yesWorkflow language model to be matlab
             import org.dataone.util.HashmapWrapper;
             import org.yesworkflow.Language;
             
@@ -233,7 +263,7 @@ classdef RunManager < hgsetget
                     runManager.grapher = runManager.grapher.workflow(runManager.workflow);
 
                     % Generate YW.Process_View dot file  
-                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name); % Read from process_view_yw.properties                                               
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.process_view_property_file_name);                                           
                     runManager.processViewDotFileName = config.get('graph.dotfile');  
                     full_path_processViewDotFileName = [runDirectory filesep runManager.processViewDotFileName];                                              
                     config.set('graph.dotfile', full_path_processViewDotFileName); 
@@ -241,7 +271,7 @@ classdef RunManager < hgsetget
                     runManager.grapher = runManager.grapher.graph();           
                                                          
                     % Generate YW.Data_View dot file                  
-                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.data_view_property_file_name); % Read from data_view_yw.properties                   
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.data_view_property_file_name);                
                     runManager.dataViewDotFileName = config.get('graph.dotfile');
                     full_path_dataViewDotFileName = [runDirectory filesep runManager.dataViewDotFileName]; 
                     config.set('graph.dotfile', full_path_dataViewDotFileName);
@@ -249,7 +279,7 @@ classdef RunManager < hgsetget
                     runManager.grapher = runManager.grapher.graph();
                    
                     % Generate YW.Combined_View dot file                   
-                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.combined_view_property_file_name); % Read from comb_view_yw.properties                    
+                    config.applyPropertyFile(runManager.configuration.yesworkflow_config.combined_view_property_file_name);                   
                     runManager.combinedViewDotFileName = config.get('graph.dotfile');
                     full_path_combinedViewDotFileName = [runDirectory filesep runManager.combinedViewDotFileName];
                     config.set('graph.dotfile', full_path_combinedViewDotFileName);
@@ -268,21 +298,21 @@ classdef RunManager < hgsetget
             
             import org.dataone.client.v2.DataObject;
             
-            position = strfind(runManager.processViewDotFileName, '.gv'); % get the index of '.gv'            
-            processViewDotName = strtrim(runManager.processViewDotFileName(1:(position-1)));
+            position = strfind(runManager.processViewDotFileName, '.gv');        
+            processViewDotName = strtrim(runManager.processViewDotFileName(1 : (position - 1)));
             
             runManager.processViewPdfFileName = [processViewDotName '.pdf'];
             fullPathProcessViewPdfFileName = [runDirectory filesep processViewDotName '.pdf'];
             fullPathProcessViewDotFileName = [runDirectory filesep runManager.processViewDotFileName];
             
-            position = strfind(runManager.dataViewDotFileName, '.gv'); % get the index of '.gv'            
-            dataViewDotName = strtrim(runManager.dataViewDotFileName(1:(position-1)));
+            position = strfind(runManager.dataViewDotFileName, '.gv');          
+            dataViewDotName = strtrim(runManager.dataViewDotFileName(1 : (position - 1)));
             runManager.dataViewPdfFileName = [dataViewDotName '.pdf'];
             fullPathDataViewPdfFileName = [runDirectory filesep dataViewDotName '.pdf'];
             fullPathDataViewDotFileName = [runDirectory filesep runManager.dataViewDotFileName];
             
-            position = strfind(runManager.combinedViewDotFileName, '.gv'); % get the index of '.gv'            
-            combViewDotName = strtrim(runManager.combinedViewDotFileName(1:(position-1)));
+            position = strfind(runManager.combinedViewDotFileName, '.gv');          
+            combViewDotName = strtrim(runManager.combinedViewDotFileName(1 : (position - 1)));
             runManager.combinedViewPdfFileName = [combViewDotName '.pdf'];
             fullPathCombinedViewPdfFileName = [runDirectory filesep combViewDotName '.pdf'];
             fullPathCombViewDotName = [runDirectory filesep runManager.combinedViewDotFileName];
@@ -323,19 +353,19 @@ classdef RunManager < hgsetget
             comb_image_dataObject = DataObject(comb_image_pid, imageFormatId, fullPathCombinedViewPdfFileName);
             runManager.execution.execution_objects(comb_image_dataObject.identifier) = ...
                 comb_image_dataObject;
-            runManager.execution.execution_output_ids{end+1} = comb_image_pid;
+            runManager.execution.execution_output_ids{end + 1} = comb_image_pid;
             
             process_image_pid = char(java.util.UUID.randomUUID());
             process_image_dataObject = DataObject(process_image_pid, imageFormatId, fullPathProcessViewPdfFileName);
             runManager.execution.execution_objects(process_image_dataObject.identifier) = ...
                 process_image_dataObject;
-            runManager.execution.execution_output_ids{end+1} = process_image_pid;
+            runManager.execution.execution_output_ids{end + 1} = process_image_pid;
             
             data_image_pid = char(java.util.UUID.randomUUID());
             data_image_dataObject = DataObject(data_image_pid, imageFormatId, fullPathDataViewPdfFileName);
             runManager.execution.execution_objects(data_image_dataObject.identifier) = ...
                 data_image_dataObject;
-            runManager.execution.execution_output_ids{end+1} = data_image_pid;
+            runManager.execution.execution_output_ids{end + 1} = data_image_pid;
 
         end
                 
@@ -358,12 +388,13 @@ classdef RunManager < hgsetget
             d1ObjIdentifier.setValue(idValue);
             d1Obj = D1Object(d1ObjIdentifier, data, D1TypeBuilder.buildFormatIdentifier(fileFmt), D1TypeBuilder.buildSubject(submitter), D1TypeBuilder.buildNodeReference(mnNodeId)); 
         end
-               
-   function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
+          
+        
+        function data_package = buildPackage(runManager, submitter, mnNodeId, dirPath)
+            
             import org.dataone.client.v2.itk.DataPackage;
             import org.dataone.service.types.v1.Identifier;            
-            %import org.dataone.client.run.NamedConstant;
-            import org.dataone.util.ArrayListWrapper.*;
+            import org.dataone.util.ArrayListWrapper;
             import org.dataone.client.v2.itk.D1Object;
             import com.hp.hpl.jena.vocabulary.RDF;
             import org.dataone.vocabulary.PROV;
@@ -376,37 +407,55 @@ classdef RunManager < hgsetget
             import java.math.BigInteger;
             
             import org.dataone.client.v2.DataObject;
-                       
+            import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ExecMetadata;
+            
             if runManager.configuration.debug
                 disp('====== buildPackage ======');
             end
            
-            % Get the run identifier from the directory name
+            em_fields = {'seq','executionId','metadataId','datapackageId','user','subject','hostId','startTime','operatingSystem','runtime','softwareApplication','endTime','errorMessage','publishTime','publishNodeId','publishId','console'};
+            fm_fields = {'fileId','executionId','filePath','sha256','size','user','modifyTime','createTime','access','format','archivedFilePath'};
+            tag_fields = {'seq','executionId','tag'};
+            
+            % Get the run identifier from the directory name (execution_id)
             path_array = strsplit(dirPath, filesep);
-            identifier = char(path_array(end));
+            cur_exec_id = char(path_array(end)); 
+                                 
+            % Query the ExecMetadata table using the given execution_id           
+            read_exec_query = sprintf('select * from %s e where e.executionId="%s";', 'execmeta', cur_exec_id);            
+            row_exec_meta = runManager.provenanceDB.execute(read_exec_query, 'execmeta');
+            row_exec_meta_struct = cell2struct(row_exec_meta, em_fields, 2);
+            if isempty(row_exec_meta)               
+                warning('There is no record for the %s in the %s table', cur_exec_id, 'execmeta');
+            else
+                % The following information are required by EML.update()
+                runManager.execution.start_time = row_exec_meta_struct.startTime; 
+                runManager.execution.software_application = row_exec_meta_struct.softwareApplication; 
+                runManager.execution.execution_id = cur_exec_id; 
+            end
             
-            % Load the stored execution given the directory name
-            exec_file_base_name = [identifier '.mat'];
-            stored_execution = load(fullfile( ...
-                runManager.configuration.provenance_storage_directory, ...
-                'runs', ...
-                identifier, ...
-                exec_file_base_name));
-
-            % Assign deserialized execution to runManager.execution
-            runManager.execution = stored_execution.executionObj(1);
-            
-            % Initialize a dataPackage to manage the run
-            program_id = runManager.execution.getIdByFullFilePath( ...
-                runManager.execution.software_application);
+            % Get the identifier for the script file object from the
+            % filemeta table by searching for "access='execute'"             
+            program_id = '';
+            program_metadata_obj = FileMetadata('', cur_exec_id, '','',0,'','','','execute','',''); 
+            read_program_query = program_metadata_obj.readFileMeta('','');
+            rows_program_meta = runManager.provenanceDB.execute(read_program_query, program_metadata_obj.tableName);
+            rows_program_meta_struct = struct;
+            if ~isempty(rows_program_meta)
+                rows_program_meta_struct = cell2struct(rows_program_meta, fm_fields, 2);               
+                program_id = rows_program_meta_struct.fileId;
+            end
         
-            packageIdentifier = Identifier();
+            % Initialize a dataPackage to manage the run
+            packageIdentifier = Identifier();            
             packageIdentifier.setValue(runManager.execution.execution_id);      
            
             % Create a resourceMap identifier
             resourceMapId = Identifier();
             resourceMapId.setValue(['resourceMap_' ...
                 runManager.execution.execution_id '.rdf']);
+
             % Create an empty datapackage with resourceMapId
             import org.dataone.configuration.Settings;
             Settings.getConfiguration().setProperty( ...
@@ -449,19 +498,17 @@ classdef RunManager < hgsetget
             isAggregatedByPredicate = ORE.predicate('isAggregatedBy');
             
             % Create a DataObject for the program that we are running and
-            %    update the resulting sysmeta in the stored exucution matlab DataObject
-            programDataObject = runManager.execution.execution_objects(program_id);
+            %    update the resulting sysmeta in the stored exucution
+            %    matlab DataObject
             programD1JavaObj = runManager.buildD1Object( ...
-                programDataObject.full_file_path, programDataObject.format_id, ...
-                programDataObject.identifier, submitter, mnNodeId);
+                rows_program_meta_struct.filePath, rows_program_meta_struct.format, ...
+                rows_program_meta_struct.fileId, submitter, mnNodeId);
             runManager.dataPackage.addData(programD1JavaObj);
-            set(programDataObject, 'system_metadata', programD1JavaObj.getSystemMetadata());
-            runManager.execution.execution_objects(program_id) = programDataObject;
-            
+                       
             % Create a D1 identifier for the workflow script  
-            runManager.wfIdentifier = Identifier();                   
-            runManager.wfIdentifier.setValue(programDataObject.identifier);
-                                  
+            runManager.wfIdentifier = Identifier();     
+            runManager.wfIdentifier.setValue(rows_program_meta_struct.fileId);
+
             % The workflow program URI
             programURI = URI([runManager.D1_CN_Resolve_Endpoint ...
                 char(runManager.wfIdentifier.getValue())]);
@@ -495,7 +542,7 @@ classdef RunManager < hgsetget
                 hadPlanPredicate, ...
                 programURI);
 
-            %Record the prov relationship: 
+            % Record the prov relationship: 
             % execution->prov:qualifiedAssociation->association
             runManager.dataPackage.insertRelationship( ...
                 runManager.execution.execution_uri, ...
@@ -537,17 +584,16 @@ classdef RunManager < hgsetget
                 provONEUserURI); 
 
             % Create a science metadata object and add it to the package
-            metadata_file_base_name = ['metadata_' identifier '.xml'];
+            metadata_file_base_name = ['metadata_' runManager.execution.execution_id '.xml'];
             metadataExists = exist(fullfile( ...
                 runManager.configuration.provenance_storage_directory, ...
                 'runs', ...
-                identifier, ...
+                runManager.execution.execution_id, ...
                 metadata_file_base_name), 'file') == 2;
             
             if ( ~ metadataExists )
                 import org.ecoinformatics.eml.EMLDataset;
-                emlDataset = EMLDataset();
-                
+                emlDataset = EMLDataset();                
             end
             
             scienceMetadataIdStr = ['metadata_' ...
@@ -562,72 +608,101 @@ classdef RunManager < hgsetget
             end
             
             % Update the EML science metadata with the program (script) entity
-            [path, file_name, ext] = fileparts(programDataObject.full_file_path);
-            program_file_metadata = dir(programDataObject.full_file_path);
-            
+            [path, file_name, ext] = fileparts(rows_program_meta_struct.filePath);
+            program_file_metadata = dir(rows_program_meta_struct.filePath);
+
             if ( ~ metadataExists )
                 emlDataset.appendOtherEntity([], [file_name ext], [], ...
                     [file_name ext], program_file_metadata.bytes, ...
-                    programDataObject.format_id, ...
+                    rows_program_meta_struct.fileId, ...
                     [runManager.D1_CN_Resolve_Endpoint ...
-                    programDataObject.identifier], ...
-                    programDataObject.format_id);
-                
+                    rows_program_meta_struct.fileId], ...
+                    rows_program_meta_struct.format);                
             end
-            
+           
             % Associate the science metadata with the program in the
             % aggregation
             import org.dataone.util.ArrayListWrapper;
+            
+            import java.io.File;
+            import java.io.FileInputStream;
+            import org.apache.commons.io.IOUtils;
+            
             programList = ArrayListWrapper();
             programList.add(runManager.wfIdentifier);
                 
             runManager.dataPackage.insertRelationship( ...
                 scienceMetadataId, programList);
 
-            % Process execution_output_ids
-            for i=1:length(runManager.execution.execution_output_ids)
-                outputId = runManager.execution.execution_output_ids{i};
-                
-                outputDataObject = runManager.execution.execution_objects(outputId);
-                
-                submitter = runManager.execution.account_name;
-                mnNodeId = runManager.configuration.target_member_node_id;
+            % Find the execution_output_ids and execution_input_ids lists
+            runManager.execution.execution_input_ids = {};
+            runManager.execution.execution_output_ids = {};
+            
+            read_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'read','',''); 
+            read_files_query = read_files_metadata.readFileMeta('', '');
+            read_files_array = runManager.provenanceDB.execute(read_files_query, read_files_metadata.tableName);
+            if ~isempty(read_files_array)
+                runManager.execution.execution_input_ids = read_files_array(:, 1);
+            end
+            
+            write_files_metadata = FileMetadata('', runManager.execution.execution_id, '','','','','','', 'write','',''); 
+            write_files_query = write_files_metadata.readFileMeta('', '');
+            write_files_array = runManager.provenanceDB.execute(write_files_query, write_files_metadata.tableName);
+            if ~isempty(write_files_array)
+                runManager.execution.execution_output_ids = write_files_array(:, 1);
+            end
+            
+            for i = 1 : size(write_files_array, 1)
+                row_out_file_metadata = write_files_array(i, :);
+                row_out_fm_struct = cell2struct(row_out_file_metadata, fm_fields, 2);
                 
                 if runManager.configuration.debug
-                    outputDataObject.full_file_path
-                    
+                    row_out_fm_struct.filePath                   
                 end
                 
-                [path, file_name, ext] = fileparts(outputDataObject.full_file_path);
+                [path, file_name, ext] = fileparts(row_out_fm_struct.filePath);
                 
                 j_outputD1Object = runManager.buildD1Object( ...
-                    outputDataObject.full_file_path, outputDataObject.format_id, ...
-                    outputDataObject.identifier, submitter, mnNodeId);
+                    row_out_fm_struct.filePath, row_out_fm_struct.format, ...
+                    row_out_fm_struct.fileId, submitter, mnNodeId);
                 
                 runManager.dataPackage.addData(j_outputD1Object);
                 
                 j_sysmeta = j_outputD1Object.getSystemMetadata(); % java version sysmeta
-                out_file_metadata = dir(outputDataObject.full_file_path);
-                j_sysmeta.setFileName(outputDataObject.system_metadata.getFileName());
+                out_file_metadata = dir(row_out_fm_struct.filePath);
+                out_file_path_array = strsplit(row_out_fm_struct.filePath, filesep);
+                out_file_short_name = char(out_file_path_array(end));
+                j_sysmeta.setFileName(out_file_short_name);
                 j_sysmeta.setSize(BigInteger.valueOf(out_file_metadata.bytes));
-                set(outputDataObject, 'system_metadata', j_sysmeta);
+                
+                % Update the filemeta file size for new file if the
+                % filemeta.size is not equal to the actual file size
+                if row_out_fm_struct.size ~= out_file_metadata.bytes
+                    % Recompute the sha256
+                    objectFile = File(row_out_fm_struct.filePath);
+                    fileInputStream = FileInputStream(objectFile);
+                    data = IOUtils.toString(fileInputStream, 'UTF-8');
+                    updated_sha256= FileMetadata.getSHA256Hash(data);
+                    % Update the file size, file sha256 in the filemeta table
+                    update_clause = 'UPDATE filemeta ';
+                    set_clause = sprintf('SET size=%d, sha256="%s" ', out_file_metadata.bytes, updated_sha256);
+                    where_clause = sprintf('WHERE fileId="%s"', row_out_fm_struct.fileId);
+                    update_fm_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
+                    status = runManager.provenanceDB.execute(update_fm_query);                    
+                end
                 
                 % Update the EML science metadata with the output entity
                 if ( ~ metadataExists )
                     emlDataset.appendOtherEntity([], [file_name ext], [], ...
                         [file_name ext], out_file_metadata.bytes, ...
-                        outputDataObject.format_id, ...
+                        row_out_fm_struct.format, ...
                         [runManager.D1_CN_Resolve_Endpoint ...
-                        outputDataObject.identifier], ...
-                        outputDataObject.format_id);
-                    
+                        row_out_fm_struct.fileId], ...
+                        row_out_fm_struct.format);                    
                 end
                 
-                runManager.execution.execution_objects( ...
-                    outputDataObject.identifier) = outputDataObject;
-                
                 outSourceURI = URI( ...
-                    [runManager.D1_CN_Resolve_Endpoint outputDataObject.identifier]);
+                    [runManager.D1_CN_Resolve_Endpoint row_out_fm_struct.fileId]);
                 runManager.dataPackage.insertRelationship( ...
                     outSourceURI, ...
                     wasGeneratedByPredicate, ...
@@ -640,14 +715,13 @@ classdef RunManager < hgsetget
                 
                 % Record the provone:data->prov:wasDerivedFrom->provone:Data
                 % relationship from each input object
-                for i=1:length(runManager.execution.execution_input_ids)
+                for i = 1 : size(read_files_array, 1)
+                    row_in_file_metadata = read_files_array(i, :);
+                    row_in_fm_struct = cell2struct(row_in_file_metadata, fm_fields, 2);
                     
-                    inputId = runManager.execution.execution_input_ids{i};
-                    inputDataObject = ...
-                        runManager.execution.execution_objects(inputId);
                     inSourceURI = ...
                         URI([runManager.D1_CN_Resolve_Endpoint ...
-                        inputDataObject.identifier]);
+                        row_in_fm_struct.fileId]);
                     runManager.dataPackage.insertRelationship( ...
                         outSourceURI, ...
                         wasDerivedFromPredicate, ...
@@ -656,48 +730,39 @@ classdef RunManager < hgsetget
             end
             
             % Process execution_input_ids
-            for i=1:length(runManager.execution.execution_input_ids)
-                inputId = runManager.execution.execution_input_ids{i};
-                
-                startIndex = regexp( inputId, 'http', 'once' );
-                if isempty(startIndex)
-                    inputDataObject = ...
-                        runManager.execution.execution_objects(inputId);
+            for i = 1 : size(read_files_array, 1)
+                row_in_file_metadata = read_files_array(i, :);
+                row_in_fm_struct = cell2struct(row_in_file_metadata, fm_fields, 2);
                     
-                    submitter = runManager.execution.account_name;
-                    mnNodeId = runManager.configuration.target_member_node_id;
-                    
-                    [path, file_name, ext] = fileparts(inputDataObject.full_file_path);
+                startIndex = regexp( row_in_fm_struct.fileId, 'http', 'once' );
+                if isempty(startIndex)                    
+                    [path, file_name, ext] = fileparts(row_in_fm_struct.filePath);
                     
                     j_inputD1Object = runManager.buildD1Object( ...
-                        inputDataObject.full_file_path, inputDataObject.format_id, ...
-                        inputDataObject.identifier, submitter, mnNodeId);
+                        row_in_fm_struct.filePath, row_in_fm_struct.format, ...
+                        row_in_fm_struct.fileId, submitter, mnNodeId);
                     
                     runManager.dataPackage.addData(j_inputD1Object);
                     j_sysmeta = j_inputD1Object.getSystemMetadata();
-                    in_file_metadata = dir(inputDataObject.full_file_path);
+                    in_file_metadata = dir(row_in_fm_struct.filePath);
                     j_sysmeta.setSize(BigInteger.valueOf(in_file_metadata.bytes));
-                    j_sysmeta.setFileName(inputDataObject.system_metadata.getFileName());
-                    
-                    set(inputDataObject, 'system_metadata', j_sysmeta);
-                    
+                    in_file_path_array = strsplit(row_in_fm_struct.filePath, filesep);
+                    in_file_short_name = char(in_file_path_array(end));
+                    j_sysmeta.setFileName(in_file_short_name);
+
                     % Update the EML science metadata with the input entity
                     if ( ~ metadataExists )
                         emlDataset.appendOtherEntity([], [file_name ext], [], ...
                             [file_name ext], in_file_metadata.bytes, ...
-                            inputDataObject.format_id, ...
+                            row_in_fm_struct.format, ...
                             [runManager.D1_CN_Resolve_Endpoint ...
-                            inputDataObject.identifier], ...
-                            inputDataObject.format_id);
-                        
+                            row_in_fm_struct.fileId], ...
+                            row_in_fm_struct.format);                        
                     end
-                    
-                    runManager.execution.execution_objects( ...
-                        inputDataObject.identifier) = inputDataObject;
                     
                     inSourceURI = ...
                         URI([runManager.D1_CN_Resolve_Endpoint ...
-                        inputDataObject.identifier]);
+                        row_in_fm_struct.fileId]);
                     runManager.dataPackage.insertRelationship( ...
                         runManager.execution.execution_uri, ...
                         usedPredicate, ...
@@ -711,6 +776,7 @@ classdef RunManager < hgsetget
             end
             
             % Write the science metadata to the execution directory
+            runManager.execution.execution_directory = fullfile(runManager.configuration.provenance_storage_directory, 'runs',runManager.execution.execution_id);
             if ( ~ metadataExists )
                 scienceMetadataFile = ...
                     fopen(fullfile( ...
@@ -724,7 +790,7 @@ classdef RunManager < hgsetget
                 fprintf(scienceMetadataFile, '%s', emlDataset.toXML());
                 fclose(scienceMetadataFile);
             end
-
+            
             % Create the science metadata DataObject
             scienceMetadataDataObject = org.dataone.client.v2.DataObject( ...
                 scienceMetadataIdStr, ...
@@ -732,31 +798,48 @@ classdef RunManager < hgsetget
                 fullfile( ...
                 runManager.execution.execution_directory, ...
                 scienceMetadataIdStr));
-           
+            
             % Add the science metadata to the Java DataPackage
             scienceMetadataD1JavaObject = runManager.buildD1Object( ...
                 scienceMetadataDataObject.full_file_path, ...
                 scienceMetadataDataObject.format_id, ...
-                scienceMetadataDataObject.identifier, submitter, mnNodeId); 
+                scienceMetadataDataObject.identifier, submitter, mnNodeId);
             runManager.dataPackage.addData(scienceMetadataD1JavaObject);
             
             % Update the property "fileName" for the java system metadata.
             % Then, update the matlab system metadata using the java system
-            % metadata Dec-4-2015
+            % metadata 
             j_sysmeta = ...
                 scienceMetadataD1JavaObject.getSystemMetadata();
             j_sysmeta.setFileName( ...
-                scienceMetadataIdStr); % use base name in system metadata Feb-1-2016
-            set(scienceMetadataDataObject, 'system_metadata', j_sysmeta);            
-                        
-            % Add the science metadata DataObject to the execution_objects map
-            runManager.execution.execution_objects( ...
-                scienceMetadataDataObject.identifier) = scienceMetadataDataObject;
+                scienceMetadataIdStr); % use base name in system metadata 
+ 
+            % Archive the science metadata file 
+            scienceMetadata_full_path = fullfile( ...
+                runManager.execution.execution_directory, ...
+                scienceMetadataIdStr);
+            [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(scienceMetadata_full_path);
+            if db_status == 1
+                % The file has not been archived
+                full_archive_file_path = sprintf('%s%s%s', runManager.configuration.provenance_storage_directory, filesep, archivedRelFilePath);
+                full_archive_dir_path = sprintf('%s%s%s', runManager.configuration.provenance_storage_directory, filesep, archiveRelDir);
+                if ~exist(full_archive_dir_path, 'dir')
+                    mkdir(full_archive_dir_path);
+                end
+                % Copy this file to the archive directory
+                copyfile(scienceMetadata_full_path, full_archive_file_path, 'f');
+            end
             
-            % Add the science metadata to the execution outputs list
-            runManager.execution.execution_output_ids{end + 1} = ...
-                scienceMetadataDataObject.identifier;
-            
+            % Add the science metadata to the filemeta table
+            science_metadata = FileMetadata(scienceMetadataDataObject, runManager.execution.execution_id, 'write');
+            science_metadata.archivedFilePath = archivedRelFilePath;
+            insert_scimeta_query = science_metadata.writeFileMeta();
+            status = runManager.provenanceDB.execute(insert_scimeta_query, science_metadata.tableName);
+            if status == -1
+                message = 'DBError for inserting sciencee metadata file to the filemeta table.';
+                error(message);
+            end
+
             % Associate science metadata with the data objects of the
             % package
             import org.dataone.util.ArrayListWrapper;
@@ -765,11 +848,10 @@ classdef RunManager < hgsetget
                 runManager.execution.execution_input_ids, ...
                 runManager.execution.execution_output_ids);
             
-            for idx = 1: length(inputOutputIds)
+            for idx = 1 : length(inputOutputIds)
                 inputOutputId = Identifier();
                 inputOutputId.setValue(inputOutputIds{idx});
-                inputOutputList.add(inputOutputId);
-                
+                inputOutputList.add(inputOutputId);               
             end
             
             runManager.dataPackage.insertRelationship(scienceMetadataId, ...
@@ -777,63 +859,55 @@ classdef RunManager < hgsetget
             
             % Serialize a datapackage
             rdfXml = runManager.dataPackage.serializePackage();
-         
+            
             % Write to a resourceMap file
             resourceMapName = [char(resourceMapId.getValue())];
             resourceMapFullPath = fullfile( ...
                 runManager.execution.execution_directory, ...
                 resourceMapName);
-            fw = fopen(resourceMapFullPath, 'w'); 
+            fw = fopen(resourceMapFullPath, 'w');
             if fw == -1, error('Cannot write "%s%".',resourceMapFullPath); end
             fprintf(fw, '%s', char(rdfXml));
             fclose(fw);
-
-            % Add resourceMap D1Object to the DataPackage                      
-            resMapFmt = 'http://www.openarchives.org/ore/terms'; 
+            
+            % Add resourceMap D1Object to the DataPackage
+            resMapFmt = 'http://www.openarchives.org/ore/terms';
             resourceMapD1Object = ...
                 runManager.buildD1Object( ...
-                resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);            
+                resourceMapFullPath, resMapFmt, resourceMapName, submitter, mnNodeId);
             j_sysmeta = resourceMapD1Object.getSystemMetadata();
             j_sysmeta.setFileName(resourceMapName);
             resourceMapD1Object.setSystemMetadata(j_sysmeta);
             
-            runManager.dataPackage.addData(resourceMapD1Object);     
-
+            runManager.dataPackage.addData(resourceMapD1Object);
+            
             % Create the resource map DataObject
             resourceMapDataObject = org.dataone.client.v2.DataObject( ...
                 char(resourceMapId.getValue()), ...
                 resMapFmt, ...
                 resourceMapFullPath);
-            set(resourceMapDataObject, 'system_metadata', j_sysmeta);
             
-            % Add the resource map DataObject to the execution_objects map
-            runManager.execution.execution_objects(resourceMapName) = ...
-                resourceMapDataObject;
-            
-            data_package = runManager.dataPackage;
-            
-   end
+            data_package = runManager.dataPackage;            
+        end
                
         
-        function saveExecution(runManager, fileName)
-            % SAVEEXECUTION saves the summary of each execution to an
-            % execution database, a CSV file named execution.csv in the
-            % provenance_storage_directory with the columns: runId,
+        function saveExecution(runManager, isConsole)
+            % SAVEEXECUTION saves the summary of each execution to the
+            % execmeta table in the startRecord(): runId,
             % filePath, startTime, endTime, publishedTime, packageId, tag,
             % user, subject, hostId, operatingSystem, runtime, moduleDependencies, 
             % console, errorMessage.
-            %   fileName - the name of the execution database
            
+            import org.dataone.client.sqlite.ExecMetadata;
+            
             runID = char(runManager.execution.execution_id);
             filePath = char(runManager.execution.software_application);
             startTime = char(runManager.execution.start_time);
-            endTime = char(runManager.execution.end_time);
+            endTime = '';
             publishedTime = char(runManager.execution.publish_time);
             packageId = char(runManager.execution.execution_id);
-            tag = runManager.execution.tag; % Todo: a set of tag values         
-            % added on Sept-17-2015
-            user = char(runManager.execution.account_name);
-            % changed on Oct-20-2015
+            tag = runManager.execution.tag;                  
+            user = char(runManager.execution.account_name);            
             subject = '';
             auth_token = runManager.configuration.get('authentication_token');
             if isempty(auth_token)
@@ -847,161 +921,111 @@ classdef RunManager < hgsetget
             end
             hostId = char(runManager.execution.host_id);
             operatingSystem = char(runManager.execution.operating_system);
-            runtime = char(runManager.execution.runtime);
-            moduleDependencies = char(runManager.execution.module_dependencies); % Todo:
-            console = ''; % Todo:
-            errorMessage = char(runManager.execution.error_message);
-            % added on Oct-13-2015
-            runManager.last_sequence_number = runManager.last_sequence_number+1;
-            seqNo = num2str(runManager.last_sequence_number);
+            runtime = char(runManager.execution.runtime);            
+            publishNodeId = char(runManager.configuration.target_member_node_id);
+            errorMessage = '';
+            console = isConsole;
             
-            formatSpec = runManager.configuration.execution_db_write_format;
-           
-            if exist(fileName, 'file') ~= 2
-                [fileId, message] = fopen(fileName,'w');
-                if fileId == -1
-                    disp(message);
-                end
-                fprintf(fileId, formatSpec, ...,
-                    'runId', 'filePath', 'startTime', 'endTime', ...,
-                    'publishedTime', 'packageId', 'tag', 'user', ...,
-                    'subject', 'hostId', 'operatingSystem', 'runtime', ...,
-                    'moduleDependencies', 'console', 'errorMessage', 'runNumber'); % write header
-                fprintf(fileId,formatSpec, ...,
-                    runID, filePath, startTime, endTime, ...,
-                    publishedTime, packageId, tag, user, ...,
-                    subject, hostId, operatingSystem, runtime, ...,
-                    moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution
-                fclose(fileId); 
+            % Write execution runtime informaiton to execmeta table in the
+            % provenance database 
+            exec_obj = ExecMetadata(runID,'',tag,packageId,user,subject,hostId,startTime,operatingSystem,runtime,filePath,endTime,errorMessage,publishedTime,publishNodeId, '', console);
+            [insert_exec_query, insert_tag_query] = exec_obj.writeExecMeta();
+            status1 = runManager.provenanceDB.execute(insert_exec_query, exec_obj.execTableName);
+            status2 = runManager.provenanceDB.execute(insert_tag_query, exec_obj.tagsTableName);
+            if (status1 == 0) && (status2 == 0)
+                message = 'Insert a record to the ExecMetadata table and Tag table.';
+                disp(message);
             else
-                [fileId, message] = fopen(fileName,'a');
-                if fileId == -1
-                    disp(message);
-                end
-                fprintf(fileId,formatSpec, ...,
-                    runID, filePath, startTime, endTime, ...,
-                    publishedTime, packageId, tag, user, ...,
-                    subject, hostId, operatingSystem, runtime, ...,
-                    moduleDependencies, console, errorMessage, seqNo); % write the metadata for the current execution     
-                fclose(fileId); 
-            end           
-        end
-               
-        function [execMetaMatrix, header] = getExecMetadataMatrix(runManager)
-            % GETEXECMETADATAMATRIX returns a matrix storing the
-            % metadata summary for all executions from the exeucton
-            % database.
-            %   runManager - 
-            formatSpec = runManager.configuration.execution_db_read_format;
-            [fileId, message] = fopen(runManager.configuration.execution_db_name, 'r');
-            if fileId == -1
-                disp(message); 
-            else
-                header = textscan(fileId, formatSpec, 1, 'Delimiter', ',');
-                execMetaData = textscan(fileId, formatSpec, 'Delimiter',',');
-                fclose(fileId);
- 
-                % Convert a cell array to a matrix
-                execMetaMatrix = [execMetaData{[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]}];
+                errorMessage = [errorMessage, 'SQLiteDatabaseError: Insert record failed.'];
+                error(errorMessage);
             end
         end
-        
-        function stmtStruct = getRDFTriple(runManager, filePath, p)
-           % GETRDFTRIPLE get all related subjects related to a given property from all
-           % triples contained in a resourcemap.
-           %  filePath - the path to the resourcemap
-           %  p - the given property of a RDF triple
-
-           import org.dataone.util.NullRDFNode.*;
-           import org.dataone.vocabulary.PROV;
-           import org.dspace.foresite.Predicate;
-           import com.hp.hpl.jena.graph.Node;
-           import com.hp.hpl.jena.graph.Triple;
-           import com.hp.hpl.jena.rdf.model.Model;
-           import com.hp.hpl.jena.rdf.model.ModelFactory;
-           import com.hp.hpl.jena.rdf.model.Property;
-           import com.hp.hpl.jena.rdf.model.RDFNode;
-           import com.hp.hpl.jena.rdf.model.Statement;
-           import com.hp.hpl.jena.rdf.model.StmtIterator;
-           import com.hp.hpl.jena.util.FileManager;
-           import java.io.InputStream;
-           import java.util.HashSet;
-           import java.util.ArrayList;
+               
+        function updateExecution(runManager, runID)
+            % UPDATEEXECUTION updates the summary of each execution to an
+            % execution database with the columns: runId,
+            % endTime, publishTime, moduleDependencies,
+            % errorMessage in the endRecord().
+            %   fileName - the name of the execution database
+            
+            import org.dataone.client.sqlite.ExecMetadata;
+            
+            endTime = char(runManager.execution.end_time);
+            publishedTime = char(runManager.execution.publish_time);
+            errorMessage = char(runManager.execution.error_message);
+            
+            % Write execution runtime informaiton to execmeta table in the
+            % provenance database 
+            update_clause = 'UPDATE execmeta ';
+            set_clause = sprintf('SET endTime="%s", errorMessage="%s", publishTime="%s" ', endTime, errorMessage, publishedTime);
+            where_clause = sprintf('WHERE executionId="%s"', runID);
+            update_exec_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
+            status = runManager.provenanceDB.execute(update_exec_query);
            
-           % Read the RDF/XML file
-           fm = FileManager.get();
-           in = fm.open(filePath);          
-           if isempty(in) == 1 
-               error('File: %s not found.', filePath);
-           end         
-           model = ModelFactory.createDefaultModel(); % Create an empty model
-           model.read(in, '');
-           queryPredicate= model.createProperty(p.getNamespace(), p.getName());
-           stmts = model.listStatements([], queryPredicate, NullRDFNode.nullRDFNode); % null, (RDFNode)null
-           
-           i = 1;
-           while (stmts.hasNext()) 
-	            s = stmts.nextStatement();
-	       	    t = s.asTriple();        
-                
-                % Create a table for files to be published in a datapackage 
-                if t.getSubject().isURI()
-                    stmtStruct(i,1).Subject = char(t.getSubject().getLocalName());
-                elseif t.getSubject().isBlank()
-                    stmtStruct(i,1).Subject = char(t.getSubject().getBlankNodeId());
-                else
-                    stmtStruct(i,1).Subject = char(t.getSubject().getName());
-                end
-                
-                stmtStruct(i,1).Predicate = char(t.getPredicate().toString());
-                
-                if t.getObject().isURI()
-                    stmtStruct(i,1).Object = char(t.getObject().getLocalName()); % Question: whether it is good to use localName here? In which cases are good?
-                elseif t.getObject().isBlank()
-                    stmtStruct(i,1).Object = char(t.getObject().getBlankNodeId());
-                else
-                    stmtStruct(i,1).Object = char(t.getObject().getName());
-                end
-                
-                i = i + 1;
-           end         
+            if status == 0
+                message = 'Update a record to the ExecMetadata table.';
+                disp(message);
+            else
+                errorMessage = [errorMessage, 'SQLiteDatabaseError: Insert record failed.'];
+                error(errorMessage);
+            end
+            
+            % Write to modulemeta table and execmodulebridge table for this
+            % run 
+            select_exec_query = sprintf('select e.seq from execmeta e where e.executionId="%s";', runID);
+            exec_array = runManager.provenanceDB.execute(select_exec_query, 'execmeta');
+            exec_seq = exec_array{1, 1};
+            moduleDependencies = char(runManager.execution.module_dependencies);
+            runManager.processModuleDependencies(moduleDependencies, runID, exec_seq);
         end
-             
-        function [wasGeneratedByStruct, usedStruct, hadPlanStruct, qualifiedAssociationStruct, wasAssociatedWithPredicateStruct, userList, rdfTypeStruct] = getRelationships(runManager)
-           % GETRELATIONSHIPS get the relationships from the resourceMap
-           % including prov:used, prov:hadPlan, prov:qualifiedAssociation,
-           % prov:wasAssociatedWith, and rdf:type
+        
+        function processModuleDependencies(runManager, module_list, runID, execSeq)
+            % PROCESSMODULEDEPENDENCIES adds the module dependencies
+            % strings to the moduleMetadata table and returns a set of
+            % module ids.
+            if isempty(module_list)
+                return;
+            end
+  
+            import org.dataone.client.sqlite.ModuleMetadata;
+        
+            if ispc
+                module_split_info = strsplit(module_list, ';');
+            elseif isunix
+                module_split_info = strsplit(module_list, ':');
+            end
 
-
-           import org.dataone.util.NullRDFNode.*;
-           import org.dataone.vocabulary.PROV.*;
-           import org.dspace.foresite.Predicate;
-           import com.hp.hpl.jena.rdf.model.Property;
-           import com.hp.hpl.jena.rdf.model.RDFNode;
-           import com.hp.hpl.jena.vocabulary.RDF;
-           
-           % Query resource map                           
-           resMapFileName = strtrim(ls('*.rdf')); % list the reosurceMap.rdf and remove the whitespace and return characters  
-           wasGeneratedByPredicate = PROV.predicate('wasGeneratedBy');           
-           wasGeneratedByStruct = runManager.getRDFTriple(resMapFileName, wasGeneratedByPredicate);                  
-           
-           usedPredicate = PROV.predicate('used');
-           usedStruct = runManager.getRDFTriple(resMapFileName, usedPredicate); 
-          
-           hadPlanPredicate = PROV.predicate('hadPlan');
-           hadPlanStruct = runManager.getRDFTriple(resMapFileName, hadPlanPredicate); 
-           
-           qualifiedAssociationPredicate = PROV.predicate('qualifiedAssociation');
-           qualifiedAssociationStruct = runManager.getRDFTriple(resMapFileName, qualifiedAssociationPredicate);
-           
-           wasAssociatedWithPredicate = PROV.predicate('wasAssociatedWith');
-           wasAssociatedWithPredicateStruct = runManager.getRDFTriple(resMapFileName, wasAssociatedWithPredicate);
-           userList = wasAssociatedWithPredicateStruct.Object;
-           
-           rdfTypePredicate = runManager.asPredicate(RDF.type, 'rdf');
-           rdfTypeStruct = runManager.getRDFTriple(resMapFileName, rdfTypePredicate);    
-           
-        end       
+            for i = 1 : length(module_split_info)
+                % First, add a record for module_dependency to the modulemeta table if
+                % not existed
+                module_info = module_split_info{1, i};
+                select_module_query = sprintf('select count(*) from modulemeta md where md.dependencyInfo=%s', module_info);
+                count = runManager.provenanceDB.execute(select_module_query, 'modulemeta');
+                if count == 0
+                    module_meta = ModuleMetadata(module_info);
+                    insert_module_query = module_meta.writeModuleMeta();
+                    status = runManager.provenanceDB.execute(insert_module_query, 'modulemeta');
+                    if (status ~= 0)
+                        errorMessage = 'SQLiteDatabaseError: Insert record failed.';
+                        error(errorMessage);
+                    end
+                end
+                % Then, add a (exec_seq, module_id) to the execmodulebridge
+                % table               
+                select_module_query = sprintf('select md.module_id from modulemeta md where md.dependencyInfo="%s";', module_info);               
+                module_dependency_array = runManager.provenanceDB.execute(select_module_query, 'modulemeta');
+                if ~isempty(module_dependency_array) 
+                    module_id = module_dependency_array{1, 1};
+                    
+                    insert_bridge_query = sprintf('insert into execmodulebridge values ( %d, %d);', execSeq, module_id);
+                    status = runManager.provenanceDB.execute(insert_bridge_query, 'execmodulebridge');                    
+                    if (status ~= 0)
+                        errorMessage = 'SQLiteDatabaseError: Insert record failed.';
+                        error(errorMessage);
+                    end
+                end
+            end
+        end
     end
     
     methods (Static)
@@ -1016,11 +1040,7 @@ classdef RunManager < hgsetget
                         
             import org.dataone.client.configure.Configuration;
             import org.dataone.client.run.RunManager;
-           
-            % Set all jars under lib/java/ to the java dynamic class path
-            % (double check !)
-            % RunManager.setJavaClassPath();
-                       
+                                  
             warning off MATLAB:dispatcher:nameConflict;
             java.util.logging.LogManager.getLogManager().reset();
              
@@ -1058,7 +1078,7 @@ classdef RunManager < hgsetget
             matlab_dataone_dir_array = strsplit(filePath, filesep);           
             matlab_dataone_java_lib_dir = ...
                 [strjoin( ...
-                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
+                    matlab_dataone_dir_array(1 : length(matlab_dataone_dir_array) - 7), ...
                     filesep) ...
                     filesep 'lib' filesep 'java' filesep];
             java_libs_array = dir(matlab_dataone_java_lib_dir);
@@ -1066,7 +1086,7 @@ classdef RunManager < hgsetget
             
             classpath = javaclasspath('-all');
             
-            for i=3:length(java_libs_array)
+            for i = 3 : length(java_libs_array)
                 classpathItem = [matlab_dataone_java_lib_dir java_libs_array(i).name];
                 presentInClassPath = strmatch(classpathItem, classpath);
                 if ( isempty(presentInClassPath) )
@@ -1086,7 +1106,7 @@ classdef RunManager < hgsetget
             matlab_dataone_dir_array = strsplit(filePath, filesep);           
             matlab_dataone_lib_dir = ...
                 [strjoin( ...
-                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 7), ...
+                    matlab_dataone_dir_array(1 : length(matlab_dataone_dir_array) - 7), ...
                     filesep) ...
                     filesep 'lib' filesep 'matlab' filesep];
            
@@ -1103,7 +1123,7 @@ classdef RunManager < hgsetget
             matlab_dataone_dir_array = strsplit(filePath, filesep);           
             matlab_dataone_io_dir = ...
                 [strjoin( ...
-                    matlab_dataone_dir_array(1:length(matlab_dataone_dir_array) - 6), ...
+                    matlab_dataone_dir_array(1 : length(matlab_dataone_dir_array) - 6), ...
                     filesep) ...
                     filesep 'matlab' filesep 'overloaded_functions' filesep 'io' filesep];
            
@@ -1165,21 +1185,6 @@ classdef RunManager < hgsetget
                 runManager.execution = Execution();
                 runManager.execution.execution_input_ids = {};
                 runManager.execution.execution_output_ids = {};
-            
-                % Set the manager.last_sequence_number based on execution_db_name last
-                % sequence number
-                if ( exist(runManager.configuration.execution_db_name, 'file') ~= 2 )
-                    runManager.last_sequence_number = 0; 
-                else
-                    [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-                    if ~isempty(execMetaMatrix)
-                        lastRow = execMetaMatrix(end,:);
-                        lastSeqNum = lastRow{1,end};
-                        runManager.last_sequence_number = str2num(lastSeqNum);
-                    else
-                        runManager.last_sequence_number = 0; 
-                    end
-                end
             end
         end
                 
@@ -1222,7 +1227,7 @@ classdef RunManager < hgsetget
             import org.dataone.client.run.Execution;
             
             % Set the interactive mode to be false
-            runManager.console = false; % Dec-7-2015
+            runManager.console = false; 
             
             % Initialize a new Execution for this run
             runManager.execution = Execution();
@@ -1284,10 +1289,7 @@ classdef RunManager < hgsetget
             
             % runManager.execution = Execution(tagStr);
             runManager.execution.tag = tagStr;
-            
-            % Set up yesWorkflow and pass the path of a script to yesWorkflow
-            runManager.configYesWorkflow(filePath);
-            
+           
             % Begin recording
             runManager.startRecord(runManager.execution.tag);
 
@@ -1299,7 +1301,7 @@ classdef RunManager < hgsetget
         function startRecord(runManager, tag)
             % STARTRECORD Starts recording provenance relationships (see record()).
                        
-            if ( runManager.console == 1 ) % (Interactive mode) Dec-7-2015                              
+            if ( runManager.console == 1 ) % (Interactive mode)                          
                 
                 import org.dataone.client.run.Execution;
                 
@@ -1327,10 +1329,13 @@ classdef RunManager < hgsetget
                 warning(['A RunManager session is already active. Please call ' ...
                          'endRecord() if you wish to close this session']);
             end                
-           
+            
+            % Open the provenance database connection 
+            runManager.provenanceDB.openDBConnection();
+            
             % Compute script_base_name if it is not assigned a value
             if isempty( runManager.configuration.script_base_name )
-                [pathstr,script_base_name,ext] = ...
+                [pathstr, script_base_name, ext] = ...
                     fileparts(runManager.execution.software_application);
                 runManager.configuration.script_base_name = ...
                     strtrim(script_base_name);    
@@ -1351,7 +1356,7 @@ classdef RunManager < hgsetget
             end
             
             % Set the correct value for execution.software_application
-            if (runManager.console == 1) % (Interactive mode) Dec-7-2015    
+            if (runManager.console == 1) % (Interactive mode)    
                 scriptName = [runManager.configuration.script_base_name '.m'];
                 runManager.execution.software_application = fullfile( ...
                     runManager.execution.execution_directory, ...
@@ -1362,21 +1367,17 @@ classdef RunManager < hgsetget
             addpath(runManager.execution.execution_directory);
             warning on MATLAB:dispatcher:nameConflict;
             
+            % Save current execmeta to the execmeta table and the tag table 
+            runManager.saveExecution(runManager.console);
+                       
             % Add a DataObject to the execution objects map for the script
             % itself
-            if (runManager.console ~= 1) % (Non-interactive mode) (Dec-7-2015)
-                import org.dataone.client.v2.DataObject;
-                pid = ['program_' char(java.util.UUID.randomUUID())];
-                dataObject = DataObject(pid, 'text/plain', ...
-                    runManager.execution.software_application);
-                runManager.execution.execution_objects(dataObject.identifier) = ...
-                    dataObject;
-                
+            if (runManager.console ~= 1) % (Non-interactive mode)                 
                 % Run the script and collect provenance information
                 runManager.prov_capture_enabled = true;
                 [pathstr, script_name, ext] = ...
                     fileparts(runManager.execution.software_application);
-                
+                               
                 warning off MATLAB:dispatcher:nameConflict;
                 addpath(pathstr);
                 warning on MATLAB:dispatcher:nameConflict;
@@ -1391,13 +1392,6 @@ classdef RunManager < hgsetget
                     disp(['The script: ' ...
                         runManager.execution.software_application ...
                         ' failed to run completely. See the error output.']);
-                    
-                    % for stack_item = 1:length(runtimeError.stack)
-                    %     disp(['Error in function ' ...
-                    %         runtimeError.stack(stack_item).name ' in file ' ...
-                    %         runtimeError.stack(stack_item).file ' on line ' ...
-                    %         num2str(runtimeError.stack(stack_item).line)]);
-                    % end
                 end
             end
         end
@@ -1406,15 +1400,15 @@ classdef RunManager < hgsetget
             % ENDRECORD Ends the recording of an execution (run).
             
             import org.dataone.service.types.v1.Identifier;
-            import org.dataone.client.v2.itk.DataPackage;
-            %import org.dataone.client.run.NamedConstant;
+            import org.dataone.client.v2.itk.DataPackage;           
             import java.io.File;
             import javax.activation.FileDataSource;
             import org.dataone.client.v1.types.D1TypeBuilder;
             import org.dataone.vocabulary.PROV;
             import org.dataone.vocabulary.ProvONE;
             import java.net.URI;
-            import org.dataone.util.ArrayListWrapper.*;
+            import org.dataone.util.ArrayListWrapper;
+            import org.dataone.client.sqlite.FileMetadata;
 
             % Stop recording
             runManager.recording = false;
@@ -1424,17 +1418,29 @@ classdef RunManager < hgsetget
             submitter = runManager.execution.get('account_name');
             mnNodeId = runManager.configuration.get('target_member_node_id');
                      
-            % Generate yesWorkflow image outputs (non-interactive mode)
-            if (runManager.console ~= 1) % Dec-7-2015
+            % Non-interactive mode
+            if (runManager.console ~= 1)
+                import org.dataone.client.v2.DataObject;
+                               
+                pid = ['program_' char(java.util.UUID.randomUUID())];
+                dataObject = DataObject(pid, 'text/plain', ...
+                    runManager.execution.software_application);
+                
+                % Call YesWorkflow to generate prospective provenance
+                % graphs
                 if runManager.configuration.capture_yesworkflow_comments
                     runManager.callYesWorkflow(runManager.execution.software_application, runManager.execution.execution_directory);
                 end
             end
             
-            % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'             
+            % Record the ending time when record() ended using format 30 (ISO 8601)'yyyymmddTHHMMSS'
             runManager.execution.end_time = datestr(now, 'yyyymmddTHHMMSS');
-
-            if ( runManager.console == 1 ) % (Interactive mode) (Dec-7-2015)
+            
+            % Update the metadata for the current execution
+            runManager.updateExecution(runManager.execution.execution_id);
+            
+            % Interactive mode
+            if ( runManager.console == 1 )
                 % Get the commands entered by the user
                 
                 import org.dataone.client.v2.DataObject;   
@@ -1444,17 +1450,17 @@ classdef RunManager < hgsetget
                 history = com.mathworks.mlservices.MLCommandHistoryServices.getSessionHistory; 
                 startRecordIndex = 0;
                 endRecordIndex = 0;
-                for i= length(history): -1:1
+                for i = length(history) : -1 : 1
                     % Try to find the position of the latest startRecord()
                     % and endRecord() pair from the command history
                     k = strfind(history(i), 'endRecord');
                     if ~isempty(k)
-                        endRecordIndex = i-1; % last command is at position (i-1)
+                        endRecordIndex = i - 1; % last command is at position (i-1)
                     end
                     
                     k = strfind(history(i), 'startRecord');
                     if ~isempty(k)
-                        startRecordIndex = i+1; % first command is at position (i+1)
+                        startRecordIndex = i + 1; % first command is at position (i+1)
                     end
                 end
                 
@@ -1462,14 +1468,14 @@ classdef RunManager < hgsetget
                 % endRecord() to a file under the execution directory
                 [fileId, message] = fopen(runManager.execution.software_application, 'wt');
                 if fileId == -1, disp(message); end
-                for i=startRecordIndex:endRecordIndex
+                for i = startRecordIndex : endRecordIndex
                     fprintf(fileId, '%s\n', char(history(i)));
                 end
                 fclose(fileId);
                 
                 % Create a file for the collected commands and put the script
-                % d1 object to the d1 datapackage (only for interactive mode) (Dec-7-2015)                         
-                pid = char(java.util.UUID.randomUUID());                 
+                % d1 object to the d1 datapackage (only for interactive mode) 
+                pid = char(java.util.UUID.randomUUID());
                 dataObject = DataObject( pid, ...
                     'text/plain', ...
                     runManager.execution.software_application );
@@ -1477,56 +1483,50 @@ classdef RunManager < hgsetget
                     dataObject;
             end
             
-            % Save the metadata for the current execution
-            runManager.saveExecution(runManager.configuration.execution_db_name);   
-                       
-            % Remove the path to the overloaded save()
-            overloadedFunctPath = which('save');
-            [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
-            rmpath(overloaded_func_path);
-    
-            % Serialize the execution object to local file system in the
-            % execution_directory
-            execution_serialized_object = [runManager.execution.execution_id '.mat'];
-            exec_destination = [runManager.execution.execution_directory filesep execution_serialized_object];
-            executionObj = runManager.execution;
-            save(char(exec_destination), 'executionObj');
-                      
-            % Build a D1 datapackage
+            % Archive the script that was executed. The script can be
+            % retrived by searching for access="execute"
+            [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(runManager.execution.software_application);
+            if db_status == 1
+                % The file has not been archived
+                full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+                full_archive_dir_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archiveRelDir);
+                if ~exist(full_archive_dir_path, 'dir')
+                    mkdir(full_archive_dir_path);
+                end
+                % Copy this file to the archive directory
+                copyfile(runManager.execution.software_application, full_archive_file_path, 'f');
+            end
+            
+            program_metadata = FileMetadata(dataObject, runManager.execution.execution_id, 'execute');
+            program_metadata.archivedFilePath = archivedRelFilePath;
+            insert_program_query = program_metadata.writeFileMeta();
+            status = runManager.provenanceDB.execute(insert_program_query, program_metadata.tableName);
+            if status == -1
+                message = 'DBError: insert a program metadata to the filemeta table.';
+                error(message);
+            end
+                            
+             % Build a D1 datapackage
             pkg = runManager.buildPackage( submitter, mnNodeId, runManager.execution.execution_directory );
-            
-            % Remove the path to the overloaded save() before calling the
-            % original save()
-            rmpath(overloaded_func_path);
-            
-            % Re-serialize the execution object to local file system in the
-            % execution_directory because we need to set the actual file
-            % size for the generated files during a run Dec-4-2015
-            executionObj = runManager.execution;
-            save(char(exec_destination), 'executionObj');
-            
-            % Add the path to the overloaded save() back to the Matlab path
-            warning off MATLAB:dispatcher:nameConflict;
-            addpath(overloaded_func_path, '-begin');
-            warning on MATLAB:dispatcher:nameConflict;
             
             % Clear runtime input/output sources
             runManager.execution.execution_input_ids = {};
             runManager.execution.execution_output_ids = {};
+           
+            % Close the database
+            runManager.provenanceDB.closeDBConnection(); 
             
-            % Set back to the default value of "console" (Dec-7-2015)
+            % Set back to the default value of "console"
             % (non-interactive mode)
             if ( runManager.console ~= 1 )
                 runManager.console = true; 
             end
-            
-
-            
+                      
             % Unlock the RunManager instance
             munlock('RunManager');            
             % clear RunManager;
         end
-            
+                
         function runs = listRuns(runManager, varargin)
             % LISTRUNS Lists prior executions (runs) and information about them from executions metadata database.
             %   quiet -- control the output or not
@@ -1540,11 +1540,12 @@ classdef RunManager < hgsetget
                 listRunsParser = inputParser;
                
                 addParameter(listRunsParser,'quiet', false, @islogical);
-                addParameter(listRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
-                addParameter(listRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
+                addParameter(listRunsParser,'startDate', '', @iscell);
+                addParameter(listRunsParser,'endDate', '', @iscell);
                 addParameter(listRunsParser,'tag', '', @(x) iscell(x) || ischar(x)); % accept both a single char array and a cell array
-                checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+                checkSequenceNumber = @(x) (isnumeric(x) && isscalar(x) && (x > 0));
                 addParameter(listRunsParser,'runNumber', '', checkSequenceNumber);
+                addParameter(listRunsParser,'executionId', '', @ischar);
             end
             parse(listRunsParser,varargin{:})
             
@@ -1553,118 +1554,175 @@ classdef RunManager < hgsetget
             endDate = listRunsParser.Results.endDate;
             tags = listRunsParser.Results.tag;
             runNumber = listRunsParser.Results.runNumber;
+            executionId = listRunsParser.Results.executionId;
             
             if runManager.configuration.debug
                 listRunsParser.Results
             end
             
-            % Read the exeuction metadata summary from the exeuction
-            % metadata database
-            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
+            % Open the provenance database connection
+            runManager.provenanceDB.openDBConnection();
+            
+            % Create a SQL statement to retrieve all records satisfying the
+            % selection criteria
+            select_clause = ['SELECT em.seq, em.datapackageId, em.softwareApplication, em.startTime,' ...
+                'em.endTime, em.publishTime, t.tag'];
+            from_clause = sprintf('from %s em, %s t', 'execmeta', 'tags');
+            where_clause = ['where em.executionId=t.executionId '];
            
-            % When the database is empty, show no rows and return
-            if ( isempty(execMetaMatrix) )
-                runs = {};
-                
-                if ~quiet
-                    fprintf('\n%s\n', 'There are no runs to display yet.');
+            if isempty(startDate) ~= 1
+                for i = 1 : length(startDate)
+                    res = any(regexp(startDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?')); 
+                    if res ~= 1
+                        error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
+                    end
                 end
-                return;                
-            end
-            % Initialize the logical cell arrays for the next call for listRuns()
-            dateCondition = false(size(execMetaMatrix, 1), 1);
-            tagsCondition = false(size(execMetaMatrix, 1), 1);
-            runNumberCondition = false(size(execMetaMatrix, 1), 1);
-            allCondition = true(size(execMetaMatrix, 1), 1);
-            
-            % Process the query constraints
-            startDateFlag = false;
-            endDateFlag = false;
                 
-            if isempty(startDate) ~= 1                
-                startDateFlag = true;
-            end
-                            
-            if isempty(endDate) ~= 1                
-                endDateFlag = true;
-            end
+                if length(startDate) == 1                    
+                    start_begin_date = startDate{1};
+                    start_end_date = '9999-99-99';
+                elseif length(startDate) == 2
+                    start_begin_date = startDate{1};
+                    start_end_date = startDate{2};
+                else
+                    message = 'Error: the number of dates is more than 2.';
+                    error(message);
+                end
                 
-            if startDateFlag && endDateFlag
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
-                % Extract multiple rows from a matrix 
-                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
-                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
-                dateCondition = startCondition & endColCondition;
-                allCondition = allCondition & dateCondition;
-            elseif startDateFlag == 1
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                % Extract multiple rows from a matrix 
-                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % Column 3 for startDate
-                allCondition = allCondition & dateCondition;
-            elseif endDateFlag == 1
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum; % Column 4 for endDate
-                allCondition = allCondition & dateCondition;
-            end
-                        
-            % Process the query parameter "tags"            
-            if ~isempty(tags)               
-                tagsArray = char(tags);
-                tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-                % allCondition = dateCondition & tagsCondition; % Logical and operator
-                allCondition = allCondition & tagsCondition;
-            end
-
-            if ~isempty(runNumber)
-                snValue = num2str(runNumber);
-                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
-                allCondition = allCondition & runNumberCondition;
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.startTime BETWEEN "%s" AND "%s" ', start_begin_date, start_end_date);
+                else
+                    where_clause = sprintf('%s and em.startTime BETWEEN "%s" AND "%s" ', where_clause, start_begin_date, start_end_date);
+                end
             end
             
-            % Extract multiple rows from a matrix satisfying the allCondition
-            runs = execMetaMatrix(allCondition, :);
-            runsToDisplay = execMetaMatrix(allCondition, [16,6,2,7,3,4,5]);
-               
-            % Convert the full path of a script to a base file name in
-            % listRus(). The full path is displayed in viewRun()
-            numOfRows = size(runsToDisplay, 1);
-            for i=1:numOfRows
-               fullName = runsToDisplay{i,3};
-               name_array = strsplit(fullName, filesep);
-               runsToDisplay{i,3} = name_array(end);
+            if isempty(endDate) ~= 1
+                for i = 1 : length(endDate)
+                    res = any(regexp(endDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?'));
+                    if res ~= 1
+                        error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
+                    end
+                end
+                
+                if length(endDate) == 1                   
+                    end_begin_date = endDate{1};
+                    end_end_date = '9999-99-99';
+                elseif length(startDate) == 2
+                    end_begin_date = endDate{1};
+                    end_end_date = endDate{2};
+                else
+                    message = 'Error: the number of dates is more than 2.';
+                    error(message);
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.endTime BETWEEN "%s" AND "%s" ', end_begin_date, end_end_date);
+                else
+                    where_clause = sprintf('%s and em.endTime BETWEEN "%s" AND "%s" ', where_clause, end_begin_date, end_end_date);
+                end
+            end
+                              
+            if isempty(runNumber) ~= 1
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.seq=%d', runNumber);
+                else
+                    where_clause = sprintf('%s and em.seq=%d', where_clause, runNumber);
+                end              
             end
             
-            % Display
-            if isempty(quiet) ~= 1 && quiet ~= 1
-                % Convert a cell array to a table with headers                 
-               % tableForSelectedRuns = cell2table(runs,'VariableNames', [header{:}]);  
-                tableForSelectedRuns = cell2table(runsToDisplay,'VariableNames', {'runNumber', 'packageId', 'scriptName', 'tag', 'startDate', 'endDate', 'publishDate'}); 
-                disp(tableForSelectedRuns);                      
-            end          
+            if isempty(executionId) ~= 1 % suppport search based on primary key
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.executionId="%s"', executionId);
+                else
+                    where_clause = sprintf('%s and em.executionId="%s"', where_clause, executionId);
+                end
+            end
+              
+            if isempty(tags) ~= 1
+                if isempty(where_clause)
+                    where_clause = sprintf('where t.tag="%s"', tags);
+                else
+                    where_clause = sprintf('%s and t.tag="%s"', where_clause, tags);
+                end
+            end
+            
+            % Create a SQL query joining the execmeta and tags tables
+            select_query = sprintf('%s %s %s ;', select_clause, from_clause, where_clause);   
+            exec_metadata_cell = runManager.provenanceDB.execute(select_query);
+            
+            % Display only when the returned data is a cell; no display for
+            % 'No Data' returned
+            if ~isempty(exec_metadata_cell)
+                numOfRows = size(exec_metadata_cell, 1);
+                for i = 1 : numOfRows
+                    % Convert the full path of a script to a base file name in
+                    % listRus(). The full path is displayed in viewRun()
+                    fullName = exec_metadata_cell{i, 3};
+                    name_array = strsplit(fullName, filesep);
+                    exec_metadata_cell{i, 3} = char(name_array(end));
+                    
+                    % Covert startTime & endTime to readable format
+                    start_time = exec_metadata_cell{i, 4};
+                    end_time = exec_metadata_cell{i, 5};
+                    start_formatted_time = datestr(datenum(start_time, 'yyyymmddTHHMMSS'));
+                    end_formatted_time = datestr(datenum(end_time, 'yyyymmddTHHMMSS'));
+                    exec_metadata_cell{i, 4} = start_formatted_time;
+                    exec_metadata_cell{i, 5} = end_formatted_time;
+                end
+                
+                % Display
+                if isempty(quiet) ~= 1 && quiet ~= 1
+                    % Convert a cell array to a table with headers
+                    run_fieldnames = {'runNumber', 'packageId', 'scriptName', 'startDate', 'endDate', 'publishDate', 'tag'};
+                    [nrows, ncols] = size(exec_metadata_cell);
+                    for i = 1 : nrows
+                        fprintf('Run#%3d: \n', i);
+                        for j = 1 : ncols
+                            if isnumeric(exec_metadata_cell{i, j})
+                                fprintf('%16s: %d \n', run_fieldnames{j}, exec_metadata_cell{i, j});
+                            else  
+                                if ~isempty(exec_metadata_cell{i, j})
+                                    fprintf('%16s: %s \n', run_fieldnames{j}, exec_metadata_cell{i, j});
+                                else
+                                    fprintf('%16s: %s \n', run_fieldnames{j}, 'N/A');
+                                end
+                            end
+                        end
+                        fprintf('\n');
+                    end
+                end
+            else
+                message = 'There is no data matched.';
+                warning(message);
+            end
+            
+            % Close the database
+            runManager.provenanceDB.closeDBConnection();
         end
         
         function deleted_runs = deleteRuns(runManager, varargin)
             % DELETERUNS Deletes prior executions (runs) from the stored
             % list.    
-            %   runIdList -- the list of runIds for executions to be deleted
+            %   executionIdList -- the list of runIds for executions to be deleted
             %   startDate -- the starting timestamp for an execution to be
             %                deleted  (yyyyMMddThh:mm:ss)
             %   endDate -- the ending timestamp for an execution to be
             %              deleted  (yyyyMMddThh:mm:ss)
-            %   tag -- a tag given to an execution to be deleted
+            %   tag -- a list of tags given to an execution to be deleted
             %   runNumber -- a sequence number given to an execution to be deleted
             %   noop -- control delete the exuecution from disk or not
             %   quiet -- control the output or not
             
+            import org.dataone.client.sqlite.FileMetadata;
+             
             persistent deletedRunsParser
             if isempty(deletedRunsParser)
                 deletedRunsParser = inputParser;
                 
-                addParameter(deletedRunsParser,'runIdList', '', @iscell);
+                addParameter(deletedRunsParser,'executionIdList', '', @iscell);
                 addParameter(deletedRunsParser,'startDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
                 addParameter(deletedRunsParser,'endDate', '', @(x) any(regexp(x, '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}')));
-                addParameter(deletedRunsParser,'tag', '', @iscell);
+                addParameter(deletedRunsParser,'tagList', '', @iscell);
                 checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
                 addParameter(deletedRunsParser,'runNumber', '', checkSequenceNumber);
                 addParameter(deletedRunsParser,'noop', false, @islogical);
@@ -1672,10 +1730,10 @@ classdef RunManager < hgsetget
             end
             parse(deletedRunsParser,varargin{:})
             
-            runIdList = deletedRunsParser.Results.runIdList;
+            executionIdList = deletedRunsParser.Results.executionIdList;
             startDate = deletedRunsParser.Results.startDate;
             endDate = deletedRunsParser.Results.endDate;
-            tags = deletedRunsParser.Results.tag;
+            tags = deletedRunsParser.Results.tagList;
             runNumber = deletedRunsParser.Results.runNumber;
             noop = deletedRunsParser.Results.noop;
             quiet = deletedRunsParser.Results.quiet;
@@ -1684,184 +1742,237 @@ classdef RunManager < hgsetget
                 deletedRunsParser.Results
             end
             
-            % Read the exeuction metadata summary from the exeuction metadata database
-            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-                       
-            % Initialize the logical cell arrays to have false value
-            dateCondition = false(size(execMetaMatrix, 1), 1);
-            runIdCondition = false(size(execMetaMatrix, 1), 1);
-            tagsCondition = false(size(execMetaMatrix, 1), 1);
-            runNumberCondition = false(size(execMetaMatrix, 1), 1);
-            allDeleteCondition = true(size(execMetaMatrix, 1), 1);
+            % Open the provenance database connection
+            runManager.provenanceDB.openDBConnection();
             
-            startDateFlag = false;
-            endDateFlag = false;
-                
+            % Create a SQL statement to retrieve all records satisfying the
+            % selection criteria
+            select_clause = ['SELECT em.*, t.tag'];
+            from_clause = sprintf('from %s em, %s t', 'execmeta', 'tags');
+            where_clause = ['where em.executionId=t.executionId '];
+                        
             if isempty(startDate) ~= 1
-                startDateFlag = true;
-            end
+                for i = 1 : length(startDate)
+                    res = any(regexp(startDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?')); 
+                    if res ~= 1
+                        error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
+                    end
+                end
                 
-            if isempty(endDate) ~= 1
-                endDateFlag = true;
+                if length(startDate) == 1
+                    start_begin_date = startDate{1};
+                    start_end_date = '9999-99-99';
+                elseif length(startDate) == 2
+                    start_begin_date = startDate{1};
+                    start_end_date = startDate{2};
+                else
+                    message = 'Error: the number of dates is more than 2.';
+                    error(message);
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.startTime BETWEEN "%s" AND "%s" ', start_begin_date, start_end_date);
+                else
+                    where_clause = sprintf('%s and em.startTime BETWEEN "%s" AND "%s" ', where_clause, start_begin_date, start_end_date);
+                end
             end
             
-            if startDateFlag && endDateFlag
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');                   
-                startCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum;
-                endColCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;
-                dateCondition = startCondition & endColCondition;
-                allDeleteCondition = allDeleteCondition & dateCondition;
-            elseif startDateFlag == 1
-                startDateNum = datenum(startDate,'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,3),'yyyymmddTHHMMSS') >= startDateNum; % logical vector for rows to delete  
-                allDeleteCondition = allDeleteCondition & dateCondition;
-            elseif endDateFlag == 1
-                endDateNum = datenum(endDate, 'yyyymmddTHHMMSS');
-                dateCondition = datenum(execMetaMatrix(:,4),'yyyymmddTHHMMSS') <= endDateNum;   
-                allDeleteCondition = allDeleteCondition & dateCondition;
+            if isempty(endDate) ~= 1
+                for i = 1 : length(endDate)
+                    res = any(regexp(endDate{i}, '\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?'));
+                    if res ~= 1
+                        error('Input Date format is \d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?');
+                    end
+                end
+                
+                if length(endDate) == 1
+                    end_begin_date = endDate{1};
+                    end_end_date = '9999-99-99';
+                elseif length(startDate) == 2
+                    end_begin_date = endDate{1};
+                    end_end_date = endDate{2};
+                else
+                    message = 'Error: the number of dates is more than 2.';
+                    error(message);
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.endTime BETWEEN "%s" AND "%s" ', end_begin_date, end_end_date);
+                else
+                    where_clause = sprintf('%s and em.endTime BETWEEN "%s" AND "%s" ', where_clause, end_begin_date, end_end_date);
+                end
+            end
+            
+            if ~isempty(executionIdList)
+                execution_ids_str = sprintf('"%s"', executionIdList{1, 1});
+                for i = 2 : size(executionIdList, 2)
+                    temp = sprintf('"%s"', executionIdList{1, i});
+                    execution_ids_str = strcat(execution_ids_str, ',', temp);                   
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.executionId in (%s)', execution_ids_str);
+                else
+                    where_clause = sprintf('%s and em.executionId in (%s)', where_clause, execution_ids_str);
+                end
             end
                         
-            if ~isempty(runIdList)
-                runIdArray = char(runIdList);
-                runIdCondition = ismember(execMetaMatrix(:,1), runIdArray); % compare the existance between two arrays
-                allDeleteCondition = allDeleteCondition & runIdCondition;
+            if ~isempty(runNumber)             
+                num_runNumber = num2str(runNumber);
+                if isempty(where_clause)
+                    where_clause = sprintf('where em.seq="%s"', num_runNumber);
+                else
+                    where_clause = sprintf('%s and em.seq="%s"', where_clause, num_runNumber);
+                end
             end
-                
+            
             if ~isempty(tags)
-                tagsArray = char(tags);
-                tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-                allDeleteCondition = allDeleteCondition & tagsCondition;
+                tags_str = sprintf('"%s"', tags{1, 1});
+                for i = 2 : size(tags, 2)
+                    temp = sprintf('"%s"', tags{1, i});
+                    tags_str = strcat(tags_str, ',', temp);
+                end
+                
+                if isempty(where_clause)
+                    where_clause = sprintf('where t.tag in (%s)', tags_str);
+                else
+                    where_clause = sprintf('%s and t.tag in (%s)', where_clause, tags_str);
+                end
             end
-           
-            if ~isempty(runNumber)
-                snValue = num2str(runNumber);
-                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
-                allDeleteCondition = allDeleteCondition & runNumberCondition;
-            end
-           
-            % Extract multiple rows from a matrix satisfying the allCondition
-            deleted_runs = execMetaMatrix(allDeleteCondition, :);
+                       
+             % Create a SQL query joining the execmeta and tags tables
+            select_query = sprintf('%s %s %s ;', select_clause, from_clause, where_clause);   
+            deleted_runs = runManager.provenanceDB.execute(select_query);
             
             % Delete the selected runs from the execution matrix and update the exeucution database
             if  noop == 1
                 % Show the selected run list only when quiet is turned on
                 if isempty(quiet) ~= 1 && quiet ~= 1
-                    % Convert a cell array to a table with headers    
+                    % Convert a cell array to a table with headers
                     disp('The following runs are matched and to be deleted:');
-                    tableForSelectedRuns = cell2table(deleted_runs,'VariableNames', [header{:}]);  
-                    disp(tableForSelectedRuns);                      
+                   
+                    % Print all to runs to be deleted 
+                    fieldnames = {'RunSequenceNumber', 'ExecutionId','MetadataId', 'DataPackageId', 'RunByUser', 'AccountSubject', ...
+                        'HostId', 'RunStartTime', 'OperatingSystem', 'Runtime', 'SoftwareApplication', 'ModuleDependencies', ...
+                        'RunEndingTime', 'ErrorMessageFromThisRun', 'PublishTime', 'PublishedNodeId', 'PublishedId', 'Console', 'Tag'};
+                    
+                    % Convert a cell array to a table with headers
+                    [nrows, ncols] = size(deleted_runs);
+                    for i = 1 : nrows
+                        fprintf('Run#%3d: \n', i);
+                        for j = 1 : ncols                            
+                            if length(deleted_runs{i, j}) >= 500
+                                shorten_str = deleted_runs{i, j}(1 : 500);
+                                fprintf('%30s:  %s \n', fieldnames{j}, shorten_str);
+                            else
+                                if ~isempty(deleted_runs{i, j})
+                                    fprintf('%30s:  %s \n', fieldnames{j}, deleted_runs{i, j});
+                                else
+                                    fprintf('%30s: %s \n', fieldnames{j}, 'N/A');
+                                end
+                            end
+                        end
+                        fprintf('\n');
+                    end
                 end
             else
-                % Show the selected run list and do the deletion operation                
-                selectedIdSet = deleted_runs(:,1);
-            
-                % Delete the selected runs
-                for k = 1:length(selectedIdSet)                   
+                % Show the selected run list and do the deletion operation
+                selectedIdSet = deleted_runs(:, 2);
+                % Loop through selected runs
+                for k = 1 : length(selectedIdSet)
+                    % Delete all file access entries for this execution, for
+                    % any type of access, i.e., "read", "write", "execute". The
+                    % file information for the deleted entries is returned.                  
+                    fm_all = FileMetadata('', selectedIdSet{k}, '','','','','','', '','','');
+                    fm_query = fm_all.readFileMeta('', '');
+                    file_stats_all = runManager.provenanceDB.execute(fm_query, fm_all.tableName);
+                    
+                    % Loop through the deleted file entries and unarchive
+                    % any file associated with this run, i.e., file read,
+                    % written, executed, etc. 
+                    [nrows, ncols] = size(file_stats_all);
+                    for i = 1 : nrows
+                        this_file_id = file_stats_all{i, 1};
+                        % First delete the file in the archive, if no other
+                        % executions are referring to it
+                        [archivedRelFilePath, delete_archive_status] = FileMetadata.unArchiveFile(this_file_id);
+                        if ~isempty(archivedRelFilePath) && delete_archive_status 
+                           full_archive_file_path = sprintf('%s/%s', runManager.configuration.provenance_storage_directory, archivedRelFilePath);
+                           delete(full_archive_file_path);
+                        end
+                        
+                        % Then delete the filemeta table entry for it
+                        delete_fm_query = sprintf('DELETE from filemeta WHERE fileId="%s" ', this_file_id);
+                        result = runManager.provenanceDB.execute(delete_fm_query);
+                    end
+                    
+                    % Delete the execmeta table and tags table entry
+                    delete_em_query = sprintf('DELETE from execmeta WHERE executionId="%s" ', selectedIdSet{k});
+                    delete_tag_query = sprintf('DELETE from tags WHERE executionId="%s" ', selectedIdSet{k});
+                    result = runManager.provenanceDB.execute(delete_em_query);    
+                    result = runManager.provenanceDB.execute(delete_tag_query); 
+                    % Delete each run directory under provenance/runs/
+                    % folder 
                     selectedRunDir = fullfile( ...
                         runManager.configuration.provenance_storage_directory, ...
                         'runs', selectedIdSet{k});
-                    if exist(selectedRunDir, 'dir') == 7 
+                    if exist(selectedRunDir, 'dir') == 7
                         [success, errMessage, messageID] = rmdir(selectedRunDir, 's');
                         if success == 1
-                            fprintf('Succeed in deleting the directory %s\n', selectedRunDir);                         
+                            fprintf('Succeed in deleting the run directory %s\n', selectedRunDir);
                         else
-                            fprintf('Error in deleting a directory %s and the error message is %s \n', ...
-                            selectedRunDir, errMessage);
-                        end 
+                            fprintf('Error in deleting a run directory %s and the error message is %s \n', ...
+                                selectedRunDir, errMessage);
+                        end
                     else
-                        fprintf('The %s directory to be deleted not exist.\n', selectedRunDir);
+                        fprintf('The run %s directory to be deleted not exist.\n', selectedRunDir);
                     end
-                end
-
-                % Update the execuction metadata matrix by removing the deleted rows and write the update metadata back to the execution database                               
-                execMetaMatrix(allDeleteCondition, :) = []; % deleted the selected rows
                     
-                % Write the updated execution metadata with headers to the execution database            
-                formatSpec = runManager.configuration.execution_db_write_format;                
-                if exist(runManager.configuration.execution_db_name, 'file') == 2
-                    [fileId, message] = ...
-                        fopen(runManager.configuration.execution_db_name,'w');
-                    if fileId == -1
-                        disp(message);
-                    end
-                    fprintf(fileId, formatSpec, ...
-                        'runId', ...
-                        'filePath', ...
-                        'startTime', ...
-                        'endTime', ...
-                        'publishedTime', ...
-                        'packageId', ...
-                        'tag', ...
-                        'user', ...
-                        'subject', ...
-                        'hostId', ...
-                        'operatingSystem', ...
-                        'runtime', ...
-                        'moduleDependencies', ...
-                        'console', ...
-                        'errorMessage', ...
-                        'runNumber');
-                    [rows, cols] = size(execMetaMatrix);
-                    for (row = 1:rows)
-                        fprintf(fileId, formatSpec, ...
-                            char(execMetaMatrix(row, 1)), ...
-                            char(execMetaMatrix(row, 2)), ...
-                            char(execMetaMatrix(row, 3)), ...
-                            char(execMetaMatrix(row, 4)), ...
-                            char(execMetaMatrix(row, 5)), ...
-                            char(execMetaMatrix(row, 6)), ...
-                            char(execMetaMatrix(row, 7)), ...
-                            char(execMetaMatrix(row, 8)), ...
-                            char(execMetaMatrix(row, 9)), ...
-                            char(execMetaMatrix(row, 10)), ...
-                            char(execMetaMatrix(row, 11)), ...
-                            char(execMetaMatrix(row, 12)), ...
-                            char(execMetaMatrix(row, 13)), ...
-                            char(execMetaMatrix(row, 14)), ...
-                            char(execMetaMatrix(row, 15)), ...
-                            char(execMetaMatrix(row, 16)));
-                    end
-                    fclose(fileId);
-                end
-                             
-            end          
+                end               
+            end 
+            
+            % Close the database
+            runManager.provenanceDB.closeDBConnection();
         end
         
-        function results = view(runManager, varargin)
-           % VIEW Displays detailed information about a data package that
+        function results = viewRun(runManager, varargin)
+           % VIEWRUN Displays detailed information about a data package that
            % is the result of an execution (run).
            %    import org.dataone.client.run.RunManager;
            %    mgr = RunManager.getInstance();
-           %    mgr.view('packageId', 'the-package-id') shows the run with the
+           %    mgr.viewRun('packageId', 'the-package-id') shows the run with the
            %        given package identifier
-           %    mgr.view('runNumber', 1) shows the run with the
+           %    mgr.viewRun('runNumber', 1) shows the run with the
            %        given run number
-           %    mgr.view('tag', 'the desired tag') shows the run with the
+           %    mgr.viewRun('tag', 'the desired tag') shows the run with the
            %        given tag string
-           %    mgr.view('runNumber', 1, ...
+           %    mgr.viewRun('runNumber', 1, ...
            %         'sections', {'details', 'used', 'generated'}) shows 
            %        the run with the given run number and include the
            %        details, used, and generated sections
 
+           % Note: Assume only one run report is to be viewed
+           
            % Display a warning message to the user
            if runManager.configuration.debug
                disp('Warning: There is no scientific metadata in this data package.');
            end
            
-           persistent viewRunsParser
+           persistent viewRunsParser;
            if isempty(viewRunsParser)
                viewRunsParser = inputParser;
                
                addParameter(viewRunsParser,'packageId', '', @ischar);   
-               checkSequenceNumber = @(x) ischar(x) || (isnumeric(x) && isscalar(x) && (x > 0));
+               addParameter(viewRunsParser, 'executionId', '', @(x) ~isempty(x));
+               checkSequenceNumber = @(x) (isnumeric(x) && isscalar(x) && (x > 0));
                addParameter(viewRunsParser,'runNumber', '', checkSequenceNumber);
-               addParameter(viewRunsParser,'tag', '', @iscell);
+               addParameter(viewRunsParser,'tag', '', @(x) iscell(x) || ischar(x));
                addParameter(viewRunsParser,'sections', '', @iscell);
            end
-           parse(viewRunsParser,varargin{:})
+           parse(viewRunsParser,varargin{:});
             
            packageId = viewRunsParser.Results.packageId;
+           executionId = viewRunsParser.Results.executionId;
            runNumber = viewRunsParser.Results.runNumber;
            tags = viewRunsParser.Results.tag;
            sections = viewRunsParser.Results.sections;
@@ -1869,138 +1980,84 @@ classdef RunManager < hgsetget
            if runManager.configuration.debug
                viewRunsParser.Results
            end
-           
-           % Read the exeuction metadata summary from the exeuction metadata database
-           [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-           
-           % Initialize the logical cell arrays for the next call for listRuns() 
-           packageIdCondition = false(size(execMetaMatrix, 1), 1);          
-           runNumberCondition = false(size(execMetaMatrix, 1), 1);   
-           tagsCondition = false(size(execMetaMatrix, 1), 1);
-           allCondition = true(size(execMetaMatrix, 1), 1);
-                   
-           % Select runs based on the packageID. 
-           if(isempty(packageId) ~= 1)
-               packageIdCondition = strcmp(execMetaMatrix(:,6), packageId); % Column 6 in the execution matrix for packageId
-               allCondition = allCondition & packageIdCondition;
-           end
-           
-           % Process the query parameter "tags"            
-           if ~isempty(tags)               
-               tagsArray = char(tags);
-               tagsCondition = ismember(execMetaMatrix(:,7), tagsArray); % compare the existence between two arrays (column 7 for tag)
-               allCondition = allCondition & tagsCondition; % Logical and operator
-           end
-
-           if ~isempty(runNumber)              
-               snValue = num2str(runNumber);
-               runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                              
-               allCondition = allCondition & runNumberCondition;
-           end
             
-           % Extract multiple rows from a matrix satisfying the allCondition
-           selectedRuns = execMetaMatrix(allCondition, :);
-           if isempty(selectedRuns)
-               error('No runs can be found as a match.');
-           end
+           % Open the provenance database connection
+           runManager.provenanceDB.openDBConnection();
             
-           seqNo = selectedRuns{1, 16}; % Todo: handle multiple views returned. Now assum only one run is returned
-           packageId = selectedRuns{1, 6};
-
-           % Read information from the selectedRuns returned by the execution summary database
-           filePath = selectedRuns{1, 2};
-           [pathstr,scriptName,ext] = fileparts(filePath);
+           select_clause = ['SELECT em.seq, em.executionId, em.datapackageId, em.user, em.subject, ' ...
+               'em.hostId, em.startTime, em.operatingSystem, em.runtime, em.softwareApplication, ' ...
+               'em.endTime, em.errorMessage, em.publishNodeId, em.publishTime, t.tag '];
+           from_clause = sprintf('from %s em, %s t', 'execmeta', 'tags');
+           where_clause = ['where em.executionId=t.executionId '];
            
-           if isempty(selectedRuns{1,5} ) ~= 1              
-               % publishedTime = datetime( selectedRuns{1,5}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-               dateNum = datenum(selectedRuns{1,5}, 'yyyymmddTHHMMSS');
-               publishedTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS');
-           else
-               publishedTime = 'Not Published';
+           if isempty(packageId) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE em.datapackageId="%s"', packageId);
+               else
+                   where_clause = sprintf('%s and em.datapackageId="%s"', where_clause, packageId);
+               end              
            end
            
-           dateNum = datenum( selectedRuns{1,3}, 'yyyymmddTHHMMSS' ); 
-           startTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS'); % todo: add time zone and datetime is not available in R2014b version
-           dateNum = datenum(selectedRuns{1,4} , 'yyyymmddTHHMMSS');
-           endTime = datestr( dateNum, 'yyyy-mm-dd HH:MM:SS');
-           % startTime = datetime( selectedRuns{1,3}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ');
-           % endTime = datetime( selectedRuns{1,4}, 'TimeZone', 'local', 'Format', 'yyyy-MM-dd HH:mm:ssZ' );
-                 
-           % Compute the detailStruct for the details_section 
-           fieldnames = {'Tag', 'RunSequenceNumber', 'PublishedDate', 'PublishedTo', ...
-                         'RunByUser', 'AccountSubject', 'RunId', 'DataPackageId', ...
-                         'HostId', 'OperatingSystem', 'Runtime', 'Dependencies', ...
-                         'RunStartTime','RunEndingTime', 'ErrorMessageFromThisRun'};
-           values = {selectedRuns{1,7}, seqNo, publishedTime, runManager.configuration.target_member_node_id, ...
-                     selectedRuns{1,8}, selectedRuns{1,9}, selectedRuns{1,1}, selectedRuns{1,6}, ...
-                     selectedRuns{1,10}, selectedRuns{1,11}, selectedRuns{1,12}, selectedRuns{1,13}, ...
-                     char(startTime), char(endTime), selectedRuns{1,15}};                   
-           detailStruct = struct;
-           for i=1:length(fieldnames)
-               detailStruct.(fieldnames{i}) = values{i};
+           if isempty(executionId) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE em.executionId="%s"', executionId);
+               else
+                   where_clause = sprintf('%s and em.executionId="%s"', where_clause, executionId);
+               end               
            end
-
-           % Deserialize the execution object from the disk
            
-           % Remove the path to the overloaded load() from the Matlab path
-           overloadedFunctPath = which('load');
-           [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
-           rmpath(overloaded_func_path);
-            
-           % Load the stored execution given the directory name
-           exec_file_base_name = [packageId '.mat'];
-           stored_execution = load(fullfile( ...
-               runManager.configuration.provenance_storage_directory, ...
-               'runs', ...
-               packageId, ...
-               exec_file_base_name));
+           if isempty(runNumber) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE em.seq=%d', runNumber);
+               else
+                   where_clause = sprintf('%s and em.seq=%d', where_clause, runNumber);
+               end
+           end
            
-           % Add the path to the overloaded load() back to the Matlab path
-           warning off MATLAB:dispatcher:nameConflict;
-           addpath(overloaded_func_path, '-begin');
-           warning on MATLAB:dispatcher:nameConflict;
+           if isempty(tags) ~= 1
+               if isempty(where_clause)
+                   where_clause = sprintf('WHERE t.tag="%s"', tags);
+               else
+                   where_clause = sprintf('%s and t.tag="%s"', where_clause, tags);
+               end
+           end
            
-           % Assign deserialized execution to runManager.execution
-           runManager.execution = stored_execution.executionObj(1);
+           select_query = sprintf('%s %s %s ;', select_clause, from_clause, where_clause);
+           exec_metadata_cell = runManager.provenanceDB.execute(select_query);
            
-           import org.apache.commons.io.FileUtils;
-           
-           % Compute the used struct for the used_section
-           usedFileStruct = struct;
-           for i=1:length(runManager.execution.execution_input_ids)
-               inId = runManager.execution.execution_input_ids{i};
+           % Display only when the returned data is a cell
+           if ~isempty(exec_metadata_cell)
+               % Get the short script name and starting timestamp
+               script_full_path = exec_metadata_cell{1, 10};
+               script_name_array = strsplit(script_full_path, filesep);
+               scriptName = char(script_name_array(end));
+              
+               start_time = exec_metadata_cell{1, 7};
+               if ~isempty(start_time)
+               start_formatted_time = datestr(datenum(start_time, 'yyyymmddTHHMMSS'));
+               exec_metadata_cell{1, 7} = start_formatted_time;
+               else
+                   exec_metadata_cell{1, 7} = 'N/A';
+               end
                
-               inDataObject = runManager.execution.execution_objects(inId);
-               in_d1_sysmeta = inDataObject.system_metadata;
-               in_file_size = in_d1_sysmeta.getSize;
-               in_file_name = char(in_d1_sysmeta.getFileName());
-               in_file_metadata = dir(inDataObject.full_file_path);
-
-               usedFileStruct(i,1).LocalName = {in_file_name};
-               fsize = FileUtils.byteCountToDisplaySize(in_file_size.longValue());                     
-               usedFileStruct(i,1).Size = {char(fsize)}; 
-               usedFileStruct(i,1).ModifiedTime = {in_file_metadata.date}; 
+               end_time = exec_metadata_cell{1, 11};
+               if ~isempty(end_time)
+               end_formatted_time = datestr(datenum(end_time, 'yyyymmddTHHMMSS'));
+               exec_metadata_cell{1, 11} = end_formatted_time;
+               else
+                   exec_metadata_cell{1, 11} = 'N/A';
+               end
+               
+               publish_time = exec_metadata_cell{1, 14};
+               if ~isempty(publish_time)
+               publish_formatted_time = datestr(datenum(publish_time, 'yyyymmddTHHMMSS'));
+               exec_metadata_cell{1, 14} = publish_formatted_time;
+               else
+                   exec_metadata_cell{1, 14} = 'N/A';
+               end
+               
+               executionId = exec_metadata_cell{1, 2};
            end
-                      
-           % Compute the wasGeneratedBy struct for the wasGeneratedBy_section  
-           generatedFileStruct = struct;
-           for j=1:length(runManager.execution.execution_output_ids)
-               outId = runManager.execution.execution_output_ids{j};              
-               outDataObject = runManager.execution.execution_objects(outId);
-               out_d1_sysmeta = outDataObject.system_metadata;
-               out_file_size = out_d1_sysmeta.getSize;
-               out_file_name = char(out_d1_sysmeta.getFileName());
-               out_file_metadata = dir(outDataObject.full_file_path);
-   
-               generatedFileStruct(j,1).LocalName = {out_file_name}; % Convert java string to cell so that the generatedFile table can be displayed Dec-8-2015       
-               fsize = FileUtils.byteCountToDisplaySize( out_file_size.longValue() );  
-               generatedFileStruct(j,1).Size = {char(fsize)}; 
-               generatedFileStruct(j,1).ModifiedTime = {out_file_metadata.date};     
-           end
-        
-           results = {detailStruct, usedFileStruct, generatedFileStruct};
- 
-           more on; % Enable more for page control
            
            % Decide the sections to be displayed based on values of sections
            if ~isempty(sections)
@@ -2014,36 +2071,110 @@ classdef RunManager < hgsetget
                showGenerated = 0;
            end
            
+           import org.dataone.client.sqlite.FileMetadata;
+           
+           used_file_stats = {};
+           generated_file_stats = {};
+           
+           if showUsed == 1
+               used_file_metadata = FileMetadata('', executionId, '','','','','','', 'read','',''); 
+               used_file_query = used_file_metadata.readFileMeta('', '');
+               used_file_stats = runManager.provenanceDB.execute(used_file_query, used_file_metadata.tableName);
+           end
+           
+           if showGenerated == 1
+               generated_file_metadata = FileMetadata('', executionId, '','','','','','', 'write','','');
+               generated_file_query = generated_file_metadata.readFileMeta('', '');
+               generated_file_stats = runManager.provenanceDB.execute(generated_file_query, generated_file_metadata.tableName);
+           end
+           
+           results = {exec_metadata_cell, used_file_stats, generated_file_stats};
+           
+           more on; % Enable more for page control
+           
            % Display different sections
            if showDetails == 1
                fprintf('\n[DETAILS]: Run details\n');
-               fprintf('-------------------------\n');
-               fprintf('"%s" was executed on %s\n', scriptName, char(startTime));           
-               disp(detailStruct);
+               fprintf('-------------------------\n');  
+               fprintf('\"%s\" was executed on %s\n\n', scriptName, start_formatted_time);
+              
+               % Compute the detailStruct for the details_section
+               fieldnames = {'RunSequenceNumber', 'ExecutionId','DataPackageId', 'RunByUser', 'AccountSubject', ...
+                   'HostId', 'RunStartTime', 'OperatingSystem', 'Runtime', 'SoftwareApplication', ...
+                   'RunEndingTime', 'ErrorMessageFromThisRun', 'PublishedNodeId', 'PublishedDate', 'Tag'};
+               
+               % Convert a cell array to a table with headers              
+               for i = 1 : length(fieldnames)
+                   if length(exec_metadata_cell{1, i}) >= 500
+                       shorten_str = exec_metadata_cell{1, i}(1 : 500);
+                       fprintf('%20s:  %s \n', fieldnames{i}, shorten_str);
+                   else
+                       if ~isempty(exec_metadata_cell{1, i})
+                           fprintf('%20s:  %s \n', fieldnames{i}, exec_metadata_cell{1, i});
+                       else
+                           fprintf('%20s: %s \n', fieldnames{i}, 'N/A');
+                       end
+                   end
+               end
            end
-                    
-           if showUsed == 1    
-               fprintf('\n\n[USED]: %d Items used by this run\n', length(usedFileStruct));
+           
+           file_fieldnames = {'FilePath','Size','ModifiedTime'};
+           if showUsed == 1
+               fprintf('\n\n[USED]: %d Items used by this run\n', size(used_file_stats,1));
                fprintf('------------------------------------\n');
-               TableForFileUsed = struct2table(usedFileStruct); % Convert a struct to a table
-               disp(TableForFileUsed);
-           end 
-           
-           if showGenerated == 1                    
-               fprintf('\n\n[GENERATED]: %d Items generated by this run\n', length(generatedFileStruct));
-               fprintf('------------------------------------------\n');              
-               TableForFileWasGeneratedBy = struct2table(generatedFileStruct); % Convert a struct to a table
-               disp(TableForFileWasGeneratedBy);               
+               if ~isempty(used_file_stats)
+                   used_file_to_display = used_file_stats(:, [3, 5, 7]);
+                   [nrows, ncols] = size(used_file_to_display);
+                   for i = 1 : nrows
+                       fprintf('File#%3d:\n', i);
+                       for j = 1 : ncols
+                           if isnumeric(used_file_to_display{i, j})
+                               fprintf('%20s: %d (bytes)\n', file_fieldnames{j}, used_file_to_display{i, j});
+                           else
+                               fprintf('%20s: %s\n', file_fieldnames{j}, used_file_to_display{i, j});
+                           end                           
+                       end
+                       fprintf('\n');
+                   end
+               else
+                   warning('There is no matched data.');
+               end
            end
            
-           more off; % terminate more           
+           if showGenerated == 1
+               fprintf('\n\n[GENERATED]: %d Items generated by this run\n', size(generated_file_stats, 1));
+               fprintf('------------------------------------------\n');
+               if ~isempty(generated_file_stats)
+                   generated_file_to_display = generated_file_stats(:, [3, 5 ,7]);
+                   [nrows, ncols] = size(generated_file_to_display);
+                   for i = 1 : nrows
+                       fprintf('File#%3d:\n', i);
+                       for j = 1 : ncols
+                           if isnumeric(generated_file_to_display{i, j})
+                               fprintf('%20s: %d (bytes)\n', file_fieldnames{j}, generated_file_to_display{i, j});
+                           else
+                               fprintf('%20s: %s\n', file_fieldnames{j}, generated_file_to_display{i, j});
+                           end                          
+                       end
+                       fprintf('\n');
+                   end
+               else
+                   warning('There is no matched data.');
+               end
+           end
+           
+           more off; % terminate more
+              
+           % Close the database
+           runManager.provenanceDB.closeDBConnection();
         end
         
-        function package_id = publish(runManager, packageId)
-            % PUBLISH Uploads a data package from a folder on disk
+        function package_id = publishRun(runManager, packageId)
+            % PUBLISHRUN Uploads a data package from a folder on disk
             % to the configured DataONE Member Node server.  This requires
             % that the Configuration.authentication_token and
-            % Configuration.target_member_node_id properties are set.
+            % Configuration.target_member_node_id properties are set. Notes
+            % that packageId is the same as executionId.
             %
             %    import org.dataone.client.run.RunManager;
             %    mgr = RunManager.getInstance();
@@ -2052,6 +2183,7 @@ classdef RunManager < hgsetget
             import java.lang.String;
             import java.lang.Boolean;
             import java.lang.Integer;
+            import java.util.Iterator;
             import org.dataone.client.v2.MNode;
             import org.dataone.client.v2.itk.D1Client;
             import org.dataone.service.types.v1.NodeReference;
@@ -2075,32 +2207,9 @@ classdef RunManager < hgsetget
                     'A directory was not found for the run identifier: ' ...
                     packageId]);               
             end                 
-            
+                       
             % Get a MNode instance to the Member Node
             try                
-                % Deserialize the execution object from the disk
-                
-                % Remove the path to the overloaded load() from the Matlab path
-                overloadedFunctPath = which('load');
-                [overloaded_func_path, func_name, ext] = fileparts(overloadedFunctPath);
-                rmpath(overloaded_func_path);
-           
-                % Load the stored execution given the directory name
-                exec_file_base_name = [packageId '.mat'];
-                stored_execution = load(fullfile( ...
-                    runManager.configuration.provenance_storage_directory, ...
-                    'runs', ...
-                    packageId, ...
-                    exec_file_base_name));
-                
-                % Add the path to the overloaded load() back to the Matlab path
-                warning off MATLAB:dispatcher:nameConflict;
-                addpath(overloaded_func_path, '-begin');
-                warning on MATLAB:dispatcher:nameConflict;
-                    
-                % Assign deserialized execution to runManager.execution
-                runManager.execution = stored_execution.executionObj(1);
-
                 % Build a D1 datapackage
                 if ( ~isempty(runManager.configuration.submitter) )
                     submitter = char(runManager.configuration.submitter);
@@ -2117,14 +2226,15 @@ classdef RunManager < hgsetget
                 else
                     error('RunManager:missingTargetMemberNode', ...
                         ['There is no valid Configuration.target_member_node_id set.\n', ...
-                        'Please set it with the correct Member Node id.']);                 
+                        'Please set it with the correct Member Node id.']);
                 end
                 
+                % Open the provenance database connection
+                runManager.provenanceDB.openDBConnection();
+                
                 % Build the package back into memory
-                % pkg = runManager.buildPackage( ...
-                %     submitter, mnNodeId, ...
-                %     runManager.execution.execution_directory );    
-                                
+                cur_pkg = runManager.buildPackage( submitter, mnNodeId, curRunDir );
+                           
                 % Get a Session
                 session = Session();
                 
@@ -2170,8 +2280,7 @@ classdef RunManager < hgsetget
                     error(['Coordinatior node' runManager.D1_CN_Resolve_Endpoint ...
                         'encounted an error on the getCN() request.']);
                 end
-                
-                                
+                                                
                 % Set the MNode ID
                 mnRef = NodeReference();
                 mnRef.setValue(runManager.configuration.target_member_node_id);
@@ -2188,34 +2297,30 @@ classdef RunManager < hgsetget
                 
                 submitter = Subject();
                 submitter.setValue(session.account_subject);
+     
+                % Return the set of identifiers that are part of current package
+                identifiers = cur_pkg.identifiers(); 
+                iterator = identifiers.iterator();
                 
-                % Upload each data object in the execution_objects map
-                identifiers = keys(runManager.execution.execution_objects);
-                d1objects = values(runManager.execution.execution_objects);
-                
-                for k = 1: length(identifiers)
+                % Upload each data object in the execution_objects map                
+                while iterator.hasNext()
                     
-                    d1_object_id = identifiers{k};
-                    d1_object = d1objects{k};
-                    d1_object_format = char(d1_object.format_id);
+                    d1_object_id = iterator.next();
+                    dataObj = cur_pkg.get(d1_object_id);
+                    dataSource = dataObj.getDataSource();
+                    
+                    % Get system metadata for dataObj 
+                    v2SysMeta = dataObj.getSystemMetadata(); % version 2 system metadata
                     
                     if true % runManager.configuration.debug
                         fprintf( ...
                             ['Uploading to : %s\n' ...
-                             'File format  : %s\n' ...
-                             'File path    : %s\n'], ...
-                            [mn_base_url '/object/' d1_object_id], ...
-                            d1_object_format, ...
-                            d1_object.full_file_path);
+                            'File format  : %s\n' ...
+                            'File path    : %s\n'], ...
+                            [mn_base_url '/object/' char(d1_object_id.getValue())], ...
+                            char(v2SysMeta.getFormatId().getValue()), ...
+                            char(v2SysMeta.getFileName()));
                     end
-                                          
-                    % build d1 object
-                    dataObj = runManager.buildD1Object(d1_object.full_file_path, ...
-                        d1_object_format, d1_object_id, submitter.getValue(), targetMNodeStr);
-                    dataSource = dataObj.getDataSource();
-                    
-                    % get system metadata for dataObj 
-                    v2SysMeta = dataObj.getSystemMetadata(); % version 2 system metadata
                     
                     if runManager.configuration.debug
                         fprintf('***********************************************************\n');
@@ -2228,22 +2333,21 @@ classdef RunManager < hgsetget
                         fprintf('***********************************************************\n');
                     end
                     
-                    % set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)                                    
-                    v2SysMeta.setFileName(d1_object.system_metadata.getFileName());
+                    % Set the other information for sysmeta (submitter, rightsHolder, foaf_name, AccessPolicy, ReplicationPolicy)
                     v2SysMeta.setSubmitter(submitter);
                     v2SysMeta.setRightsHolder(submitter);
-                    
+
                     if runManager.configuration.public_read_allowed == 1
                         strArray = javaArray('java.lang.String', 1);
                         permsArray = javaArray('org.dataone.service.types.v1.Permission', 1);
-                        strArray(1,1) = String('public');
-                        permsArray(1,1) = Permission.READ;
+                        strArray(1, 1) = String('public');
+                        permsArray(1, 1) = Permission.READ;
                         ap = AccessUtil.createSingleRuleAccessPolicy(strArray, permsArray);
                         v2SysMeta.setAccessPolicy(ap);
                         if runManager.configuration.debug
                             fprintf('d1Obj.accessPolicySize=%d\n', v2SysMeta.getAccessPolicy().sizeAllowList());
                         end
-                    end                   
+                    end
                                     
                     if runManager.configuration.replication_allowed == 1
                         rp = ReplicationPolicy();
@@ -2264,10 +2368,10 @@ classdef RunManager < hgsetget
                     try
                         % Check if the identifier has been used. If so,
                         % skip uploading the current file object
-                        returnPid = cnNode.reserveIdentifier(j_session, pid);
-                        
+                        returnPid = cnNode.reserveIdentifier(j_session, pid);    
                         returnPid = mnNode.create(j_session, pid, dataSource.getInputStream(), v2SysMeta);
-                        if isempty(returnPid) ~= 1
+                        
+                        if isempty(returnPid.getValue()) ~= 1 
                             fprintf('Success      : Uploaded %s\n\n', char(v2SysMeta.getFileName()));
                             
                         else
@@ -2275,7 +2379,7 @@ classdef RunManager < hgsetget
                             error('Error on returned identifier %s', char(v2SysMeta.getIdentifier()));                            
                         end
                     catch
-                        msg = ['Error on duplicate identifier' char(v2SysMeta.getIdentifier().getValue())];
+                        msg = ['Error on duplicate identifier ' char(v2SysMeta.getIdentifier().getValue())];
                         warning(msg);
                         
                         continue; % Ignore the duplicate error and upload the next file object
@@ -2284,7 +2388,7 @@ classdef RunManager < hgsetget
                 
                 package_id = packageId; 
          
-            catch runtimeError 
+            catch runtimeError
                 runManager.execution.error_message = ...
                     [runManager.execution.error_message ' ' ...
                     runtimeError.message];
@@ -2296,70 +2400,24 @@ classdef RunManager < hgsetget
             
             % Record the date and time that the package from this run is uploaded to DataONE
             publishedTime = datestr( now,'yyyymmddTHHMMSS' );
-
-            [execMetaMatrix, header] = runManager.getExecMetadataMatrix();
-            numOfRows = size(execMetaMatrix, 1);
-            for i=1:numOfRows
-                if strcmp(execMetaMatrix{i,6}, packageId)
-                    execMetaMatrix{i,5} = publishedTime;
-                end
-            end
             
-            % Write the updated execution metadata with headers to the execution
-            % T = cell2table(execMetaMatrix, 'VariableNames', [header{:}]);
-            % writetable(T, runManager.configuration.execution_db_name);
-            % Write the updated execution metadata with headers to the execution database
-            formatSpec = runManager.configuration.execution_db_write_format;
-            if exist(runManager.configuration.execution_db_name, 'file') == 2
-                [fileId, message] = ...
-                    fopen(runManager.configuration.execution_db_name,'w');
-                if fileId == -1
-                    disp(message);
-                end
-                fprintf(fileId, formatSpec, ...
-                    'runId', ...
-                    'filePath', ...
-                    'startTime', ...
-                    'endTime', ...
-                    'publishedTime', ...
-                    'packageId', ...
-                    'tag', ...
-                    'user', ...
-                    'subject', ...
-                    'hostId', ...
-                    'operatingSystem', ...
-                    'runtime', ...
-                    'moduleDependencies', ...
-                    'console', ...
-                    'errorMessage', ...
-                    'runNumber');
-                [rows, cols] = size(execMetaMatrix);
-                for (row = 1:rows)
-                    fprintf(fileId, formatSpec, ...
-                        char(execMetaMatrix(row, 1)), ...
-                        char(execMetaMatrix(row, 2)), ...
-                        char(execMetaMatrix(row, 3)), ...
-                        char(execMetaMatrix(row, 4)), ...
-                        char(execMetaMatrix(row, 5)), ...
-                        char(execMetaMatrix(row, 6)), ...
-                        char(execMetaMatrix(row, 7)), ...
-                        char(execMetaMatrix(row, 8)), ...
-                        char(execMetaMatrix(row, 9)), ...
-                        char(execMetaMatrix(row, 10)), ...
-                        char(execMetaMatrix(row, 11)), ...
-                        char(execMetaMatrix(row, 12)), ...
-                        char(execMetaMatrix(row, 13)), ...
-                        char(execMetaMatrix(row, 14)), ...
-                        char(execMetaMatrix(row, 15)), ...
-                        char(execMetaMatrix(row, 16)));
-                end
-                fclose(fileId);
-            end
+            % Record published time, the
+            % published id, subject that submitted the data. 
+            update_clause = 'UPDATE execmeta ';
+            set_clause = sprintf('SET subject="%s", publishTime="%s", publishNodeId="%s", publishId="%s" ', char(submitter.getValue()), publishedTime, mnNodeId, '');
+            where_clause = sprintf('WHERE executionId="%s"', packageId);
+            update_em_query = sprintf('%s %s %s;', update_clause, set_clause, where_clause);
+            status = runManager.provenanceDB.execute(update_em_query);
+            
+            % Close the database
+            runManager.provenanceDB.closeDBConnection();
         end
+
         
         function combFileName = getYWCombViewFileName(runManager)
             combFileName = runManager.combinedViewPdfFileName;
         end
+        
         
         function science_metadata = getMetadata(runManager, varargin)
             % GETMETADATA retrieves the metadata describing data objects of
@@ -2396,7 +2454,7 @@ classdef RunManager < hgsetget
                 runNumberCondition = false(size(execMetaMatrix, 1), 1);
                 
                 % Extract one row from a matrix satisfying the runNumberCondition
-                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);
+                runNumberCondition = strcmp(execMetaMatrix(:, 16), snValue);
                 selectedRun = execMetaMatrix(runNumberCondition, :);
                 if isempty(selectedRun)
                     error('No runs can be found as a match.');
@@ -2464,7 +2522,7 @@ classdef RunManager < hgsetget
                 runNumberCondition = false(size(execMetaMatrix, 1), 1);
                 
                 % Extract one row from a matrix satisfying the runNumberCondition
-                runNumberCondition = strcmp(execMetaMatrix(:,16), snValue);                
+                runNumberCondition = strcmp(execMetaMatrix(:, 16), snValue);                
                 selectedRun = execMetaMatrix(runNumberCondition, :);
                 if isempty(selectedRun)
                     error('No runs can be found as a match.');
@@ -2504,6 +2562,358 @@ classdef RunManager < hgsetget
             end
         end
         
-    end
+        function exportPrologFacts(runManager, outputFilePath, varargin)
+            % EXPORTPROLOGFACTS exports the d1 matlab provenance databases 
+            % to prolog facts which can be used for provenance analysis. 
+            %   outputFilePath -- the output prolog facts locations
+            
+            import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ExecMetadata;
+            import org.dataone.client.query.FactsExportBuilder;
+            
+            if isempty(varargin)
+                query_engine = runManager.DEFAULT_QUERY_ENGINE;
+            else
+                query_engine = varargin{1};
+            end
+                         
+           % Open the provenance database connection
+           runManager.provenanceDB.openDBConnection();
+           
+            % Create a SQL query to export all data in the execmeta table
+            em_query = 'select * from execmeta ;';
+            em_data_cell = runManager.provenanceDB.execute(em_query);
+            
+            % Create a SQL query to export all data in the filemeta table
+            fm_query = 'select * from filemeta where filePath not like "%/.d1%" ; '; % filter out hidden system metadata file
+            fm_data_cell = runManager.provenanceDB.execute(fm_query);
+            
+            % Create a SQL query to export all data in the tags table
+            tag_query = 'select * from tags ;';
+            tag_data_cell = runManager.provenanceDB.execute(tag_query);
+                       
+            execmetaFacts = FactsExportBuilder(query_engine, 'execmeta', 'Seq', 'ExecutionId', 'MetadataId', ...
+                'DatapackageId', 'User', 'Subject', 'HostId', 'StartTime', ...
+                'OperatingSystem', 'Runtime', 'SoftwareApplication', ...
+                'EndTime', 'ErrorMessage', 'PublishTime', 'PublishNodeId', 'PublishId', 'Console');
+            
+            filemetaFacts= FactsExportBuilder(query_engine, 'filemeta', 'FileId', 'ExecutionId', 'FilePath', ...
+                'Sha256', 'Size', 'User', 'ModifyTime', 'CreateTime', 'Access', 'Format', 'ArchivedFilePath');
+            
+            tagFacts = FactsExportBuilder(query_engine, 'tag', 'Seq', 'ExecutionId', 'Tag');
+            
+            [em_nrows, ~] = size(em_data_cell);
+            for i = 1 : em_nrows
+                execmetaFacts.addRow(em_data_cell{i, :});
+            end
+            
+            [fm_nrows, ~] = size(fm_data_cell);
+            for j = 1 : fm_nrows
+                filemetaFacts.addRow(fm_data_cell{j, :});
+            end
+            
+            [tag_nrows, ~] = size(tag_data_cell);
+            for k = 1 : tag_nrows
+                tagFacts.addRow(tag_data_cell{k, :});
+            end
+            
+            tagFacts.writeFacts(outputFilePath, 'tagfacts.P');
+            filemetaFacts.writeFacts(outputFilePath, 'filemetafacts.P');
+            execmetaFacts.writeFacts(outputFilePath, 'execmetafacts.P');
+            
+            % Close the database
+            runManager.provenanceDB.closeDBConnection();
+        end
+        
+        function exportFileRecords2Yaml(runManager, executionId, run_base_path, export_file)
+            % EXPORTFILERECORD2YAML exports the input/output file records
+            % to YAML format which can be used by YesWorkflow query module
+            % to produce an enriched YesWorkflow model graph with runtime
+            % file records. Example : 
+            % mgr.exportFileRecords2Yaml('497490a7-dfaf-40e8-8647-e32d191ec9bc', '/Users/syc/Documents/C3_C4_mapping', 'run.yaml');
+            %   executionId -- the executionId for a given run
+            %   run_base_path -- a base directory for a run (Todo: need to record and read from execmeta table)
+            %   export_file -- the output YAML file path
+             
+            import org.dataone.client.sqlite.FileMetadata;
+            
+            % Open the provenance database connection
+            runManager.provenanceDB.openDBConnection();
+            
+            % Create a SQL query to export all read files in the filemeta table
+            used_fm_query = sprintf('select filePath from filemeta where  executionId="%s" and access="read" ', executionId);
+            used_fm_query = [used_fm_query, 'and filePath not like "%/.d1%" ;'];
+            used_fm_cell = runManager.provenanceDB.execute(used_fm_query);
+            
+            % Create a SQL query to export all wasGenerated files in the filemeta table
+            wasGenerated_fm_query = sprintf('select filePath from filemeta where executionId="%s" and access="write" ', executionId);
+            wasGenerated_fm_query = [wasGenerated_fm_query, 'and filePath not like "%/.d1%" ;'];
+            wasGenerated_fm_cell = runManager.provenanceDB.execute(wasGenerated_fm_query);
+            
+            % Close the database connection
+            runManager.provenanceDB.closeDBConnection();
+            
+            % Write base-relative file paths of input and output files for
+            % run
+            fileID = fopen(export_file,'w');
+            runManager.write_file_paths(fileID, 'inputs', run_base_path, used_fm_cell);
+            runManager.write_file_paths(fileID, 'outputs', run_base_path, wasGenerated_fm_cell);
+            fclose(fileID);
+        end
+        
+        function write_file_paths(runManager, fileID, section_name, base_dir, file_paths)
+            % WRITE_FILE_PATHS writes write base-relative file paths of
+            % input and output files for run as a YAML file
+            %   section_name -- a section name in a YAML file
+            %   base_dir -- the base directory for a run
+            %   file_paths -- a cell array containing file inputs/outputs 
+            
+            % Helper function used by yw-matlab
+            fprintf(fileID, ['\n' section_name ':' '\n']);
+            for i = 1 : length(file_paths)
+                full_file_path = file_paths{i};
+                base_relative_path = runManager.get_base_relative_path(base_dir, full_file_path);
+                fprintf(fileID, ['  - ' base_relative_path '\n']);
+            end
+        end
 
+        function [base_relative_path] = get_base_relative_path(runManager, base_dir, full_path)
+            % GET_BASE_RELATIVE_PATH parses the absolute file path to get
+            % the relative file path given a base_dir 
+            %   base_dir -- a base directory for a run
+            %   full_path -- an absolute file path
+          
+            [one,base_dir_length] = size(base_dir);
+            if strncmpi(full_path, base_dir, base_dir_length)
+                base_relative_path = full_path(base_dir_length + 2 : end);
+            else
+                base_relative_path = full_path;
+            end
+        end
+
+        function exportR2PrologFacts(runManager, outputFilePath, varargin)
+            % EXPORTR2PROLOGFACTS exports the d1 R provenance database to
+            % prolog facts which can be used for provenance analysis. The "execmeta"
+            % in R database schema has a column "moduleDependencies" which is filtered out 
+            % in the facts dump in order to be consistent with MATLAB
+            % provenance facts dump.
+            %   outputFilePath -- the output prolog facts files location
+            
+            import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.ExecMetadata;
+            import org.dataone.client.query.FactsExportBuilder;
+            import org.dataone.client.sqlite.Database;
+            import org.dataone.client.sqlite.SqliteDatabase;
+            
+            if isempty(varargin)
+                query_engine = runManager.DEFAULT_QUERY_ENGINE;
+            else
+                query_engine = varargin{1};
+            end
+                         
+            % Configure the R provenance database
+            db_path = runManager.configuration.provenance_storage_directory;
+            db_file = 'recordr.sqlite'; 
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
+            runManager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+       
+           % Open the provenance database connection
+           runManager.provenanceDB.openDBConnection();
+           
+            % Create a SQL query to export all data in the execmeta table
+            em_query = ['select e.Seq, e.ExecutionId, e.MetadataId, e.DatapackageId, e.User, e.Subject, e.HostId, e.StartTime,' ...
+                       'e.OperatingSystem, e.Runtime, e.SoftwareApplication, e.EndTime, e.ErrorMessage, e.PublishTime,' ...
+                       'e.PublishNodeId, e.PublishId, e.Console from execmeta e ;'];
+            em_data_cell = runManager.provenanceDB.execute(em_query);
+            
+            % Create a SQL query to export all data in the filemeta table
+            fm_query = 'select * from filemeta where filePath not like "%/.d1%" ; '; % filter out hidden system metadata file
+            fm_data_cell = runManager.provenanceDB.execute(fm_query);
+            
+            % Create a SQL query to export all data in the tags table
+            tag_query = 'select * from tags ;';
+            tag_data_cell = runManager.provenanceDB.execute(tag_query);
+                       
+            execmetaFacts = FactsExportBuilder(query_engine, 'execmeta', 'Seq', 'ExecutionId', 'MetadataId', ...
+                'DatapackageId', 'User', 'Subject', 'HostId', 'StartTime', ...
+                'OperatingSystem', 'Runtime', 'SoftwareApplication', ...
+                'EndTime', 'ErrorMessage', 'PublishTime', 'PublishNodeId', 'PublishId', 'Console');
+            
+            filemetaFacts= FactsExportBuilder(query_engine, 'filemeta', 'FileId', 'ExecutionId', 'FilePath', ...
+                'Sha256', 'Size', 'User', 'ModifyTime', 'CreateTime', 'Access', 'Format', 'ArchivedFilePath');
+            
+            tagFacts = FactsExportBuilder(query_engine, 'tag', 'Seq', 'ExecutionId', 'Tag');
+            
+            [em_nrows, ~] = size(em_data_cell);
+            for i = 1 : em_nrows
+                execmetaFacts.addRow(em_data_cell{i, :});
+            end
+            
+            [fm_nrows, ~] = size(fm_data_cell);
+            for j = 1 : fm_nrows
+                filemetaFacts.addRow(fm_data_cell{j, :});
+            end
+            
+            [tag_nrows, ~] = size(tag_data_cell);
+            for k = 1 : tag_nrows
+                tagFacts.addRow(tag_data_cell{k, :});
+            end
+            
+            tagFacts.writeFacts(outputFilePath, 'tagfacts.P');
+            filemetaFacts.writeFacts(outputFilePath, 'filemetafacts.P');
+            execmetaFacts.writeFacts(outputFilePath, 'execmetafacts.P');
+            
+            % Close the database
+            runManager.provenanceDB.closeDBConnection();
+        end
+        
+        function exportFileRecords2Yaml_R(runManager, executionId, run_base_path, export_file)
+            % EXPORTFILERECORD2YAML_R (from recordr.sqlite) exports the input/output file records
+            % to YAML format which can be used by YesWorkflow query module
+            % to produce an enriched YesWorkflow model graph with runtime
+            % file records. Example :
+            % mgr.exportFileRecords2Yaml_R('497490a7-dfaf-40e8-8647-e32d191ec9bc', '/Users/slaughter/git/OHI-Science/ohibc', 'run_ohi.yaml');
+            %   executionId -- the executionId for a given run
+            %   run_base_path -- a base directory for a run (Todo: need to record and read from execmeta table)
+            %   export_file -- the output YAML file path
+            
+            import org.dataone.client.sqlite.FileMetadata;
+            import org.dataone.client.sqlite.SqliteDatabase;
+            import org.dataone.client.sqlite.Database;
+            
+            % Configure the R provenance database
+            db_path = runManager.configuration.provenance_storage_directory;
+            db_file = 'recordr.sqlite';
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
+            runManager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+            
+            % Open the provenance database connection
+            runManager.provenanceDB.openDBConnection();
+            
+            % Create a SQL query to export all read files in the filemeta table
+            used_fm_query = sprintf('select filePath from filemeta where executionId="%s" and access="read" ', executionId);
+            used_fm_query = [used_fm_query, 'and filePath not like "%/.d1%" ;'];
+            used_fm_cell = runManager.provenanceDB.execute(used_fm_query);
+            
+            % Create a SQL query to export all wasGenerated files in the filemeta table
+            wasGenerated_fm_query = sprintf('select filePath from filemeta where executionId="%s" and access="write" ', executionId);
+            wasGenerated_fm_query = [wasGenerated_fm_query, 'and filePath not like "%/.d1%" ;'];
+            wasGenerated_fm_cell = runManager.provenanceDB.execute(wasGenerated_fm_query);
+            
+            % Close the database connection
+            runManager.provenanceDB.closeDBConnection();
+            
+            % Write base-relative file paths of input and output files for
+            % run
+            fileID = fopen(export_file,'w');
+            runManager.write_file_paths(fileID, 'inputs', run_base_path, used_fm_cell);
+            runManager.write_file_paths(fileID, 'outputs', run_base_path, wasGenerated_fm_cell);
+            fclose(fileID);
+        end
+             
+        function upstream_cell = upstream(runManager)
+            import org.dataone.client.sqlite.SqliteDatabase;
+            import org.dataone.client.sqlite.Database;
+            
+            % Configure the R provenance database 
+            db_path = runManager.configuration.provenance_storage_directory;
+            db_file = 'recordr.sqlite';
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
+            runManager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+            
+            % Open the provenance database connection
+            runManager.provenanceDB.openDBConnection();
+                              
+            upstream_sql_statement = [
+                'WITH RECURSIVE search_upstream_execution_5 (path, up_executionId, level) AS (' ...
+                'SELECT "null, "|| em.executionId, em.executionId, 1  ' ...
+                'FROM execmeta em ' ...
+                'UNION  ' ...
+                'SELECT  ss5.path || "," || fm1.filePath || "," || em2.executionId, em2.executionId, ss5.level+1 ' ...
+                ' FROM search_upstream_execution_5 ss5, ' ...
+                'execmeta em2, ' ...
+                'filemeta fm1, ' ...
+                'filemeta fm2 ' ...
+                'WHERE  fm1.access="read" and fm1.executionId=ss5.up_executionId and fm2.access="write" and fm2.filePath=fm1.filePath and fm2.executionId=em2.executionId ' ...
+                ')' ...
+                'SELECT  path FROM search_upstream_execution_5 where level=5;'
+                ];
+            
+            upstream_cell = runManager.provenanceDB.execute(upstream_sql_statement);
+            
+            % Render a graph using the SQL results.
+            s = {};
+            t = {};      
+            visited_edges = java.util.HashSet();
+            for i = 1 : length(upstream_cell)
+                C = strsplit(upstream_cell{i},',');
+                for j = 1 : length(C) - 1  
+                    edge = strcat(C{j},'-', C{j + 1});
+                    if visited_edges.contains(edge) == 0
+                        s{end + 1} = C{j};
+                        t{end + 1} = C{j + 1};
+                        visited_edges.add(edge);
+                    end
+                end
+            end
+            G = graph(s,t);
+            plot(G);
+            
+            % Close the database connection
+            runManager.provenanceDB.closeDBConnection();
+        end
+             
+        function downstream_cell = downstream(runManager)
+            import org.dataone.client.sqlite.SqliteDatabase;
+            import org.dataone.client.sqlite.Database;
+            
+            % Configure the R provenance database
+            db_path = runManager.configuration.provenance_storage_directory;
+            db_file = 'recordr.sqlite';
+            db_url = sprintf('jdbc:sqlite:%s/%s', db_path, db_file);
+            runManager.provenanceDB = SqliteDatabase(db_file, '', '', 'org.sqlite.JDBC', db_url);
+            
+            % Open the provenance database connection
+            runManager.provenanceDB.openDBConnection();
+            
+            downstream_sql_statement = [
+                'WITH RECURSIVE search_downstream_execution_14 (path, down_executionId, level) AS (' ...
+                'SELECT "null, " || em.executionId, em.executionId, 1 ' ...
+                'FROM execmeta em ' ...
+                'WHERE em.executionId="urn:uuid:3d6c8ed0-83c0-4b12-9154-2804f4317598" ' ...
+                'UNION  ' ...
+                'SELECT  ss14.path || "," || fm1.filePath || "," || em2.executionId,  em2.executionId, ss14.level+1 ' ...
+                'FROM search_downstream_execution_14 ss14 INNER JOIN filemeta fm1 on fm1.executionId=ss14.down_executionId and fm1.access="write", ' ...
+                'execmeta em2 INNER JOIN filemeta fm2 on fm2.executionId=em2.executionId and fm2.access="read" ' ...
+                'WHERE  fm2.sha256=fm1.sha256 ' ...
+                ')' ...
+                'SELECT * FROM search_downstream_execution_14 where level=5;'
+            ];
+            
+            downstream_cell = runManager.provenanceDB.execute(downstream_sql_statement);
+            
+            % Render a graph using the SQL results.
+            s = {};
+            t = {};
+            visited_edges = java.util.HashSet();
+            for i = 1 : length(downstream_cell)
+                C = strsplit(downstream_cell{i},',');
+                for j = 1 : length(C) - 1
+                    edge = strcat(C{j},'-', C{j + 1});
+                    if visited_edges.contains(edge) == 0
+                        s{end + 1} = C{j};
+                        t{end + 1} = C{j + 1};
+                        visited_edges.add(edge);
+                    end
+                end
+            end
+            G = graph(s,t);
+            plot(G);
+            
+            % Close the database connection
+            runManager.provenanceDB.closeDBConnection();
+            
+        end
+    end
+    
 end

@@ -85,7 +85,7 @@ classdef Configuration < hgsetget & dynamicprops
                 
         % A flag indicating whether to trigger provenance capture for YesWorkflow inline comments
         % capture_yesworkflow_comments = false;
-        capture_yesworkflow_comments = false;
+        capture_yesworkflow_comments = true;
         
         % The directory used to store persistent configuration file Eg: $HOME/.d1/configuration.json
         persistent_configuration_file_name = '';
@@ -261,7 +261,7 @@ classdef Configuration < hgsetget & dynamicprops
                     % Create critical folders and files
                     createConfigurationDirectory(configuration);
                     createProvStorageDirectory(configuration);
-                    createExecutionsDatabase(configuration);
+%                     createExecutionsDatabase(configuration); % We use sqlite database to store the provenance data now.
                     setPersistentConfigFile(configuration);
                     setMatlabDataONEToolboxDirectory(configuration);
                     setMetadataTemplateFile(configuration);
@@ -272,7 +272,7 @@ classdef Configuration < hgsetget & dynamicprops
 
                 createConfigurationDirectory(configuration);
                 createProvStorageDirectory(configuration);
-                createExecutionsDatabase(configuration);
+%                 createExecutionsDatabase(configuration); % We use sqlite database to store the provenance data now.
                 setPersistentConfigFile(configuration);
                 setMatlabDataONEToolboxDirectory(configuration);
 
@@ -299,8 +299,8 @@ classdef Configuration < hgsetget & dynamicprops
                 
             else
                 createConfigurationDirectory(configuration);
-                createProvStorageDirectory(configuration);
-                createExecutionsDatabase(configuration);
+                createProvStorageDirectory(configuration);                
+%                 createExecutionsDatabase(configuration); % We use sqlite database to store the provenance data now.
                 setMatlabDataONEToolboxDirectory(configuration);
                 setCoordinatingNodeURL(configuration);
                 setPersistentConfigFile(configuration);
@@ -721,26 +721,26 @@ classdef Configuration < hgsetget & dynamicprops
         end
         
         function createExecutionsDatabase(configuration)
-        % CREATEEXECUTIONSDATABASE creates the executions database to track runs
-
-                if isempty( configuration.execution_db_name )
-                    configuration.execution_db_name = ...
+            % CREATEEXECUTIONSDATABASE creates the executions database to track runs
+            
+            if isempty( configuration.execution_db_name )
+                configuration.execution_db_name = ...
                     fullfile(configuration.provenance_storage_directory, ...
-                        'executions.csv');
-                end
-
+                    'executions.csv');
+            end
+            
             if ( exist(configuration.execution_db_name, 'file') ~= 2 )
                 [fileId, message] = fopen(configuration.execution_db_name,'w');
                 
                 if ( fileId == -1 )
                     error(['Could not open the executions database ' ...
-                          configuration.execution_db_name ...
-                          ' for writing. The error message was: ' ...
-                          message]);
+                        configuration.execution_db_name ...
+                        ' for writing. The error message was: ' ...
+                        message]);
                 end
                 
                 formatSpec = configuration.execution_db_write_format;
-
+                
                 fprintf(fileId, formatSpec, ...
                     'runId', ...
                     'filePath', ...
@@ -759,7 +759,7 @@ classdef Configuration < hgsetget & dynamicprops
                     'errorMessage', ...
                     'runNumber');
                 fclose(fileId);
-
+                
             end
         end
         

@@ -1,5 +1,5 @@
 function varargout = create(source, mode, varargin)
-%netcdf.create Create new netCDF file.
+% netcdf.create Create new netCDF file.
 %   ncid = netcdf.create(filename, mode) creates a new netCDF file 
 %   according to the file creation mode.  The return value is a file
 %   ID.  
@@ -44,7 +44,7 @@ function varargout = create(source, mode, varargin)
 % jointly copyrighted by participating institutions in DataONE. For
 % more information on DataONE, see our web site at http://dataone.org.
 %
-%   Copyright 2015 DataONE
+%   Copyright 2016 DataONE
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -95,41 +95,66 @@ function varargout = create(source, mode, varargin)
     end
     
     % Identify the file being created/used and add a prov:wasGeneratedBy statements 
-    % in the RunManager DataPackage instance
-    formatId = 'netCDF-3';
-    import org.dataone.client.v2.DataObject;
-
+    % in the RunManager DataPackage instance    
     if ( runManager.configuration.capture_file_writes )
-
+        formatId = 'netCDF-3';
+        
+        import org.dataone.client.v2.DataObject;
+        import org.dataone.client.sqlite.FileMetadata;
+        
         fullSourcePath = which(source);
         if isempty(fullSourcePath)
             [status, struc] = fileattrib(source);
             fullSourcePath = struc.Name;
         end
         
-        existing_id = runManager.execution.getIdByFullFilePath( ...
-            fullSourcePath);
-        if ( isempty(existing_id) )
-            % Add this object to the execution objects map
-            pid = char(java.util.UUID.randomUUID()); % generate an id
-            dataObject = DataObject(pid, formatId, fullSourcePath);
-            runManager.execution.execution_objects(dataObject.identifier) = ...
-                dataObject;
-
-        else
-            % Update the existing map entry with a new DataObject
-            pid = existing_id;
-            dataObject = DataObject(pid, formatId, fullSourcePath);
-            runManager.execution.execution_objects(dataObject.identifier) = ...
-                dataObject;
-
+        [archiveRelDir, archivedRelFilePath, db_status] = FileMetadata.archiveFile(fullSourcePath);
+        if db_status == 1
+            % The file has not been archived
+            full_archive_file_path = sprintf('%s%s%s', runManager.configuration.provenance_storage_directory, filesep, archivedRelFilePath);
+            full_archive_dir_path = sprintf('%s%s%s', runManager.configuration.provenance_storage_directory, filesep, archiveRelDir);
+            if ~exist(full_archive_dir_path, 'dir')
+                mkdir(full_archive_dir_path);
+            end
+            % Copy this file to the archive directory
+            copyfile(fullSourcePath, full_archive_file_path, 'f');
         end
-
-        if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
-            runManager.execution.execution_output_ids{ ...
-                end + 1} = pid;
-
+        
+        % Save the file metadata to the database
+        pid = char(java.util.UUID.randomUUID());
+        dataObject = DataObject(pid, formatId, fullSourcePath);
+        file_meta_obj = FileMetadata(dataObject, runManager.execution.execution_id, 'write');
+        file_meta_obj.archivedFilePath = archivedRelFilePath;
+        write_query = file_meta_obj.writeFileMeta();
+        sql_status = runManager.provenanceDB.execute(write_query, file_meta_obj.tableName);
+        if sql_status == -1
+            message = 'DBError: insert a new record to the filemeta table.';
+            error(message);
         end
+        
+        %         existing_id = runManager.execution.getIdByFullFilePath( ...
+        %             fullSourcePath);
+        %         if ( isempty(existing_id) )
+        %             % Add this object to the execution objects map
+        %             pid = char(java.util.UUID.randomUUID()); % generate an id
+        %             dataObject = DataObject(pid, formatId, fullSourcePath);
+        %             runManager.execution.execution_objects(dataObject.identifier) = ...
+        %                 dataObject;
+        %
+        %         else
+        %             % Update the existing map entry with a new DataObject
+        %             pid = existing_id;
+        %             dataObject = DataObject(pid, formatId, fullSourcePath);
+        %             runManager.execution.execution_objects(dataObject.identifier) = ...
+        %                 dataObject;
+        %
+        %         end
+        %
+        %         if ( ~ ismember(pid, runManager.execution.execution_output_ids) )
+        %             runManager.execution.execution_output_ids{ ...
+        %                 end + 1} = pid;
+        %
+        %         end
 
     end
 end
